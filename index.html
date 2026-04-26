@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Manutenção - Água</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+        }
+        
+        h1 { text-align: center; margin-bottom: 5px; font-size: 1.6rem; }
+        .subtitle { text-align: center; color: #a0c4e8; margin-bottom: 10px; font-size: 0.85rem; }
+        
+        .systems-filter { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px; }
+        .system-btn {
+            padding: 8px 16px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1);
+            color: white; border-radius: 20px; cursor: pointer; font-size: 0.8rem; transition: all 0.3s;
+        }
+        .system-btn:hover, .system-btn.active { background: #3182ce; border-color: #3182ce; }
+        
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .stat-card {
+            backdrop-filter: blur(10px); border-radius: 12px;
+            padding: 15px; text-align: center; 
+            cursor: pointer; transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+        }
+        .stat-card:hover { background: rgba(255,255,255,0.2); }
+        .stat-number { font-size: 2rem; font-weight: bold; }
+        .stat-label { font-size: 0.75rem; color: #a0c4e8; margin-top: 5px; font-weight: 600;}
+        
+        #card-all .stat-number { color: #63b3ed; }
+        #card-ok { background: rgba(56, 161, 105, 0.15); border-color: rgba(56, 161, 105, 0.3); }
+        #card-ok:hover { background: rgba(56, 161, 105, 0.25); }
+        #card-ok .stat-number { color: #48bb78; }
+        #card-alert { background: rgba(214, 158, 46, 0.15); border-color: rgba(214, 158, 46, 0.3); }
+        #card-alert:hover { background: rgba(214, 158, 46, 0.25); }
+        #card-alert .stat-number { color: #ecc94b; }
+        #card-down { background: rgba(229, 62, 62, 0.15); border-color: rgba(229, 62, 62, 0.3); }
+        #card-down:hover { background: rgba(229, 62, 62, 0.25); }
+        #card-down .stat-number { color: #f56565; }
+
+        .search-box {
+            width: 100%; padding: 12px; border: none; border-radius: 10px; margin-bottom: 15px;
+            font-size: 0.95rem; background: rgba(255,255,255,0.15); color: white;
+        }
+        .search-box::placeholder { color: #a0c4e8; }
+        
+        .equipment-list {
+            background: rgba(255,255,255,0.05); border-radius: 15px; overflow: hidden;
+            max-height: 60vh; overflow-y: auto;
+        }
+        .equipment-item {
+            padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); display: grid;
+            grid-template-columns: 45px 1fr auto; gap: 12px; align-items: center; transition: background 0.3s; cursor: pointer;
+        }
+        .equipment-item:hover { background: rgba(255,255,255,0.1); }
+        
+        .status-icon { width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+        .status-ok { background: #38a169; }
+        .status-alert { background: #d69e2e; }
+        .status-down { background: #e53e3e; }
+        
+        .equipment-name { font-weight: 600; font-size: 0.9rem; }
+        .equipment-system { font-size: 0.75rem; color: #a0c4e8; margin-top: 2px; }
+        
+        .status-badge { padding: 4px 10px; border-radius: 15px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+        .badge-ok { background: #38a169; }
+        .badge-alert { background: #d69e2e; }
+        .badge-down { background: #e53e3e; }
+        
+        .system-tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; margin-top: 3px; }
+        .tag-100 { background: #e53e3e; } .tag-200 { background: #dd6b20; } .tag-300 { background: #d69e2e; }
+        .tag-400 { background: #38a169; } .tag-600 { background: #3182ce; } .tag-700 { background: #805ad5; }
+     </style>
+     
+     <link rel="icon" type="image/png" href="./logo.png">
+     <link rel="apple-touch-icon" href="./logo.png">
+</head>
+<body>
+    
+    <div id="loginScreen" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    ">
+        <div style="
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        ">
+            <img src="./logo.png" alt="Logo" style="width: 80px; height: 80px; margin-bottom: 20px; object-fit: contain;">
+            <h2 style="color: #1e3a5f; margin-bottom: 5px;">Sistema de Manutenção</h2>
+            <p style="color: #718096; margin-bottom: 30px; font-size: 0.9rem;">Água Potável - Grupos Motobombas</p>
+            
+            <input type="text" id="loginUser" placeholder="Usuário (nome completo)" style="
+                width: 100%;
+                padding: 12px;
+                margin-bottom: 15px;
+                border: 2px solid #e2e8f0;
+                border-radius: 10px;
+                font-size: 1rem;
+                color: #333;
+            ">
+            
+            <input type="password" id="loginPass" placeholder="Senha" style="
+                width: 100%;
+                padding: 12px;
+                margin-bottom: 20px;
+                border: 2px solid #e2e8f0;
+                border-radius: 10px;
+                font-size: 1rem;
+                color: #333;
+            ">
+            
+            <button onclick="fazerLogin()" style="
+                width: 100%;
+                padding: 15px;
+                background: #3182ce;
+                color: white;
+                border: none;
+                border-radius: 10px;
+                font-size: 1rem;
+                font-weight: 600;
+                cursor: pointer;
+            ">Entrar</button>
+            
+            <p id="loginErro" style="color: #e53e3e; margin-top: 15px; font-size: 0.85rem; display: none; font-weight: bold;"></p>
+        </div>
+    </div>
+
+     <div style="text-align: center; margin-bottom: 20px;">
+        <img src="./logo.png" alt="Logo" style="
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        ">
+        <h1>Sistema de Manutenção</h1>
+        <p class="subtitle">Água Potável - Grupos Motobombas</p>
+     </div>
+
+     <div class="systems-filter">
+         <button class="system-btn active" onclick="filterSystem('all')">Todos</button>
+         <button class="system-btn" onclick="filterSystem('moinhos de vento')">100 - Moinhos</button>
+         <button class="system-btn" onclick="filterSystem('são joao')">200 - São João</button>
+         <button class="system-btn" onclick="filterSystem('menino deus')">300 - Menino Deus</button>
+         <button class="system-btn" onclick="filterSystem('belem novo')">400 - Belém Novo</button>
+         <button class="system-btn" onclick="filterSystem('ilha da pintada')">600 - Ilhas</button>
+         <button class="system-btn" onclick="filterSystem('tristeza')">700 - Tristeza</button>
+     </div>
+    
+     <div class="stats">
+        <div class="stat-card" id="card-all" onclick="filterByStatus('all')" style="border: 2px solid #63b3ed;">
+            <div class="stat-number" id="totalCount">0</div>
+            <div class="stat-label">TOTAL</div>
+         </div>
+         <div class="stat-card" id="card-ok" onclick="filterByStatus('ok')">
+            <div class="stat-number" id="operationalCount">0</div>
+            <div class="stat-label">OPERANDO</div>
+         </div>
+         <div class="stat-card" id="card-alert" onclick="filterByStatus('alert')">
+            <div class="stat-number" id="maintenanceCount">0</div>
+            <div class="stat-label">MANUTENÇÃO</div>
+         </div>
+         <div class="stat-card" id="card-down" onclick="filterByStatus('down')">
+            <div class="stat-number" id="downCount">0</div>
+            <div class="stat-label">PARADOS</div>
+         </div>
+      </div>
+    
+      <input type="text" class="search-box" id="searchInput" placeholder="🔍 Buscar por nome, código ou sistema..." onkeyup="searchEquipment()">
+    
+      <div class="equipment-list" id="equipmentList"></div>
+
+      <script>
+        // LISTA DE USUÁRIOS (Restaurada com senha padrão 'dmae2026' e sem usuário teste)
+        const usuarios = [
+            // SUPERVISORES (veem tudo)
+            { nome: 'Rogério Alves', senha: 'dmae2026', funcao: 'supervisor', area: 'todos' },
+            { nome: 'Rafael Spies', senha: 'dmae2026', funcao: 'supervisor', area: 'todos' },
+            
+            // ADMINISTRADORES MECÂNICA
+            { nome: 'Valtemir Olmos', senha: 'dmae2026', funcao: 'administrador', area: 'mecanica' },
+            { nome: 'Paulo Jurandir', senha: 'dmae2026', funcao: 'administrador', area: 'mecanica' },
+            
+            // ADMINISTRADORES ELÉTRICA
+            { nome: 'Mauricio do Carmo', senha: 'dmae2026', funcao: 'administrador', area: 'eletrica' },
+            { nome: 'Jeferson Machado', senha: 'dmae2026', funcao: 'administrador', area: 'eletrica' },
+            
+            // LÍDERES MECÂNICA
+            { nome: 'Rodrigo Fortes', senha: 'dmae2026', funcao: 'lider', area: 'mecanica' },
+            { nome: 'Luciano Cruz', senha: 'dmae2026', funcao: 'lider', area: 'mecanica' },
+            { nome: 'Ronaldo Lemos', senha: 'dmae2026', funcao: 'lider', area: 'mecanica' },
+            { nome: 'Valneir Oliveira', senha: 'dmae2026', funcao: 'lider', area: 'mecanica' },
+            { nome: 'Antonio Carlos Leal', senha: 'dmae2026', funcao: 'lider', area: 'mecanica' },
+            { nome: 'Ricardo Mathiola', senha: 'dmae2026', funcao: 'lider', area: 'mecanica' },
+            
+            // LÍDERES ELÉTRICA
+            { nome: 'Carlos Alberto', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
+            { nome: 'Andre Marques', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
+            { nome: 'Roque Becker', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
+            { nome: 'Saulo Lockman', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' }
+        ];
+        
+        let usuarioLogado = null;
+
+        function fazerLogin() {
+            const user = document.getElementById('loginUser').value.trim();
+            const pass = document.getElementById('loginPass').value;
+            const erro = document.getElementById('loginErro');
+            
+            const encontrado = usuarios.find(u => 
+                u.nome.toLowerCase() === user.toLowerCase() && u.senha === pass
+            );
+            
+            if (!encontrado) {
+                erro.textContent = 'Usuário ou senha incorretos!';
+                erro.style.display = 'block';
+                return;
+            }
+            
+            usuarioLogado = encontrado;
+            document.getElementById('loginScreen').style.display = 'none';
+            mostrarUsuarioLogado();
+            aplicarPermissoes();
+        }
+
+        function mostrarUsuarioLogado() {
+            const header = document.querySelector('h1');
+            const info = document.createElement('div');
+            info.id = 'userInfo';
+            info.style.cssText = `
+                text-align: center;
+                color: #a0c4e8;
+                font-size: 0.85rem;
+                margin-bottom: 15px;
+                font-weight: 500;
+            `;
+            info.innerHTML = `
+                👤 ${usuarioLogado.nome} | 
+                ${usuarioLogado.funcao.toUpperCase()} | 
+                ${usuarioLogado.area.toUpperCase()}
+                <button onclick="fazerLogout()" style="
+                    margin-left: 10px;
+                    padding: 4px 10px;
+                    background: rgba(255,255,255,0.1);
+                    color: white;
+                    border: 1px solid rgba(255,255,255,0.3);
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-size: 0.75rem;
+                    transition: all 0.3s;
+                ">Sair</button>
+            `;
+            header.parentNode.insertBefore(info, header.nextSibling);
+        }
+        
+        function fazerLogout() {
+            usuarioLogado = null;
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('loginUser').value = '';
+            document.getElementById('loginPass').value = '';
+            document.getElementById('loginErro').style.display = 'none';
+            
+            const info = document.getElementById('userInfo');
+            if (info) info.remove();
+        }
+        
+        function aplicarPermissoes() {
+            if (usuarioLogado.funcao === 'supervisor' || usuarioLogado.funcao === 'administrador') {
+                return; 
+            }
+        }
+
+      const equipment = [
+            // SISTEMA MOINHOS DE VENTO (100)
+            { id: '101-GR1', name: '101 bruta (GR1)', system: 'moinhos de vento', systemCode: '100', status: 'ok' },
+            { id: '101-GR2', name: '101 bruta (GR2)', system: 'moinhos de vento', systemCode: '100', status: 'ok' },
+            { id: '101-GR3', name: '101 bruta (GR3)', system: 'moinhos de vento', systemCode: '100', status: 'ok' },
+            { id: '101-GR4', name: '101 bruta (GR4)', system: 'moinhos de vento', systemCode: '100', status: 'ok' },
+            { id: '102-GR1', name: '102 ebat moinhos (GR1)', system: 'moinhos de vento', systemCode: '100', status: 'ok' },
+            { id: '102-GR2', name: '102 ebat moinhos (GR2)', system: 'moinhos de vento', systemCode: '100', status: 'ok' },
+            { id: '102-GR3', name: '102 ebat moinhos (GR3)', system: 'moinhos de vento', systemCode: '100', status: 'ok' },
+            { id: '102-GR4', name: '102 ebat moinhos (GR4)', system: 'moinhos de vento', systemCode: '100', status: 'ok' },
+            { id: '103-GR1', name: '103 ebat bordini (GR1)', system: 'moinhos de vento', systemCode: '100', status: 'ok' },
+            { id: '103-GR2', name: '103 ebat bordini (GR2)', system: 'moinhos de vento', systemCode: '100', status: 'ok' },
+            { id: '103-GR3', name: '103 ebat bordini (GR3)', system: 'moinhos de vento', systemCode: '100', status: 'ok' },
+
+            // SISTEMA SÃO JOÃO (200) 
+            { id: '201-GR1', name: '201 EBAB SÃO JOÃO (GR1)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '201-GR2', name: '201 EBAB SÃO JOÃO (GR2)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '201-GR3', name: '201 EBAB SÃO JOÃO (GR3)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '201-GR4', name: '201 EBAB SÃO JOÃO (GR4)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '202-GR1', name: '202 LUZITANA (GR1)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '203-GR1', name: '203 LUZITANA (GR2)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '204-GR1', name: '204 LUZITANA (GR3)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '205-GR1', name: '205 LUZITANA (GR4)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '205-GR2', name: '205 IPIRANGA I (GR1)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '206-GR1', name: '206 IPIRANGA I (GR2)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '207-GR1', name: '207 IPIRANGA I (GR3)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '206-GR2', name: '206 IPIRANGA II (GR1)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '207-GR2', name: '207 IPIRANGA II (GR2)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '208-GR1', name: '208 IPIRANGA II (GR3)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '207-GR3', name: '207 GIOCONDA (GR1)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '208-GR2', name: '208 GIOCONDA (GR2)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '209-GR1', name: '209 GIOCONDA (GR3)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '210-GR1', name: '210 GIOCONDA (GR4)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '208-GR3', name: '208 BALTAZAR DE BEM IN LINE (GR1)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '209-GR2', name: '209 SARANDI (GR1)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '210-GR2', name: '210 SARANDI (GR2)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '211-GR1', name: '211 SARANDI (GR3)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '212-GR1', name: '212 SARANDI (GR4)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '210-GR3', name: '210 OURO PRETO (GR1)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '211-GR2', name: '211 OURO PRETO (GR2)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '212-GR2', name: '212 OURO PRETO (GR3)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '213-GR1', name: '213 OURO PRETO (GR4)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '211-GR3', name: '211 JAÚ (GR1)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '212-GR3', name: '212 JAÚ (GR2)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '213-GR2', name: '213 JAÚ (GR3)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '212-GR4', name: '212 MANOEL ELIAS I (GR1)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '213-GR3', name: '213 MANOEL ELIAS I (GR2)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '214-GR1', name: '214 MANOEL ELIAS I (GR3)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '213-GR4', name: '213 MANOEL ELIAS II (GR1)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '214-GR2', name: '214 MANOEL ELIAS II (GR2)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '215-GR1', name: '215 MANOEL ELIAS II (GR3)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '215-GR2', name: '215 MANOEL ELIAS III (GR1)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '216-GR1', name: '216 MANOEL ELIAS III (GR2)', system: 'são joao', systemCode: '200', status: 'ok' },
+            { id: '216-GR2', name: '216 PARQUE SANTA FÉ (GR1)', system: 'são joao', systemCode: '200', status: 'ok' },
+
+            // SISTEMA MENINO DEUS (300) 
+            { id: '300-GR1', name: '300 ETA MENINO DEUS (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '300-GR2', name: '300 ETA MENINO DEUS (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '300-GR3', name: '300 ETA MENINO DEUS (GR3)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '300-GR4', name: '300 ETA MENINO DEUS (GR4)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '300-GR5', name: '300 ETA MENINO DEUS (GR5)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '301-GR1', name: '301 EBAB MENINO DEUS (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '301-GR2', name: '301 EBAB MENINO DEUS (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '301-GR3', name: '301 EBAB MENINO DEUS (GR3)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '301-GR4', name: '301 EBAB MENINO DEUS (GR4)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '301-GR5', name: '301 EBAB MENINO DEUS (GR5)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '302-GR1', name: '302 PADRE CACIQUE (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '302-GR2', name: '302 PADRE CACIQUE (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '304-GR1', name: '304 MORRO DO OSSO I (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '304-GR2', name: '304 MORRO DO OSSO I (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '304-GR3', name: '304 MORRO DO OSSO I (GR3)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '305-GR1', name: '305 MORRO DO OSSO II (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '305-GR2', name: '305 MORRO DO OSSO II (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '306-GR1', name: '306 SANTA TEREZA I (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '306-GR2', name: '306 SANTA TEREZA I (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '306-GR3', name: '306 SANTA TEREZA I (GR3)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '307-GR1', name: '307 SANTA TEREZA II (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '307-GR2', name: '307 SANTA TEREZA II (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '308-GR1', name: '308 SANTA TEREZA III (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '308-GR2', name: '308 SANTA TEREZA III (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '309-GR1', name: '309 FERNANDO MACHADO (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '309-GR2', name: '309 FERNANDO MACHADO (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '309-GR3', name: '309 FERNANDO MACHADO (GR3)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '309-GR4', name: '309 FERNANDO MACHADO (GR4)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '312-GR1', name: '312 CAIEIRA (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '312-GR2', name: '312 CAIEIRA (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '314-GR1', name: '314 CATUMBI (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '314-GR2', name: '314 CATUMBI (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '314-GR3', name: '314 CATUMBI (GR3)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '314-GR4', name: '314 CATUMBI (GR4)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '317-GR1', name: '317 OSCAR PEREIRA (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '317-GR2', name: '317 OSCAR PEREIRA (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '317-GR3', name: '317 OSCAR PEREIRA (GR3)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '317-GR4', name: '317 OSCAR PEREIRA (GR4)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '317-GR5', name: '317 OSCAR PEREIRA (GR5)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '317-GR6', name: '317 OSCAR PEREIRA (GR6)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '318-GR1', name: '318 GRACILIANO RAMOS IN LINE (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '321-GR1', name: '321 SÃO CAETANO I (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '321-GR2', name: '321 SÃO CAETANO I (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '321-GR3', name: '321 SÃO CAETANO I (GR3)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '326-GR1', name: '326 NONOAI I (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '326-GR2', name: '326 NONOAI I (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '327-GR1', name: '327 CIDADE JARDIM (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '327-GR2', name: '327 CIDADE JARDIM (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '328-GR1', name: '328 SÃO JORGE I (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '328-GR2', name: '328 SÃO JORGE I (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '328-GR3', name: '328 SÃO JORGE I (GR3)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '328-GR4', name: '328 SÃO JORGE I (GR4)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '329-GR1', name: '329 SÃO JORGE II (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '329-GR2', name: '329 SÃO JORGE II (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '331-GR1', name: '331 BELÉM VELHO II (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '331-GR2', name: '331 BELÉM VELHO II (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '332-GR1', name: '332 MONTE CRISTO IN LINE (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '333-GR1', name: '333 SÃO MANOEL (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '333-GR2', name: '333 SÃO MANOEL (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '333-GR3', name: '333 SÃO MANOEL (GR3)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '335-GR1', name: '335 CRISTIANO FISCHER (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '335-GR2', name: '335 CRISTIANO FISCHER (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '335-GR3', name: '335 CRISTIANO FISCHER (GR3)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '336-GR1', name: '336 SÃO JOSÉ II (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '336-GR2', name: '336 SÃO JOSÉ II (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '340-GR1', name: '340 SÃO LUIZ (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '340-GR2', name: '340 SÃO LUIZ (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '340-GR3', name: '340 SÃO LUIZ (GR3)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '341-GR1', name: '341 MENINA ALVIRA IN LINE (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '344-GR1', name: '344 GUTEMBERG (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '344-GR2', name: '344 GUTEMBERG (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '344-GR3', name: '344 GUTEMBERG (GR3)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '346-GR1', name: '346 JARDIM IPÊ (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '346-GR2', name: '346 JARDIM IPÊ (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '347-GR1', name: '347 JUVENAL CRUZ (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '347-GR2', name: '347 JUVENAL CRUZ (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '347-GR3', name: '347 JUVENAL CRUZ (GR3)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '348-GR1', name: '348 VILA BRASÍLIA (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '348-GR2', name: '348 VILA BRASÍLIA (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '349-GR1', name: '349 GLORINHA (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '349-GR2', name: '349 GLORINHA (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '350-GR1', name: '350 CARLOS GOMES (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '350-GR2', name: '350 CARLOS GOMES (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '351-GR1', name: '351 NONOAI II (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '351-GR2', name: '351 NONOAI II (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '352-GR1', name: '352 COLINA DO PRADO IN LINE (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '353-GR1', name: '353 VILA DOS SARGENTOS I (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '353-GR2', name: '353 VILA DOS SARGENTOS I (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '355-GR1', name: '355 VILA BOA VISTA IN LINE (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '356-GR1', name: '356 PRIMEIRO DE MAIO (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '356-GR2', name: '356 PRIMEIRO DE MAIO (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '357-GR1', name: '357 COTA 157 (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '357-GR2', name: '357 COTA 157 (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '357-GR3', name: '357 COTA 157 (GR3)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '358-GR1', name: '358 COTA 200 (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '359-GR1', name: '359 CHÁCARA DOS BOMBEIROS IN LINE (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '360-GR1', name: '360 CASCATINHA (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '360-GR2', name: '360 CASCATINHA (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '360-GR3', name: '360 CASCATINHA (GR3)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '360-GR4', name: '360 CASCATINHA (GR4)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '360-GR5', name: '360 CASCATINHA (GR5)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '360-GR6', name: '360 CASCATINHA (GR6)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '360-GR7', name: '360 CASCATINHA (GR7)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '361-GR1', name: '361 VILA DOS SARGENTOS II (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '361-GR2', name: '361 VILA DOS SARGENTOS II (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '362-GR1', name: '362 CEITEC IN LINE (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '503-GR1', name: '503 BECO DOS MARIANOS (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '503-GR2', name: '503 BECO DOS MARIANOS (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '504-GR1', name: '504 DOLORES I (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '504-GR2', name: '504 DOLORES I (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '504-GR3', name: '504 DOLORES I (GR3)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '505-GR1', name: '505 DOLORES II (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '505-GR2', name: '505 DOLORES II (GR2)', system: 'menino deus', systemCode: '300', status: 'ok' },
+            { id: '515-GR1', name: '515 BECO DO DAVI IN LINE (GR1)', system: 'menino deus', systemCode: '300', status: 'ok' },
+
+            // SISTEMA BELÉM NOVO (400) 
+            { id: '401-GR1', name: '401 bruta (GR1)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '401-GR2', name: '401 bruta (GR2)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '401-GR3', name: '401 bruta (GR3)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '401-GR4', name: '401 bruta (GR4)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '402-GR1', name: '402 XAVANTES (RESTINGA I) (GR1)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '402-GR2', name: '402 XAVANTES (RESTINGA I) (GR2)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '402-GR3', name: '402 XAVANTES (RESTINGA I) (GR3)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '402-GR4', name: '402 XAVANTES (RESTINGA I) (GR4)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '406-GR1', name: '406 ALTOS DO IPE (GR1)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '406-GR2', name: '406 ALTOS DO IPE (GR2)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '407-GR1', name: '407 PARQUE LAVOURA IN LINE (GR1)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '409-GR1', name: '409 IPANEMA GARDEN (GR1)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '409-GR2', name: '409 IPANEMA GARDEN (GR2)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '410-GR1', name: '410 VILA CASTELO IN LINE (GR1)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '411-GR1', name: '411 BOA VISTA (GR1)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '411-GR2', name: '411 BOA VISTA (GR2)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '411-GR3', name: '411 BOA VISTA (GR3)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '411-GR4', name: '411 BOA VISTA (GR4)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '412-GR1', name: '412 LUIZ BETIOL IN LINE (GR1)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '413-GR1', name: '413 RESTINGA II (GR1)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '413-GR2', name: '413 RESTINGA II (GR2)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '414-GR1', name: '414 PITINGA (GR1)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '414-GR2', name: '414 PITINGA (GR2)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '415-GR1', name: '415 CRISTIANO KRAEMER I IN LINE (GR1)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '416-GR1', name: '416 BECO DO ARMANDO IN LINE (GR1)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '417-GR1', name: '417 RETIRO DA PONTA GROSSA IN LINE (GR1)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '420-GR1', name: '420 SANTA RITA I (GR1)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '420-GR2', name: '420 SANTA RITA I (GR2)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '421-GR1', name: '421 SANTA RITA II (GR1)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '421-GR2', name: '421 SANTA RITA II (GR2)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '422-GR1', name: '422 JOÃO DE OLIVEIRA REMIÃO III IN LINE (GR1)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '422-GR2', name: '422 JOÃO DE OLIVEIRA REMIÃO III IN LINE (GR2)', system: 'belem novo', systemCode: '400', status: 'ok' },
+            { id: '425-GR1', name: '425 CRISTIANO KRAEMER IV IN LINE (GR1)', system: 'belem novo', systemCode: '400', status: 'ok' },
+
+            // SISTEMA ILHA DA PINTADA (600) 
+            { id: '601-GR1', name: '601 BRUTA (GR1)', system: 'ilha da pintada', systemCode: '600', status: 'ok' },
+            { id: '601-GR2', name: '601 BRUTA (GR2)', system: 'ilha da pintada', systemCode: '600', status: 'ok' },
+            { id: '600-GR1', name: '600 EBAT ILHAS ETA (GR1)', system: 'ilha da pintada', systemCode: '600', status: 'ok' },
+            { id: '600-GR2', name: '600 EBAT ILHAS ETA (GR2)', system: 'ilha da pintada', systemCode: '600', status: 'ok' },
+            { id: '602-GR1', name: '602 EBAT ILHAS PONTE IN LINE (GR1)', system: 'ilha da pintada', systemCode: '600', status: 'ok' },
+
+            // SISTEMA TRISTEZA (700) 
+            { id: '701-GR1', name: '701 BRUTA (GR1)', system: 'tristeza', systemCode: '700', status: 'ok' },
+            { id: '701-GR2', name: '701 BRUTA (GR2)', system: 'tristeza', systemCode: '700', status: 'ok' },
+            { id: '702-GR1', name: '702 ASSUNÇAO (GR1)', system: 'tristeza', systemCode: '700', status: 'ok' },
+            { id: '702-GR2', name: '702 ASSUNÇAO(GR2)', system: 'tristeza', systemCode: '700', status: 'ok' },
+            { id: '703-GR1', name: '703 JARDIM ISABEL I (GR1)', system: 'tristeza', systemCode: '700', status: 'ok' },
+            { id: '703-GR2', name: '703 JARDIM ISABEL I (GR2)', system: 'tristeza', systemCode: '700', status: 'ok' },
+            { id: '704-GR1', name: '704 JARDIM ISABEL II (GR1)', system: 'tristeza', systemCode: '700', status: 'ok' },
+            { id: '704-GR2', name: '704 JARDIM ISABEL II (GR2)', system: 'tristeza', systemCode: '700', status: 'ok' },
+            { id: '705-GR1', name: '705 EBAT BALNEARIOS (GR1)', system: 'tristeza', systemCode: '700', status: 'ok' },
+            { id: '705-GR2', name: '705 EBAT BALNEARIOS (GR2)', system: 'tristeza', systemCode: '700', status: 'ok' },
+            { id: '706-GR1', name: '706 EBAT PRAÇA MOEMA (GR1)', system: 'tristeza', systemCode: '700', status: 'ok' },
+            { id: '706-GR2', name: '706 EBAT PRAÇA MOEMA (GR2)', system: 'tristeza', systemCode: '700', status: 'ok' }
+        ];
+        
+        function getSystemTagClass(code) { return `tag-${code}`; }
+        
+        let currentSystemFilter = 'all';
+        let currentStatusFilter = 'all'; 
+
+        function saveData() {
+            localStorage.setItem('manutencao_equipment', JSON.stringify(equipment));
+        }
+        
+        function loadData() {
+            const saved = localStorage.getItem('manutencao_equipment');
+            if (saved) {
+                const savedEquipment = JSON.parse(saved);
+                savedEquipment.forEach(savedEq => {
+                    const eq = equipment.find(e => e.id === savedEq.id);
+                    if (eq) {
+                        eq.status = savedEq.status;
+                        eq.ultimoTecnico = savedEq.ultimoTecnico;
+                        eq.ultimaAlteracao = savedEq.ultimaAlteracao;
+                        eq.historico = savedEq.historico;
+                    }
+                });
+            }
+        }
+        
+        function renderEquipment(list = equipment) {
+            const container = document.getElementById('equipmentList');
+            container.innerHTML = list.map(eq => `
+                <div class="equipment-item" onclick="openEquipment('${eq.id}')">
+                    <div class="status-icon status-${eq.status}">
+                        ${eq.status === 'ok' ? '✓' : eq.status === 'alert' ? '!' : '✕'}
+                    </div>
+                    <div>
+                        <div class="equipment-name">${eq.name}</div>
+                        <div class="equipment-system">
+                            <span class="system-tag ${getSystemTagClass(eq.systemCode)}">${eq.systemCode}</span>
+                            ${eq.system.toUpperCase()} | ID: ${eq.id}
+                            ${eq.ultimoTecnico ? `<br><span style="font-size: 0.7rem; color: #63b3ed;">👤 ${eq.ultimoTecnico} | 🕐 ${eq.ultimaAlteracao}</span>` : ''}
+                            ${(eq.status === 'alert' || eq.status === 'down') && eq.ultimaAlteracao ? `<br><span style="color: ${eq.status === 'alert' ? '#ecc94b' : '#f56565'}; font-size: 0.7rem; font-weight: bold;">⚠️ Status atual desde: ${eq.ultimaAlteracao}</span>` : ''}
+                        </div>
+                    </div>
+                    <span class="status-badge badge-${eq.status}">
+                        ${eq.status === 'ok' ? 'Operando' : eq.status === 'alert' ? 'Atenção' : 'Parado'}
+                    </span>
+                </div>
+            `).join('');
+            
+            let activeList = (currentSystemFilter !== 'all') ? equipment.filter(e => e.system === currentSystemFilter) : equipment;
+            
+            document.getElementById('totalCount').textContent = activeList.length;
+            document.getElementById('operationalCount').textContent = activeList.filter(e => e.status === 'ok').length;
+            document.getElementById('maintenanceCount').textContent = activeList.filter(e => e.status === 'alert').length;
+            document.getElementById('downCount').textContent = activeList.filter(e => e.status === 'down').length;
+        }
+        
+        function filterSystem(system) {
+            currentSystemFilter = system;
+            
+            document.querySelectorAll('.system-btn').forEach(btn => btn.classList.remove('active'));
+            if(event) event.target.classList.add('active');
+            
+            applyFilters();
+        }
+
+        function filterByStatus(status) {
+            currentStatusFilter = status;
+
+            const borderColors = {
+                'all': '#63b3ed',     
+                'ok': '#48bb78',      
+                'alert': '#ecc94b',   
+                'down': '#f56565'     
+            };
+
+            document.getElementById('card-all').style.border = '1px solid rgba(255,255,255,0.2)';
+            document.getElementById('card-ok').style.border = '1px solid rgba(56, 161, 105, 0.3)';
+            document.getElementById('card-alert').style.border = '1px solid rgba(214, 158, 46, 0.3)';
+            document.getElementById('card-down').style.border = '1px solid rgba(229, 62, 62, 0.3)';
+
+            document.getElementById('card-' + status).style.border = `2px solid ${borderColors[status]}`;
+
+            applyFilters();
+        }
+
+        function searchEquipment() {
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            let filtered = equipment;
+
+            if (currentSystemFilter !== 'all') {
+                filtered = filtered.filter(eq => eq.system === currentSystemFilter);
+            }
+
+            if (currentStatusFilter !== 'all') {
+                filtered = filtered.filter(eq => eq.status === currentStatusFilter);
+            }
+
+            if (term !== '') {
+                filtered = filtered.filter(eq => 
+                    eq.name.toLowerCase().includes(term) ||
+                    eq.system.toLowerCase().includes(term) ||
+                    eq.id.toLowerCase().includes(term) ||
+                    eq.systemCode.includes(term)
+                );
+            }
+
+            renderEquipment(filtered);
+        }
+        
+        function openEquipment(id) {
+            const eq = equipment.find(e => e.id === id);
+            
+            const existingModal = document.getElementById('qrModal');
+            if (existingModal) existingModal.remove();
+
+            const modal = document.createElement('div');
+            modal.id = 'qrModal';
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.8); display: flex; align-items: center;
+                justify-content: center; z-index: 1000; padding: 20px;
+            `;
+            
+            const statusColors = { 'ok': '#38a169', 'alert': '#d69e2e', 'down': '#e53e3e' };
+            const statusLabels = { 'ok': 'OPERANDO', 'alert': 'MANUTENÇÃO', 'down': 'PARADO' };
+            
+            modal.innerHTML = `
+                <div style="background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 400px; width: 90%; max-height: 90vh; overflow-y: auto;">
+                    <h2 style="color: #1e3a5f; margin-bottom: 10px; font-size: 1.2rem;">${eq.name}</h2>
+                    <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">ID: ${eq.id} | Sistema: ${eq.system.toUpperCase()}</p>
+                    
+                    <div style="margin: 20px 0; padding: 15px; background: #f7fafc; border-radius: 10px;">
+                        <p style="color: #666; font-size: 0.8rem; margin-bottom: 10px;">STATUS ATUAL:</p>
+                        <div style="display: inline-block; padding: 8px 20px; border-radius: 20px; color: white; font-weight: bold; font-size: 0.9rem; background: ${statusColors[eq.status]};">
+                            ${statusLabels[eq.status]}
+                        </div>
+                    </div>
+
+                    ${eq.ultimoTecnico ? `
+                    <div style="margin: 15px 0; padding: 10px; background: #e6fffa; border-radius: 10px; border-left: 4px solid #38a169; text-align: left;">
+                        <p style="color: #234e52; font-size: 0.8rem; margin: 0;">
+                            👤 <strong>Última alteração por:</strong> ${eq.ultimoTecnico}<br>
+                            🕐 <strong>Data/Hora:</strong> ${eq.ultimaAlteracao}
+                        </p>
+                    </div>
+                    ` : ''}
+                    
+                    ${eq.historico && eq.historico.length > 0 ? `
+                    <div style="margin: 15px 0; max-height: 100px; overflow-y: auto; text-align: left; background: #f9f9f9; padding: 10px; border-radius: 8px;">
+                        <p style="color: #666; font-size: 0.75rem; margin-bottom: 5px;"><strong>Histórico Recente:</strong></p>
+                        ${eq.historico.slice(-3).map(h => `
+                            <div style="font-size: 0.7rem; color: #666; padding: 3px 0; border-bottom: 1px solid #eee;">
+                                ${h.data} - <strong>${h.tecnico}</strong>: <em>${statusLabels[h.statusAnterior]} → ${statusLabels[h.statusNovo]}</em>
+                            </div>
+                        `).join('')}
+                    </div>
+                    ` : ''}
+                    
+                    <p style="color: #666; font-size: 0.8rem; margin: 15px 0;">MUDAR STATUS:</p>
+                    <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
+                        <button onclick="changeStatus('${eq.id}', 'ok')" style="padding: 10px 15px; background: #38a169; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.8rem;">✓ Operando</button>
+                        <button onclick="changeStatus('${eq.id}', 'alert')" style="padding: 10px 15px; background: #d69e2e; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.8rem;">🔧 Manutenção</button>
+                        <button onclick="changeStatus('${eq.id}', 'down')" style="padding: 10px 15px; background: #e53e3e; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.8rem;">✕ Parado</button>
+                    </div>
+                    
+                    <div style="margin: 20px 0;">
+                        <p style="color: #666; font-size: 0.8rem; margin-bottom: 10px;">QR CODE:</p>
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent('GRUPO:' + eq.id)}" style="width: 150px; height: 150px;" alt="QR Code">
+                    </div>
+                    
+                    <button onclick="document.getElementById('qrModal').remove();" style="margin-top: 15px; padding: 12px 30px; background: #718096; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 1rem;">Fechar</button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        function changeStatus(id, newStatus) {
+            const eq = equipment.find(e => e.id === id);
+
+            if (eq.status === newStatus) {
+                alert('O equipamento já está com esse status!');
+                return;
+            }
+            
+            const tecnico = usuarioLogado.nome; 
+            
+            const agora = new Date();
+            const horario = agora.toLocaleString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+
+            if (!eq.historico) {
+                eq.historico = [];
+            }
+            
+            eq.historico.push({
+                data: horario,
+                tecnico: tecnico,
+                statusAnterior: eq.status,
+                statusNovo: newStatus
+            });
+            
+            eq.status = newStatus;
+            eq.ultimoTecnico = tecnico;
+            eq.ultimaAlteracao = horario;
+            
+            saveData();
+            applyFilters();
+            
+            const modal = document.getElementById('qrModal');
+            if (modal) {
+                modal.remove();
+                openEquipment(id);
+            }
+        }
+        
+        loadData();
+        renderEquipment();
+      </script>
+</body>
+</html>
