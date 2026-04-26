@@ -226,6 +226,34 @@
         
         let usuarioLogado = null;
 
+        function recuperarLoginSalvo() {
+            const usuarioSalvo = localStorage.getItem('manutencao_usuario_logado');
+            if (!usuarioSalvo) return false;
+
+            try {
+                const dados = JSON.parse(usuarioSalvo);
+                const encontrado = usuarios.find(u =>
+                    u.nome === dados.nome &&
+                    u.funcao === dados.funcao &&
+                    u.area === dados.area
+                );
+
+                if (!encontrado) {
+                    localStorage.removeItem('manutencao_usuario_logado');
+                    return false;
+                }
+
+                usuarioLogado = encontrado;
+                document.getElementById('loginScreen').style.display = 'none';
+                mostrarUsuarioLogado();
+                aplicarPermissoes();
+                return true;
+            } catch (e) {
+                localStorage.removeItem('manutencao_usuario_logado');
+                return false;
+            }
+        }
+
         function fazerLogin() {
             const user = document.getElementById('loginUser').value.trim();
             const pass = document.getElementById('loginPass').value;
@@ -242,12 +270,19 @@
             }
             
             usuarioLogado = encontrado;
+            localStorage.setItem('manutencao_usuario_logado', JSON.stringify({
+                nome: encontrado.nome,
+                funcao: encontrado.funcao,
+                area: encontrado.area
+            }));
             document.getElementById('loginScreen').style.display = 'none';
             mostrarUsuarioLogado();
             aplicarPermissoes();
         }
 
         function mostrarUsuarioLogado() {
+            const existente = document.getElementById('userInfo');
+            if (existente) existente.remove();
             const header = document.querySelector('h1');
             const info = document.createElement('div');
             info.id = 'userInfo';
@@ -278,6 +313,7 @@
         }
         
         function fazerLogout() {
+            localStorage.removeItem('manutencao_usuario_logado');
             usuarioLogado = null;
             document.getElementById('loginScreen').style.display = 'flex';
             document.getElementById('loginUser').value = '';
@@ -747,8 +783,13 @@
             }
         }
         
-        loadData();
-        renderEquipment();
+        function iniciarSistema() {
+            loadData();
+            renderEquipment();
+            recuperarLoginSalvo();
+        }
+
+        iniciarSistema();
       </script>
 </body>
 </html>
