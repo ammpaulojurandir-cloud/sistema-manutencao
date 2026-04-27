@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Manutenção GMAN - V5.1</title>
+    <title>Sistema de Manutenção GMAN - V6</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -285,20 +285,35 @@
             indicador.textContent = mensagem;
         }
 
-        function normalizarStatusApp(valor) {
+        function normalizarStatusApp(valor, observacao = '') {
             const texto = String(valor || '').toLowerCase()
                 .normalize('NFD')
                 .replace(/[\u0300-\u036f]/g, '');
 
+            const obs = String(observacao || '').toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '');
+
+            if (texto.includes('parad') || obs.includes('condicao operacional: parado') || obs.includes('condição operacional: parado')) return 'down';
             if (texto.includes('manut') || texto.includes('alert') || texto.includes('atencao')) return 'alert';
-            if (texto.includes('parad') || texto.includes('down')) return 'down';
             return 'ok';
         }
 
         function statusParaPlanilha(status) {
             if (status === 'alert') return 'Manutenção';
-            if (status === 'down') return 'Parado';
+            if (status === 'down') return 'Manutenção';
             return 'Operando';
+        }
+
+        function labelStatusEquipamento(status) {
+            if (status === 'ok') return 'Operando';
+            if (status === 'alert') return 'Manutenção';
+            if (status === 'down') return 'Manutenção — Parado';
+            return 'Operando';
+        }
+
+        function labelStatusEquipamentoMaiusculo(status) {
+            return labelStatusEquipamento(status).toUpperCase();
         }
 
         function formatarDataApi(valor) {
@@ -330,7 +345,7 @@
                     const eq = equipment.find(e => String(e.id) === String(item.idEquipamento));
                     if (!eq) return;
 
-                    eq.status = normalizarStatusApp(item.statusAtual);
+                    eq.status = normalizarStatusApp(item.statusAtual, item.observacao);
                     eq.ultimoTecnico = item.usuarioUltimaAlteracao || '';
                     eq.ultimaAlteracao = formatarDataApi(item.dataUltimaAlteracao);
                     eq.observacaoStatus = item.observacao || '';
@@ -353,34 +368,7 @@
         }
 
         async function salvarStatusOnline(id, newStatus) {
-            if (!usuarioLogado) {
-                throw new Error('Usuário não identificado.');
-            }
-
-            const payload = {
-                acao: 'alterarStatus',
-                idEquipamento: id,
-                novoStatus: statusParaPlanilha(newStatus),
-                usuario: usuarioLogado.nome,
-                funcao: usuarioLogado.funcao,
-                observacao: ''
-            };
-
-            const resposta = await fetch(API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
-                },
-                body: JSON.stringify(payload)
-            });
-
-            const retorno = await resposta.json();
-
-            if (!retorno.sucesso) {
-                throw new Error(retorno.erro || retorno.mensagem || 'Erro desconhecido ao salvar status.');
-            }
-
-            return retorno;
+            throw new Error('Alteração direta de status bloqueada. Abra ou conclua uma OS vinculada ao equipamento.');
         }
 
         async function apiPost(payload) {
@@ -447,7 +435,7 @@
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
                             <h2 style="color:#1e3a5f; margin:0; font-size:1.2rem;">Ordens de Serviço</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. V5.1 com Painel Gerencial e permissões corrigidas.</p>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. V6 com status bloqueado por OS, login por Enter e status integrado à manutenção.</p>
                         </div>
                         <button onclick="document.getElementById('osModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
@@ -531,7 +519,7 @@
             modal.innerHTML = `
                 <div style="background:white; border-radius:20px; padding:24px; width:95%; max-width:560px; max-height:92vh; overflow-y:auto;">
                     <h2 style="color:#1e3a5f; margin:0 0 8px;">Abrir Ordem de Serviço</h2>
-                    <p style="color:#718096; font-size:0.82rem; margin-bottom:14px;">Somente gestão abre OS. A equipe executa e conclui. Agora escolha o executor principal. Painel Gerencial e cartões gerais liberados somente para gestão.</p>
+                    <p style="color:#718096; font-size:0.82rem; margin-bottom:14px;">Somente gestão abre OS. A equipe executa e conclui. Agora escolha o executor principal. Status só muda no encerramento da OS. Painel Gerencial liberado somente para gestão.</p>
                     <label class="form-label">Equipamento</label><select id="osEquipamento" class="form-field">${opcoes}</select>
                     <label class="form-label">Área</label><select id="osArea" class="form-field"><option value="Mecânica">Mecânica</option><option value="Elétrica">Elétrica</option><option value="Automação">Automação</option></select>
                     <label class="form-label">Tipo de manutenção</label><select id="osTipo" class="form-field"><option value="Corretiva">Corretiva</option><option value="Preventiva">Preventiva</option><option value="Preditiva">Preditiva</option><option value="Melhoria">Melhoria</option></select>
@@ -579,17 +567,21 @@
             const modal = document.createElement('div');
             modal.id = 'concluirOSModal';
             modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.82); z-index:1300; display:flex; align-items:center; justify-content:center; padding:18px;';
-            modal.innerHTML = `<div style="background:white; border-radius:20px; padding:24px; width:95%; max-width:520px;"><h2 style="color:#1e3a5f; margin:0 0 12px;">Concluir OS</h2><label class="form-label">Serviço realizado</label><textarea id="concluirServico" class="form-field" rows="4" placeholder="Descreva o serviço executado"></textarea><label class="form-label">Materiais utilizados</label><textarea id="concluirMateriais" class="form-field" rows="3" placeholder="Informe materiais, peças ou deixe em branco"></textarea><label class="form-label">Status final do equipamento</label><select id="concluirStatusFinal" class="form-field"><option value="">Não alterar status do equipamento</option><option value="Operando">Operando</option><option value="Manutenção">Manutenção</option><option value="Parado">Parado</option></select><div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;"><button onclick="document.getElementById('concluirOSModal').remove();" style="padding:11px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Cancelar</button><button onclick="concluirOS('${idOS}')" style="padding:11px 14px; border:none; border-radius:10px; background:#38a169; color:white; cursor:pointer; font-weight:bold;">Concluir</button></div></div>`;
+            modal.innerHTML = `<div style="background:white; border-radius:20px; padding:24px; width:95%; max-width:520px;"><h2 style="color:#1e3a5f; margin:0 0 12px;">Concluir OS</h2><label class="form-label">Serviço realizado</label><textarea id="concluirServico" class="form-field" rows="4" placeholder="Descreva o serviço executado"></textarea><label class="form-label">Materiais utilizados</label><textarea id="concluirMateriais" class="form-field" rows="3" placeholder="Informe materiais, peças ou deixe em branco"></textarea><label class="form-label">Status final do equipamento</label><select id="concluirStatusFinal" class="form-field"><option value="">Não alterar status do equipamento</option><option value="Operando|Normal">Operando</option><option value="Manutenção|Normal">Em manutenção — sem parada</option><option value="Manutenção|Parado">Em manutenção — parado</option><option value="Manutenção|Aguardando material">Em manutenção — aguardando material</option><option value="Manutenção|Aguardando liberação">Em manutenção — aguardando liberação</option><option value="Manutenção|Em teste">Em manutenção — em teste</option></select><div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;"><button onclick="document.getElementById('concluirOSModal').remove();" style="padding:11px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Cancelar</button><button onclick="concluirOS('${idOS}')" style="padding:11px 14px; border:none; border-radius:10px; background:#38a169; color:white; cursor:pointer; font-weight:bold;">Concluir</button></div></div>`;
             document.body.appendChild(modal);
         }
 
         async function concluirOS(idOS) {
             const servicoRealizado = document.getElementById('concluirServico').value.trim();
             const materiais = document.getElementById('concluirMateriais').value.trim();
-            const statusFinalEquipamento = document.getElementById('concluirStatusFinal').value;
+            const statusFinalValor = document.getElementById('concluirStatusFinal').value;
+            const partesStatus = statusFinalValor ? statusFinalValor.split('|') : ['', ''];
+            const statusFinalEquipamento = partesStatus[0] || '';
+            const condicaoOperacional = partesStatus[1] || '';
+
             if (!servicoRealizado) return alert('Informe o serviço realizado.');
             try {
-                await apiPost({ acao: 'concluirOS', idOS, usuario: usuarioLogado.nome, funcao: usuarioLogado.funcao, servicoRealizado, materiais, statusFinalEquipamento });
+                await apiPost({ acao: 'concluirOS', idOS, usuario: usuarioLogado.nome, funcao: usuarioLogado.funcao, servicoRealizado, materiais, statusFinalEquipamento, condicaoOperacional });
                 document.getElementById('concluirOSModal').remove();
                 alert('OS concluída com sucesso.');
                 await carregarStatusOnline();
@@ -724,7 +716,7 @@
 
                 const totalEquipamentos = equipment.length;
                 const operando = equipment.filter(e => e.status === 'ok').length;
-                const manutencao = equipment.filter(e => e.status === 'alert').length;
+                const manutencao = equipment.filter(e => e.status === 'alert' || e.status === 'down').length;
                 const parados = equipment.filter(e => e.status === 'down').length;
 
                 const osAbertas = listaOS.filter(os => String(os.statusOS) === 'Aberta').length;
@@ -754,7 +746,7 @@
                 const porEquipamento = contarPorCampo(listaOS.filter(os => os.equipamento || os.idEquipamento).map(os => ({ equipamentoChave: os.equipamento || os.idEquipamento })), 'equipamentoChave');
 
                 const taxaConclusao = listaOS.length ? Math.round((osConcluidas / listaOS.length) * 100) : 0;
-                const taxaCritica = totalEquipamentos ? Math.round(((manutencao + parados) / totalEquipamentos) * 100) : 0;
+                const taxaCritica = totalEquipamentos ? Math.round((parados / totalEquipamentos) * 100) : 0;
 
                 container.innerHTML = `
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin-bottom:16px;">
@@ -765,7 +757,7 @@
                         ${montarCardKPI('OS ativas', osAtivas, 'Aberta + execução', '#805ad5')}
                         ${montarCardKPI('OS concluídas', osConcluidas, `${taxaConclusao}% do total`, '#38a169')}
                         ${montarCardKPI('Tempo médio', formatarDuracaoMinutos(tempoMedio), 'Início até conclusão', '#3182ce')}
-                        ${montarCardKPI('Índice crítico', `${taxaCritica}%`, 'Manutenção + parados', '#e53e3e')}
+                        ${montarCardKPI('Índice crítico', `${taxaCritica}%`, 'Parados dentro da manutenção', '#e53e3e')}
                     </div>
 
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
@@ -1163,7 +1155,7 @@
                         </div>
                     </div>
                     <span class="status-badge badge-${eq.status}">
-                        ${eq.status === 'ok' ? 'Operando' : eq.status === 'alert' ? 'Atenção' : 'Parado'}
+                        ${labelStatusEquipamento(eq.status)}
                     </span>
                 </div>
             `).join('');
@@ -1172,7 +1164,7 @@
             
             document.getElementById('totalCount').textContent = activeList.length;
             document.getElementById('operationalCount').textContent = activeList.filter(e => e.status === 'ok').length;
-            document.getElementById('maintenanceCount').textContent = activeList.filter(e => e.status === 'alert').length;
+            document.getElementById('maintenanceCount').textContent = activeList.filter(e => e.status === 'alert' || e.status === 'down').length;
             document.getElementById('downCount').textContent = activeList.filter(e => e.status === 'down').length;
         }
         
@@ -1218,7 +1210,11 @@
             }
 
             if (currentStatusFilter !== 'all') {
-                filtered = filtered.filter(eq => eq.status === currentStatusFilter);
+                if (currentStatusFilter === 'alert') {
+                    filtered = filtered.filter(eq => eq.status === 'alert' || eq.status === 'down');
+                } else {
+                    filtered = filtered.filter(eq => eq.status === currentStatusFilter);
+                }
             }
 
             if (term !== '') {
@@ -1248,7 +1244,7 @@
             `;
             
             const statusColors = { 'ok': '#38a169', 'alert': '#d69e2e', 'down': '#e53e3e' };
-            const statusLabels = { 'ok': 'OPERANDO', 'alert': 'MANUTENÇÃO', 'down': 'PARADO' };
+            const statusLabels = { 'ok': 'OPERANDO', 'alert': 'MANUTENÇÃO', 'down': 'MANUTENÇÃO — PARADO' };
             
             modal.innerHTML = `
                 <div style="background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 400px; width: 90%; max-height: 90vh; overflow-y: auto;">
@@ -1282,11 +1278,10 @@
                     </div>
                     ` : ''}
                     
-                    <p style="color: #666; font-size: 0.8rem; margin: 15px 0;">MUDAR STATUS:</p>
-                    <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap;">
-                        <button onclick="changeStatus('${eq.id}', 'ok')" style="padding: 10px 15px; background: #38a169; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.8rem;">✓ Operando</button>
-                        <button onclick="changeStatus('${eq.id}', 'alert')" style="padding: 10px 15px; background: #d69e2e; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.8rem;">🔧 Manutenção</button>
-                        <button onclick="changeStatus('${eq.id}', 'down')" style="padding: 10px 15px; background: #e53e3e; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.8rem;">✕ Parado</button>
+                    <div style="margin: 15px 0; padding: 12px; background: #fffaf0; border-left: 4px solid #d69e2e; border-radius: 10px; text-align: left;">
+                        <p style="color: #744210; font-size: 0.8rem; margin: 0;">
+                            🔒 <strong>Status bloqueado:</strong> o status do equipamento só pode ser alterado no encerramento de uma OS vinculada.
+                        </p>
                     </div>
                     ${podeGerenciarOS() ? `<button onclick="abrirModalCriarOS('${eq.id}')" style="padding: 10px 15px; background: #3182ce; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; margin-bottom: 12px;">➕ Abrir OS deste equipamento</button>` : ''}
 
@@ -1303,70 +1298,8 @@
         }
         
         async function changeStatus(id, newStatus) {
-            const eq = equipment.find(e => e.id === id);
-
-            if (!eq) {
-                alert('Equipamento não encontrado!');
-                return;
-            }
-
-            if (!usuarioLogado) {
-                alert('Faça login novamente para alterar o status.');
-                return;
-            }
-
-            if (eq.status === newStatus) {
-                alert('O equipamento já está com esse status!');
-                return;
-            }
-
-            const tecnico = usuarioLogado.nome; 
-            const statusAnterior = eq.status;
-
-            const agora = new Date();
-            const horario = agora.toLocaleString('pt-BR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-
-            if (!eq.historico) {
-                eq.historico = [];
-            }
-
-            eq.historico.push({
-                data: horario,
-                tecnico: tecnico,
-                statusAnterior: statusAnterior,
-                statusNovo: newStatus
-            });
-
-            eq.status = newStatus;
-            eq.ultimoTecnico = tecnico;
-            eq.ultimaAlteracao = horario;
-
-            saveData();
-            applyFilters();
-
-            try {
-                atualizarIndicadorConexao('🔄 Salvando alteração no Banco Central...', 'neutro');
-                await salvarStatusOnline(id, newStatus);
-                await carregarStatusOnline();
-                alert('Status alterado e salvo no Banco Central!');
-            } catch (erro) {
-                atualizarIndicadorConexao('⚠️ Alteração salva apenas neste aparelho. Banco Central não confirmou.', 'offline');
-                console.error('Erro ao salvar online:', erro);
-                alert('A alteração ficou salva neste aparelho, mas não foi confirmada no Banco Central. Verifique a conexão ou a implantação do Apps Script.');
-            }
-
-            const modal = document.getElementById('qrModal');
-            if (modal) {
-                modal.remove();
-                openEquipment(id);
-            }
+            alert('Alteração direta de status bloqueada. Abra uma OS e defina o status final no encerramento/conclusão da OS.');
+            return;
         }
 
         async function iniciarSistema() {
@@ -1377,6 +1310,24 @@
             await carregarStatusOnline();
             setInterval(carregarStatusOnline, 180000); // atualização automática a cada 3 minutos
         }
+
+
+        function ativarLoginComEnter() {
+            const usuario = document.getElementById('loginUser');
+            const senha = document.getElementById('loginPass');
+
+            [usuario, senha].forEach(campo => {
+                if (!campo) return;
+                campo.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        fazerLogin();
+                    }
+                });
+            });
+        }
+
+        ativarLoginComEnter();
 
         iniciarSistema();
       </script>
