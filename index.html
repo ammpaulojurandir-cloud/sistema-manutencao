@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Manutenção GMAN - V8.2</title>
+    <title>Sistema de Manutenção GMAN - V8.3</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -437,7 +437,7 @@
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
                             <h2 style="color:#1e3a5f; margin:0; font-size:1.2rem;">Ordens de Serviço</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. V8.2 com compressão de imagens, trava de anexos, andamento de OS, anexos completos e status automático por OS.</p>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. V8.3 com atualização de andamento corrigida, compressão de imagens, trava de anexos, anexos completos e status automático por OS.</p>
                         </div>
                         <button onclick="document.getElementById('osModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
@@ -474,7 +474,7 @@
             }
             container.innerHTML = base.map(os => {
                 const podeIniciar = podeExecutarOS() && String(os.statusOS) === 'Aberta';
-                const statusPermiteAcao = ['Em execução', 'Aguardando material', 'Aguardando liberação', 'Reaberta'].includes(String(os.statusOS));
+                const statusPermiteAcao = ['Em execução', 'Aguardando material', 'Aguardando liberação', 'Reaberta', 'Parado', 'Em teste', 'OS em execução'].includes(String(os.statusOS));
                 const podeConcluir = podeExecutarOS() && statusPermiteAcao;
                 const podeAtualizarAndamento = podeExecutarOS() && statusPermiteAcao;
                 const podeCancelar = podeGerenciarOS() && !['Concluída', 'Cancelada'].includes(String(os.statusOS));
@@ -727,6 +727,82 @@
                     botao.textContent = textoOriginal;
                     botao.style.opacity = '1';
                 }
+            }
+        }
+
+
+        function abrirModalAndamentoOS(idOS) {
+            const os = ordensServicoCache.find(item => String(item.idOS) === String(idOS));
+
+            if (!os) {
+                alert('Não foi possível localizar os dados desta OS. Recarregue a lista de OS e tente novamente.');
+                return;
+            }
+
+            const existing = document.getElementById('andamentoOSModal');
+            if (existing) existing.remove();
+
+            const modal = document.createElement('div');
+            modal.id = 'andamentoOSModal';
+            modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.82); z-index:1300; display:flex; align-items:center; justify-content:center; padding:18px;';
+
+            modal.innerHTML = `
+                <div style="background:white; border-radius:20px; padding:24px; width:95%; max-width:520px;">
+                    <h2 style="color:#1e3a5f; margin:0 0 12px;">Atualizar andamento da OS</h2>
+                    <p style="color:#718096; font-size:0.82rem;">
+                        Use esta opção quando o equipamento ainda não voltou a operar. A OS não será concluída.
+                    </p>
+
+                    <label class="form-label">Condição operacional</label>
+                    <select id="andamentoCondicao" class="form-field">
+                        <option value="Parado">Manutenção (parado)</option>
+                        <option value="Aguardando material">Manutenção (aguardando material)</option>
+                        <option value="Aguardando liberação">Manutenção (aguardando liberação)</option>
+                        <option value="Em teste">Manutenção (em teste)</option>
+                        <option value="OS em execução">Manutenção (OS em execução)</option>
+                    </select>
+
+                    <label class="form-label">Observação</label>
+                    <textarea id="andamentoObs" class="form-field" rows="4" placeholder="Descreva o andamento, pendência ou condição atual"></textarea>
+
+                    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;">
+                        <button onclick="document.getElementById('andamentoOSModal').remove();" style="padding:11px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">
+                            Voltar
+                        </button>
+                        <button onclick="atualizarAndamentoOS('${idOS}')" style="padding:11px 14px; border:none; border-radius:10px; background:#3182ce; color:white; cursor:pointer; font-weight:bold;">
+                            Salvar andamento
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+        }
+
+        async function atualizarAndamentoOS(idOS) {
+            const condicaoOperacional = document.getElementById('andamentoCondicao').value;
+            const observacao = document.getElementById('andamentoObs').value.trim();
+
+            try {
+                await apiPost({
+                    acao: 'atualizarAndamentoOS',
+                    idOS,
+                    usuario: usuarioLogado.nome,
+                    funcao: usuarioLogado.funcao,
+                    condicaoOperacional,
+                    observacao
+                });
+
+                document.getElementById('andamentoOSModal').remove();
+
+                alert('Andamento atualizado. A OS permanece em aberto.');
+
+                await carregarStatusOnline();
+                await recarregarPainelOS();
+
+            } catch (erro) {
+                console.error(erro);
+                alert('Erro ao atualizar andamento: ' + erro.message);
             }
         }
 
