@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Manutenção GMAN - V4.1</title>
+    <title>Sistema de Manutenção GMAN - V5.1</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -211,6 +211,7 @@
       <div class="main-actions">
         <button class="action-btn primary" onclick="abrirPainelOS()">📋 Ordens de Serviço</button>
         <button class="action-btn success" id="btnAbrirOS" onclick="abrirModalCriarOS()" style="display:none;">➕ Abrir OS</button>
+        <button class="action-btn" id="btnPainelKPI" onclick="abrirPainelGerencial()" style="display:none;">📊 Painel Gerencial</button>
         <button class="action-btn" onclick="atualizarAgora()">🔄 Atualizar agora</button>
       </div>
 
@@ -402,8 +403,16 @@
         function podeExecutarOS() { return !!usuarioLogado; }
 
         function aplicarBotoesPermissao() {
+            const ehGestao = podeGerenciarOS();
+
             const btn = document.getElementById('btnAbrirOS');
-            if (btn) btn.style.display = podeGerenciarOS() ? 'inline-block' : 'none';
+            if (btn) btn.style.display = ehGestao ? 'inline-block' : 'none';
+
+            const btnKPI = document.getElementById('btnPainelKPI');
+            if (btnKPI) btnKPI.style.display = ehGestao ? 'inline-block' : 'none';
+
+            const stats = document.querySelector('.stats');
+            if (stats) stats.style.display = ehGestao ? 'grid' : 'none';
         }
 
         async function atualizarAgora() {
@@ -438,7 +447,7 @@
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
                             <h2 style="color:#1e3a5f; margin:0; font-size:1.2rem;">Ordens de Serviço</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. V4.1 com executor principal.</p>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. V5.1 com Painel Gerencial e permissões corrigidas.</p>
                         </div>
                         <button onclick="document.getElementById('osModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
@@ -522,7 +531,7 @@
             modal.innerHTML = `
                 <div style="background:white; border-radius:20px; padding:24px; width:95%; max-width:560px; max-height:92vh; overflow-y:auto;">
                     <h2 style="color:#1e3a5f; margin:0 0 8px;">Abrir Ordem de Serviço</h2>
-                    <p style="color:#718096; font-size:0.82rem; margin-bottom:14px;">Somente gestão abre OS. A equipe executa e conclui. Agora escolha o executor principal.</p>
+                    <p style="color:#718096; font-size:0.82rem; margin-bottom:14px;">Somente gestão abre OS. A equipe executa e conclui. Agora escolha o executor principal. Painel Gerencial e cartões gerais liberados somente para gestão.</p>
                     <label class="form-label">Equipamento</label><select id="osEquipamento" class="form-field">${opcoes}</select>
                     <label class="form-label">Área</label><select id="osArea" class="form-field"><option value="Mecânica">Mecânica</option><option value="Elétrica">Elétrica</option><option value="Automação">Automação</option></select>
                     <label class="form-label">Tipo de manutenção</label><select id="osTipo" class="form-field"><option value="Corretiva">Corretiva</option><option value="Preventiva">Preventiva</option><option value="Preditiva">Preditiva</option><option value="Melhoria">Melhoria</option></select>
@@ -596,6 +605,186 @@
             catch (erro) { console.error(erro); alert('Erro ao cancelar OS: ' + erro.message); }
         }
 
+
+
+        function parseDataKPI(valor) {
+            if (!valor) return null;
+
+            if (valor instanceof Date) {
+                return isNaN(valor.getTime()) ? null : valor;
+            }
+
+            const texto = String(valor).trim();
+            if (!texto) return null;
+
+            let data = new Date(texto);
+            if (!isNaN(data.getTime())) return data;
+
+            const br = texto.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+            if (br) {
+                const dia = Number(br[1]);
+                const mes = Number(br[2]) - 1;
+                const ano = Number(br[3]);
+                const hora = Number(br[4] || 0);
+                const minuto = Number(br[5] || 0);
+                const segundo = Number(br[6] || 0);
+                data = new Date(ano, mes, dia, hora, minuto, segundo);
+                return isNaN(data.getTime()) ? null : data;
+            }
+
+            return null;
+        }
+
+        function formatarDuracaoMinutos(minutos) {
+            if (!minutos || minutos <= 0 || !isFinite(minutos)) return 'Sem dados';
+            if (minutos < 60) return `${Math.round(minutos)} min`;
+            const horas = Math.floor(minutos / 60);
+            const mins = Math.round(minutos % 60);
+            return `${horas}h ${mins}min`;
+        }
+
+        function contarPorCampo(lista, campo) {
+            return lista.reduce((acc, item) => {
+                const chave = String(item[campo] || 'Não informado').trim() || 'Não informado';
+                acc[chave] = (acc[chave] || 0) + 1;
+                return acc;
+            }, {});
+        }
+
+        function montarRankingHTML(objeto, titulo, limite = 5) {
+            const itens = Object.entries(objeto)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, limite);
+
+            if (!itens.length) {
+                return `<div style="background:#f7fafc; border-radius:12px; padding:12px;"><h4 style="color:#1e3a5f; margin:0 0 8px;">${titulo}</h4><p style="color:#718096; margin:0;">Sem dados suficientes.</p></div>`;
+            }
+
+            return `
+                <div style="background:#f7fafc; border-radius:12px; padding:12px;">
+                    <h4 style="color:#1e3a5f; margin:0 0 8px;">${titulo}</h4>
+                    ${itens.map((item, idx) => `
+                        <div style="display:flex; justify-content:space-between; gap:10px; border-bottom:1px solid #e2e8f0; padding:6px 0; color:#2d3748; font-size:0.82rem;">
+                            <span>${idx + 1}. ${item[0]}</span>
+                            <strong>${item[1]}</strong>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function montarCardKPI(titulo, valor, subtitulo, cor = '#3182ce') {
+            return `
+                <div style="background:#f7fafc; border-radius:14px; padding:14px; border-left:5px solid ${cor}; min-height:92px;">
+                    <div style="font-size:0.72rem; color:#718096; font-weight:700; text-transform:uppercase;">${titulo}</div>
+                    <div style="font-size:1.7rem; color:#1e3a5f; font-weight:800; margin-top:4px;">${valor}</div>
+                    <div style="font-size:0.75rem; color:#4a5568; margin-top:2px;">${subtitulo || ''}</div>
+                </div>
+            `;
+        }
+
+        async function abrirPainelGerencial() {
+            if (!podeGerenciarOS()) {
+                alert('Painel gerencial disponível somente para gestão.');
+                return;
+            }
+
+            const existingModal = document.getElementById('kpiModal');
+            if (existingModal) existingModal.remove();
+
+            const modal = document.createElement('div');
+            modal.id = 'kpiModal';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.82); display: flex; align-items: center; justify-content: center; z-index: 1200; padding: 18px;';
+            modal.innerHTML = `
+                <div style="background:white; border-radius:20px; padding:22px; width:96%; max-width:940px; max-height:90vh; overflow-y:auto;">
+                    <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
+                        <div>
+                            <h2 style="color:#1e3a5f; margin:0; font-size:1.25rem;">Painel Gerencial — KPIs</h2>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Visível somente para gestão. Dados calculados pelo Banco Central GMAN.</p>
+                        </div>
+                        <button onclick="document.getElementById('kpiModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
+                    </div>
+                    <div id="kpiConteudo" style="color:#1a202c;">Carregando KPIs...</div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            await carregarPainelGerencial();
+        }
+
+        async function carregarPainelGerencial() {
+            const container = document.getElementById('kpiConteudo');
+            if (!container) return;
+
+            container.innerHTML = '<p style="color:#4a5568;">🔄 Calculando indicadores...</p>';
+
+            try {
+                await carregarStatusOnline();
+                const listaOS = await listarOSOnline();
+
+                const totalEquipamentos = equipment.length;
+                const operando = equipment.filter(e => e.status === 'ok').length;
+                const manutencao = equipment.filter(e => e.status === 'alert').length;
+                const parados = equipment.filter(e => e.status === 'down').length;
+
+                const osAbertas = listaOS.filter(os => String(os.statusOS) === 'Aberta').length;
+                const osExecucao = listaOS.filter(os => String(os.statusOS) === 'Em execução').length;
+                const osConcluidas = listaOS.filter(os => String(os.statusOS) === 'Concluída').length;
+                const osCanceladas = listaOS.filter(os => String(os.statusOS) === 'Cancelada').length;
+                const osAtivas = listaOS.filter(os => !['Concluída', 'Cancelada'].includes(String(os.statusOS))).length;
+
+                const concluidasComTempo = listaOS
+                    .filter(os => String(os.statusOS) === 'Concluída')
+                    .map(os => {
+                        const inicio = parseDataKPI(os.dataInicio);
+                        const fim = parseDataKPI(os.dataConclusao);
+                        if (!inicio || !fim) return null;
+                        const minutos = (fim.getTime() - inicio.getTime()) / 60000;
+                        return minutos > 0 ? minutos : null;
+                    })
+                    .filter(Boolean);
+
+                const tempoMedio = concluidasComTempo.length
+                    ? concluidasComTempo.reduce((a, b) => a + b, 0) / concluidasComTempo.length
+                    : 0;
+
+                const porArea = contarPorCampo(listaOS, 'area');
+                const porExecutor = contarPorCampo(listaOS.filter(os => os.responsavel), 'responsavel');
+                const porEquipe = contarPorCampo(listaOS.filter(os => os.equipeResponsavel), 'equipeResponsavel');
+                const porEquipamento = contarPorCampo(listaOS.filter(os => os.equipamento || os.idEquipamento).map(os => ({ equipamentoChave: os.equipamento || os.idEquipamento })), 'equipamentoChave');
+
+                const taxaConclusao = listaOS.length ? Math.round((osConcluidas / listaOS.length) * 100) : 0;
+                const taxaCritica = totalEquipamentos ? Math.round(((manutencao + parados) / totalEquipamentos) * 100) : 0;
+
+                container.innerHTML = `
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin-bottom:16px;">
+                        ${montarCardKPI('Equipamentos', totalEquipamentos, 'Total cadastrado', '#3182ce')}
+                        ${montarCardKPI('Operando', operando, 'Status atual', '#38a169')}
+                        ${montarCardKPI('Manutenção', manutencao, 'Status atual', '#d69e2e')}
+                        ${montarCardKPI('Parados', parados, 'Status atual', '#e53e3e')}
+                        ${montarCardKPI('OS ativas', osAtivas, 'Aberta + execução', '#805ad5')}
+                        ${montarCardKPI('OS concluídas', osConcluidas, `${taxaConclusao}% do total`, '#38a169')}
+                        ${montarCardKPI('Tempo médio', formatarDuracaoMinutos(tempoMedio), 'Início até conclusão', '#3182ce')}
+                        ${montarCardKPI('Índice crítico', `${taxaCritica}%`, 'Manutenção + parados', '#e53e3e')}
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
+                        ${montarRankingHTML(porArea, 'OS por área')}
+                        ${montarRankingHTML(porExecutor, 'Ranking por executor')}
+                        ${montarRankingHTML(porEquipe, 'OS por equipe')}
+                        ${montarRankingHTML(porEquipamento, 'Equipamentos com mais OS')}
+                    </div>
+
+                    <div style="margin-top:14px; background:#ebf8ff; border-left:5px solid #3182ce; border-radius:12px; padding:12px; color:#2c5282; font-size:0.82rem;">
+                        <strong>Resumo:</strong> ${osAbertas} OS abertas, ${osExecucao} em execução, ${osConcluidas} concluídas e ${osCanceladas} canceladas. Atualização automática geral mantida em 3 minutos.
+                    </div>
+                `;
+
+            } catch (erro) {
+                console.error(erro);
+                container.innerHTML = '<p style="color:#e53e3e; font-weight:bold;">Erro ao carregar KPIs. Confira a conexão com a API e a planilha.</p>';
+            }
+        }
 
         function recuperarLoginSalvo() {
             const usuarioSalvo = localStorage.getItem('manutencao_usuario_logado');
