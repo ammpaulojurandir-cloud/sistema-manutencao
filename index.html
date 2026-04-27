@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Manutenção GMAN - V4</title>
+    <title>Sistema de Manutenção GMAN - V4.1</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -438,7 +438,7 @@
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
                             <h2 style="color:#1e3a5f; margin:0; font-size:1.2rem;">Ordens de Serviço</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos.</p>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. V4.1 com executor principal.</p>
                         </div>
                         <button onclick="document.getElementById('osModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
@@ -492,6 +492,25 @@
             }).join('');
         }
 
+
+        function gerarOpcoesExecutores() {
+            const vistos = new Set();
+            const lista = usuarios
+                .filter(u => u.nome && ['lider', 'administrador', 'supervisor', 'coordenador', 'gerente'].includes(String(u.funcao || '').toLowerCase()))
+                .filter(u => {
+                    const chave = `${u.nome}|${u.funcao}|${u.area}`;
+                    if (vistos.has(chave)) return false;
+                    vistos.add(chave);
+                    return true;
+                })
+                .sort((a, b) => String(a.nome).localeCompare(String(b.nome), 'pt-BR'));
+
+            const opcoes = ['<option value="">Selecione o executor principal</option>']
+                .concat(lista.map(u => `<option value="${u.nome}">${u.nome} — ${String(u.funcao).toUpperCase()} / ${String(u.area).toUpperCase()}</option>`));
+
+            return opcoes.join('');
+        }
+
         function abrirModalCriarOS(idEquipamentoPreSelecionado = '') {
             if (!podeGerenciarOS()) return alert('Abertura de OS é permitida apenas para gestão.');
             const existing = document.getElementById('criarOSModal');
@@ -503,13 +522,14 @@
             modal.innerHTML = `
                 <div style="background:white; border-radius:20px; padding:24px; width:95%; max-width:560px; max-height:92vh; overflow-y:auto;">
                     <h2 style="color:#1e3a5f; margin:0 0 8px;">Abrir Ordem de Serviço</h2>
-                    <p style="color:#718096; font-size:0.82rem; margin-bottom:14px;">Somente gestão abre OS. A equipe executa e conclui.</p>
+                    <p style="color:#718096; font-size:0.82rem; margin-bottom:14px;">Somente gestão abre OS. A equipe executa e conclui. Agora escolha o executor principal.</p>
                     <label class="form-label">Equipamento</label><select id="osEquipamento" class="form-field">${opcoes}</select>
                     <label class="form-label">Área</label><select id="osArea" class="form-field"><option value="Mecânica">Mecânica</option><option value="Elétrica">Elétrica</option><option value="Automação">Automação</option></select>
                     <label class="form-label">Tipo de manutenção</label><select id="osTipo" class="form-field"><option value="Corretiva">Corretiva</option><option value="Preventiva">Preventiva</option><option value="Preditiva">Preditiva</option><option value="Melhoria">Melhoria</option></select>
                     <label class="form-label">Prioridade</label><select id="osPrioridade" class="form-field"><option value="Normal">Normal</option><option value="Alta">Alta</option><option value="Crítica">Crítica</option></select>
                     <label class="form-label">Equipe responsável</label><input id="osEquipe" class="form-field" placeholder="Ex.: Mecânica Fortes, Elétrica Jeferson...">
-                    <label class="form-label">Responsável</label><input id="osResponsavel" class="form-field" placeholder="Nome do líder ou técnico responsável">
+                    <label class="form-label">Executor principal</label><select id="osResponsavel" class="form-field">${gerarOpcoesExecutores()}</select>
+                    <p style="color:#718096; font-size:0.75rem; margin:-6px 0 10px;">O executor principal será gravado no campo RESPONSAVEL da OS.</p>
                     <label class="form-label">Descrição do problema</label><textarea id="osDescricao" class="form-field" rows="4" placeholder="Descreva o problema informado ou a atividade solicitada"></textarea>
                     <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;">
                         <button onclick="document.getElementById('criarOSModal').remove();" style="padding:11px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Cancelar</button>
@@ -528,6 +548,7 @@
             const equipeResponsavel = document.getElementById('osEquipe').value.trim();
             const responsavel = document.getElementById('osResponsavel').value.trim();
             const descricaoProblema = document.getElementById('osDescricao').value.trim();
+            if (!responsavel) return alert('Selecione o executor principal da OS.');
             if (!descricaoProblema) return alert('Descreva o problema antes de criar a OS.');
             try {
                 await apiPost({ acao: 'criarOS', usuario: usuarioLogado.nome, funcao: usuarioLogado.funcao, idEquipamento, equipamento: eq ? eq.name : '', sistema: eq ? eq.system : '', area, tipoManutencao, prioridade, descricaoProblema, equipeResponsavel, responsavel });
