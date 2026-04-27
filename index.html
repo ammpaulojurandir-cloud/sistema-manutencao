@@ -225,6 +225,140 @@
         ];
         
         let usuarioLogado = null;
+        const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
+        let apiOnline = false;
+
+        function atualizarIndicadorConexao(mensagem, tipo = 'neutro') {
+            let indicador = document.getElementById('apiStatus');
+            if (!indicador) {
+                indicador = document.createElement('div');
+                indicador.id = 'apiStatus';
+                indicador.style.cssText = `
+                    text-align: center;
+                    margin: 0 auto 15px auto;
+                    padding: 8px 12px;
+                    border-radius: 12px;
+                    max-width: 420px;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                    background: rgba(255,255,255,0.12);
+                    border: 1px solid rgba(255,255,255,0.2);
+                `;
+                const filtro = document.querySelector('.systems-filter');
+                filtro.parentNode.insertBefore(indicador, filtro);
+            }
+
+            const cores = {
+                online: { fundo: 'rgba(56, 161, 105, 0.18)', borda: 'rgba(56, 161, 105, 0.45)', texto: '#9ae6b4' },
+                offline: { fundo: 'rgba(229, 62, 62, 0.18)', borda: 'rgba(229, 62, 62, 0.45)', texto: '#feb2b2' },
+                neutro: { fundo: 'rgba(255,255,255,0.12)', borda: 'rgba(255,255,255,0.2)', texto: '#a0c4e8' }
+            };
+
+            const cor = cores[tipo] || cores.neutro;
+            indicador.style.background = cor.fundo;
+            indicador.style.borderColor = cor.borda;
+            indicador.style.color = cor.texto;
+            indicador.textContent = mensagem;
+        }
+
+        function normalizarStatusApp(valor) {
+            const texto = String(valor || '').toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '');
+
+            if (texto.includes('manut') || texto.includes('alert') || texto.includes('atencao')) return 'alert';
+            if (texto.includes('parad') || texto.includes('down')) return 'down';
+            return 'ok';
+        }
+
+        function statusParaPlanilha(status) {
+            if (status === 'alert') return 'Manutenção';
+            if (status === 'down') return 'Parado';
+            return 'Operando';
+        }
+
+        function formatarDataApi(valor) {
+            if (!valor) return '';
+            const data = new Date(valor);
+            if (isNaN(data.getTime())) return String(valor);
+
+            return data.toLocaleString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        async function carregarStatusOnline() {
+            atualizarIndicadorConexao('🔄 Sincronizando com o Banco Central...', 'neutro');
+
+            try {
+                const resposta = await fetch(`${API_URL}?acao=listarStatus&t=${Date.now()}`);
+                if (!resposta.ok) throw new Error('Falha ao consultar a API.');
+
+                const statusOnline = await resposta.json();
+                if (!Array.isArray(statusOnline)) throw new Error('Resposta da API não veio em formato de lista.');
+
+                statusOnline.forEach(item => {
+                    const eq = equipment.find(e => String(e.id) === String(item.idEquipamento));
+                    if (!eq) return;
+
+                    eq.status = normalizarStatusApp(item.statusAtual);
+                    eq.ultimoTecnico = item.usuarioUltimaAlteracao || '';
+                    eq.ultimaAlteracao = formatarDataApi(item.dataUltimaAlteracao);
+                    eq.observacaoStatus = item.observacao || '';
+                });
+
+                apiOnline = true;
+                saveData();
+                applyFilters();
+                atualizarIndicadorConexao('✅ Online: conectado ao Banco Central GMAN', 'online');
+                return true;
+
+            } catch (erro) {
+                apiOnline = false;
+                loadData();
+                applyFilters();
+                atualizarIndicadorConexao('⚠️ Modo local: não foi possível sincronizar com o Banco Central', 'offline');
+                console.error('Erro ao carregar status online:', erro);
+                return false;
+            }
+        }
+
+        async function salvarStatusOnline(id, newStatus) {
+            if (!usuarioLogado) {
+                throw new Error('Usuário não identificado.');
+            }
+
+            const payload = {
+                acao: 'alterarStatus',
+                idEquipamento: id,
+                novoStatus: statusParaPlanilha(newStatus),
+                usuario: usuarioLogado.nome,
+                funcao: usuarioLogado.funcao,
+                observacao: ''
+            };
+
+            const resposta = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const retorno = await resposta.json();
+
+            if (!retorno.sucesso) {
+                throw new Error(retorno.erro || retorno.mensagem || 'Erro desconhecido ao salvar status.');
+            }
+
+            return retorno;
+        }
+
 
         function recuperarLoginSalvo() {
             const usuarioSalvo = localStorage.getItem('manutencao_usuario_logado');
@@ -738,16 +872,27 @@
             document.body.appendChild(modal);
         }
         
-        function changeStatus(id, newStatus) {
+        async function changeStatus(id, newStatus) {
             const eq = equipment.find(e => e.id === id);
+
+            if (!eq) {
+                alert('Equipamento não encontrado!');
+                return;
+            }
+
+            if (!usuarioLogado) {
+                alert('Faça login novamente para alterar o status.');
+                return;
+            }
 
             if (eq.status === newStatus) {
                 alert('O equipamento já está com esse status!');
                 return;
             }
-            
+
             const tecnico = usuarioLogado.nome; 
-            
+            const statusAnterior = eq.status;
+
             const agora = new Date();
             const horario = agora.toLocaleString('pt-BR', {
                 day: '2-digit',
@@ -761,32 +906,44 @@
             if (!eq.historico) {
                 eq.historico = [];
             }
-            
+
             eq.historico.push({
                 data: horario,
                 tecnico: tecnico,
-                statusAnterior: eq.status,
+                statusAnterior: statusAnterior,
                 statusNovo: newStatus
             });
-            
+
             eq.status = newStatus;
             eq.ultimoTecnico = tecnico;
             eq.ultimaAlteracao = horario;
-            
+
             saveData();
             applyFilters();
-            
+
+            try {
+                atualizarIndicadorConexao('🔄 Salvando alteração no Banco Central...', 'neutro');
+                await salvarStatusOnline(id, newStatus);
+                await carregarStatusOnline();
+                alert('Status alterado e salvo no Banco Central!');
+            } catch (erro) {
+                atualizarIndicadorConexao('⚠️ Alteração salva apenas neste aparelho. Banco Central não confirmou.', 'offline');
+                console.error('Erro ao salvar online:', erro);
+                alert('A alteração ficou salva neste aparelho, mas não foi confirmada no Banco Central. Verifique a conexão ou a implantação do Apps Script.');
+            }
+
             const modal = document.getElementById('qrModal');
             if (modal) {
                 modal.remove();
                 openEquipment(id);
             }
         }
-        
-        function iniciarSistema() {
+
+        async function iniciarSistema() {
             loadData();
             renderEquipment();
             recuperarLoginSalvo();
+            await carregarStatusOnline();
         }
 
         iniciarSistema();
