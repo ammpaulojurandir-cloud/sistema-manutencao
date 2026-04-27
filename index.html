@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Manutenção GMAN - V6</title>
+    <title>Sistema de Manutenção GMAN - V7.1</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -128,7 +128,7 @@
             <h2 style="color: #1e3a5f; margin-bottom: 5px;">Sistema de Manutenção</h2>
             <p style="color: #718096; margin-bottom: 30px; font-size: 0.9rem;">Água Potável - Grupos Motobombas</p>
             
-            <input type="text" id="loginUser" placeholder="Usuário (nome completo)" style="
+            <input type="text" id="loginUser" placeholder="Usuário (nome completo)" onkeydown="if(event.key === 'Enter'){event.preventDefault(); fazerLogin();}" style="
                 width: 100%;
                 padding: 12px;
                 margin-bottom: 15px;
@@ -138,7 +138,7 @@
                 color: #333;
             ">
             
-            <input type="password" id="loginPass" placeholder="Senha" style="
+            <input type="password" id="loginPass" placeholder="Senha" onkeydown="if(event.key === 'Enter'){event.preventDefault(); fazerLogin();}" style="
                 width: 100%;
                 padding: 12px;
                 margin-bottom: 20px;
@@ -435,7 +435,7 @@
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
                             <h2 style="color:#1e3a5f; margin:0; font-size:1.2rem;">Ordens de Serviço</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. V6 com status bloqueado por OS, login por Enter e status integrado à manutenção.</p>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. V7.1 com câmera traseira para fotos, anexos, login por Enter corrigido, status bloqueado por OS e status integrado à manutenção.</p>
                         </div>
                         <button onclick="document.getElementById('osModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
@@ -561,13 +561,91 @@
             catch (erro) { console.error(erro); alert('Erro ao iniciar OS: ' + erro.message); }
         }
 
+
+        function arquivoParaBase64(arquivo) {
+            return new Promise((resolve, reject) => {
+                const leitor = new FileReader();
+                leitor.onload = () => {
+                    const resultado = String(leitor.result || '');
+                    const base64 = resultado.split(',')[1] || '';
+                    resolve(base64);
+                };
+                leitor.onerror = reject;
+                leitor.readAsDataURL(arquivo);
+            });
+        }
+
+        function detectarTipoAnexo(arquivo) {
+            const tipo = String(arquivo.type || '').toLowerCase();
+            if (tipo.startsWith('image/')) return 'Foto';
+            if (tipo.startsWith('audio/')) return 'Audio';
+            if (tipo.startsWith('video/')) return 'Video';
+            return 'Outro';
+        }
+
+        async function anexarArquivoOS(idOS, idEquipamento, inputId, observacaoId) {
+            const input = document.getElementById(inputId);
+            const obs = document.getElementById(observacaoId);
+            if (!input || !input.files || !input.files.length) {
+                alert('Selecione um arquivo primeiro.');
+                return;
+            }
+
+            const arquivo = input.files[0];
+            const tipoAnexo = detectarTipoAnexo(arquivo);
+
+            if (tipoAnexo === 'Video') {
+                alert('Vídeo bloqueado. O sistema permite somente fotos e áudio.');
+                input.value = '';
+                return;
+            }
+
+            if (!['Foto', 'Audio'].includes(tipoAnexo)) {
+                alert('Arquivo inválido. Envie somente foto ou áudio.');
+                input.value = '';
+                return;
+            }
+
+            if (tipoAnexo === 'Audio') {
+                alert('Atenção: o áudio deve ter no máximo 2 minutos.');
+            }
+
+            try {
+                const conteudoBase64 = await arquivoParaBase64(arquivo);
+                await apiPost({
+                    acao: 'anexarArquivo',
+                    idOS,
+                    idEquipamento,
+                    usuario: usuarioLogado.nome,
+                    funcao: usuarioLogado.funcao,
+                    tipoAnexo,
+                    nomeArquivo: arquivo.name,
+                    mimeType: arquivo.type,
+                    conteudoBase64,
+                    observacao: obs ? obs.value.trim() : ''
+                });
+
+                alert('Arquivo anexado com sucesso.');
+                input.value = '';
+                if (obs) obs.value = '';
+            } catch (erro) {
+                console.error(erro);
+                const mensagem = erro.message || 'Erro ao anexar arquivo.';
+                if (mensagem.toLowerCase().includes('limite')) {
+                    alert('Limite atingido: já foram enviadas 5 fotos hoje para este usuário/equipe.');
+                } else {
+                    alert(mensagem);
+                }
+            }
+        }
+
         function abrirModalConcluirOS(idOS) {
             const existing = document.getElementById('concluirOSModal');
             if (existing) existing.remove();
             const modal = document.createElement('div');
             modal.id = 'concluirOSModal';
             modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.82); z-index:1300; display:flex; align-items:center; justify-content:center; padding:18px;';
-            modal.innerHTML = `<div style="background:white; border-radius:20px; padding:24px; width:95%; max-width:520px;"><h2 style="color:#1e3a5f; margin:0 0 12px;">Concluir OS</h2><label class="form-label">Serviço realizado</label><textarea id="concluirServico" class="form-field" rows="4" placeholder="Descreva o serviço executado"></textarea><label class="form-label">Materiais utilizados</label><textarea id="concluirMateriais" class="form-field" rows="3" placeholder="Informe materiais, peças ou deixe em branco"></textarea><label class="form-label">Status final do equipamento</label><select id="concluirStatusFinal" class="form-field"><option value="">Não alterar status do equipamento</option><option value="Operando|Normal">Operando</option><option value="Manutenção|Normal">Em manutenção — sem parada</option><option value="Manutenção|Parado">Em manutenção — parado</option><option value="Manutenção|Aguardando material">Em manutenção — aguardando material</option><option value="Manutenção|Aguardando liberação">Em manutenção — aguardando liberação</option><option value="Manutenção|Em teste">Em manutenção — em teste</option></select><div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;"><button onclick="document.getElementById('concluirOSModal').remove();" style="padding:11px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Cancelar</button><button onclick="concluirOS('${idOS}')" style="padding:11px 14px; border:none; border-radius:10px; background:#38a169; color:white; cursor:pointer; font-weight:bold;">Concluir</button></div></div>`;
+            modal.innerHTML = `<div style="background:white; border-radius:20px; padding:24px; width:95%; max-width:560px; max-height:90vh; overflow-y:auto;"><h2 style="color:#1e3a5f; margin:0 0 12px;">Concluir OS</h2><label class="form-label">Serviço realizado</label><textarea id="concluirServico" class="form-field" rows="4" placeholder="Descreva o serviço executado"></textarea><label class="form-label">Materiais utilizados</label><textarea id="concluirMateriais" class="form-field" rows="3" placeholder="Informe materiais, peças ou deixe em branco"></textarea><label class="form-label">Status final do equipamento</label><select id="concluirStatusFinal" class="form-field"><option value="">Não alterar status do equipamento</option><option value="Operando|Normal">Operando</option><option value="Manutenção|Normal">Em manutenção — sem parada</option><option value="Manutenção|Parado">Em manutenção — parado</option><option value="Manutenção|Aguardando material">Em manutenção — aguardando material</option><option value="Manutenção|Aguardando liberação">Em manutenção — aguardando liberação</option><option value="Manutenção|Em teste">Em manutenção — em teste</option></select><div style="margin-top:15px; padding:12px; background:#f7fafc; border-radius:12px; border-left:4px solid #3182ce;"><p style="color:#1e3a5f; font-weight:700; margin:0 0 8px;">📎 Evidências da OS</p><p style="color:#718096; font-size:0.75rem; margin:0 0 10px;">Permitido: fotos e áudio. Vídeo bloqueado. Limite: até 5 fotos por dia por equipe/usuário.</p><label class="form-label">Anexar foto</label><input id="anexoFotoOS" type="file" accept="image/*" capture="environment" class="form-field"><label class="form-label">Anexar áudio</label><input id="anexoAudioOS" type="file" accept="audio/*" class="form-field"><label class="form-label">Observação do anexo</label><input id="anexoObsOS" class="form-field" placeholder="Ex.: antes do reparo, depois do reparo, ruído identificado..."><div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;"><button onclick="anexarArquivoOS('${idOS}', '${os.idEquipamento}', 'anexoFotoOS', 'anexoObsOS')" class="action-btn">📷 Enviar foto</button><button onclick="anexarArquivoOS('${idOS}', '${os.idEquipamento}', 'anexoAudioOS', 'anexoObsOS')" class="action-btn">🎙️ Enviar áudio</button></div></div><div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;"><button onclick="document.getElementById('concluirOSModal').remove();" style="padding:11px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Cancelar</button><button onclick="concluirOS('${idOS}')" style="padding:11px 14px; border:none; border-radius:10px; background:#38a169; color:white; cursor:pointer; font-weight:bold;">Concluir</button></div></div>`;
             document.body.appendChild(modal);
         }
 
