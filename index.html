@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Manutenção GMAN - V8.3</title>
+    <title>Sistema de Manutenção GMAN - V8.4</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -307,15 +307,53 @@
             return 'Operando';
         }
 
-        function labelStatusEquipamento(status) {
+        function extrairCondicaoOperacional(observacao) {
+            const texto = String(observacao || '');
+            if (!texto) return '';
+
+            const match = texto.match(/Condi(?:ç|c)ão operacional:\s*([^|]+)/i);
+            if (!match || !match[1]) return '';
+
+            const condicao = match[1].trim();
+
+            if (!condicao || condicao.toLowerCase() === 'normal') return '';
+
+            return condicao;
+        }
+
+        function formatarCondicaoParaStatus(condicao) {
+            const c = String(condicao || '').trim();
+            if (!c) return '';
+
+            const lower = c.toLowerCase();
+
+            if (lower === 'parado') return 'parado';
+            if (lower === 'os em execução' || lower === 'os em execucao') return 'OS em execução';
+            if (lower === 'aguardando material') return 'aguardando material';
+            if (lower === 'aguardando liberação' || lower === 'aguardando liberacao') return 'aguardando liberação';
+            if (lower === 'em teste') return 'em teste';
+
+            return c;
+        }
+
+        function labelStatusEquipamento(status, observacao = '') {
             if (status === 'ok') return 'Operando';
-            if (status === 'alert') return 'Manutenção';
-            if (status === 'down') return 'Manutenção — Parado';
+
+            const condicao = formatarCondicaoParaStatus(extrairCondicaoOperacional(observacao));
+
+            if (status === 'alert') {
+                return condicao ? `Manutenção (${condicao})` : 'Manutenção';
+            }
+
+            if (status === 'down') {
+                return condicao ? `Manutenção (${condicao})` : 'Manutenção (parado)';
+            }
+
             return 'Operando';
         }
 
-        function labelStatusEquipamentoMaiusculo(status) {
-            return labelStatusEquipamento(status).toUpperCase();
+        function labelStatusEquipamentoMaiusculo(status, observacao = '') {
+            return labelStatusEquipamento(status, observacao).toUpperCase();
         }
 
         function formatarDataApi(valor) {
@@ -437,7 +475,7 @@
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
                             <h2 style="color:#1e3a5f; margin:0; font-size:1.2rem;">Ordens de Serviço</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. V8.3 com atualização de andamento corrigida, compressão de imagens, trava de anexos, anexos completos e status automático por OS.</p>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. V8.4 com motivo da manutenção no status principal, atualização de andamento corrigida, compressão de imagens, trava de anexos e status automático por OS.</p>
                         </div>
                         <button onclick="document.getElementById('osModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
@@ -1419,11 +1457,11 @@
                             <span class="system-tag ${getSystemTagClass(eq.systemCode)}">${eq.systemCode}</span>
                             ${eq.system.toUpperCase()} | ID: ${eq.id}
                             ${eq.ultimoTecnico ? `<br><span style="font-size: 0.7rem; color: #63b3ed;">👤 ${eq.ultimoTecnico} | 🕐 ${eq.ultimaAlteracao}</span>` : ''}
-                            ${(eq.status === 'alert' || eq.status === 'down') && eq.ultimaAlteracao ? `<br><span style="color: ${eq.status === 'alert' ? '#ecc94b' : '#f56565'}; font-size: 0.7rem; font-weight: bold;">⚠️ Status atual desde: ${eq.ultimaAlteracao}</span>` : ''}
+                            ${(eq.status === 'alert' || eq.status === 'down') && eq.ultimaAlteracao ? `<br><span style="color: ${eq.status === 'alert' ? '#ecc94b' : '#f56565'}; font-size: 0.7rem; font-weight: bold;">⚠️ ${labelStatusEquipamento(eq.status, eq.observacaoStatus)} desde: ${eq.ultimaAlteracao}</span>` : ''}
                         </div>
                     </div>
                     <span class="status-badge badge-${eq.status}">
-                        ${labelStatusEquipamento(eq.status)}
+                        ${labelStatusEquipamento(eq.status, eq.observacaoStatus)}
                     </span>
                 </div>
             `).join('');
@@ -1522,7 +1560,7 @@
                     <div style="margin: 20px 0; padding: 15px; background: #f7fafc; border-radius: 10px;">
                         <p style="color: #666; font-size: 0.8rem; margin-bottom: 10px;">STATUS ATUAL:</p>
                         <div style="display: inline-block; padding: 8px 20px; border-radius: 20px; color: white; font-weight: bold; font-size: 0.9rem; background: ${statusColors[eq.status]};">
-                            ${statusLabels[eq.status]}
+                            ${labelStatusEquipamentoMaiusculo(eq.status, eq.observacaoStatus)}
                         </div>
                     </div>
 
