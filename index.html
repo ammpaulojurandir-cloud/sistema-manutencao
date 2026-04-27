@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Manutenção GMAN - V7.1</title>
+    <title>Sistema de Manutenção GMAN - V7.2</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -435,7 +435,7 @@
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
                             <h2 style="color:#1e3a5f; margin:0; font-size:1.2rem;">Ordens de Serviço</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. V7.1 com câmera traseira para fotos, anexos, login por Enter corrigido, status bloqueado por OS e status integrado à manutenção.</p>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. V7.2 com conclusão de OS corrigida, anexos, login por Enter corrigido, status bloqueado por OS e status integrado à manutenção.</p>
                         </div>
                         <button onclick="document.getElementById('osModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
@@ -453,8 +453,12 @@
             const container = document.getElementById('osConteudo');
             if (!container) return;
             container.innerHTML = '<p style="color:#4a5568;">🔄 Carregando...</p>';
-            try { renderizarOS(await listarOSOnline()); }
-            catch (erro) { console.error(erro); container.innerHTML = '<p style="color:#e53e3e; font-weight:bold;">Erro ao carregar Ordens de Serviço. Confira a API V4.</p>'; }
+            try {
+                const lista = await listarOSOnline();
+                ordensServicoCache = lista;
+                renderizarOS(lista);
+            }
+            catch (erro) { console.error(erro); container.innerHTML = '<p style="color:#e53e3e; font-weight:bold;">Erro ao carregar Ordens de Serviço. Confira a API V7.</p>'; }
         }
 
         function renderizarOS(lista) {
@@ -640,6 +644,13 @@
         }
 
         function abrirModalConcluirOS(idOS) {
+            const os = ordensServicoCache.find(item => String(item.idOS) === String(idOS));
+
+            if (!os) {
+                alert('Não foi possível localizar os dados desta OS. Recarregue a lista de OS e tente novamente.');
+                return;
+            }
+
             const existing = document.getElementById('concluirOSModal');
             if (existing) existing.remove();
             const modal = document.createElement('div');
@@ -1194,7 +1205,8 @@
         function getSystemTagClass(code) { return `tag-${code}`; }
         
         let currentSystemFilter = 'all';
-        let currentStatusFilter = 'all'; 
+        let currentStatusFilter = 'all';
+        let ordensServicoCache = []; 
 
         function saveData() {
             localStorage.setItem('manutencao_equipment', JSON.stringify(equipment));
