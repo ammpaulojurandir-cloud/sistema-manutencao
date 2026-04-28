@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Manutenção GMAN - V8.5</title>
+    <title>Sistema de Manutenção GMAN - V8.5.2</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -476,7 +476,7 @@
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
                             <h2 style="color:#1e3a5f; margin:0; font-size:1.2rem;">Ordens de Serviço</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. GMAN 8.5 — Estrutura técnica consolidada: OS com veículo, KM, evidências e situação final do equipamento.</p>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. GMAN 8.5.2 — correção de gravação da OS, KM, motorista, prefixo e horários.</p>
                         </div>
                         <button onclick="document.getElementById('osModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
@@ -513,7 +513,7 @@
             }
             container.innerHTML = base.map(os => {
                 const podeIniciar = podeExecutarOS() && String(os.statusOS) === 'Aberta';
-                const statusPermiteAcao = ['Em execução', 'Aguardando material', 'Aguardando liberação', 'Reaberta', 'Parado', 'Em teste', 'OS em execução'].includes(String(os.statusOS));
+                const statusPermiteAcao = ['Em execução', 'Aguardando material', 'Aguardando liberação', 'Reaberta', 'Parado', 'Em teste', 'OS em execução', 'Operando com restrição'].includes(String(os.statusOS));
                 const podeConcluir = podeExecutarOS() && statusPermiteAcao;
                 const podeAtualizarAndamento = podeExecutarOS() && statusPermiteAcao;
                 const podeCancelar = podeGerenciarOS() && !['Concluída', 'Cancelada'].includes(String(os.statusOS));
@@ -832,6 +832,7 @@
                         <option value="Aguardando material">Manutenção (aguardando material)</option>
                         <option value="Aguardando liberação">Manutenção (aguardando liberação)</option>
                         <option value="Em teste">Manutenção (em teste)</option>
+                        <option value="Operando com restrição">Operando com restrição</option>
                         <option value="OS em execução">Manutenção (OS em execução)</option>
                     </select>
 
@@ -898,7 +899,7 @@
                 <div style="background:white; border-radius:20px; padding:24px; width:95%; max-width:650px; max-height:90vh; overflow-y:auto;">
                     <h2 style="color:#1e3a5f; margin:0 0 12px;">Concluir OS — GMAN 8.5</h2>
                     <p style="color:#718096; font-size:0.82rem; margin:0 0 12px;">
-                        Informe serviço executado, deslocamento e situação final do equipamento.
+                        A OS só encerra quando o equipamento estiver Operando. Se ainda não voltou a operar, use Atualizar andamento.
                     </p>
 
                     <label class="form-label">Serviço executado</label>
@@ -921,22 +922,24 @@
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px;">
                         <div>
                             <label class="form-label">KM inicial</label>
-                            <input id="concluirKmInicial" class="form-field" type="number" min="0" step="1" placeholder="KM inicial">
+                            <input id="concluirKmInicial" class="form-field" type="number" min="0" step="1" placeholder="KM inicial" oninput="atualizarPreviewKmRodado()">
                         </div>
                         <div>
                             <label class="form-label">KM final</label>
-                            <input id="concluirKmFinal" class="form-field" type="number" min="0" step="1" placeholder="KM final">
+                            <input id="concluirKmFinal" class="form-field" type="number" min="0" step="1" placeholder="KM final" oninput="atualizarPreviewKmRodado()">
                         </div>
+                    </div>
+                    <div id="previewKmRodado" style="color:#2d3748; font-size:0.78rem; margin:-4px 0 8px; text-align:left;">
+                        KM rodado será calculado automaticamente.
                     </div>
 
                     <label class="form-label">Situação final do equipamento</label>
                     <select id="concluirSituacaoFinal" class="form-field">
                         <option value="Operando">Operando</option>
-                        <option value="Operando com restrição">Operando com restrição</option>
-                        <option value="Parado">Parado</option>
-                        <option value="Aguardando material">Aguardando material</option>
-                        <option value="Aguardando liberação">Aguardando liberação</option>
                     </select>
+                    <p style="color:#718096; font-size:0.75rem; margin:-4px 0 10px; text-align:left;">
+                        Para Parado, Aguardando material, Aguardando liberação, Em teste ou Operando com restrição, use <strong>Atualizar andamento</strong>. A OS permanece aberta.
+                    </p>
 
                     <label class="form-label">Observação final</label>
                     <textarea id="concluirObservacaoFinal" class="form-field" rows="3" placeholder="Observação final da OS"></textarea>
@@ -976,6 +979,32 @@
             document.body.appendChild(modal);
         }
 
+
+        function atualizarPreviewKmRodado() {
+            const ini = document.getElementById('concluirKmInicial');
+            const fim = document.getElementById('concluirKmFinal');
+            const prev = document.getElementById('previewKmRodado');
+            if (!ini || !fim || !prev) return;
+
+            const kmInicial = ini.value === '' ? '' : Number(ini.value);
+            const kmFinal = fim.value === '' ? '' : Number(fim.value);
+
+            if (kmInicial === '' || kmFinal === '') {
+                prev.style.color = '#2d3748';
+                prev.textContent = 'KM rodado será calculado automaticamente.';
+                return;
+            }
+
+            if (kmFinal < kmInicial) {
+                prev.style.color = '#e53e3e';
+                prev.textContent = 'KM final inválido. O KM final deve ser maior ou igual ao KM inicial.';
+                return;
+            }
+
+            prev.style.color = '#2f855a';
+            prev.textContent = 'KM rodado: ' + (kmFinal - kmInicial) + ' km';
+        }
+
         async function concluirOS(idOS) {
             // --- TRAVA DE SEGURANÇA DE EVIDÊNCIAS ---
             const fFoto1 = document.getElementById('anexoFoto1OS');
@@ -1002,6 +1031,9 @@
             const kmFinal = kmFinalTexto === '' ? '' : Number(kmFinalTexto);
 
             if (!servicoRealizado) return alert('Informe o serviço executado.');
+            if (situacaoFinalEquipamento !== 'Operando') {
+                return alert('A OS só pode ser concluída quando a situação final do equipamento for Operando. Use Atualizar andamento se ainda estiver em teste, parado, aguardando material, aguardando liberação ou com restrição.');
+            }
             if (kmInicial !== '' && kmFinal !== '' && kmFinal < kmInicial) {
                 return alert('KM final inválido. O KM final deve ser maior ou igual ao KM inicial.');
             }
@@ -1018,6 +1050,7 @@
                     prefixoVeiculo,
                     kmInicial,
                     kmFinal,
+                    kmRodado: (kmInicial !== '' && kmFinal !== '') ? (kmFinal - kmInicial) : '',
                     situacaoFinalEquipamento,
                     statusFinalEquipamento: situacaoFinalEquipamento,
                     observacaoFinal
