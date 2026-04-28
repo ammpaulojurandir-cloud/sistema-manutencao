@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Manutenção GMAN - V8.4</title>
+    <title>Sistema de Manutenção GMAN - V8.5</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -297,7 +297,7 @@
                 .replace(/[\u0300-\u036f]/g, '');
 
             if (texto.includes('parad') || obs.includes('condicao operacional: parado') || obs.includes('condição operacional: parado')) return 'down';
-            if (texto.includes('manut') || texto.includes('alert') || texto.includes('atencao')) return 'alert';
+            if (texto.includes('manut') || texto.includes('aguard') || texto.includes('restri') || texto.includes('alert') || texto.includes('atencao')) return 'alert';
             return 'ok';
         }
 
@@ -332,6 +332,7 @@
             if (lower === 'aguardando material') return 'aguardando material';
             if (lower === 'aguardando liberação' || lower === 'aguardando liberacao') return 'aguardando liberação';
             if (lower === 'em teste') return 'em teste';
+            if (lower === 'operando com restrição' || lower === 'operando com restricao') return 'operando com restrição';
 
             return c;
         }
@@ -475,7 +476,7 @@
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
                             <h2 style="color:#1e3a5f; margin:0; font-size:1.2rem;">Ordens de Serviço</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. V8.4 com motivo da manutenção no status principal, atualização de andamento corrigida, compressão de imagens, trava de anexos e status automático por OS.</p>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. GMAN 8.5 — Estrutura técnica consolidada: OS com veículo, KM, evidências e situação final do equipamento.</p>
                         </div>
                         <button onclick="document.getElementById('osModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
@@ -498,7 +499,7 @@
                 ordensServicoCache = lista;
                 renderizarOS(lista);
             }
-            catch (erro) { console.error(erro); container.innerHTML = '<p style="color:#e53e3e; font-weight:bold;">Erro ao carregar Ordens de Serviço. Confira a API V7.</p>'; }
+            catch (erro) { console.error(erro); container.innerHTML = '<p style="color:#e53e3e; font-weight:bold;">Erro ao carregar Ordens de Serviço. Confira a API GMAN 8.5.</p>'; }
         }
 
         function renderizarOS(lista) {
@@ -679,6 +680,29 @@
             });
         }
 
+
+        function obterDuracaoAudio(arquivo) {
+            return new Promise((resolve) => {
+                const url = URL.createObjectURL(arquivo);
+                const audio = document.createElement('audio');
+
+                audio.preload = 'metadata';
+
+                audio.onloadedmetadata = () => {
+                    URL.revokeObjectURL(url);
+                    const duracao = Number(audio.duration || 0);
+                    resolve(isFinite(duracao) ? duracao : '');
+                };
+
+                audio.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    resolve('');
+                };
+
+                audio.src = url;
+            });
+        }
+
         function detectarTipoAnexo(arquivo) {
             const tipo = String(arquivo.type || '').toLowerCase();
             if (tipo.startsWith('image/')) return 'Foto';
@@ -711,8 +735,18 @@
                 return;
             }
 
+            let duracaoSegundos = '';
+
             if (tipoAnexo === 'Audio') {
-                alert('Atenção: o áudio deve ter no máximo 2 minutos.');
+                duracaoSegundos = await obterDuracaoAudio(arquivo);
+
+                if (duracaoSegundos && duracaoSegundos > 60) {
+                    input.value = '';
+                    alert('Áudio máximo de 1 minuto atingido. Grave um áudio mais curto.');
+                    return;
+                }
+
+                alert('Atenção: o áudio deve ter no máximo 1 minuto.');
             }
 
             const botao = event && event.target ? event.target : null;
@@ -737,6 +771,7 @@
                     nomeArquivo: arquivoProcessado.nomeArquivo,
                     mimeType: arquivoProcessado.mimeType,
                     conteudoBase64: arquivoProcessado.base64,
+                    duracaoSegundos,
                     observacao: obs ? obs.value.trim() : ''
                 });
 
@@ -755,7 +790,7 @@
                 const mensagem = erro.message || 'Erro ao anexar arquivo.';
 
                 if (mensagem.toLowerCase().includes('limite')) {
-                    alert('Limite atingido: já foram enviadas 5 fotos hoje para este usuário/equipe.');
+                    alert(mensagem);
                 } else {
                     alert(mensagem);
                 }
@@ -854,44 +889,148 @@
 
             const existing = document.getElementById('concluirOSModal');
             if (existing) existing.remove();
+
             const modal = document.createElement('div');
             modal.id = 'concluirOSModal';
             modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.82); z-index:1300; display:flex; align-items:center; justify-content:center; padding:18px;';
-            modal.innerHTML = `<div style="background:white; border-radius:20px; padding:24px; width:95%; max-width:620px; max-height:90vh; overflow-y:auto;"><h2 style="color:#1e3a5f; margin:0 0 12px;">Concluir OS</h2><p style="color:#718096; font-size:0.82rem; margin:0 0 12px;">A OS só pode ser concluída se o equipamento voltar para Operando.</p><label class="form-label">Serviço realizado</label><textarea id="concluirServico" class="form-field" rows="4" placeholder="Descreva o serviço executado"></textarea><label class="form-label">Materiais utilizados</label><textarea id="concluirMateriais" class="form-field" rows="3" placeholder="Informe materiais, peças ou deixe em branco"></textarea><label class="form-label">Status final do equipamento</label><select id="concluirStatusFinal" class="form-field"><option value="Operando|Normal">Operando</option></select><div style="margin-top:15px; padding:12px; background:#f7fafc; border-radius:12px; border-left:4px solid #3182ce;"><p style="color:#1e3a5f; font-weight:700; margin:0 0 8px;">📎 Evidências da OS</p><p style="color:#718096; font-size:0.75rem; margin:0 0 10px;">Permitido: 3 fotos por OS nesta tela e áudio de até 2 minutos. Vídeo bloqueado.</p><label class="form-label">Foto 1 — Antes</label><input id="anexoFotoAntesOS" type="file" accept="image/*" capture="environment" class="form-field"><button onclick="anexarArquivoOS('${idOS}', '${os.idEquipamento}', 'anexoFotoAntesOS', 'anexoObsOS')" class="action-btn">📷 Enviar foto antes</button><label class="form-label">Foto 2 — Durante</label><input id="anexoFotoDuranteOS" type="file" accept="image/*" capture="environment" class="form-field"><button onclick="anexarArquivoOS('${idOS}', '${os.idEquipamento}', 'anexoFotoDuranteOS', 'anexoObsOS')" class="action-btn">📷 Enviar foto durante</button><label class="form-label">Foto 3 — Depois</label><input id="anexoFotoDepoisOS" type="file" accept="image/*" capture="environment" class="form-field"><button onclick="anexarArquivoOS('${idOS}', '${os.idEquipamento}', 'anexoFotoDepoisOS', 'anexoObsOS')" class="action-btn">📷 Enviar foto depois</button><label class="form-label">Áudio — Gravar ou anexar</label><input id="anexoAudioOS" type="file" accept="audio/*" capture="microphone" class="form-field"><button onclick="anexarArquivoOS('${idOS}', '${os.idEquipamento}', 'anexoAudioOS', 'anexoObsOS')" class="action-btn">🎙️ Enviar áudio</button><label class="form-label">Observação do anexo</label><input id="anexoObsOS" class="form-field" placeholder="Ex.: antes do reparo, depois do reparo, ruído identificado..."></div><div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;"><button onclick="document.getElementById('concluirOSModal').remove();" style="padding:11px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Voltar sem concluir</button><button onclick="concluirOS('${idOS}')" style="padding:11px 14px; border:none; border-radius:10px; background:#38a169; color:white; cursor:pointer; font-weight:bold;">Concluir OS</button></div></div>`;
+
+            modal.innerHTML = `
+                <div style="background:white; border-radius:20px; padding:24px; width:95%; max-width:650px; max-height:90vh; overflow-y:auto;">
+                    <h2 style="color:#1e3a5f; margin:0 0 12px;">Concluir OS — GMAN 8.5</h2>
+                    <p style="color:#718096; font-size:0.82rem; margin:0 0 12px;">
+                        Informe serviço executado, deslocamento e situação final do equipamento.
+                    </p>
+
+                    <label class="form-label">Serviço executado</label>
+                    <textarea id="concluirServico" class="form-field" rows="4" placeholder="Descreva o serviço executado"></textarea>
+
+                    <label class="form-label">Materiais utilizados</label>
+                    <textarea id="concluirMateriais" class="form-field" rows="3" placeholder="Informe materiais, peças ou deixe em branco"></textarea>
+
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px;">
+                        <div>
+                            <label class="form-label">Motorista</label>
+                            <input id="concluirMotorista" class="form-field" placeholder="Nome do motorista">
+                        </div>
+                        <div>
+                            <label class="form-label">Prefixo do veículo</label>
+                            <input id="concluirPrefixoVeiculo" class="form-field" placeholder="Ex.: V-123">
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px;">
+                        <div>
+                            <label class="form-label">KM inicial</label>
+                            <input id="concluirKmInicial" class="form-field" type="number" min="0" step="1" placeholder="KM inicial">
+                        </div>
+                        <div>
+                            <label class="form-label">KM final</label>
+                            <input id="concluirKmFinal" class="form-field" type="number" min="0" step="1" placeholder="KM final">
+                        </div>
+                    </div>
+
+                    <label class="form-label">Situação final do equipamento</label>
+                    <select id="concluirSituacaoFinal" class="form-field">
+                        <option value="Operando">Operando</option>
+                        <option value="Operando com restrição">Operando com restrição</option>
+                        <option value="Parado">Parado</option>
+                        <option value="Aguardando material">Aguardando material</option>
+                        <option value="Aguardando liberação">Aguardando liberação</option>
+                    </select>
+
+                    <label class="form-label">Observação final</label>
+                    <textarea id="concluirObservacaoFinal" class="form-field" rows="3" placeholder="Observação final da OS"></textarea>
+
+                    <div style="margin-top:15px; padding:12px; background:#f7fafc; border-radius:12px; border-left:4px solid #3182ce;">
+                        <p style="color:#1e3a5f; font-weight:700; margin:0 0 8px;">📎 Evidências da OS — GMAN 8.5</p>
+                        <p style="color:#718096; font-size:0.75rem; margin:0 0 10px;">
+                            Regra: até 2 fotos por usuário nesta OS e 1 áudio por usuário de até 1 minuto. Vídeo bloqueado.
+                        </p>
+
+                        <label class="form-label">Foto 1</label>
+                        <input id="anexoFoto1OS" type="file" accept="image/*" capture="environment" class="form-field">
+                        <button onclick="anexarArquivoOS('${idOS}', '${os.idEquipamento}', 'anexoFoto1OS', 'anexoObsOS')" class="action-btn">📷 Enviar foto 1</button>
+
+                        <label class="form-label">Foto 2</label>
+                        <input id="anexoFoto2OS" type="file" accept="image/*" capture="environment" class="form-field">
+                        <button onclick="anexarArquivoOS('${idOS}', '${os.idEquipamento}', 'anexoFoto2OS', 'anexoObsOS')" class="action-btn">📷 Enviar foto 2</button>
+
+                        <label class="form-label">Áudio — gravar ou anexar</label>
+                        <input id="anexoAudioOS" type="file" accept="audio/*" capture="microphone" class="form-field">
+                        <button onclick="anexarArquivoOS('${idOS}', '${os.idEquipamento}', 'anexoAudioOS', 'anexoObsOS')" class="action-btn">🎙️ Enviar áudio</button>
+
+                        <label class="form-label">Observação da evidência</label>
+                        <input id="anexoObsOS" class="form-field" placeholder="Ex.: ruído identificado, vazamento, peça substituída...">
+                    </div>
+
+                    <div style="background:#fffaf0; border-left:4px solid #d69e2e; border-radius:12px; padding:10px; color:#744210; font-size:0.8rem; margin-top:12px; text-align:left;">
+                        ⚠️ Se você selecionou foto ou áudio, clique em <strong>Enviar</strong> antes de concluir a OS.
+                    </div>
+
+                    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;">
+                        <button onclick="document.getElementById('concluirOSModal').remove();" style="padding:11px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Voltar sem concluir</button>
+                        <button onclick="concluirOS('${idOS}')" style="padding:11px 14px; border:none; border-radius:10px; background:#38a169; color:white; cursor:pointer; font-weight:bold;">Concluir OS</button>
+                    </div>
+                </div>`;
+
             document.body.appendChild(modal);
         }
 
         async function concluirOS(idOS) {
-            // --- TRAVA DE SEGURANÇA DE ANEXOS ---
-            const fAntes = document.getElementById('anexoFotoAntesOS');
-            const fDurante = document.getElementById('anexoFotoDuranteOS');
-            const fDepois = document.getElementById('anexoFotoDepoisOS');
+            // --- TRAVA DE SEGURANÇA DE EVIDÊNCIAS ---
+            const fFoto1 = document.getElementById('anexoFoto1OS');
+            const fFoto2 = document.getElementById('anexoFoto2OS');
             const fAudio = document.getElementById('anexoAudioOS');
 
-            if ((fAntes && fAntes.files.length > 0) || 
-                (fDurante && fDurante.files.length > 0) || 
-                (fDepois && fDepois.files.length > 0) || 
+            if ((fFoto1 && fFoto1.files.length > 0) || 
+                (fFoto2 && fFoto2.files.length > 0) || 
                 (fAudio && fAudio.files.length > 0)) {
-                return alert('⚠️ Atenção: você selecionou um anexo, mas esqueceu de clicar no botão Enviar. Envie o anexo ou cancele a seleção antes de concluir a OS.');
+                return alert('⚠️ Atenção: você selecionou uma evidência, mas esqueceu de clicar no botão Enviar. Envie a evidência ou cancele a seleção antes de concluir a OS.');
             }
-            // ------------------------------------
+            // -----------------------------------------
 
             const servicoRealizado = document.getElementById('concluirServico').value.trim();
             const materiais = document.getElementById('concluirMateriais').value.trim();
-            const statusFinalValor = document.getElementById('concluirStatusFinal').value;
-            const partesStatus = statusFinalValor ? statusFinalValor.split('|') : ['', ''];
-            const statusFinalEquipamento = partesStatus[0] || '';
-            const condicaoOperacional = partesStatus[1] || '';
+            const motorista = document.getElementById('concluirMotorista').value.trim();
+            const prefixoVeiculo = document.getElementById('concluirPrefixoVeiculo').value.trim();
+            const kmInicialTexto = document.getElementById('concluirKmInicial').value;
+            const kmFinalTexto = document.getElementById('concluirKmFinal').value;
+            const situacaoFinalEquipamento = document.getElementById('concluirSituacaoFinal').value;
+            const observacaoFinal = document.getElementById('concluirObservacaoFinal').value.trim();
 
-            if (!servicoRealizado) return alert('Informe o serviço realizado.');
-            if (statusFinalEquipamento !== 'Operando') return alert('A OS só pode ser concluída com o equipamento em Operando. Use Atualizar andamento se ainda estiver em manutenção.');
+            const kmInicial = kmInicialTexto === '' ? '' : Number(kmInicialTexto);
+            const kmFinal = kmFinalTexto === '' ? '' : Number(kmFinalTexto);
+
+            if (!servicoRealizado) return alert('Informe o serviço executado.');
+            if (kmInicial !== '' && kmFinal !== '' && kmFinal < kmInicial) {
+                return alert('KM final inválido. O KM final deve ser maior ou igual ao KM inicial.');
+            }
+
             try {
-                await apiPost({ acao: 'concluirOS', idOS, usuario: usuarioLogado.nome, funcao: usuarioLogado.funcao, servicoRealizado, materiais, statusFinalEquipamento, condicaoOperacional });
+                await apiPost({
+                    acao: 'concluirOS',
+                    idOS,
+                    usuario: usuarioLogado.nome,
+                    funcao: usuarioLogado.funcao,
+                    servicoRealizado,
+                    materiais,
+                    motorista,
+                    prefixoVeiculo,
+                    kmInicial,
+                    kmFinal,
+                    situacaoFinalEquipamento,
+                    statusFinalEquipamento: situacaoFinalEquipamento,
+                    observacaoFinal
+                });
+
                 document.getElementById('concluirOSModal').remove();
                 alert('OS concluída com sucesso.');
                 await carregarStatusOnline();
                 await recarregarPainelOS();
-            } catch (erro) { console.error(erro); alert('Erro ao concluir OS: ' + erro.message); }
+            } catch (erro) {
+                console.error(erro);
+                alert('Erro ao concluir OS: ' + erro.message);
+            }
         }
 
         async function cancelarOS(idOS) {
