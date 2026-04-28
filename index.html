@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Manutenção GMAN - V8.5.2</title>
+    <title>Sistema de Manutenção GMAN - V8.5.3</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -297,7 +297,7 @@
                 .replace(/[\u0300-\u036f]/g, '');
 
             if (texto.includes('parad') || obs.includes('condicao operacional: parado') || obs.includes('condição operacional: parado')) return 'down';
-            if (texto.includes('manut') || texto.includes('aguard') || texto.includes('restri') || texto.includes('alert') || texto.includes('atencao')) return 'alert';
+            if (texto.includes('manut') || texto.includes('aguard') || texto.includes('restri') || obs.includes('em teste') || texto.includes('em teste') || texto.includes('alert') || texto.includes('atencao')) return 'alert';
             return 'ok';
         }
 
@@ -476,7 +476,7 @@
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
                             <h2 style="color:#1e3a5f; margin:0; font-size:1.2rem;">Ordens de Serviço</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. GMAN 8.5.2 — correção de gravação da OS, KM, motorista, prefixo e horários.</p>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. GMAN 8.5.3 — correção de gravação da OS, KM, motorista, prefixo e horários.</p>
                         </div>
                         <button onclick="document.getElementById('osModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
@@ -1185,7 +1185,7 @@
             const container = document.getElementById('kpiConteudo');
             if (!container) return;
 
-            container.innerHTML = '<p style="color:#4a5568;">🔄 Calculando indicadores...</p>';
+            container.innerHTML = '<p style="color:#4a5568;">🔄 Calculando indicadores GMAN 8.5...</p>';
 
             try {
                 await carregarStatusOnline();
@@ -1193,17 +1193,24 @@
 
                 const totalEquipamentos = equipment.length;
                 const operando = equipment.filter(e => e.status === 'ok').length;
-                const manutencao = equipment.filter(e => e.status === 'alert' || e.status === 'down').length;
+                const indisponiveis = equipment.filter(e => e.status === 'alert' || e.status === 'down').length;
                 const parados = equipment.filter(e => e.status === 'down').length;
 
-                const osAbertas = listaOS.filter(os => String(os.statusOS) === 'Aberta').length;
-                const osExecucao = listaOS.filter(os => String(os.statusOS) === 'Em execução').length;
-                const osConcluidas = listaOS.filter(os => String(os.statusOS) === 'Concluída').length;
-                const osCanceladas = listaOS.filter(os => String(os.statusOS) === 'Cancelada').length;
-                const osAtivas = listaOS.filter(os => !['Concluída', 'Cancelada'].includes(String(os.statusOS))).length;
+                const disponibilidade = totalEquipamentos ? Math.round((operando / totalEquipamentos) * 100) : 0;
 
-                const concluidasComTempo = listaOS
-                    .filter(os => String(os.statusOS) === 'Concluída')
+                const osBacklog = listaOS.filter(os => !['Concluída', 'Cancelada'].includes(String(os.statusOS || ''))).length;
+                const osConcluidas = listaOS.filter(os => String(os.statusOS || '') === 'Concluída').length;
+
+                const corretivasConcluidas = listaOS.filter(os =>
+                    String(os.statusOS || '') === 'Concluída' &&
+                    String(os.tipoManutencao || '').toLowerCase().includes('corretiva')
+                );
+
+                const corretivas = listaOS.filter(os =>
+                    String(os.tipoManutencao || '').toLowerCase().includes('corretiva')
+                );
+
+                const temposReparo = corretivasConcluidas
                     .map(os => {
                         const inicio = parseDataKPI(os.dataInicio);
                         const fim = parseDataKPI(os.dataConclusao);
@@ -1213,45 +1220,56 @@
                     })
                     .filter(Boolean);
 
-                const tempoMedio = concluidasComTempo.length
-                    ? concluidasComTempo.reduce((a, b) => a + b, 0) / concluidasComTempo.length
+                const mttr = temposReparo.length
+                    ? temposReparo.reduce((a, b) => a + b, 0) / temposReparo.length
                     : 0;
 
-                const porArea = contarPorCampo(listaOS, 'area');
-                const porExecutor = contarPorCampo(listaOS.filter(os => os.responsavel), 'responsavel');
-                const porEquipe = contarPorCampo(listaOS.filter(os => os.equipeResponsavel), 'equipeResponsavel');
-                const porEquipamento = contarPorCampo(listaOS.filter(os => os.equipamento || os.idEquipamento).map(os => ({ equipamentoChave: os.equipamento || os.idEquipamento })), 'equipamentoChave');
+                const porEquipeConcluidas = contarPorCampo(
+                    listaOS.filter(os => String(os.statusOS || '') === 'Concluída' && (os.equipeResponsavel || os.responsavel)),
+                    'equipeResponsavel'
+                );
 
-                const taxaConclusao = listaOS.length ? Math.round((osConcluidas / listaOS.length) * 100) : 0;
-                const taxaCritica = totalEquipamentos ? Math.round((parados / totalEquipamentos) * 100) : 0;
+                const agora = new Date();
+                const trintaDiasAtras = new Date(agora.getTime() - (30 * 24 * 60 * 60 * 1000));
+                const corretivas30 = corretivas.filter(os => {
+                    const data = parseDataKPI(os.dataAbertura) || parseDataKPI(os.dataInicio) || parseDataKPI(os.dataConclusao);
+                    return data && data >= trintaDiasAtras;
+                });
+
+                const reincidenciaPorEquip = {};
+                corretivas30.forEach(os => {
+                    const chave = os.equipamento || os.idEquipamento || 'Não informado';
+                    reincidenciaPorEquip[chave] = (reincidenciaPorEquip[chave] || 0) + 1;
+                });
+
+                const reincidentes = Object.entries(reincidenciaPorEquip).filter(([_, total]) => total >= 3);
+                const mtbfTexto = corretivas.length >= 2 ? 'Em cálculo' : 'Dados insuficientes';
 
                 container.innerHTML = `
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin-bottom:16px;">
-                        ${montarCardKPI('Equipamentos', totalEquipamentos, 'Total cadastrado', '#3182ce')}
-                        ${montarCardKPI('Operando', operando, 'Status atual', '#38a169')}
-                        ${montarCardKPI('Manutenção', manutencao, 'Status atual', '#d69e2e')}
-                        ${montarCardKPI('Parados', parados, 'Status atual', '#e53e3e')}
-                        ${montarCardKPI('OS ativas', osAtivas, 'Aberta + execução', '#805ad5')}
-                        ${montarCardKPI('OS concluídas', osConcluidas, `${taxaConclusao}% do total`, '#38a169')}
-                        ${montarCardKPI('Tempo médio', formatarDuracaoMinutos(tempoMedio), 'Início até conclusão', '#3182ce')}
-                        ${montarCardKPI('Índice crítico', `${taxaCritica}%`, 'Parados dentro da manutenção', '#e53e3e')}
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:10px; margin-bottom:16px;">
+                        ${montarCardKPI('Disponibilidade', disponibilidade + '%', 'Equipamentos aptos a operar', disponibilidade >= 90 ? '#38a169' : '#d69e2e')}
+                        ${montarCardKPI('MTTR', formatarDuracaoMinutos(mttr), 'Corretivas concluídas', '#3182ce')}
+                        ${montarCardKPI('MTBF', mtbfTexto, 'Mínimo 2 corretivas por equipamento', '#805ad5')}
+                        ${montarCardKPI('Backlog de OS', osBacklog, 'OS abertas e pendentes', '#d69e2e')}
+                        ${montarCardKPI('Produtividade', osConcluidas, 'OS concluídas no total', '#38a169')}
+                        ${montarCardKPI('Reincidência', reincidentes.length, '3 corretivas em 30 dias', reincidentes.length ? '#e53e3e' : '#38a169')}
                     </div>
 
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
-                        ${montarRankingHTML(porArea, 'OS por área')}
-                        ${montarRankingHTML(porExecutor, 'Ranking por executor')}
-                        ${montarRankingHTML(porEquipe, 'OS por equipe')}
-                        ${montarRankingHTML(porEquipamento, 'Equipamentos com mais OS')}
+                        ${montarRankingHTML(porEquipeConcluidas, 'Produtividade por equipe')}
+                        ${montarRankingHTML(reincidenciaPorEquip, 'Possíveis reincidências')}
                     </div>
 
                     <div style="margin-top:14px; background:#ebf8ff; border-left:5px solid #3182ce; border-radius:12px; padding:12px; color:#2c5282; font-size:0.82rem;">
-                        <strong>Resumo:</strong> ${osAbertas} OS abertas, ${osExecucao} em execução, ${osConcluidas} concluídas e ${osCanceladas} canceladas. Atualização automática geral mantida em 3 minutos.
+                        <strong>GMAN 8.5.3:</strong> painel com os 6 KPIs oficiais: disponibilidade, MTTR, MTBF, backlog, produtividade e reincidência.
+                        <br>
+                        <strong>Situação atual:</strong> ${operando} operando, ${indisponiveis} em manutenção/alerta, ${parados} parados e ${osBacklog} OS no backlog.
                     </div>
                 `;
 
             } catch (erro) {
                 console.error(erro);
-                container.innerHTML = '<p style="color:#e53e3e; font-weight:bold;">Erro ao carregar KPIs. Confira a conexão com a API e a planilha.</p>';
+                container.innerHTML = '<p style="color:#e53e3e; font-weight:bold;">Erro ao carregar KPIs. Confira a conexão com a API, a planilha e os nomes das abas.</p>';
             }
         }
 
@@ -1611,6 +1629,7 @@
                         eq.ultimoTecnico = savedEq.ultimoTecnico;
                         eq.ultimaAlteracao = savedEq.ultimaAlteracao;
                         eq.historico = savedEq.historico;
+                        eq.observacaoStatus = savedEq.observacaoStatus;
                     }
                 });
             }
