@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Manutenção GMAN - V8.5.5</title>
+    <title>Sistema de Manutenção GMAN - V8.5.7</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -476,7 +476,7 @@
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
                             <h2 style="color:#1e3a5f; margin:0; font-size:1.2rem;">Ordens de Serviço</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. GMAN 8.5.5 — correção de gravação da OS, KM, motorista, prefixo e horários.</p>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. GMAN 8.5.7 — tela conectada ao backend oficial da OS.</p>
                         </div>
                         <button onclick="document.getElementById('osModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
@@ -584,7 +584,7 @@
             document.body.appendChild(modal);
         }
 
-        async function criarOSPeloModal() {
+        function montarPayloadAberturaOS_GMAN857() {
             const idEquipamento = document.getElementById('osEquipamento').value;
             const eq = equipment.find(e => e.id === idEquipamento);
             const area = document.getElementById('osArea').value;
@@ -593,14 +593,70 @@
             const equipeResponsavel = document.getElementById('osEquipe').value.trim();
             const responsavel = document.getElementById('osResponsavel').value.trim();
             const descricaoProblema = document.getElementById('osDescricao').value.trim();
+            const agora = new Date();
+            const usuario = usuarioLogado ? usuarioLogado.nome : '';
+
+            const dados = {
+                idEquipamento: idEquipamento,
+                equipamento: eq ? eq.name : '',
+                sistema: eq ? eq.system : '',
+                area: area,
+                tipoManutencao: tipoManutencao,
+                prioridade: prioridade,
+                statusOS: 'Aberta',
+                situacao: 'Aberta',
+                situacaoFinalEquipamento: '',
+                descricaoProblema: descricaoProblema,
+                equipeResponsavel: equipeResponsavel,
+                responsavel: responsavel,
+                servicoRealizado: '',
+                materiais: '',
+                motorista: '',
+                prefixoVeiculo: '',
+                kmInicial: '',
+                kmFinal: '',
+                observacaoFinal: '',
+                usuario: usuario,
+                criadoPor: usuario,
+                usuarioInicio: '',
+                finalizadoPor: '',
+                horaAbertura: agora,
+                horaInicio: '',
+                horaConclusao: '',
+                validacaoKm: 'ABERTURA SEM KM'
+            };
+
+            return {
+                acao: 'salvarOS_GMAN856',
+                dados: dados,
+                ...dados
+            };
+        }
+
+        async function criarOSPeloModal() {
+            const idEquipamento = document.getElementById('osEquipamento').value;
+            const responsavel = document.getElementById('osResponsavel').value.trim();
+            const descricaoProblema = document.getElementById('osDescricao').value.trim();
+
             if (!responsavel) return alert('Selecione o executor principal da OS.');
             if (!descricaoProblema) return alert('Descreva o problema antes de criar a OS.');
+
             try {
-                await apiPost({ acao: 'criarOS', usuario: usuarioLogado.nome, funcao: usuarioLogado.funcao, idEquipamento, equipamento: eq ? eq.name : '', sistema: eq ? eq.system : '', area, tipoManutencao, prioridade, descricaoProblema, equipeResponsavel, responsavel });
+                const payload = montarPayloadAberturaOS_GMAN857();
+                const retorno = await apiPost(payload);
+
                 document.getElementById('criarOSModal').remove();
-                alert('OS criada com sucesso no Banco Central.');
+                alert('OS criada com sucesso no backend oficial GMAN 8.5.7.');
+
                 if (document.getElementById('osModal')) await recarregarPainelOS();
-            } catch (erro) { console.error(erro); alert('Erro ao criar OS: ' + erro.message); }
+                await carregarStatusOnline();
+
+            } catch (erro) {
+                console.error(erro);
+                alert('Erro ao criar OS no backend oficial GMAN 8.5.7: ' + erro.message + '
+
+Se este erro citar ação desconhecida, o próximo ajuste é atualizar o doPost do Apps Script para aceitar a ação salvarOS_GMAN856.');
+            }
         }
 
         async function iniciarOS(idOS) {
@@ -1261,7 +1317,7 @@
                     </div>
 
                     <div style="margin-top:14px; background:#ebf8ff; border-left:5px solid #3182ce; border-radius:12px; padding:12px; color:#2c5282; font-size:0.82rem;">
-                        <strong>GMAN 8.5.5:</strong> painel com os 6 KPIs oficiais: disponibilidade, MTTR, MTBF, backlog, produtividade e reincidência.
+                        <strong>GMAN 8.5.7:</strong> painel com os 6 KPIs oficiais: disponibilidade, MTTR, MTBF, backlog, produtividade e reincidência.
                         <br>
                         <strong>Situação atual:</strong> ${operando} operando, ${indisponiveis} em manutenção/alerta, ${parados} parados e ${osBacklog} OS no backlog.
                     </div>
