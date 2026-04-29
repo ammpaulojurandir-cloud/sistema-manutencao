@@ -36,6 +36,7 @@
         .stat-card:hover { background: rgba(255,255,255,0.2); }
         .stat-number { font-size: 2rem; font-weight: bold; }
         .stat-label { font-size: 0.75rem; color: #a0c4e8; margin-top: 5px; font-weight: 600;}
+        .stat-percent { font-size: 0.82rem; color: #ffffff; margin-top: 6px; font-weight: 700; opacity: 0.95; }
         
         #card-all .stat-number { color: #63b3ed; }
         #card-ok { background: rgba(56, 161, 105, 0.15); border-color: rgba(56, 161, 105, 0.3); }
@@ -247,12 +248,15 @@
             { nome: 'Carlos Alberto', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
             { nome: 'Andre Marques', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
             { nome: 'Roque Becker', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
-            { nome: 'Saulo Lockman', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' }
+            { nome: 'Saulo Lockman', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
+
+            { nome: 'Gabriel', senha: 'dmae2026', funcao: 'lider', area: 'usinagem' },
+            { nome: 'Rocha', senha: 'dmae2026', funcao: 'lider', area: 'caldeiraria' }
         ];
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.14 — Índices percentuais nos cards principais';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.15 — Setores e abertura obrigatória';
         const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.6 — Regras abertura OS e conclusão obrigatória';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
@@ -263,6 +267,11 @@
                 .toLowerCase()
                 .normalize('NFD')
                 .replace(/[\u0300-\u036f]/g, '');
+        }
+
+        function calcularPercentualGMAN(parte, total) {
+            if (!total || total <= 0) return '0%';
+            return ((parte / total) * 100).toFixed(1).replace('.0', '') + '%';
         }
 
         function isOSEncerrada(status) {
@@ -789,6 +798,7 @@
                         <p><strong>Área:</strong> ${os.area || '-'} | <strong>Tipo:</strong> ${os.tipoManutencao || '-'}</p>
                         <p><strong>Sistema:</strong> ${os.sistema || '-'} | <strong>Equipe:</strong> ${os.equipeResponsavel || '-'}</p>
                         <p><strong>Responsável:</strong> ${os.responsavel || '-'}</p>
+                        <p><strong>Membros da equipe:</strong> ${os.membrosEquipe || '-'}</p>
                         <p><strong>Problema:</strong> ${os.descricaoProblema || '-'}</p>
                         ${os.dataAbertura ? `<p><strong>Abertura:</strong> ${formatarDataApi(os.dataAbertura)} ${os.horaAbertura ? '| ' + os.horaAbertura : ''}</p>` : ''}
                         ${os.dataConclusao ? `<p><strong>Conclusão:</strong> ${formatarDataApi(os.dataConclusao)} ${os.horaConclusao ? '| ' + os.horaConclusao : ''}</p>` : ''}
@@ -837,13 +847,45 @@
                     <h2 style="color:#1e3a5f; margin:0 0 8px;">Abrir Ordem de Serviço</h2>
                     <p style="color:#718096; font-size:0.82rem; margin-bottom:14px;">Somente gestão abre OS. A equipe executa e conclui. Agora escolha o executor principal. Status só muda no encerramento da OS. Painel Gerencial liberado somente para gestão.</p>
                     <label class="form-label">Equipamento</label><select id="osEquipamento" class="form-field">${opcoes}</select>
-                    <label class="form-label">Área</label><select id="osArea" class="form-field"><option value="Mecânica">Mecânica</option><option value="Elétrica">Elétrica</option><option value="Automação">Automação</option></select>
-                    <label class="form-label">Tipo de manutenção</label><select id="osTipo" class="form-field"><option value="Corretiva">Corretiva</option><option value="Preventiva">Preventiva</option><option value="Preditiva">Preditiva</option><option value="Melhoria">Melhoria</option></select>
-                    <label class="form-label">Prioridade</label><select id="osPrioridade" class="form-field"><option value="Normal">Normal</option><option value="Alta">Alta</option><option value="Crítica">Crítica</option></select>
-                    <label class="form-label">Equipe responsável</label><input id="osEquipe" class="form-field" placeholder="Ex.: Mecânica Fortes, Elétrica Jeferson...">
-                    <label class="form-label">Executor principal</label><select id="osResponsavel" class="form-field">${gerarOpcoesExecutores()}</select>
+                    <label class="form-label">Área / setor</label>
+                    <select id="osArea" class="form-field">
+                        <option value="">Selecione a área/setor</option>
+                        <option value="Mecânica">Mecânica</option>
+                        <option value="Elétrica">Elétrica</option>
+                        <option value="Automação">Automação</option>
+                        <option value="Usinagem">Usinagem</option>
+                        <option value="Caldeiraria">Caldeiraria</option>
+                    </select>
+
+                    <label class="form-label">Tipo de manutenção</label>
+                    <select id="osTipo" class="form-field">
+                        <option value="">Selecione o tipo de manutenção</option>
+                        <option value="Corretiva">Corretiva</option>
+                        <option value="Preventiva">Preventiva</option>
+                        <option value="Preditiva">Preditiva</option>
+                        <option value="Melhoria">Melhoria</option>
+                    </select>
+
+                    <label class="form-label">Prioridade</label>
+                    <select id="osPrioridade" class="form-field">
+                        <option value="">Selecione a prioridade</option>
+                        <option value="Normal">Normal</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Crítica">Crítica</option>
+                    </select>
+
+                    <label class="form-label">Equipe responsável</label>
+                    <input id="osEquipe" class="form-field" placeholder="Ex.: Mecânica Fortes, Elétrica Jeferson, Usinagem Gabriel, Caldeiraria Rocha...">
+
+                    <label class="form-label">Executor principal</label>
+                    <select id="osResponsavel" class="form-field">${gerarOpcoesExecutores()}</select>
                     <p style="color:#718096; font-size:0.75rem; margin:-6px 0 10px;">O executor principal será gravado no campo RESPONSAVEL da OS.</p>
-                    <label class="form-label">Descrição do problema</label><textarea id="osDescricao" class="form-field" rows="4" placeholder="Descreva o problema informado ou a atividade solicitada"></textarea>
+
+                    <label class="form-label">Membros da equipe</label>
+                    <textarea id="osMembrosEquipe" class="form-field" rows="2" placeholder="Informe os membros da equipe. Ex.: Mattos, Oliveira, Roberto"></textarea>
+
+                    <label class="form-label">Descrição do problema</label>
+                    <textarea id="osDescricao" class="form-field" rows="4" placeholder="Descreva o problema informado ou a atividade solicitada"></textarea>
                     <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;">
                         <button onclick="document.getElementById('criarOSModal').remove();" style="padding:11px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Cancelar</button>
                         <button onclick="criarOSPeloModal()" style="padding:11px 14px; border:none; border-radius:10px; background:#38a169; color:white; cursor:pointer; font-weight:bold;">Criar OS</button>
@@ -860,11 +902,43 @@
             const prioridade = document.getElementById('osPrioridade').value;
             const equipeResponsavel = document.getElementById('osEquipe').value.trim();
             const responsavel = document.getElementById('osResponsavel').value.trim();
+            const membrosEquipe = document.getElementById('osMembrosEquipe').value.trim();
             const descricaoProblema = document.getElementById('osDescricao').value.trim();
-            if (!responsavel) return alert('Selecione o executor principal da OS.');
-            if (!descricaoProblema) return alert('Descreva o problema antes de criar a OS.');
+
+            const faltantes = [];
+
+            if (!usuarioLogado || !usuarioLogado.nome) faltantes.push('usuário criador');
+            if (!usuarioLogado || !usuarioLogado.funcao) faltantes.push('função do usuário');
+            if (!idEquipamento) faltantes.push('equipamento');
+            if (!area) faltantes.push('área/setor');
+            if (!tipoManutencao) faltantes.push('tipo de manutenção');
+            if (!prioridade) faltantes.push('prioridade');
+            if (!equipeResponsavel) faltantes.push('equipe responsável');
+            if (!responsavel) faltantes.push('executor principal/responsável');
+            if (!membrosEquipe) faltantes.push('membros da equipe');
+            if (!descricaoProblema) faltantes.push('descrição do problema');
+
+            if (faltantes.length) {
+                return alert('Preencha todos os campos obrigatórios antes de criar a OS: ' + faltantes.join(', ') + '.');
+            }
+
             try {
-                await apiPost({ acao: 'criarOS', usuario: usuarioLogado.nome, funcao: usuarioLogado.funcao, idEquipamento, equipamento: eq ? eq.name : '', sistema: eq ? eq.system : '', area, tipoManutencao, prioridade, descricaoProblema, equipeResponsavel, responsavel });
+                await apiPost({
+                    acao: 'criarOS',
+                    usuario: usuarioLogado.nome,
+                    funcao: usuarioLogado.funcao,
+                    idEquipamento,
+                    equipamento: eq ? eq.name : '',
+                    sistema: eq ? eq.system : '',
+                    area,
+                    tipoManutencao,
+                    prioridade,
+                    descricaoProblema,
+                    equipeResponsavel,
+                    responsavel,
+                    membrosEquipe
+                });
+
                 document.getElementById('criarOSModal').remove();
                 alert('OS criada com sucesso no Banco Central.');
                 if (document.getElementById('osModal')) await recarregarPainelOS();
@@ -1941,7 +2015,7 @@
             
             let activeList = (currentSystemFilter !== 'all') ? equipment.filter(e => e.system === currentSystemFilter) : equipment;
             
-            const totalAtivos = activeList.length;
+            const totalEquipamentos = activeList.length;
             const totalOperando = activeList.filter(e => e.status === 'ok').length;
             const totalManutencao = activeList.filter(e => e.status === 'alert' || e.status === 'down').length;
             const totalParados = activeList.filter(e => e.status === 'down').length;
@@ -1950,17 +2024,9 @@
             document.getElementById('maintenanceCount').textContent = totalManutencao;
             document.getElementById('downCount').textContent = totalParados;
 
-            const percentualOperando = totalAtivos > 0 ? ((totalOperando / totalAtivos) * 100).toFixed(1) : '0.0';
-            const percentualManutencao = totalAtivos > 0 ? ((totalManutencao / totalAtivos) * 100).toFixed(1) : '0.0';
-            const percentualParados = totalAtivos > 0 ? ((totalParados / totalAtivos) * 100).toFixed(1) : '0.0';
-
-            const operationalPercent = document.getElementById('operationalPercent');
-            const maintenancePercent = document.getElementById('maintenancePercent');
-            const downPercent = document.getElementById('downPercent');
-
-            if (operationalPercent) operationalPercent.textContent = percentualOperando + '%';
-            if (maintenancePercent) maintenancePercent.textContent = percentualManutencao + '%';
-            if (downPercent) downPercent.textContent = percentualParados + '%';
+            document.getElementById('operationalPercent').textContent = calcularPercentualGMAN(totalOperando, totalEquipamentos);
+            document.getElementById('maintenancePercent').textContent = calcularPercentualGMAN(totalManutencao, totalEquipamentos);
+            document.getElementById('downPercent').textContent = calcularPercentualGMAN(totalParados, totalEquipamentos);
         }
         
         function filterSystem(system) {
