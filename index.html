@@ -180,7 +180,6 @@
      </div>
 
      <div class="systems-filter">
-         <button class="system-btn active" onclick="filterSystem('all')">Todos</button>
          <button class="system-btn" onclick="filterSystem('moinhos de vento')">100 - Moinhos</button>
          <button class="system-btn" onclick="filterSystem('são joao')">200 - São João</button>
          <button class="system-btn" onclick="filterSystem('menino deus')">300 - Menino Deus</button>
@@ -190,10 +189,6 @@
      </div>
     
      <div class="stats">
-        <div class="stat-card" id="card-all" onclick="filterByStatus('all')" style="border: 2px solid #63b3ed;">
-            <div class="stat-number" id="totalCount">0</div>
-            <div class="stat-label">TOTAL</div>
-         </div>
          <div class="stat-card" id="card-ok" onclick="filterByStatus('ok')">
             <div class="stat-number" id="operationalCount">0</div>
             <div class="stat-label">OPERANDO</div>
@@ -255,7 +250,7 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.11 — OS Abertas e OS Não Iniciadas';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.12 — Remoção Total e Todos';
         const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.6 — Regras abertura OS e conclusão obrigatória';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
@@ -1948,7 +1943,6 @@
             
             let activeList = (currentSystemFilter !== 'all') ? equipment.filter(e => e.system === currentSystemFilter) : equipment;
             
-            document.getElementById('totalCount').textContent = activeList.length;
             document.getElementById('operationalCount').textContent = activeList.filter(e => e.status === 'ok').length;
             document.getElementById('maintenanceCount').textContent = activeList.filter(e => e.status === 'alert' || e.status === 'down').length;
             document.getElementById('downCount').textContent = activeList.filter(e => e.status === 'down').length;
@@ -1967,18 +1961,23 @@
             currentStatusFilter = status;
 
             const borderColors = {
-                'all': '#63b3ed',     
                 'ok': '#48bb78',      
                 'alert': '#ecc94b',   
                 'down': '#f56565'     
             };
 
-            document.getElementById('card-all').style.border = '1px solid rgba(255,255,255,0.2)';
-            document.getElementById('card-ok').style.border = '1px solid rgba(56, 161, 105, 0.3)';
-            document.getElementById('card-alert').style.border = '1px solid rgba(214, 158, 46, 0.3)';
-            document.getElementById('card-down').style.border = '1px solid rgba(229, 62, 62, 0.3)';
+            const cardOk = document.getElementById('card-ok');
+            const cardAlert = document.getElementById('card-alert');
+            const cardDown = document.getElementById('card-down');
 
-            document.getElementById('card-' + status).style.border = `2px solid ${borderColors[status]}`;
+            if (cardOk) cardOk.style.border = '1px solid rgba(56, 161, 105, 0.3)';
+            if (cardAlert) cardAlert.style.border = '1px solid rgba(214, 158, 46, 0.3)';
+            if (cardDown) cardDown.style.border = '1px solid rgba(229, 62, 62, 0.3)';
+
+            const cardSelecionado = document.getElementById('card-' + status);
+            if (cardSelecionado && borderColors[status]) {
+                cardSelecionado.style.border = `2px solid ${borderColors[status]}`;
+            }
 
             applyFilters();
         }
