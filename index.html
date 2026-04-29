@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Manutenção GMAN - V8.5.5</title>
+    <title>Sistema de Manutenção GMAN</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -211,7 +211,8 @@
       <input type="text" class="search-box" id="searchInput" placeholder="🔍 Buscar por nome, código ou sistema..." onkeyup="searchEquipment()">
 
       <div class="main-actions">
-        <button class="action-btn primary" onclick="abrirPainelOS()">📋 Ordens de Serviço</button>
+        <button class="action-btn primary" onclick="abrirPainelOS('abertas')">📋 Ordens Abertas</button>
+        <button class="action-btn" onclick="abrirPainelOS('encerradas')">✅ Ordens Encerradas</button>
         <button class="action-btn success" id="btnAbrirOS" onclick="abrirModalCriarOS()" style="display:none;">➕ Abrir OS</button>
         <button class="action-btn" id="btnPainelKPI" onclick="abrirPainelGerencial()" style="display:none;">📊 Painel Gerencial</button>
         <button class="action-btn" onclick="atualizarAgora()">🔄 Atualizar agora</button>
@@ -252,7 +253,38 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.7 — Ordens Encerradas e Minhas OS';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.6 — Regras abertura OS e conclusão obrigatória';
         let apiOnline = false;
+        let modoPainelOSAtual = 'abertas';
+
+        function normalizarTextoGMAN(valor) {
+            return String(valor || '')
+                .trim()
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '');
+        }
+
+        function isOSEncerrada(status) {
+            const s = normalizarTextoGMAN(status);
+            return ['concluida', 'cancelada', 'fechada', 'encerrada', 'finalizada'].includes(s);
+        }
+
+        function isOSAberta(status) {
+            return !isOSEncerrada(status);
+        }
+
+        function isResponsavelUsuarioLogado(os) {
+            if (!usuarioLogado) return false;
+            return normalizarTextoGMAN(os.responsavel) === normalizarTextoGMAN(usuarioLogado.nome);
+        }
+
+        function tituloPainelOS(modo) {
+            if (modo === 'encerradas') return 'Ordens Encerradas';
+            if (modo === 'minhas') return 'Minhas OS';
+            return 'Ordens Abertas';
+        }
 
         function atualizarIndicadorConexao(mensagem, tipo = 'neutro') {
             let indicador = document.getElementById('apiStatus');
@@ -465,29 +497,60 @@
             return 'os-aberta';
         }
 
-        async function abrirPainelOS() {
+        async function abrirPainelOS(modo = 'abertas') {
+            modoPainelOSAtual = modo || 'abertas';
+
             const existingModal = document.getElementById('osModal');
             if (existingModal) existingModal.remove();
+
             const modal = document.createElement('div');
             modal.id = 'osModal';
             modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.82); display: flex; align-items: center; justify-content: center; z-index: 1100; padding: 18px;';
+
+            const titulo = tituloPainelOS(modoPainelOSAtual);
+            const subtitulo = modoPainelOSAtual === 'encerradas'
+                ? 'Consulta de OS concluídas, canceladas, fechadas, encerradas ou finalizadas.'
+                : 'Consulta de OS ativas. Use Minhas OS para filtrar somente as ordens sob sua responsabilidade.';
+
             modal.innerHTML = `
                 <div style="background:white; border-radius:20px; padding:22px; width:95%; max-width:760px; max-height:90vh; overflow-y:auto;">
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
-                            <h2 style="color:#1e3a5f; margin:0; font-size:1.2rem;">Ordens de Serviço</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Gestão abre. Campo executa. Atualização a cada 3 minutos. GMAN 8.5.5 — correção de gravação da OS, KM, motorista, prefixo e horários.</p>
+                            <h2 id="tituloPainelOS" style="color:#1e3a5f; margin:0; font-size:1.2rem;">${titulo}</h2>
+                            <p id="subtituloPainelOS" style="color:#718096; margin:4px 0 0; font-size:0.82rem;">${subtitulo}</p>
                         </div>
                         <button onclick="document.getElementById('osModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
                     <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
                         ${podeGerenciarOS() ? '<button onclick="abrirModalCriarOS()" style="padding:10px 14px; border:none; border-radius:10px; background:#38a169; color:white; cursor:pointer; font-weight:bold;">➕ Abrir OS</button>' : ''}
-                        <button onclick="recarregarPainelOS()" style="padding:10px 14px; border:none; border-radius:10px; background:#3182ce; color:white; cursor:pointer; font-weight:bold;">🔄 Recarregar OS</button>
+                        <button onclick="mudarModoPainelOS('abertas')" style="padding:10px 14px; border:none; border-radius:10px; background:#3182ce; color:white; cursor:pointer; font-weight:bold;">📋 Todas abertas</button>
+                        <button onclick="mudarModoPainelOS('minhas')" style="padding:10px 14px; border:none; border-radius:10px; background:#805ad5; color:white; cursor:pointer; font-weight:bold;">👤 Minhas OS</button>
+                        <button onclick="mudarModoPainelOS('encerradas')" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer; font-weight:bold;">✅ Encerradas</button>
+                        <button onclick="recarregarPainelOS()" style="padding:10px 14px; border:none; border-radius:10px; background:#2c5282; color:white; cursor:pointer; font-weight:bold;">🔄 Recarregar OS</button>
                     </div>
                     <div id="osConteudo" style="color:#1a202c;">Carregando Ordens de Serviço...</div>
                 </div>`;
             document.body.appendChild(modal);
             await recarregarPainelOS();
+        }
+
+        function mudarModoPainelOS(modo) {
+            modoPainelOSAtual = modo || 'abertas';
+
+            const titulo = document.getElementById('tituloPainelOS');
+            const subtitulo = document.getElementById('subtituloPainelOS');
+
+            if (titulo) titulo.textContent = tituloPainelOS(modoPainelOSAtual);
+
+            if (subtitulo) {
+                subtitulo.textContent = modoPainelOSAtual === 'encerradas'
+                    ? 'Consulta de OS concluídas, canceladas, fechadas, encerradas ou finalizadas.'
+                    : modoPainelOSAtual === 'minhas'
+                        ? 'Mostrando somente OS ativas em que o usuário logado é o responsável.'
+                        : 'Consulta de OS ativas. Use Minhas OS para filtrar somente as ordens sob sua responsabilidade.';
+            }
+
+            renderizarOS(ordensServicoCache);
         }
 
         async function recarregarPainelOS() {
@@ -505,18 +568,40 @@
         function renderizarOS(lista) {
             const container = document.getElementById('osConteudo');
             if (!container) return;
-            const abertas = lista.filter(os => !['Concluída', 'Cancelada'].includes(String(os.statusOS || '')));
-            const base = abertas.length ? abertas : lista.slice(-10).reverse();
+
+            const modo = modoPainelOSAtual || 'abertas';
+            let base = Array.isArray(lista) ? lista.slice() : [];
+
+            if (modo === 'encerradas') {
+                base = base.filter(os => isOSEncerrada(os.statusOS));
+            } else {
+                base = base.filter(os => isOSAberta(os.statusOS));
+
+                if (modo === 'minhas') {
+                    base = base.filter(os => isResponsavelUsuarioLogado(os));
+                }
+            }
+
+            base = base.slice().reverse();
+
             if (!base.length) {
-                container.innerHTML = '<p style="color:#4a5568; background:#f7fafc; padding:14px; border-radius:12px;">Nenhuma OS cadastrada ainda.</p>';
+                const mensagem = modo === 'encerradas'
+                    ? 'Nenhuma OS encerrada encontrada.'
+                    : modo === 'minhas'
+                        ? 'Nenhuma OS aberta encontrada para o usuário responsável logado.'
+                        : 'Nenhuma OS aberta encontrada.';
+                container.innerHTML = `<p style="color:#4a5568; background:#f7fafc; padding:14px; border-radius:12px;">${mensagem}</p>`;
                 return;
             }
+
             container.innerHTML = base.map(os => {
-                const podeIniciar = podeExecutarOS() && String(os.statusOS) === 'Aberta';
+                const encerrada = isOSEncerrada(os.statusOS);
+                const podeIniciar = !encerrada && podeExecutarOS() && String(os.statusOS) === 'Aberta';
                 const statusPermiteAcao = ['Em execução', 'Aguardando material', 'Aguardando liberação', 'Reaberta', 'Parado', 'Em teste', 'OS em execução', 'Operando com restrição'].includes(String(os.statusOS));
-                const podeConcluir = podeExecutarOS() && statusPermiteAcao;
-                const podeAtualizarAndamento = podeExecutarOS() && statusPermiteAcao;
-                const podeCancelar = podeGerenciarOS() && !['Concluída', 'Cancelada'].includes(String(os.statusOS));
+                const podeConcluir = !encerrada && podeExecutarOS() && statusPermiteAcao;
+                const podeAtualizarAndamento = !encerrada && podeExecutarOS() && statusPermiteAcao;
+                const podeCancelar = !encerrada && podeGerenciarOS();
+
                 return `
                     <div class="os-card">
                         <h4>${os.idOS} — ${os.equipamento || os.idEquipamento}</h4>
@@ -526,7 +611,11 @@
                         <p><strong>Sistema:</strong> ${os.sistema || '-'} | <strong>Equipe:</strong> ${os.equipeResponsavel || '-'}</p>
                         <p><strong>Responsável:</strong> ${os.responsavel || '-'}</p>
                         <p><strong>Problema:</strong> ${os.descricaoProblema || '-'}</p>
+                        ${os.dataAbertura ? `<p><strong>Abertura:</strong> ${formatarDataApi(os.dataAbertura)} ${os.horaAbertura ? '| ' + os.horaAbertura : ''}</p>` : ''}
+                        ${os.dataConclusao ? `<p><strong>Conclusão:</strong> ${formatarDataApi(os.dataConclusao)} ${os.horaConclusao ? '| ' + os.horaConclusao : ''}</p>` : ''}
                         ${os.servicoRealizado ? `<p><strong>Serviço realizado:</strong> ${os.servicoRealizado}</p>` : ''}
+                        ${os.finalizadoPor ? `<p><strong>Finalizado por:</strong> ${os.finalizadoPor}</p>` : ''}
+                        ${encerrada ? '<p style="color:#2f855a; font-weight:700;">✅ OS encerrada</p>' : ''}
                         <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
                             ${podeIniciar ? `<button onclick="iniciarOS('${os.idOS}')" style="padding:8px 10px; border:none; border-radius:8px; background:#d69e2e; color:white; cursor:pointer;">▶️ Iniciar</button>` : ''}
                             ${podeAtualizarAndamento ? `<button onclick="abrirModalAndamentoOS('${os.idOS}')" style="padding:8px 10px; border:none; border-radius:8px; background:#3182ce; color:white; cursor:pointer;">📝 Atualizar andamento</button>` : ''}
@@ -897,7 +986,7 @@
 
             modal.innerHTML = `
                 <div style="background:white; border-radius:20px; padding:24px; width:95%; max-width:650px; max-height:90vh; overflow-y:auto;">
-                    <h2 style="color:#1e3a5f; margin:0 0 12px;">Concluir OS — GMAN 8.5</h2>
+                    <h2 style="color:#1e3a5f; margin:0 0 12px;">Concluir OS</h2>
                     <p style="color:#718096; font-size:0.82rem; margin:0 0 12px;">
                         A OS só encerra quando o equipamento estiver Operando. Se ainda não voltou a operar, use Atualizar andamento.
                     </p>
@@ -906,7 +995,7 @@
                     <textarea id="concluirServico" class="form-field" rows="4" placeholder="Descreva o serviço executado"></textarea>
 
                     <label class="form-label">Materiais utilizados</label>
-                    <textarea id="concluirMateriais" class="form-field" rows="3" placeholder="Informe materiais, peças ou deixe em branco"></textarea>
+                    <textarea id="concluirMateriais" class="form-field" rows="3" placeholder="Informe materiais ou peças utilizadas"></textarea>
 
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px;">
                         <div>
@@ -945,7 +1034,7 @@
                     <textarea id="concluirObservacaoFinal" class="form-field" rows="3" placeholder="Observação final da OS"></textarea>
 
                     <div style="margin-top:15px; padding:12px; background:#f7fafc; border-radius:12px; border-left:4px solid #3182ce;">
-                        <p style="color:#1e3a5f; font-weight:700; margin:0 0 8px;">📎 Evidências da OS — GMAN 8.5</p>
+                        <p style="color:#1e3a5f; font-weight:700; margin:0 0 8px;">📎 Evidências da OS</p>
                         <p style="color:#718096; font-size:0.75rem; margin:0 0 10px;">
                             Regra: até 2 fotos por usuário nesta OS e 1 áudio por usuário de até 1 minuto. Vídeo bloqueado.
                         </p>
@@ -1030,11 +1119,25 @@
             const kmInicial = kmInicialTexto === '' ? '' : Number(kmInicialTexto);
             const kmFinal = kmFinalTexto === '' ? '' : Number(kmFinalTexto);
 
-            if (!servicoRealizado) return alert('Informe o serviço executado.');
+            const camposFaltantes = [];
+            if (!servicoRealizado) camposFaltantes.push('serviço executado');
+            if (!materiais) camposFaltantes.push('materiais utilizados');
+            if (!motorista) camposFaltantes.push('motorista');
+            if (!prefixoVeiculo) camposFaltantes.push('prefixo do veículo');
+            if (kmInicialTexto === '') camposFaltantes.push('KM inicial');
+            if (kmFinalTexto === '') camposFaltantes.push('KM final');
+            if (!situacaoFinalEquipamento) camposFaltantes.push('situação final do equipamento');
+            if (!observacaoFinal) camposFaltantes.push('observação final');
+
+            if (camposFaltantes.length) {
+                return alert('Preencha todos os campos obrigatórios antes de concluir a OS: ' + camposFaltantes.join(', ') + '. Fotos e áudio não são obrigatórios.');
+            }
+
             if (situacaoFinalEquipamento !== 'Operando') {
                 return alert('A OS só pode ser concluída quando a situação final do equipamento for Operando. Use Atualizar andamento se ainda estiver em teste, parado, aguardando material, aguardando liberação ou com restrição.');
             }
-            if (kmInicial !== '' && kmFinal !== '' && kmFinal < kmInicial) {
+
+            if (kmFinal < kmInicial) {
                 return alert('KM final inválido. O KM final deve ser maior ou igual ao KM inicial.');
             }
 
@@ -1185,7 +1288,7 @@
             const container = document.getElementById('kpiConteudo');
             if (!container) return;
 
-            container.innerHTML = '<p style="color:#4a5568;">🔄 Calculando indicadores GMAN 8.5...</p>';
+            container.innerHTML = '<p style="color:#4a5568;">🔄 Calculando indicadores GMAN...</p>';
 
             try {
                 await carregarStatusOnline();
@@ -1261,7 +1364,7 @@
                     </div>
 
                     <div style="margin-top:14px; background:#ebf8ff; border-left:5px solid #3182ce; border-radius:12px; padding:12px; color:#2c5282; font-size:0.82rem;">
-                        <strong>GMAN 8.5.5:</strong> painel com os 6 KPIs oficiais: disponibilidade, MTTR, MTBF, backlog, produtividade e reincidência.
+                        <strong>GMAN:</strong> painel com os 6 KPIs oficiais: disponibilidade, MTTR, MTBF, backlog, produtividade e reincidência.
                         <br>
                         <strong>Situação atual:</strong> ${operando} operando, ${indisponiveis} em manutenção/alerta, ${parados} parados e ${osBacklog} OS no backlog.
                     </div>
