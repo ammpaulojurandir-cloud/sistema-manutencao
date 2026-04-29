@@ -192,14 +192,17 @@
          <div class="stat-card" id="card-ok" onclick="filterByStatus('ok')">
             <div class="stat-number" id="operationalCount">0</div>
             <div class="stat-label">OPERANDO</div>
+            <div class="stat-percent" id="operationalPercent">0%</div>
          </div>
          <div class="stat-card" id="card-alert" onclick="filterByStatus('alert')">
             <div class="stat-number" id="maintenanceCount">0</div>
             <div class="stat-label">MANUTENÇÃO</div>
+            <div class="stat-percent" id="maintenancePercent">0%</div>
          </div>
          <div class="stat-card" id="card-down" onclick="filterByStatus('down')">
             <div class="stat-number" id="downCount">0</div>
             <div class="stat-label">PARADOS</div>
+            <div class="stat-percent" id="downPercent">0%</div>
          </div>
       </div>
     
@@ -249,7 +252,7 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.13 — Abrir OS somente pelo equipamento';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.14 — Índices percentuais nos cards principais';
         const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.6 — Regras abertura OS e conclusão obrigatória';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
@@ -1938,9 +1941,26 @@
             
             let activeList = (currentSystemFilter !== 'all') ? equipment.filter(e => e.system === currentSystemFilter) : equipment;
             
-            document.getElementById('operationalCount').textContent = activeList.filter(e => e.status === 'ok').length;
-            document.getElementById('maintenanceCount').textContent = activeList.filter(e => e.status === 'alert' || e.status === 'down').length;
-            document.getElementById('downCount').textContent = activeList.filter(e => e.status === 'down').length;
+            const totalAtivos = activeList.length;
+            const totalOperando = activeList.filter(e => e.status === 'ok').length;
+            const totalManutencao = activeList.filter(e => e.status === 'alert' || e.status === 'down').length;
+            const totalParados = activeList.filter(e => e.status === 'down').length;
+
+            document.getElementById('operationalCount').textContent = totalOperando;
+            document.getElementById('maintenanceCount').textContent = totalManutencao;
+            document.getElementById('downCount').textContent = totalParados;
+
+            const percentualOperando = totalAtivos > 0 ? ((totalOperando / totalAtivos) * 100).toFixed(1) : '0.0';
+            const percentualManutencao = totalAtivos > 0 ? ((totalManutencao / totalAtivos) * 100).toFixed(1) : '0.0';
+            const percentualParados = totalAtivos > 0 ? ((totalParados / totalAtivos) * 100).toFixed(1) : '0.0';
+
+            const operationalPercent = document.getElementById('operationalPercent');
+            const maintenancePercent = document.getElementById('maintenancePercent');
+            const downPercent = document.getElementById('downPercent');
+
+            if (operationalPercent) operationalPercent.textContent = percentualOperando + '%';
+            if (maintenancePercent) maintenancePercent.textContent = percentualManutencao + '%';
+            if (downPercent) downPercent.textContent = percentualParados + '%';
         }
         
         function filterSystem(system) {
