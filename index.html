@@ -211,7 +211,8 @@
       <input type="text" class="search-box" id="searchInput" placeholder="🔍 Buscar por nome, código ou sistema..." onkeyup="searchEquipment()">
 
       <div class="main-actions">
-        <button class="action-btn primary" id="btnOrdensAbertasHome" onclick="abrirPainelOS('abertas')">⏳ OS Não Iniciadas <span id="totalOrdensAbertasHome">(0)</span></button>
+        <button class="action-btn primary" id="btnOrdensAbertasHome" onclick="abrirPainelOS('abertas')">📋 OS Abertas <span id="totalOrdensAbertasHome">(0)</span></button>
+        <button class="action-btn" id="btnOrdensNaoIniciadasHome" onclick="abrirPainelOS('naoIniciadas')" style="display:none;">⏳ OS Não Iniciadas <span id="totalOrdensNaoIniciadasHome">(0)</span></button>
         <button class="action-btn" id="btnOrdensIniciadasHome" onclick="abrirPainelOS('iniciadas')" style="display:none;">🛠️ OS Iniciadas <span id="totalOrdensIniciadasHome">(0)</span></button>
         <button class="action-btn" id="btnOrdensEncerradasHome" onclick="abrirPainelOS('encerradas')">✅ Ordens Encerradas <span id="totalOrdensEncerradasHome">(0)</span></button>
         <button class="action-btn success" id="btnAbrirOS" onclick="abrirModalCriarOS()" style="display:none;">➕ Abrir OS</button>
@@ -254,7 +255,7 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.10 — Botão OS Não Iniciadas';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.11 — OS Abertas e OS Não Iniciadas';
         const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.6 — Regras abertura OS e conclusão obrigatória';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
@@ -293,6 +294,10 @@
             return isOSAberta(status) || isOSIniciada(status);
         }
 
+        function isOSAbertaGeral(status) {
+            return isOSAtivaOperacional(status);
+        }
+
         function isResponsavelUsuarioLogado(os) {
             if (!usuarioLogado) return false;
             return normalizarTextoGMAN(os.responsavel) === normalizarTextoGMAN(usuarioLogado.nome);
@@ -300,9 +305,10 @@
 
         function tituloPainelOS(modo) {
             if (modo === 'encerradas') return 'Ordens Encerradas';
+            if (modo === 'naoIniciadas') return 'OS Não Iniciadas';
             if (modo === 'iniciadas') return 'OS Iniciadas';
             if (modo === 'minhas') return 'Minhas OS';
-            return 'OS Não Iniciadas';
+            return 'OS Abertas';
         }
 
         function classificarStatusOSGMAN(status) {
@@ -339,29 +345,35 @@
 
         function atualizarTotalizadoresOS(lista = ordensServicoCache) {
             const dados = Array.isArray(lista) ? lista : [];
-            const abertas = dados.filter(os => isOSAberta(os.statusOS));
+            const abertasGerais = dados.filter(os => isOSAbertaGeral(os.statusOS));
+            const naoIniciadas = dados.filter(os => isOSAberta(os.statusOS));
             const iniciadas = dados.filter(os => isOSIniciada(os.statusOS));
             const encerradas = dados.filter(os => isOSEncerrada(os.statusOS));
             const minhas = dados.filter(os => isOSAtivaOperacional(os.statusOS)).filter(os => isResponsavelUsuarioLogado(os));
 
             const totalAbertasHome = document.getElementById('totalOrdensAbertasHome');
+            const totalNaoIniciadasHome = document.getElementById('totalOrdensNaoIniciadasHome');
             const totalIniciadasHome = document.getElementById('totalOrdensIniciadasHome');
             const totalEncerradasHome = document.getElementById('totalOrdensEncerradasHome');
             const totalAbertasPainel = document.getElementById('totalOrdensAbertasPainel');
+            const totalNaoIniciadasPainel = document.getElementById('totalOrdensNaoIniciadasPainel');
             const totalIniciadasPainel = document.getElementById('totalOrdensIniciadasPainel');
             const totalMinhasPainel = document.getElementById('totalMinhasOSPainel');
             const totalEncerradasPainel = document.getElementById('totalOrdensEncerradasPainel');
 
-            if (totalAbertasHome) totalAbertasHome.textContent = '(' + abertas.length + ')';
+            if (totalAbertasHome) totalAbertasHome.textContent = '(' + abertasGerais.length + ')';
+            if (totalNaoIniciadasHome) totalNaoIniciadasHome.textContent = '(' + naoIniciadas.length + ')';
             if (totalIniciadasHome) totalIniciadasHome.textContent = '(' + iniciadas.length + ')';
             if (totalEncerradasHome) totalEncerradasHome.textContent = '(' + encerradas.length + ')';
-            if (totalAbertasPainel) totalAbertasPainel.textContent = '(' + abertas.length + ')';
+            if (totalAbertasPainel) totalAbertasPainel.textContent = '(' + abertasGerais.length + ')';
+            if (totalNaoIniciadasPainel) totalNaoIniciadasPainel.textContent = '(' + naoIniciadas.length + ')';
             if (totalIniciadasPainel) totalIniciadasPainel.textContent = '(' + iniciadas.length + ')';
             if (totalMinhasPainel) totalMinhasPainel.textContent = '(' + minhas.length + ')';
             if (totalEncerradasPainel) totalEncerradasPainel.textContent = '(' + encerradas.length + ')';
 
             return {
-                abertas: abertas.length,
+                abertas: abertasGerais.length,
+                naoIniciadas: naoIniciadas.length,
                 iniciadas: iniciadas.length,
                 encerradas: encerradas.length,
                 minhas: minhas.length
@@ -379,12 +391,12 @@
                 ['Concluída', 'Cancelada', 'Fechada', 'Encerrada', 'Finalizada'].forEach(status => {
                     cards.push({ titulo: status, valor: contagem[status] || 0 });
                 });
-            } else if (modo === 'abertas') {
+            } else if (modo === 'naoIniciadas') {
                 ['Aberta'].forEach(status => {
                     cards.push({ titulo: status, valor: contagem[status] || 0 });
                 });
             } else {
-                ['Em execução', 'Em teste', 'Aguardando material', 'Aguardando liberação', 'Parado', 'Em manutenção', 'Operando com restrição'].forEach(status => {
+                ['Aberta', 'Em execução', 'Em teste', 'Aguardando material', 'Aguardando liberação', 'Parado', 'Em manutenção', 'Operando com restrição'].forEach(status => {
                     cards.push({ titulo: status, valor: contagem[status] || 0 });
                 });
             }
@@ -408,7 +420,8 @@
                     </div>
 
                     <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; color:#4a5568; font-size:0.78rem; font-weight:700;">
-                        <span>⏳ Não iniciadas: ${totalizadores.abertas}</span>
+                        <span>📋 Abertas: ${totalizadores.abertas}</span>
+                        <span>⏳ Não iniciadas: ${totalizadores.naoIniciadas}</span>
                         <span>🛠️ Iniciadas: ${totalizadores.iniciadas}</span>
                         <span>👤 Minhas: ${totalizadores.minhas}</span>
                         <span>✅ Encerradas: ${totalizadores.encerradas}</span>
@@ -603,6 +616,9 @@
             const btnKPI = document.getElementById('btnPainelKPI');
             if (btnKPI) btnKPI.style.display = ehGestao ? 'inline-block' : 'none';
 
+            const btnNaoIniciadas = document.getElementById('btnOrdensNaoIniciadasHome');
+            if (btnNaoIniciadas) btnNaoIniciadas.style.display = ehGestao ? 'inline-block' : 'none';
+
             const btnIniciadas = document.getElementById('btnOrdensIniciadasHome');
             if (btnIniciadas) btnIniciadas.style.display = ehGestao ? 'inline-block' : 'none';
 
@@ -654,9 +670,11 @@
             const titulo = tituloPainelOS(modoPainelOSAtual);
             const subtitulo = modoPainelOSAtual === 'encerradas'
                 ? 'Consulta de OS concluídas, canceladas, fechadas, encerradas ou finalizadas.'
-                : modoPainelOSAtual === 'iniciadas'
-                    ? 'Consulta gerencial de OS que já foram iniciadas ou estão em andamento.'
-                    : 'Consulta de OS ainda não iniciadas. Use Minhas OS para filtrar a fila operacional do responsável.';
+                : modoPainelOSAtual === 'naoIniciadas'
+                    ? 'Consulta gerencial de OS abertas que ainda não foram iniciadas.'
+                    : modoPainelOSAtual === 'iniciadas'
+                        ? 'Consulta gerencial de OS que já foram iniciadas ou estão em andamento.'
+                        : 'Consulta geral de OS abertas operacionais, incluindo não iniciadas e iniciadas.';
 
             modal.innerHTML = `
                 <div style="background:white; border-radius:20px; padding:22px; width:95%; max-width:760px; max-height:90vh; overflow-y:auto;">
@@ -669,8 +687,8 @@
                     </div>
                     <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
                         ${podeGerenciarOS() ? '<button onclick="abrirModalCriarOS()" style="padding:10px 14px; border:none; border-radius:10px; background:#38a169; color:white; cursor:pointer; font-weight:bold;">➕ Abrir OS</button>' : ''}
-                        <button onclick="mudarModoPainelOS('abertas')" style="padding:10px 14px; border:none; border-radius:10px; background:#3182ce; color:white; cursor:pointer; font-weight:bold;">⏳ Não iniciadas <span id="totalOrdensAbertasPainel">(0)</span></button>
-                        ${podeGerenciarOS() ? '<button onclick="mudarModoPainelOS(\'iniciadas\')" style="padding:10px 14px; border:none; border-radius:10px; background:#d69e2e; color:white; cursor:pointer; font-weight:bold;">🛠️ Iniciadas <span id="totalOrdensIniciadasPainel">(0)</span></button>' : ''}
+                        <button onclick="mudarModoPainelOS('abertas')" style="padding:10px 14px; border:none; border-radius:10px; background:#3182ce; color:white; cursor:pointer; font-weight:bold;">📋 OS Abertas <span id="totalOrdensAbertasPainel">(0)</span></button>
+                        ${podeGerenciarOS() ? '<button onclick="mudarModoPainelOS(\'naoIniciadas\')" style="padding:10px 14px; border:none; border-radius:10px; background:#2c5282; color:white; cursor:pointer; font-weight:bold;">⏳ Não Iniciadas <span id="totalOrdensNaoIniciadasPainel">(0)</span></button><button onclick="mudarModoPainelOS(\'iniciadas\')" style="padding:10px 14px; border:none; border-radius:10px; background:#d69e2e; color:white; cursor:pointer; font-weight:bold;">🛠️ Iniciadas <span id="totalOrdensIniciadasPainel">(0)</span></button>' : ''}
                         <button onclick="mudarModoPainelOS('minhas')" style="padding:10px 14px; border:none; border-radius:10px; background:#805ad5; color:white; cursor:pointer; font-weight:bold;">👤 Minhas OS <span id="totalMinhasOSPainel">(0)</span></button>
                         <button onclick="mudarModoPainelOS('encerradas')" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer; font-weight:bold;">✅ Encerradas <span id="totalOrdensEncerradasPainel">(0)</span></button>
                         <button onclick="recarregarPainelOS()" style="padding:10px 14px; border:none; border-radius:10px; background:#2c5282; color:white; cursor:pointer; font-weight:bold;">🔄 Recarregar OS</button>
@@ -692,11 +710,13 @@
             if (subtitulo) {
                 subtitulo.textContent = modoPainelOSAtual === 'encerradas'
                     ? 'Consulta de OS concluídas, canceladas, fechadas, encerradas ou finalizadas.'
-                    : modoPainelOSAtual === 'iniciadas'
-                        ? 'Consulta gerencial de OS que já foram iniciadas ou estão em andamento.'
-                        : modoPainelOSAtual === 'minhas'
-                            ? 'Mostrando somente OS ativas operacionais em que o usuário logado é o responsável.'
-                            : 'Consulta de OS ainda não iniciadas. Use Minhas OS para filtrar a fila operacional do responsável.';
+                    : modoPainelOSAtual === 'naoIniciadas'
+                        ? 'Consulta gerencial de OS abertas que ainda não foram iniciadas.'
+                        : modoPainelOSAtual === 'iniciadas'
+                            ? 'Consulta gerencial de OS que já foram iniciadas ou estão em andamento.'
+                            : modoPainelOSAtual === 'minhas'
+                                ? 'Mostrando somente OS ativas operacionais em que o usuário logado é o responsável.'
+                                : 'Consulta geral de OS abertas operacionais, incluindo não iniciadas e iniciadas.';
             }
 
             renderizarOS(ordensServicoCache);
@@ -724,6 +744,12 @@
 
             if (modo === 'encerradas') {
                 base = base.filter(os => isOSEncerrada(os.statusOS));
+            } else if (modo === 'naoIniciadas') {
+                if (!podeGerenciarOS()) {
+                    base = [];
+                } else {
+                    base = base.filter(os => isOSAberta(os.statusOS));
+                }
             } else if (modo === 'iniciadas') {
                 if (!podeGerenciarOS()) {
                     base = [];
@@ -733,7 +759,7 @@
             } else if (modo === 'minhas') {
                 base = base.filter(os => isOSAtivaOperacional(os.statusOS)).filter(os => isResponsavelUsuarioLogado(os));
             } else {
-                base = base.filter(os => isOSAberta(os.statusOS));
+                base = base.filter(os => isOSAbertaGeral(os.statusOS));
             }
 
             base = base.slice().reverse();
@@ -741,11 +767,13 @@
             if (!base.length) {
                 const mensagem = modo === 'encerradas'
                     ? 'Nenhuma OS encerrada encontrada.'
-                    : modo === 'iniciadas'
-                        ? 'Nenhuma OS iniciada encontrada.'
-                        : modo === 'minhas'
-                            ? 'Nenhuma OS ativa operacional encontrada para o usuário responsável logado.'
-                            : 'Nenhuma OS não iniciada encontrada.';
+                    : modo === 'naoIniciadas'
+                        ? 'Nenhuma OS não iniciada encontrada.'
+                        : modo === 'iniciadas'
+                            ? 'Nenhuma OS iniciada encontrada.'
+                            : modo === 'minhas'
+                                ? 'Nenhuma OS ativa operacional encontrada para o usuário responsável logado.'
+                                : 'Nenhuma OS aberta operacional encontrada.';
                 container.innerHTML = montarResumoOSGMAN(base, modo, lista) + `<p style="color:#4a5568; background:#f7fafc; padding:14px; border-radius:12px;">${mensagem}</p>`;
                 return;
             }
