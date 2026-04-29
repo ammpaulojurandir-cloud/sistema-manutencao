@@ -211,7 +211,7 @@
       <input type="text" class="search-box" id="searchInput" placeholder="🔍 Buscar por nome, código ou sistema..." onkeyup="searchEquipment()">
 
       <div class="main-actions">
-        <button class="action-btn primary" id="btnOrdensAbertasHome" onclick="abrirPainelOS('abertas')">📋 Ordens Abertas <span id="totalOrdensAbertasHome">(0)</span></button>
+        <button class="action-btn primary" id="btnOrdensAbertasHome" onclick="abrirPainelOS('abertas')">⏳ OS Não Iniciadas <span id="totalOrdensAbertasHome">(0)</span></button>
         <button class="action-btn" id="btnOrdensIniciadasHome" onclick="abrirPainelOS('iniciadas')" style="display:none;">🛠️ OS Iniciadas <span id="totalOrdensIniciadasHome">(0)</span></button>
         <button class="action-btn" id="btnOrdensEncerradasHome" onclick="abrirPainelOS('encerradas')">✅ Ordens Encerradas <span id="totalOrdensEncerradasHome">(0)</span></button>
         <button class="action-btn success" id="btnAbrirOS" onclick="abrirModalCriarOS()" style="display:none;">➕ Abrir OS</button>
@@ -254,7 +254,7 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.9 — OS Iniciadas para gestão';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.10 — Botão OS Não Iniciadas';
         const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.6 — Regras abertura OS e conclusão obrigatória';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
@@ -302,7 +302,7 @@
             if (modo === 'encerradas') return 'Ordens Encerradas';
             if (modo === 'iniciadas') return 'OS Iniciadas';
             if (modo === 'minhas') return 'Minhas OS';
-            return 'Ordens Abertas';
+            return 'OS Não Iniciadas';
         }
 
         function classificarStatusOSGMAN(status) {
@@ -408,7 +408,7 @@
                     </div>
 
                     <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; color:#4a5568; font-size:0.78rem; font-weight:700;">
-                        <span>📋 Abertas: ${totalizadores.abertas}</span>
+                        <span>⏳ Não iniciadas: ${totalizadores.abertas}</span>
                         <span>🛠️ Iniciadas: ${totalizadores.iniciadas}</span>
                         <span>👤 Minhas: ${totalizadores.minhas}</span>
                         <span>✅ Encerradas: ${totalizadores.encerradas}</span>
@@ -656,7 +656,7 @@
                 ? 'Consulta de OS concluídas, canceladas, fechadas, encerradas ou finalizadas.'
                 : modoPainelOSAtual === 'iniciadas'
                     ? 'Consulta gerencial de OS que já foram iniciadas ou estão em andamento.'
-                    : 'Consulta de OS abertas ainda não iniciadas. Use Minhas OS para filtrar a fila operacional do responsável.';
+                    : 'Consulta de OS ainda não iniciadas. Use Minhas OS para filtrar a fila operacional do responsável.';
 
             modal.innerHTML = `
                 <div style="background:white; border-radius:20px; padding:22px; width:95%; max-width:760px; max-height:90vh; overflow-y:auto;">
@@ -669,7 +669,7 @@
                     </div>
                     <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
                         ${podeGerenciarOS() ? '<button onclick="abrirModalCriarOS()" style="padding:10px 14px; border:none; border-radius:10px; background:#38a169; color:white; cursor:pointer; font-weight:bold;">➕ Abrir OS</button>' : ''}
-                        <button onclick="mudarModoPainelOS('abertas')" style="padding:10px 14px; border:none; border-radius:10px; background:#3182ce; color:white; cursor:pointer; font-weight:bold;">📋 Abertas <span id="totalOrdensAbertasPainel">(0)</span></button>
+                        <button onclick="mudarModoPainelOS('abertas')" style="padding:10px 14px; border:none; border-radius:10px; background:#3182ce; color:white; cursor:pointer; font-weight:bold;">⏳ Não iniciadas <span id="totalOrdensAbertasPainel">(0)</span></button>
                         ${podeGerenciarOS() ? '<button onclick="mudarModoPainelOS(\'iniciadas\')" style="padding:10px 14px; border:none; border-radius:10px; background:#d69e2e; color:white; cursor:pointer; font-weight:bold;">🛠️ Iniciadas <span id="totalOrdensIniciadasPainel">(0)</span></button>' : ''}
                         <button onclick="mudarModoPainelOS('minhas')" style="padding:10px 14px; border:none; border-radius:10px; background:#805ad5; color:white; cursor:pointer; font-weight:bold;">👤 Minhas OS <span id="totalMinhasOSPainel">(0)</span></button>
                         <button onclick="mudarModoPainelOS('encerradas')" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer; font-weight:bold;">✅ Encerradas <span id="totalOrdensEncerradasPainel">(0)</span></button>
@@ -696,7 +696,7 @@
                         ? 'Consulta gerencial de OS que já foram iniciadas ou estão em andamento.'
                         : modoPainelOSAtual === 'minhas'
                             ? 'Mostrando somente OS ativas operacionais em que o usuário logado é o responsável.'
-                            : 'Consulta de OS abertas ainda não iniciadas. Use Minhas OS para filtrar a fila operacional do responsável.';
+                            : 'Consulta de OS ainda não iniciadas. Use Minhas OS para filtrar a fila operacional do responsável.';
             }
 
             renderizarOS(ordensServicoCache);
@@ -745,7 +745,7 @@
                         ? 'Nenhuma OS iniciada encontrada.'
                         : modo === 'minhas'
                             ? 'Nenhuma OS ativa operacional encontrada para o usuário responsável logado.'
-                            : 'Nenhuma OS aberta ainda não iniciada encontrada.';
+                            : 'Nenhuma OS não iniciada encontrada.';
                 container.innerHTML = montarResumoOSGMAN(base, modo, lista) + `<p style="color:#4a5568; background:#f7fafc; padding:14px; border-radius:12px;">${mensagem}</p>`;
                 return;
             }
