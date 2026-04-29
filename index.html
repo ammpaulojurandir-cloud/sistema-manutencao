@@ -16,8 +16,8 @@
         .btn-close { background: #718096; color: white; }
         input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #cbd5e0; font-size: 1rem; }
         .status-tag { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; color: white; }
-        .tag-sim { background: #e53e3e; } /* Bloqueado */
-        .tag-nao { background: #38a169; } /* Livre */
+        .tag-sim { background: #e53e3e; } 
+        .tag-nao { background: #38a169; } 
     </style>
 </head>
 <body>
@@ -72,8 +72,9 @@
 </div>
 
 <script>
-    // 1. COLE A URL DA SUA API DO GOOGLE ABAIXO
-    const API_URL = https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec
+    // 1. URL DA API CORRIGIDA COM ASPAS
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
+
     let usuarioLogado = null;
     const usuarios = [
         { nome: 'Paulo Jurandir', senha: 'dmae2026', funcao: 'administrador', area: 'mecanica' },
@@ -91,8 +92,8 @@
         if (matches.length > 1) {
             const opt = confirm("Entrar como ADMINISTRADOR? (OK para Sim / Cancelar para SUPERVISOR)");
             usuarioLogado = opt ? matches.find(m => m.funcao === 'administrador') : matches.find(m => m.funcao === 'supervisor');
-        } else {
-            usuarioLogado = matches[0] || null;
+        } else if (matches.length === 1) {
+            usuarioLogado = matches[0];
         }
 
         if (usuarioLogado) {
@@ -120,14 +121,19 @@
                         <small>${eq.SISTEMA}</small>
                     </div>
                     <div>
-                        <span class="status-tag ${eq.BLOQUEADO === 'Sim' ? 'tag-sim' : 'tag-nao'}">
-                            ${eq.BLOQUEADO === 'Sim' ? 'BLOQUEADO' : 'LIVRE'}
+                        <span class="status-tag ${String(eq.BLOQUEADO).toLowerCase() === 'sim' ? 'tag-sim' : 'tag-nao'}">
+                            ${String(eq.BLOQUEADO).toLowerCase() === 'sim' ? 'BLOQUEADO' : 'LIVRE'}
                         </span>
-                        ${eq.BLOQUEADO === 'Sim' ? `<button onclick="prepararConclusao('${eq.ID_EQUIPAMENTO}')" style="margin-left:10px; cursor:pointer;">Finalizar</button>` : `<button onclick="abrirOS('${eq.ID_EQUIPAMENTO}')" style="margin-left:10px; cursor:pointer;">Abrir OS</button>`}
+                        ${String(eq.BLOQUEADO).toLowerCase() === 'sim' ? 
+                            `<button onclick="prepararConclusao('${eq.ID_EQUIPAMENTO}')" style="margin-left:10px; cursor:pointer;">Finalizar</button>` : 
+                            `<button onclick="abrirOS('${eq.ID_EQUIPAMENTO}')" style="margin-left:10px; cursor:pointer;">Abrir OS</button>`}
                     </div>
                 </div>
             `).join('');
-        } catch (e) { div.innerHTML = "Erro ao conectar com a API."; }
+        } catch (e) { 
+            console.error(e);
+            div.innerHTML = "Erro ao conectar com a API."; 
+        }
     }
 
     async function abrirOS(id) {
@@ -163,31 +169,47 @@
     function fecharModal() { document.getElementById('modalConcluir').style.display = 'none'; }
 
     document.getElementById('btnSalvarConclusao').onclick = async function() {
-        // BUSCA A OS ATIVA (Lógica para encontrar o ID da OS pelo ID do Equipamento no banco)
-        const respList = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ acao: 'listarOS' }) });
-        const listaOS = await respList.json();
-        const osAtiva = listaOS.find(o => o.ID_EQUIPAMENTO === idEquipamentoParaConcluir && o.STATUS_OS === 'Aberta');
+        const btn = this;
+        btn.disabled = true;
+        btn.innerText = "Gravando...";
 
-        if (!osAtiva) { alert("Erro: Nenhuma OS aberta encontrada para este motor."); return; }
+        try {
+            // Busca a OS ativa enviando o ID_EQUIPAMENTO para o servidor
+            const respList = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ acao: 'listarOS' }) });
+            const listaOS = await respList.json();
+            const osAtiva = listaOS.find(o => o.ID_EQUIPAMENTO === idEquipamentoParaConcluir && o.STATUS_OS === 'Aberta');
 
-        const payload = {
-            acao: 'concluirOS',
-            idOS: osAtiva.ID_OS,
-            servicoRealizado: document.getElementById('concluirServico').value,
-            materiais: document.getElementById('concluirMateriais').value,
-            motorista: document.getElementById('concluirMotorista').value,
-            prefixoVeiculo: document.getElementById('concluirPrefixo').value,
-            kmInicial: Number(document.getElementById('concluirKmInicial').value),
-            kmFinal: Number(document.getElementById('concluirKmFinal').value),
-            kmRodado: Number(document.getElementById('concluirKmFinal').value) - Number(document.getElementById('concluirKmInicial').value),
-            usuario: usuarioLogado.nome
-        };
+            if (!osAtiva) { 
+                alert("Erro: Nenhuma OS aberta encontrada para este motor."); 
+                btn.disabled = false;
+                btn.innerText = "Gravar e Finalizar";
+                return; 
+            }
 
-        const resp = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-        const res = await resp.json();
-        alert(res.mensagem);
-        fecharModal();
-        carregarDados();
+            const payload = {
+                acao: 'concluirOS',
+                idOS: osAtiva.ID_OS,
+                servicoRealizado: document.getElementById('concluirServico').value,
+                materiais: document.getElementById('concluirMateriais').value,
+                motorista: document.getElementById('concluirMotorista').value,
+                prefixoVeiculo: document.getElementById('concluirPrefixo').value,
+                kmInicial: Number(document.getElementById('concluirKmInicial').value),
+                kmFinal: Number(document.getElementById('concluirKmFinal').value),
+                kmRodado: Number(document.getElementById('concluirKmFinal').value) - Number(document.getElementById('concluirKmInicial').value),
+                usuario: usuarioLogado.nome
+            };
+
+            const resp = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+            const res = await resp.json();
+            alert(res.mensagem);
+            fecharModal();
+            carregarDados();
+        } catch (e) {
+            alert("Erro ao finalizar OS: " + e);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Gravar e Finalizar";
+        }
     };
 </script>
 
