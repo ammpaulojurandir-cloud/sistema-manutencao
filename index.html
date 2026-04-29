@@ -181,12 +181,14 @@
      </div>
 
      <div class="systems-filter">
+         <button class="system-btn active" onclick="filterSystem('all')">TODAS</button>
          <button class="system-btn" onclick="filterSystem('moinhos de vento')">100 - Moinhos</button>
          <button class="system-btn" onclick="filterSystem('são joao')">200 - São João</button>
          <button class="system-btn" onclick="filterSystem('menino deus')">300 - Menino Deus</button>
          <button class="system-btn" onclick="filterSystem('belem novo')">400 - Belém Novo</button>
          <button class="system-btn" onclick="filterSystem('ilha da pintada')">600 - Ilhas</button>
          <button class="system-btn" onclick="filterSystem('tristeza')">700 - Tristeza</button>
+         <button class="system-btn" onclick="filterSystem('brutas')">BRUTAS</button>
      </div>
     
      <div class="stats">
@@ -249,14 +251,14 @@
             { nome: 'Andre Marques', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
             { nome: 'Roque Becker', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
             { nome: 'Saulo Lockman', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
+            { nome: 'Sidnei Rocha', senha: 'dmae2026', funcao: 'lider', area: 'caldeiraria' },
+            { nome: 'Gabriel Stumm', senha: 'dmae2026', funcao: 'lider', area: 'usinagem' },
 
-            { nome: 'Gabriel', senha: 'dmae2026', funcao: 'lider', area: 'usinagem' },
-            { nome: 'Rocha', senha: 'dmae2026', funcao: 'lider', area: 'caldeiraria' }
         ];
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.15 — Setores e abertura obrigatória';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.16 — Logins, TODAS e BRUTAS';
         const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.6 — Regras abertura OS e conclusão obrigatória';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
@@ -1965,6 +1967,11 @@
         ];
         
         function getSystemTagClass(code) { return `tag-${code}`; }
+
+        function isEquipamentoBrutaGMAN(eq) {
+            const id = String(eq && eq.id ? eq.id : '').trim().toUpperCase();
+            return /^(101|201|301|401|601|701)(-|\b)/.test(id);
+        }
         
         let currentSystemFilter = 'all';
         let currentStatusFilter = 'all';
@@ -2013,7 +2020,13 @@
                 </div>
             `).join('');
             
-            let activeList = (currentSystemFilter !== 'all') ? equipment.filter(e => e.system === currentSystemFilter) : equipment;
+            let activeList = equipment;
+
+            if (currentSystemFilter === 'brutas') {
+                activeList = equipment.filter(e => isEquipamentoBrutaGMAN(e));
+            } else if (currentSystemFilter !== 'all') {
+                activeList = equipment.filter(e => e.system === currentSystemFilter);
+            }
             
             const totalEquipamentos = activeList.length;
             const totalOperando = activeList.filter(e => e.status === 'ok').length;
@@ -2071,7 +2084,9 @@
             const term = document.getElementById('searchInput').value.toLowerCase();
             let filtered = equipment;
 
-            if (currentSystemFilter !== 'all') {
+            if (currentSystemFilter === 'brutas') {
+                filtered = filtered.filter(eq => isEquipamentoBrutaGMAN(eq));
+            } else if (currentSystemFilter !== 'all') {
                 filtered = filtered.filter(eq => eq.system === currentSystemFilter);
             }
 
