@@ -211,8 +211,8 @@
       <input type="text" class="search-box" id="searchInput" placeholder="🔍 Buscar por nome, código ou sistema..." onkeyup="searchEquipment()">
 
       <div class="main-actions">
-        <button class="action-btn primary" onclick="abrirPainelOS('abertas')">📋 Ordens Abertas</button>
-        <button class="action-btn" onclick="abrirPainelOS('encerradas')">✅ Ordens Encerradas</button>
+        <button class="action-btn primary" id="btnOrdensAbertasHome" onclick="abrirPainelOS('abertas')">📋 Ordens Abertas <span id="totalOrdensAbertasHome">(0)</span></button>
+        <button class="action-btn" id="btnOrdensEncerradasHome" onclick="abrirPainelOS('encerradas')">✅ Ordens Encerradas <span id="totalOrdensEncerradasHome">(0)</span></button>
         <button class="action-btn success" id="btnAbrirOS" onclick="abrirModalCriarOS()" style="display:none;">➕ Abrir OS</button>
         <button class="action-btn" id="btnPainelKPI" onclick="abrirPainelGerencial()" style="display:none;">📊 Painel Gerencial</button>
         <button class="action-btn" onclick="atualizarAgora()">🔄 Atualizar agora</button>
@@ -253,7 +253,7 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.7 — Ordens Encerradas e Minhas OS';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.8 — Totalizadores de OS';
         const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.6 — Regras abertura OS e conclusão obrigatória';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
@@ -284,6 +284,107 @@
             if (modo === 'encerradas') return 'Ordens Encerradas';
             if (modo === 'minhas') return 'Minhas OS';
             return 'Ordens Abertas';
+        }
+
+        function classificarStatusOSGMAN(status) {
+            const s = normalizarTextoGMAN(status);
+
+            if (s.includes('execucao') || s.includes('execucao')) return 'Em execução';
+            if (s.includes('teste')) return 'Em teste';
+            if (s.includes('aguardando material')) return 'Aguardando material';
+            if (s.includes('aguardando liberacao')) return 'Aguardando liberação';
+            if (s.includes('restricao')) return 'Operando com restrição';
+            if (s.includes('parad')) return 'Parado';
+            if (s.includes('manutencao')) return 'Em manutenção';
+            if (s.includes('reabert')) return 'Reaberta';
+            if (s.includes('concluid')) return 'Concluída';
+            if (s.includes('cancel')) return 'Cancelada';
+            if (s.includes('fechad')) return 'Fechada';
+            if (s.includes('encerrad')) return 'Encerrada';
+            if (s.includes('finalizad')) return 'Finalizada';
+            if (s.includes('abert')) return 'Aberta';
+
+            return status || 'Sem status';
+        }
+
+        function contarStatusOSGMAN(lista) {
+            const contagem = {};
+
+            (Array.isArray(lista) ? lista : []).forEach(os => {
+                const chave = classificarStatusOSGMAN(os.statusOS);
+                contagem[chave] = (contagem[chave] || 0) + 1;
+            });
+
+            return contagem;
+        }
+
+        function atualizarTotalizadoresOS(lista = ordensServicoCache) {
+            const dados = Array.isArray(lista) ? lista : [];
+            const abertas = dados.filter(os => isOSAberta(os.statusOS));
+            const encerradas = dados.filter(os => isOSEncerrada(os.statusOS));
+            const minhas = abertas.filter(os => isResponsavelUsuarioLogado(os));
+
+            const totalAbertasHome = document.getElementById('totalOrdensAbertasHome');
+            const totalEncerradasHome = document.getElementById('totalOrdensEncerradasHome');
+            const totalAbertasPainel = document.getElementById('totalOrdensAbertasPainel');
+            const totalMinhasPainel = document.getElementById('totalMinhasOSPainel');
+            const totalEncerradasPainel = document.getElementById('totalOrdensEncerradasPainel');
+
+            if (totalAbertasHome) totalAbertasHome.textContent = '(' + abertas.length + ')';
+            if (totalEncerradasHome) totalEncerradasHome.textContent = '(' + encerradas.length + ')';
+            if (totalAbertasPainel) totalAbertasPainel.textContent = '(' + abertas.length + ')';
+            if (totalMinhasPainel) totalMinhasPainel.textContent = '(' + minhas.length + ')';
+            if (totalEncerradasPainel) totalEncerradasPainel.textContent = '(' + encerradas.length + ')';
+
+            return {
+                abertas: abertas.length,
+                encerradas: encerradas.length,
+                minhas: minhas.length
+            };
+        }
+
+        function montarResumoOSGMAN(listaFiltrada, modo, listaCompleta = ordensServicoCache) {
+            const lista = Array.isArray(listaFiltrada) ? listaFiltrada : [];
+            const contagem = contarStatusOSGMAN(lista);
+            const total = lista.length;
+
+            const cards = [];
+
+            if (modo === 'encerradas') {
+                ['Concluída', 'Cancelada', 'Fechada', 'Encerrada', 'Finalizada'].forEach(status => {
+                    cards.push({ titulo: status, valor: contagem[status] || 0 });
+                });
+            } else {
+                ['Aberta', 'Em execução', 'Em teste', 'Aguardando material', 'Aguardando liberação', 'Parado', 'Em manutenção', 'Operando com restrição', 'Reaberta'].forEach(status => {
+                    cards.push({ titulo: status, valor: contagem[status] || 0 });
+                });
+            }
+
+            const totalizadores = atualizarTotalizadoresOS(listaCompleta);
+
+            return `
+                <div style="background:#edf2f7; border-radius:14px; padding:12px; margin-bottom:12px; border-left:5px solid #3182ce;">
+                    <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                        <strong style="color:#1e3a5f;">Resumo — ${tituloPainelOS(modo)}</strong>
+                        <span style="color:#2d3748; font-size:0.82rem; font-weight:700;">Total exibido: ${total}</span>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:8px;">
+                        ${cards.map(card => `
+                            <div style="background:white; border-radius:12px; padding:10px; border:1px solid #e2e8f0;">
+                                <div style="color:#718096; font-size:0.68rem; font-weight:800; text-transform:uppercase;">${card.titulo}</div>
+                                <div style="color:#1e3a5f; font-size:1.35rem; font-weight:900; margin-top:2px;">${card.valor}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; color:#4a5568; font-size:0.78rem; font-weight:700;">
+                        <span>📋 Abertas: ${totalizadores.abertas}</span>
+                        <span>👤 Minhas: ${totalizadores.minhas}</span>
+                        <span>✅ Encerradas: ${totalizadores.encerradas}</span>
+                    </div>
+                </div>
+            `;
         }
 
         function atualizarIndicadorConexao(mensagem, tipo = 'neutro') {
@@ -478,6 +579,16 @@
 
         async function atualizarAgora() {
             await carregarStatusOnline();
+
+            try {
+                const listaOS = await listarOSOnline();
+                ordensServicoCache = listaOS;
+                atualizarTotalizadoresOS(listaOS);
+                if (document.getElementById('osModal')) renderizarOS(listaOS);
+            } catch (erro) {
+                console.error('Erro ao atualizar totalizadores de OS:', erro);
+            }
+
             alert('Sistema atualizado com o Banco Central GMAN.');
         }
 
@@ -523,9 +634,9 @@
                     </div>
                     <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
                         ${podeGerenciarOS() ? '<button onclick="abrirModalCriarOS()" style="padding:10px 14px; border:none; border-radius:10px; background:#38a169; color:white; cursor:pointer; font-weight:bold;">➕ Abrir OS</button>' : ''}
-                        <button onclick="mudarModoPainelOS('abertas')" style="padding:10px 14px; border:none; border-radius:10px; background:#3182ce; color:white; cursor:pointer; font-weight:bold;">📋 Todas abertas</button>
-                        <button onclick="mudarModoPainelOS('minhas')" style="padding:10px 14px; border:none; border-radius:10px; background:#805ad5; color:white; cursor:pointer; font-weight:bold;">👤 Minhas OS</button>
-                        <button onclick="mudarModoPainelOS('encerradas')" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer; font-weight:bold;">✅ Encerradas</button>
+                        <button onclick="mudarModoPainelOS('abertas')" style="padding:10px 14px; border:none; border-radius:10px; background:#3182ce; color:white; cursor:pointer; font-weight:bold;">📋 Todas abertas <span id="totalOrdensAbertasPainel">(0)</span></button>
+                        <button onclick="mudarModoPainelOS('minhas')" style="padding:10px 14px; border:none; border-radius:10px; background:#805ad5; color:white; cursor:pointer; font-weight:bold;">👤 Minhas OS <span id="totalMinhasOSPainel">(0)</span></button>
+                        <button onclick="mudarModoPainelOS('encerradas')" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer; font-weight:bold;">✅ Encerradas <span id="totalOrdensEncerradasPainel">(0)</span></button>
                         <button onclick="recarregarPainelOS()" style="padding:10px 14px; border:none; border-radius:10px; background:#2c5282; color:white; cursor:pointer; font-weight:bold;">🔄 Recarregar OS</button>
                     </div>
                     <div id="osConteudo" style="color:#1a202c;">Carregando Ordens de Serviço...</div>
@@ -560,6 +671,7 @@
             try {
                 const lista = await listarOSOnline();
                 ordensServicoCache = lista;
+                atualizarTotalizadoresOS(lista);
                 renderizarOS(lista);
             }
             catch (erro) { console.error(erro); container.innerHTML = '<p style="color:#e53e3e; font-weight:bold;">Erro ao carregar Ordens de Serviço. Confira a API GMAN 8.5.</p>'; }
@@ -590,11 +702,13 @@
                     : modo === 'minhas'
                         ? 'Nenhuma OS aberta encontrada para o usuário responsável logado.'
                         : 'Nenhuma OS aberta encontrada.';
-                container.innerHTML = `<p style="color:#4a5568; background:#f7fafc; padding:14px; border-radius:12px;">${mensagem}</p>`;
+                container.innerHTML = montarResumoOSGMAN(base, modo, lista) + `<p style="color:#4a5568; background:#f7fafc; padding:14px; border-radius:12px;">${mensagem}</p>`;
                 return;
             }
 
-            container.innerHTML = base.map(os => {
+            const resumoHTML = montarResumoOSGMAN(base, modo, lista);
+
+            container.innerHTML = resumoHTML + base.map(os => {
                 const encerrada = isOSEncerrada(os.statusOS);
                 const podeIniciar = !encerrada && podeExecutarOS() && String(os.statusOS) === 'Aberta';
                 const statusPermiteAcao = ['Em execução', 'Aguardando material', 'Aguardando liberação', 'Reaberta', 'Parado', 'Em teste', 'OS em execução', 'Operando com restrição'].includes(String(os.statusOS));
@@ -1908,7 +2022,25 @@
             recuperarLoginSalvo();
             aplicarBotoesPermissao();
             await carregarStatusOnline();
-            setInterval(carregarStatusOnline, 180000); // atualização automática a cada 3 minutos
+
+            try {
+                const listaOS = await listarOSOnline();
+                ordensServicoCache = listaOS;
+                atualizarTotalizadoresOS(listaOS);
+            } catch (erro) {
+                console.error('Erro ao carregar totalizadores de OS:', erro);
+            }
+
+            setInterval(async () => {
+                await carregarStatusOnline();
+                try {
+                    const listaOS = await listarOSOnline();
+                    ordensServicoCache = listaOS;
+                    atualizarTotalizadoresOS(listaOS);
+                } catch (erro) {
+                    console.error('Erro ao atualizar totalizadores de OS:', erro);
+                }
+            }, 180000);
         }
 
         iniciarSistema();
