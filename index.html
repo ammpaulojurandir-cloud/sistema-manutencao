@@ -258,7 +258,7 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.19 — KPIs clicáveis, Top 5 e OEE';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.21 — Ajuste técnico final dos KPIs';
         const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.6 — Regras abertura OS e conclusão obrigatória';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
@@ -1599,14 +1599,29 @@
 
         function obterInfosKPIGMAN() {
             return {
-                'Disponibilidade': {
+                'Disponibilidade histórica': {
                     icone: '✅',
                     cor: '#38a169',
-                    titulo: 'Disponibilidade',
+                    titulo: 'Disponibilidade histórica',
                     conteudo: [
-                        'Mostra o percentual de equipamentos em condição de operar agora.',
-                        'Fórmula usada: equipamentos operando ÷ total de equipamentos.',
-                        'Quanto maior a disponibilidade, melhor o estado operacional do parque.'
+                        'Mede a disponibilidade pela lógica clássica da engenharia de manutenção.',
+                        'Fórmula: Disponibilidade = MTBF ÷ (MTBF + MTTR) × 100.',
+                        'MTBF mede o tempo médio entre falhas. MTTR mede o tempo médio para reparo.',
+                        'Quanto maior o MTBF e menor o MTTR, melhor é a disponibilidade histórica de bombas e motores.'
+                    ],
+                    legenda: [
+                        'Entra: OS corretivas concluídas válidas, com histórico suficiente para calcular intervalo entre falhas e tempo de reparo.',
+                        'Se ainda não houver histórico suficiente, este KPI aparece como Em cálculo, sem misturar com a foto instantânea do momento.'
+                    ]
+                },
+                'Disponibilidade instantânea': {
+                    icone: '📍',
+                    cor: '#319795',
+                    titulo: 'Disponibilidade instantânea',
+                    conteudo: [
+                        'Mostra a fotografia operacional do momento.',
+                        'Fórmula: equipamentos operando ÷ total de equipamentos × 100.',
+                        'É útil para saber a situação atual, mas não substitui a disponibilidade histórica por MTBF e MTTR.'
                     ],
                     legenda: [
                         'Entra: equipamentos com status Operando.',
@@ -1627,18 +1642,18 @@
                         'Não entra: OS sem data/hora completa ou OS não concluídas.'
                     ]
                 },
-                'MTBF': {
+                'MTBF estimado': {
                     icone: '🔁',
                     cor: '#805ad5',
-                    titulo: 'MTBF',
+                    titulo: 'MTBF estimado',
                     conteudo: [
-                        'É o tempo médio entre falhas do mesmo equipamento.',
-                        'Fórmula usada: média dos intervalos entre corretivas do mesmo equipamento.',
-                        'Quando faltarem duas ou mais ocorrências válidas, o sistema mostra "Em cálculo".'
+                        'É o tempo médio estimado entre falhas do mesmo equipamento.',
+                        'No GMAN, enquanto não houver horímetro real, o cálculo usa o intervalo médio entre OS corretivas válidas do mesmo equipamento.',
+                        'Quando faltarem duas ou mais ocorrências válidas do mesmo equipamento, o sistema mostra Em cálculo.'
                     ],
                     legenda: [
-                        'Entra: corretivas com datas válidas do mesmo equipamento.',
-                        'Não entra: OS isoladas sem repetição suficiente.'
+                        'Entra: corretivas concluídas válidas com datas suficientes do mesmo equipamento.',
+                        'Não entra: OS isoladas, OS de teste ou equipamentos sem repetição suficiente.'
                     ]
                 },
                 'Backlog de OS': {
@@ -1683,19 +1698,20 @@
                         'Não entra: OS de teste e equipamentos sem repetição suficiente.'
                     ]
                 },
-                'OEE': {
+                'OEE adaptado': {
                     icone: '⚙️',
                     cor: '#dd6b20',
                     titulo: 'OEE adaptado GMAN',
                     conteudo: [
-                        'É um indicador operacional adaptado ao GMAN para leitura gerencial.',
-                        'Fórmula usada: Disponibilidade × Performance × Qualidade.',
+                        'É um indicador gerencial adaptado ao GMAN, não um OEE industrial clássico.',
+                        'Fórmula usada: OEE adaptado = Disponibilidade histórica × Performance × Qualidade.',
+                        'A Disponibilidade usada no OEE adaptado vem de MTBF ÷ (MTBF + MTTR) × 100.',
                         'Performance = OS concluídas válidas ÷ total de OS válidas.',
                         'Qualidade = 100% − impacto proporcional das maiores reincidências.'
                     ],
                     legenda: [
-                        'Este OEE é gerencial e adaptado ao cenário do GMAN.',
-                        'Serve como visão rápida do conjunto da operação, não como OEE industrial clássico de produção.'
+                        'Se a disponibilidade histórica estiver Em cálculo, o OEE adaptado também fica Em cálculo.',
+                        'A disponibilidade instantânea permanece separada apenas como fotografia do momento.'
                     ]
                 }
             };
@@ -1826,12 +1842,28 @@
                 }
             });
 
-            if (!intervalosHoras.length) return '';
+            if (!intervalosHoras.length) {
+                return {
+                    horas: 0,
+                    texto: 'Em cálculo'
+                };
+            }
 
             const media = intervalosHoras.reduce((a, b) => a + b, 0) / intervalosHoras.length;
 
-            if (media < 24) return `${Math.round(media)}h`;
-            return `${Math.round(media / 24)} dias`;
+            return {
+                horas: media,
+                texto: media < 24 ? `${Math.round(media)}h` : `${Math.round(media / 24)} dias`
+            };
+        }
+
+        function calcularDisponibilidadeManutencaoKPI(mtbfHoras, mttrMinutos) {
+            if (mtbfHoras > 0 && mttrMinutos > 0) {
+                const mttrHoras = mttrMinutos / 60;
+                return arredondarPercentualKPI((mtbfHoras / (mtbfHoras + mttrHoras)) * 100);
+            }
+
+            return null;
         }
 
         async function abrirPainelGerencial() {
@@ -1879,7 +1911,7 @@
                 const indisponiveis = equipment.filter(e => e.status === 'alert' || e.status === 'down').length;
                 const parados = equipment.filter(e => e.status === 'down').length;
 
-                const disponibilidade = totalEquipamentos ? arredondarPercentualKPI((operando / totalEquipamentos) * 100) : 0;
+                const disponibilidadeInstantanea = totalEquipamentos ? arredondarPercentualKPI((operando / totalEquipamentos) * 100) : 0;
 
                 const osBacklog = osValidas.filter(os => !statusEncerradoKPI(os.statusOS)).length;
                 const osConcluidasLista = osValidas.filter(os => statusConcluidoKPI(os.statusOS));
@@ -1927,13 +1959,17 @@
 
                 const reincidentes = Object.entries(reincidenciaPorEquip).filter(([_, total]) => total >= 3);
                 const mtbfCalculado = calcularMTBFKPI(corretivasConcluidas);
-                const mtbfTexto = mtbfCalculado || 'Em cálculo';
+                const mtbfTexto = mtbfCalculado.texto;
+                const disponibilidadeHistoricaValor = calcularDisponibilidadeManutencaoKPI(mtbfCalculado.horas, mttr);
+                const disponibilidadeHistoricaTexto = disponibilidadeHistoricaValor === null ? 'Em cálculo' : formatarPercentualKPI(disponibilidadeHistoricaValor);
+                const disponibilidadeHistoricaSubtitulo = disponibilidadeHistoricaValor === null ? 'aguardando histórico suficiente' : 'MTBF ÷ (MTBF + MTTR)';
                 const osTesteIgnoradas = listaOS.length - osValidas.length;
 
                 const performanceOEE = osValidas.length ? arredondarPercentualKPI((osConcluidas / osValidas.length) * 100) : 0;
                 const baseQualidade = totalEquipamentos ? Math.max(0, 100 - ((reincidentes.length / totalEquipamentos) * 100)) : 0;
                 const qualidadeOEE = arredondarPercentualKPI(baseQualidade);
-                const oee = calcularOEEKPI(disponibilidade, performanceOEE, qualidadeOEE);
+                const oee = disponibilidadeHistoricaValor === null ? null : calcularOEEKPI(disponibilidadeHistoricaValor, performanceOEE, qualidadeOEE);
+                const oeeTexto = oee === null ? 'Em cálculo' : formatarPercentualKPI(oee);
 
                 container.innerHTML = `
                     <div style="background:linear-gradient(135deg,#1e3a5f,#2c5282,#3182ce); color:white; border-radius:26px; padding:20px; margin-bottom:16px; box-shadow:0 14px 30px rgba(30,58,95,0.24); position:relative; overflow:hidden;">
@@ -1949,13 +1985,14 @@
                     </div>
 
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; margin-bottom:16px;">
-                        ${montarCardKPI('Disponibilidade', formatarPercentualKPI(disponibilidade), 'Equipamentos aptos a operar', disponibilidade >= 90 ? '#38a169' : '#d69e2e', '✅')}
+                        ${montarCardKPI('Disponibilidade histórica', disponibilidadeHistoricaTexto, disponibilidadeHistoricaSubtitulo, disponibilidadeHistoricaValor !== null && disponibilidadeHistoricaValor >= 90 ? '#38a169' : '#d69e2e', '✅')}
+                        ${montarCardKPI('Disponibilidade instantânea', formatarPercentualKPI(disponibilidadeInstantanea), 'foto atual por status', '#319795', '📍')}
                         ${montarCardKPI('MTTR', formatarDuracaoMinutos(mttr), 'Tempo médio de reparo', '#3182ce', '⏱️')}
-                        ${montarCardKPI('MTBF', mtbfTexto, 'Tempo médio entre falhas', '#805ad5', '🔁')}
+                        ${montarCardKPI('MTBF estimado', mtbfTexto, 'Intervalo médio entre corretivas', '#805ad5', '🔁')}
                         ${montarCardKPI('Backlog de OS', osBacklog, 'OS abertas e pendentes', '#d69e2e', '📋')}
                         ${montarCardKPI('Produtividade', osConcluidas, 'OS concluídas válidas', '#38a169', '🏆')}
                         ${montarCardKPI('Reincidência', reincidentes.length, 'Equipamentos com 3+ corretivas em 30 dias', reincidentes.length ? '#e53e3e' : '#38a169', '⚠️')}
-                        ${montarCardKPI('OEE', formatarPercentualKPI(oee), 'Indicador gerencial adaptado', oee >= 70 ? '#dd6b20' : '#c53030', '⚙️')}
+                        ${montarCardKPI('OEE adaptado', oeeTexto, 'Indicador gerencial adaptado', oee !== null && oee >= 70 ? '#dd6b20' : '#c53030', '⚙️')}
                     </div>
 
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:14px;">
@@ -1978,12 +2015,12 @@
                         </div>
                         <div style="background:#fff5f5; border-left:5px solid #dd6b20; border-radius:18px; padding:13px; color:#7b341e; font-size:0.82rem; box-shadow:0 8px 18px rgba(221,107,32,0.08);">
                             <strong>⚙️ OEE adaptado</strong><br>
-                            Disponibilidade ${formatarPercentualKPI(disponibilidade)} · Performance ${formatarPercentualKPI(performanceOEE)} · Qualidade ${formatarPercentualKPI(qualidadeOEE)}.
+                            Histórica ${disponibilidadeHistoricaTexto} · Instantânea ${formatarPercentualKPI(disponibilidadeInstantanea)} · Performance ${formatarPercentualKPI(performanceOEE)} · Qualidade ${formatarPercentualKPI(qualidadeOEE)}.
                         </div>
                     </div>
 
                     <div style="margin-top:14px; background:linear-gradient(135deg,#edf2f7,#ffffff); border-radius:20px; padding:14px; color:#2d3748; font-size:0.82rem; border:1px solid #e2e8f0;">
-                        <strong>📌 Regra aplicada:</strong> produtividade por líder usa o campo RESPONSAVEL das OS concluídas válidas. Reincidência usa corretivas dos últimos 30 dias por equipamento. OEE é gerencial e adaptado ao GMAN. OS de teste não entram nos KPIs.
+                        <strong>📌 Regra aplicada:</strong> disponibilidade histórica usa MTBF ÷ (MTBF + MTTR) e não se mistura com a disponibilidade instantânea. MTBF é estimado pelo intervalo médio entre corretivas do mesmo equipamento. Produtividade por líder usa o campo RESPONSAVEL das OS concluídas válidas. Reincidência usa corretivas dos últimos 30 dias por equipamento. OEE é gerencial e adaptado ao GMAN. OS de teste não entram nos KPIs.
                         <br>
                         <strong>Situação atual:</strong> ${operando} operando, ${indisponiveis} em manutenção/alerta, ${parados} parados e ${osBacklog} OS no backlog.
                     </div>
