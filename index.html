@@ -258,7 +258,7 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.18 — KPIs gerenciais revisados';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.19 — KPIs clicáveis, Top 5 e OEE';
         const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.6 — Regras abertura OS e conclusão obrigatória';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
@@ -1584,7 +1584,163 @@
             }, {});
         }
 
-        function montarRankingHTML(objeto, titulo, limite = 8, unidade = 'OS', icone = '🏆') {
+        function arredondarPercentualKPI(valor) {
+            return Math.max(0, Math.min(100, Math.round(valor)));
+        }
+
+        function formatarPercentualKPI(valor) {
+            return `${arredondarPercentualKPI(valor)}%`;
+        }
+
+        function calcularOEEKPI(disponibilidadePct, performancePct, qualidadePct) {
+            const oee = (disponibilidadePct / 100) * (performancePct / 100) * (qualidadePct / 100) * 100;
+            return arredondarPercentualKPI(oee);
+        }
+
+        function obterInfosKPIGMAN() {
+            return {
+                'Disponibilidade': {
+                    icone: '✅',
+                    cor: '#38a169',
+                    titulo: 'Disponibilidade',
+                    conteudo: [
+                        'Mostra o percentual de equipamentos em condição de operar agora.',
+                        'Fórmula usada: equipamentos operando ÷ total de equipamentos.',
+                        'Quanto maior a disponibilidade, melhor o estado operacional do parque.'
+                    ],
+                    legenda: [
+                        'Entra: equipamentos com status Operando.',
+                        'Não entra como disponível: Parado, Em manutenção, Em alerta ou similares.'
+                    ]
+                },
+                'MTTR': {
+                    icone: '⏱️',
+                    cor: '#3182ce',
+                    titulo: 'MTTR',
+                    conteudo: [
+                        'É o tempo médio de reparo.',
+                        'Fórmula usada: média entre DATA_INICIO/HORA_INICIO e DATA_CONCLUSAO/HORA_CONCLUSAO das corretivas concluídas.',
+                        'Quanto menor o MTTR, mais rápida está a recuperação das falhas.'
+                    ],
+                    legenda: [
+                        'Entra: OS corretivas concluídas com início e conclusão válidos.',
+                        'Não entra: OS sem data/hora completa ou OS não concluídas.'
+                    ]
+                },
+                'MTBF': {
+                    icone: '🔁',
+                    cor: '#805ad5',
+                    titulo: 'MTBF',
+                    conteudo: [
+                        'É o tempo médio entre falhas do mesmo equipamento.',
+                        'Fórmula usada: média dos intervalos entre corretivas do mesmo equipamento.',
+                        'Quando faltarem duas ou mais ocorrências válidas, o sistema mostra "Em cálculo".'
+                    ],
+                    legenda: [
+                        'Entra: corretivas com datas válidas do mesmo equipamento.',
+                        'Não entra: OS isoladas sem repetição suficiente.'
+                    ]
+                },
+                'Backlog de OS': {
+                    icone: '📋',
+                    cor: '#d69e2e',
+                    titulo: 'Backlog de OS',
+                    conteudo: [
+                        'Mostra quantas OS válidas ainda estão abertas ou pendentes.',
+                        'Conta OS que ainda não foram encerradas.',
+                        'É o volume atual de trabalho pendente no sistema.'
+                    ],
+                    legenda: [
+                        'Entra: Aberta, Em execução, Em teste, Aguardando material, Aguardando liberação, Parado, Em manutenção, Operando com restrição.',
+                        'Não entra: Concluída, Cancelada, Fechada, Encerrada, Finalizada.'
+                    ]
+                },
+                'Produtividade': {
+                    icone: '🏆',
+                    cor: '#38a169',
+                    titulo: 'Produtividade',
+                    conteudo: [
+                        'Mostra a quantidade de OS concluídas válidas.',
+                        'O ranking lateral usa o RESPONSAVEL para destacar os líderes que mais atenderam OS.',
+                        'Serve para enxergar volume de atendimento concluído.'
+                    ],
+                    legenda: [
+                        'Entra: OS concluídas válidas.',
+                        'Não entra: OS de teste e OS ainda abertas.'
+                    ]
+                },
+                'Reincidência': {
+                    icone: '⚠️',
+                    cor: '#e53e3e',
+                    titulo: 'Reincidência',
+                    conteudo: [
+                        'Mostra quantos equipamentos tiveram 3 ou mais corretivas nos últimos 30 dias.',
+                        'O ranking lateral destaca os equipamentos com maior repetição de falhas.',
+                        'Quanto maior a reincidência, maior o alerta para análise de causa.'
+                    ],
+                    legenda: [
+                        'Entra: corretivas válidas dos últimos 30 dias agrupadas por equipamento.',
+                        'Não entra: OS de teste e equipamentos sem repetição suficiente.'
+                    ]
+                },
+                'OEE': {
+                    icone: '⚙️',
+                    cor: '#dd6b20',
+                    titulo: 'OEE adaptado GMAN',
+                    conteudo: [
+                        'É um indicador operacional adaptado ao GMAN para leitura gerencial.',
+                        'Fórmula usada: Disponibilidade × Performance × Qualidade.',
+                        'Performance = OS concluídas válidas ÷ total de OS válidas.',
+                        'Qualidade = 100% − impacto proporcional das maiores reincidências.'
+                    ],
+                    legenda: [
+                        'Este OEE é gerencial e adaptado ao cenário do GMAN.',
+                        'Serve como visão rápida do conjunto da operação, não como OEE industrial clássico de produção.'
+                    ]
+                }
+            };
+        }
+
+        function abrirInfoKPI(chave) {
+            const infos = obterInfosKPIGMAN();
+            const info = infos[chave];
+            if (!info) return;
+
+            const modalExistente = document.getElementById('kpiInfoModal');
+            if (modalExistente) modalExistente.remove();
+
+            const modal = document.createElement('div');
+            modal.id = 'kpiInfoModal';
+            modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.78); display:flex; align-items:center; justify-content:center; z-index:1300; padding:18px;';
+            modal.innerHTML = `
+                <div style="background:linear-gradient(180deg,#ffffff,#f7fafc); width:95%; max-width:620px; border-radius:24px; box-shadow:0 18px 48px rgba(0,0,0,0.25); overflow:hidden;">
+                    <div style="background:linear-gradient(135deg,${info.cor},#1e3a5f); color:white; padding:18px 20px;">
+                        <div style="display:flex; justify-content:space-between; gap:12px; align-items:center;">
+                            <div>
+                                <div style="font-size:2rem; line-height:1;">${info.icone}</div>
+                                <h3 style="margin:8px 0 0; font-size:1.2rem;">${info.titulo}</h3>
+                                <p style="margin:6px 0 0; opacity:0.92; font-size:0.84rem;">Legenda, significado e regra de cálculo deste KPI.</p>
+                            </div>
+                            <button onclick="document.getElementById('kpiInfoModal').remove();" style="border:none; border-radius:12px; background:rgba(255,255,255,0.18); color:white; font-weight:800; padding:10px 14px; cursor:pointer;">Fechar</button>
+                        </div>
+                    </div>
+                    <div style="padding:18px 20px; color:#2d3748;">
+                        <div style="margin-bottom:14px;">
+                            <div style="font-size:0.75rem; color:#718096; font-weight:900; text-transform:uppercase; margin-bottom:8px;">O que significa</div>
+                            ${info.conteudo.map(item => `<div style="display:flex; gap:10px; margin-bottom:8px; font-size:0.9rem;"><span style="color:${info.cor}; font-weight:900;">•</span><span>${item}</span></div>`).join('')}
+                        </div>
+                        <div>
+                            <div style="font-size:0.75rem; color:#718096; font-weight:900; text-transform:uppercase; margin-bottom:8px;">Legenda prática</div>
+                            ${info.legenda.map(item => `<div style="display:flex; gap:10px; margin-bottom:8px; font-size:0.88rem;"><span style="color:${info.cor}; font-weight:900;">▸</span><span>${item}</span></div>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+        }
+
+        function montarRankingHTML(objeto, titulo, limite = 5, unidade = 'OS', icone = '🏆') {
             const itens = Object.entries(objeto)
                 .filter(([nome]) => normalizarKPI(nome) !== 'nao informado')
                 .sort((a, b) => b[1] - a[1])
@@ -1592,7 +1748,7 @@
 
             if (!itens.length) {
                 return `
-                    <div style="background:linear-gradient(135deg,#ffffff,#edf2f7); border-radius:22px; padding:18px; border:1px solid #e2e8f0; box-shadow:0 10px 24px rgba(30,58,95,0.08);">
+                    <div style="background:linear-gradient(135deg,#ffffff,#edf2f7); border-radius:24px; padding:18px; border:1px solid #e2e8f0; box-shadow:0 12px 26px rgba(30,58,95,0.08);">
                         <h4 style="color:#1e3a5f; margin:0 0 8px; display:flex; align-items:center; gap:8px;">${icone} ${titulo}</h4>
                         <p style="color:#718096; margin:0;">Sem dados suficientes.</p>
                     </div>
@@ -1602,7 +1758,8 @@
             const maior = Math.max(...itens.map(item => item[1]), 1);
 
             return `
-                <div style="background:linear-gradient(135deg,#ffffff,#f7fafc); border-radius:22px; padding:18px; border:1px solid #e2e8f0; box-shadow:0 10px 24px rgba(30,58,95,0.10);">
+                <div style="background:linear-gradient(135deg,#ffffff,#f7fafc); border-radius:24px; padding:18px; border:1px solid #e2e8f0; box-shadow:0 12px 26px rgba(30,58,95,0.10); position:relative; overflow:hidden;">
+                    <div style="position:absolute; top:-12px; right:-8px; font-size:3.2rem; opacity:0.08;">${icone}</div>
                     <h4 style="color:#1e3a5f; margin:0 0 14px; display:flex; align-items:center; gap:8px;">${icone} ${titulo}</h4>
                     ${itens.map((item, idx) => {
                         const percentual = Math.round((item[1] / maior) * 100);
@@ -1613,24 +1770,28 @@
                                     <span>${medalha} ${idx + 1}. ${item[0]}</span>
                                     <strong>${item[1]} ${unidade}</strong>
                                 </div>
-                                <div style="height:8px; background:#e2e8f0; border-radius:999px; overflow:hidden; margin-top:6px;">
-                                    <div style="height:8px; width:${percentual}%; background:linear-gradient(90deg,#3182ce,#38a169); border-radius:999px;"></div>
+                                <div style="height:9px; background:#e2e8f0; border-radius:999px; overflow:hidden; margin-top:6px;">
+                                    <div style="height:9px; width:${percentual}%; background:linear-gradient(90deg,#3182ce,#38a169,#d69e2e); border-radius:999px;"></div>
                                 </div>
                             </div>
                         `;
                     }).join('')}
+                    <div style="margin-top:8px; font-size:0.76rem; color:#718096;">Exibindo apenas as 5 maiores posições do ranking.</div>
                 </div>
             `;
         }
 
-        function montarCardKPI(titulo, valor, subtitulo, cor = '#3182ce', icone = '📊') {
+        function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊') {
+            const brilho = `linear-gradient(135deg, ${cor}18, #ffffff 55%, #f7fafc)`;
             return `
-                <div style="background:linear-gradient(135deg,#ffffff,#f7fafc); border-radius:22px; padding:17px; border-left:7px solid ${cor}; min-height:118px; box-shadow:0 10px 24px rgba(30,58,95,0.10); position:relative; overflow:hidden;">
-                    <div style="position:absolute; top:10px; right:13px; font-size:2rem; opacity:0.18;">${icone}</div>
-                    <div style="font-size:0.70rem; color:#718096; font-weight:900; text-transform:uppercase; letter-spacing:0.04em;">${titulo}</div>
+                <button onclick="abrirInfoKPI('${chave.replace(/'/g, "\\'")}')" style="width:100%; text-align:left; background:${brilho}; border:none; border-left:7px solid ${cor}; border-radius:24px; padding:17px; min-height:126px; box-shadow:0 12px 26px rgba(30,58,95,0.12); position:relative; overflow:hidden; cursor:pointer; transition:transform 0.15s ease, box-shadow 0.15s ease;">
+                    <div style="position:absolute; top:-6px; right:8px; font-size:2.4rem; opacity:0.15;">${icone}</div>
+                    <div style="position:absolute; bottom:-18px; left:-8px; font-size:3.3rem; opacity:0.07;">✨</div>
+                    <div style="font-size:0.70rem; color:#718096; font-weight:900; text-transform:uppercase; letter-spacing:0.04em;">${chave}</div>
                     <div style="font-size:1.95rem; color:#1e3a5f; font-weight:950; margin-top:8px; line-height:1.05;">${valor}</div>
                     <div style="font-size:0.76rem; color:#4a5568; margin-top:7px;">${subtitulo || ''}</div>
-                </div>
+                    <div style="font-size:0.73rem; color:${cor}; font-weight:900; margin-top:9px;">Clique para entender este KPI</div>
+                </button>
             `;
         }
 
@@ -1718,7 +1879,7 @@
                 const indisponiveis = equipment.filter(e => e.status === 'alert' || e.status === 'down').length;
                 const parados = equipment.filter(e => e.status === 'down').length;
 
-                const disponibilidade = totalEquipamentos ? Math.round((operando / totalEquipamentos) * 100) : 0;
+                const disponibilidade = totalEquipamentos ? arredondarPercentualKPI((operando / totalEquipamentos) * 100) : 0;
 
                 const osBacklog = osValidas.filter(os => !statusEncerradoKPI(os.statusOS)).length;
                 const osConcluidasLista = osValidas.filter(os => statusConcluidoKPI(os.statusOS));
@@ -1769,49 +1930,60 @@
                 const mtbfTexto = mtbfCalculado || 'Em cálculo';
                 const osTesteIgnoradas = listaOS.length - osValidas.length;
 
+                const performanceOEE = osValidas.length ? arredondarPercentualKPI((osConcluidas / osValidas.length) * 100) : 0;
+                const baseQualidade = totalEquipamentos ? Math.max(0, 100 - ((reincidentes.length / totalEquipamentos) * 100)) : 0;
+                const qualidadeOEE = arredondarPercentualKPI(baseQualidade);
+                const oee = calcularOEEKPI(disponibilidade, performanceOEE, qualidadeOEE);
+
                 container.innerHTML = `
-                    <div style="background:linear-gradient(135deg,#1e3a5f,#2c5282); color:white; border-radius:24px; padding:18px; margin-bottom:16px; box-shadow:0 12px 28px rgba(30,58,95,0.24); position:relative; overflow:hidden;">
+                    <div style="background:linear-gradient(135deg,#1e3a5f,#2c5282,#3182ce); color:white; border-radius:26px; padding:20px; margin-bottom:16px; box-shadow:0 14px 30px rgba(30,58,95,0.24); position:relative; overflow:hidden;">
                         <div style="position:absolute; right:18px; bottom:-12px; font-size:4.8rem; opacity:0.13;">⚙️</div>
+                        <div style="position:absolute; left:12px; top:-18px; font-size:4.5rem; opacity:0.08;">✨</div>
                         <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; position:relative;">
                             <div>
-                                <h3 style="margin:0; font-size:1.22rem;">📊 Painel Gerencial GMAN</h3>
-                                <p style="margin:5px 0 0; opacity:0.92; font-size:0.84rem;">KPIs revisados com dados reais, líderes destacados e reincidências priorizadas.</p>
+                                <h3 style="margin:0; font-size:1.24rem;">📊 Painel Gerencial GMAN</h3>
+                                <p style="margin:5px 0 0; opacity:0.92; font-size:0.84rem;">KPIs clicáveis, painel mais vivo, Top 5 e OEE adaptado ao cenário do GMAN.</p>
                             </div>
                             <button onclick="carregarPainelGerencial()" style="border:none; border-radius:999px; padding:10px 14px; background:white; color:#1e3a5f; font-weight:900; cursor:pointer;">🔄 Recalcular</button>
                         </div>
                     </div>
 
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; margin-bottom:16px;">
-                        ${montarCardKPI('Disponibilidade', disponibilidade + '%', 'Equipamentos aptos a operar', disponibilidade >= 90 ? '#38a169' : '#d69e2e', '✅')}
+                        ${montarCardKPI('Disponibilidade', formatarPercentualKPI(disponibilidade), 'Equipamentos aptos a operar', disponibilidade >= 90 ? '#38a169' : '#d69e2e', '✅')}
                         ${montarCardKPI('MTTR', formatarDuracaoMinutos(mttr), 'Tempo médio de reparo', '#3182ce', '⏱️')}
                         ${montarCardKPI('MTBF', mtbfTexto, 'Tempo médio entre falhas', '#805ad5', '🔁')}
                         ${montarCardKPI('Backlog de OS', osBacklog, 'OS abertas e pendentes', '#d69e2e', '📋')}
                         ${montarCardKPI('Produtividade', osConcluidas, 'OS concluídas válidas', '#38a169', '🏆')}
                         ${montarCardKPI('Reincidência', reincidentes.length, 'Equipamentos com 3+ corretivas em 30 dias', reincidentes.length ? '#e53e3e' : '#38a169', '⚠️')}
+                        ${montarCardKPI('OEE', formatarPercentualKPI(oee), 'Indicador gerencial adaptado', oee >= 70 ? '#dd6b20' : '#c53030', '⚙️')}
                     </div>
 
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:14px;">
-                        ${montarRankingHTML(produtividadePorLider, 'Líderes que mais atenderam OS', 8, 'OS', '🏆')}
-                        ${montarRankingHTML(reincidenciaPorEquip, 'Maiores reincidências', 8, 'OS', '⚠️')}
+                        ${montarRankingHTML(produtividadePorLider, 'Líderes que mais atenderam OS', 5, 'OS', '🏆')}
+                        ${montarRankingHTML(reincidenciaPorEquip, 'Maiores reincidências', 5, 'OS', '⚠️')}
                     </div>
 
                     <div style="margin-top:14px; display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:10px;">
-                        <div style="background:#f0fff4; border-left:5px solid #38a169; border-radius:16px; padding:13px; color:#22543d; font-size:0.82rem;">
+                        <div style="background:#f0fff4; border-left:5px solid #38a169; border-radius:18px; padding:13px; color:#22543d; font-size:0.82rem; box-shadow:0 8px 18px rgba(56,161,105,0.08);">
                             <strong>✅ Base dos KPIs</strong><br>
                             ${osValidas.length} OS válidas consideradas.
                         </div>
-                        <div style="background:#fffaf0; border-left:5px solid #d69e2e; border-radius:16px; padding:13px; color:#744210; font-size:0.82rem;">
+                        <div style="background:#fffaf0; border-left:5px solid #d69e2e; border-radius:18px; padding:13px; color:#744210; font-size:0.82rem; box-shadow:0 8px 18px rgba(214,158,46,0.08);">
                             <strong>📋 Backlog</strong><br>
                             ${osBacklog} OS ainda não encerradas.
                         </div>
-                        <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:16px; padding:13px; color:#2c5282; font-size:0.82rem;">
+                        <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:18px; padding:13px; color:#2c5282; font-size:0.82rem; box-shadow:0 8px 18px rgba(49,130,206,0.08);">
                             <strong>🧪 Testes ignorados</strong><br>
                             ${osTesteIgnoradas} OS de teste fora dos KPIs.
                         </div>
+                        <div style="background:#fff5f5; border-left:5px solid #dd6b20; border-radius:18px; padding:13px; color:#7b341e; font-size:0.82rem; box-shadow:0 8px 18px rgba(221,107,32,0.08);">
+                            <strong>⚙️ OEE adaptado</strong><br>
+                            Disponibilidade ${formatarPercentualKPI(disponibilidade)} · Performance ${formatarPercentualKPI(performanceOEE)} · Qualidade ${formatarPercentualKPI(qualidadeOEE)}.
+                        </div>
                     </div>
 
-                    <div style="margin-top:14px; background:#edf2f7; border-radius:18px; padding:14px; color:#2d3748; font-size:0.82rem; border:1px solid #e2e8f0;">
-                        <strong>📌 Regra aplicada:</strong> produtividade por líder usa o campo RESPONSAVEL das OS concluídas válidas. Reincidência usa corretivas dos últimos 30 dias por equipamento. OS de teste não entram nos KPIs.
+                    <div style="margin-top:14px; background:linear-gradient(135deg,#edf2f7,#ffffff); border-radius:20px; padding:14px; color:#2d3748; font-size:0.82rem; border:1px solid #e2e8f0;">
+                        <strong>📌 Regra aplicada:</strong> produtividade por líder usa o campo RESPONSAVEL das OS concluídas válidas. Reincidência usa corretivas dos últimos 30 dias por equipamento. OEE é gerencial e adaptado ao GMAN. OS de teste não entram nos KPIs.
                         <br>
                         <strong>Situação atual:</strong> ${operando} operando, ${indisponiveis} em manutenção/alerta, ${parados} parados e ${osBacklog} OS no backlog.
                     </div>
