@@ -258,7 +258,7 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.16 — Logins, TODAS e BRUTAS';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.17 — Equipe altera somente sua OS';
         const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.6 — Regras abertura OS e conclusão obrigatória';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
@@ -613,7 +613,35 @@
             return ['administrador', 'supervisor', 'coordenador', 'gerente'].includes(f);
         }
 
-        function podeExecutarOS() { return !!usuarioLogado; }
+        function usuarioPodeAlterarOS(os) {
+            if (!usuarioLogado || !os) return false;
+            if (podeGerenciarOS()) return true;
+            return normalizarTextoGMAN(os.responsavel) === normalizarTextoGMAN(usuarioLogado.nome);
+        }
+
+        function podeExecutarOS(os) {
+            return usuarioPodeAlterarOS(os);
+        }
+
+        function obterOSPorId(idOS) {
+            return ordensServicoCache.find(item => String(item.idOS) === String(idOS));
+        }
+
+        function validarPermissaoTelaOS(idOS, acao) {
+            const os = obterOSPorId(idOS);
+
+            if (!os) {
+                alert('Não foi possível localizar os dados desta OS. Recarregue a lista e tente novamente.');
+                return false;
+            }
+
+            if (!usuarioPodeAlterarOS(os)) {
+                alert('Permissão bloqueada. Equipe/líder só pode ' + (acao || 'alterar') + ' OS em que seja o responsável. Responsável desta OS: ' + (os.responsavel || 'não informado') + '.');
+                return false;
+            }
+
+            return true;
+        }
 
         function aplicarBotoesPermissao() {
             const ehGestao = podeGerenciarOS();
@@ -786,10 +814,11 @@
 
             container.innerHTML = resumoHTML + base.map(os => {
                 const encerrada = isOSEncerrada(os.statusOS);
-                const podeIniciar = !encerrada && podeExecutarOS() && String(os.statusOS) === 'Aberta';
+                const permissaoAlterar = usuarioPodeAlterarOS(os);
+                const podeIniciar = !encerrada && permissaoAlterar && String(os.statusOS) === 'Aberta';
                 const statusPermiteAcao = ['Em execução', 'Aguardando material', 'Aguardando liberação', 'Reaberta', 'Parado', 'Em teste', 'OS em execução', 'Operando com restrição'].includes(String(os.statusOS));
-                const podeConcluir = !encerrada && podeExecutarOS() && statusPermiteAcao;
-                const podeAtualizarAndamento = !encerrada && podeExecutarOS() && statusPermiteAcao;
+                const podeConcluir = !encerrada && permissaoAlterar && statusPermiteAcao;
+                const podeAtualizarAndamento = !encerrada && permissaoAlterar && statusPermiteAcao;
                 const podeCancelar = !encerrada && podeGerenciarOS();
 
                 return `
@@ -807,6 +836,7 @@
                         ${os.servicoRealizado ? `<p><strong>Serviço realizado:</strong> ${os.servicoRealizado}</p>` : ''}
                         ${os.finalizadoPor ? `<p><strong>Finalizado por:</strong> ${os.finalizadoPor}</p>` : ''}
                         ${encerrada ? '<p style="color:#2f855a; font-weight:700;">✅ OS encerrada</p>' : ''}
+                        ${(!encerrada && !permissaoAlterar) ? '<p style="color:#744210; background:#fffaf0; border-left:4px solid #d69e2e; border-radius:10px; padding:8px; font-weight:700;">🔒 Somente o responsável ou a gestão pode alterar esta OS.</p>' : ''}
                         <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
                             ${podeIniciar ? `<button onclick="iniciarOS('${os.idOS}')" style="padding:8px 10px; border:none; border-radius:8px; background:#d69e2e; color:white; cursor:pointer;">▶️ Iniciar</button>` : ''}
                             ${podeAtualizarAndamento ? `<button onclick="abrirModalAndamentoOS('${os.idOS}')" style="padding:8px 10px; border:none; border-radius:8px; background:#3182ce; color:white; cursor:pointer;">📝 Atualizar andamento</button>` : ''}
@@ -948,6 +978,7 @@
         }
 
         async function iniciarOS(idOS) {
+            if (!validarPermissaoTelaOS(idOS, 'iniciar')) return;
             if (!confirm('Confirmar início desta OS?')) return;
             try { await apiPost({ acao: 'iniciarOS', idOS, usuario: usuarioLogado.nome, funcao: usuarioLogado.funcao }); alert('OS iniciada com sucesso.'); await recarregarPainelOS(); }
             catch (erro) { console.error(erro); alert('Erro ao iniciar OS: ' + erro.message); }
@@ -1056,6 +1087,8 @@
         }
 
         async function anexarArquivoOS(idOS, idEquipamento, inputId, observacaoId) {
+            if (!validarPermissaoTelaOS(idOS, 'anexar evidência na')) return;
+
             const input = document.getElementById(inputId);
             const obs = document.getElementById(observacaoId);
 
@@ -1156,6 +1189,8 @@
                 return;
             }
 
+            if (!validarPermissaoTelaOS(idOS, 'atualizar andamento da')) return;
+
             const existing = document.getElementById('andamentoOSModal');
             if (existing) existing.remove();
 
@@ -1198,6 +1233,8 @@
         }
 
         async function atualizarAndamentoOS(idOS) {
+            if (!validarPermissaoTelaOS(idOS, 'atualizar andamento da')) return;
+
             const condicaoOperacional = document.getElementById('andamentoCondicao').value;
             const observacao = document.getElementById('andamentoObs').value.trim();
 
@@ -1231,6 +1268,8 @@
                 alert('Não foi possível localizar os dados desta OS. Recarregue a lista de OS e tente novamente.');
                 return;
             }
+
+            if (!validarPermissaoTelaOS(idOS, 'concluir')) return;
 
             const existing = document.getElementById('concluirOSModal');
             if (existing) existing.remove();
@@ -1350,6 +1389,8 @@
         }
 
         async function concluirOS(idOS) {
+            if (!validarPermissaoTelaOS(idOS, 'concluir')) return;
+
             // --- TRAVA DE SEGURANÇA DE EVIDÊNCIAS ---
             const fFoto1 = document.getElementById('anexoFoto1OS');
             const fFoto2 = document.getElementById('anexoFoto2OS');
