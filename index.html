@@ -258,7 +258,7 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.17 — Equipe altera somente sua OS';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.18 — KPIs gerenciais revisados';
         const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.6 — Regras abertura OS e conclusão obrigatória';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
@@ -1503,6 +1503,21 @@
             return null;
         }
 
+        function combinarDataHoraKPI(dataValor, horaValor) {
+            const data = parseDataKPI(dataValor);
+            if (!data) return null;
+
+            const horaTexto = String(horaValor || '').trim();
+            if (!horaTexto) return data;
+
+            const match = horaTexto.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+            if (match) {
+                data.setHours(Number(match[1] || 0), Number(match[2] || 0), Number(match[3] || 0), 0);
+            }
+
+            return data;
+        }
+
         function formatarDuracaoMinutos(minutos) {
             if (!minutos || minutos <= 0 || !isFinite(minutos)) return 'Sem dados';
             if (minutos < 60) return `${Math.round(minutos)} min`;
@@ -1511,44 +1526,151 @@
             return `${horas}h ${mins}min`;
         }
 
-        function contarPorCampo(lista, campo) {
-            return lista.reduce((acc, item) => {
-                const chave = String(item[campo] || 'Não informado').trim() || 'Não informado';
-                acc[chave] = (acc[chave] || 0) + 1;
+        function normalizarKPI(valor) {
+            return normalizarTextoGMAN(valor);
+        }
+
+        function statusEncerradoKPI(status) {
+            const s = normalizarKPI(status);
+            return ['concluida', 'cancelada', 'fechada', 'encerrada', 'finalizada'].includes(s);
+        }
+
+        function statusConcluidoKPI(status) {
+            return normalizarKPI(status) === 'concluida';
+        }
+
+        function ehCorretivaKPI(os) {
+            return normalizarKPI(os.tipoManutencao || os.tipoOS || '').includes('corretiva');
+        }
+
+        function ehOSTesteKPI(os) {
+            const campos = [
+                os.idOS,
+                os.numeroOS,
+                os.idEquipamento,
+                os.equipamento,
+                os.descricaoProblema,
+                os.equipeResponsavel,
+                os.responsavel,
+                os.criadoPor,
+                os.finalizadoPor
+            ].map(v => normalizarKPI(v)).join(' | ');
+
+            return (
+                campos.includes('teste') ||
+                campos.includes('gman 8.5') ||
+                campos.includes('equipamento teste') ||
+                campos.includes('bomba teste') ||
+                campos.includes('testeciclo') ||
+                campos.includes('teste_')
+            );
+        }
+
+        function nomeLiderKPI(os) {
+            const nome = String(os.responsavel || os.finalizadoPor || '').trim();
+            return nome || '';
+        }
+
+        function nomeEquipamentoKPI(os) {
+            return String(os.equipamento || os.idEquipamento || '').trim() || 'Não informado';
+        }
+
+        function contarPorLiderKPI(lista) {
+            return lista.reduce((acc, os) => {
+                const lider = nomeLiderKPI(os);
+                if (!lider) return acc;
+                acc[lider] = (acc[lider] || 0) + 1;
                 return acc;
             }, {});
         }
 
-        function montarRankingHTML(objeto, titulo, limite = 5) {
+        function montarRankingHTML(objeto, titulo, limite = 8, unidade = 'OS', icone = '🏆') {
             const itens = Object.entries(objeto)
+                .filter(([nome]) => normalizarKPI(nome) !== 'nao informado')
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, limite);
 
             if (!itens.length) {
-                return `<div style="background:#f7fafc; border-radius:12px; padding:12px;"><h4 style="color:#1e3a5f; margin:0 0 8px;">${titulo}</h4><p style="color:#718096; margin:0;">Sem dados suficientes.</p></div>`;
+                return `
+                    <div style="background:linear-gradient(135deg,#ffffff,#edf2f7); border-radius:22px; padding:18px; border:1px solid #e2e8f0; box-shadow:0 10px 24px rgba(30,58,95,0.08);">
+                        <h4 style="color:#1e3a5f; margin:0 0 8px; display:flex; align-items:center; gap:8px;">${icone} ${titulo}</h4>
+                        <p style="color:#718096; margin:0;">Sem dados suficientes.</p>
+                    </div>
+                `;
             }
 
+            const maior = Math.max(...itens.map(item => item[1]), 1);
+
             return `
-                <div style="background:#f7fafc; border-radius:12px; padding:12px;">
-                    <h4 style="color:#1e3a5f; margin:0 0 8px;">${titulo}</h4>
-                    ${itens.map((item, idx) => `
-                        <div style="display:flex; justify-content:space-between; gap:10px; border-bottom:1px solid #e2e8f0; padding:6px 0; color:#2d3748; font-size:0.82rem;">
-                            <span>${idx + 1}. ${item[0]}</span>
-                            <strong>${item[1]}</strong>
-                        </div>
-                    `).join('')}
+                <div style="background:linear-gradient(135deg,#ffffff,#f7fafc); border-radius:22px; padding:18px; border:1px solid #e2e8f0; box-shadow:0 10px 24px rgba(30,58,95,0.10);">
+                    <h4 style="color:#1e3a5f; margin:0 0 14px; display:flex; align-items:center; gap:8px;">${icone} ${titulo}</h4>
+                    ${itens.map((item, idx) => {
+                        const percentual = Math.round((item[1] / maior) * 100);
+                        const medalha = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '🔹';
+                        return `
+                            <div style="margin-bottom:12px;">
+                                <div style="display:flex; justify-content:space-between; gap:10px; color:#2d3748; font-size:0.85rem; font-weight:800;">
+                                    <span>${medalha} ${idx + 1}. ${item[0]}</span>
+                                    <strong>${item[1]} ${unidade}</strong>
+                                </div>
+                                <div style="height:8px; background:#e2e8f0; border-radius:999px; overflow:hidden; margin-top:6px;">
+                                    <div style="height:8px; width:${percentual}%; background:linear-gradient(90deg,#3182ce,#38a169); border-radius:999px;"></div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
                 </div>
             `;
         }
 
-        function montarCardKPI(titulo, valor, subtitulo, cor = '#3182ce') {
+        function montarCardKPI(titulo, valor, subtitulo, cor = '#3182ce', icone = '📊') {
             return `
-                <div style="background:#f7fafc; border-radius:14px; padding:14px; border-left:5px solid ${cor}; min-height:92px;">
-                    <div style="font-size:0.72rem; color:#718096; font-weight:700; text-transform:uppercase;">${titulo}</div>
-                    <div style="font-size:1.7rem; color:#1e3a5f; font-weight:800; margin-top:4px;">${valor}</div>
-                    <div style="font-size:0.75rem; color:#4a5568; margin-top:2px;">${subtitulo || ''}</div>
+                <div style="background:linear-gradient(135deg,#ffffff,#f7fafc); border-radius:22px; padding:17px; border-left:7px solid ${cor}; min-height:118px; box-shadow:0 10px 24px rgba(30,58,95,0.10); position:relative; overflow:hidden;">
+                    <div style="position:absolute; top:10px; right:13px; font-size:2rem; opacity:0.18;">${icone}</div>
+                    <div style="font-size:0.70rem; color:#718096; font-weight:900; text-transform:uppercase; letter-spacing:0.04em;">${titulo}</div>
+                    <div style="font-size:1.95rem; color:#1e3a5f; font-weight:950; margin-top:8px; line-height:1.05;">${valor}</div>
+                    <div style="font-size:0.76rem; color:#4a5568; margin-top:7px;">${subtitulo || ''}</div>
                 </div>
             `;
+        }
+
+        function calcularMTBFKPI(corretivasConcluidas) {
+            const porEquipamento = {};
+
+            corretivasConcluidas.forEach(os => {
+                const chave = os.idEquipamento || os.equipamento;
+                if (!chave) return;
+
+                const data = combinarDataHoraKPI(os.dataAbertura, os.horaAbertura) ||
+                             combinarDataHoraKPI(os.dataInicio, os.horaInicio) ||
+                             combinarDataHoraKPI(os.dataConclusao, os.horaConclusao);
+
+                if (!data) return;
+
+                const key = String(chave).trim();
+                porEquipamento[key] = porEquipamento[key] || [];
+                porEquipamento[key].push(data);
+            });
+
+            const intervalosHoras = [];
+
+            Object.values(porEquipamento).forEach(datas => {
+                if (datas.length < 2) return;
+
+                datas.sort((a, b) => a.getTime() - b.getTime());
+
+                for (let i = 1; i < datas.length; i++) {
+                    const horas = (datas[i].getTime() - datas[i - 1].getTime()) / 3600000;
+                    if (horas > 0) intervalosHoras.push(horas);
+                }
+            });
+
+            if (!intervalosHoras.length) return '';
+
+            const media = intervalosHoras.reduce((a, b) => a + b, 0) / intervalosHoras.length;
+
+            if (media < 24) return `${Math.round(media)}h`;
+            return `${Math.round(media / 24)} dias`;
         }
 
         async function abrirPainelGerencial() {
@@ -1589,6 +1711,7 @@
             try {
                 await carregarStatusOnline();
                 const listaOS = await listarOSOnline();
+                const osValidas = listaOS.filter(os => !ehOSTesteKPI(os));
 
                 const totalEquipamentos = equipment.length;
                 const operando = equipment.filter(e => e.status === 'ok').length;
@@ -1597,22 +1720,21 @@
 
                 const disponibilidade = totalEquipamentos ? Math.round((operando / totalEquipamentos) * 100) : 0;
 
-                const osBacklog = listaOS.filter(os => !['Concluída', 'Cancelada'].includes(String(os.statusOS || ''))).length;
-                const osConcluidas = listaOS.filter(os => String(os.statusOS || '') === 'Concluída').length;
+                const osBacklog = osValidas.filter(os => !statusEncerradoKPI(os.statusOS)).length;
+                const osConcluidasLista = osValidas.filter(os => statusConcluidoKPI(os.statusOS));
+                const osConcluidas = osConcluidasLista.length;
 
-                const corretivasConcluidas = listaOS.filter(os =>
-                    String(os.statusOS || '') === 'Concluída' &&
-                    String(os.tipoManutencao || '').toLowerCase().includes('corretiva')
+                const corretivasConcluidas = osValidas.filter(os =>
+                    statusConcluidoKPI(os.statusOS) &&
+                    ehCorretivaKPI(os)
                 );
 
-                const corretivas = listaOS.filter(os =>
-                    String(os.tipoManutencao || '').toLowerCase().includes('corretiva')
-                );
+                const corretivasValidas = osValidas.filter(os => ehCorretivaKPI(os));
 
                 const temposReparo = corretivasConcluidas
                     .map(os => {
-                        const inicio = parseDataKPI(os.dataInicio);
-                        const fim = parseDataKPI(os.dataConclusao);
+                        const inicio = combinarDataHoraKPI(os.dataInicio, os.horaInicio);
+                        const fim = combinarDataHoraKPI(os.dataConclusao, os.horaConclusao);
                         if (!inicio || !fim) return null;
                         const minutos = (fim.getTime() - inicio.getTime()) / 60000;
                         return minutos > 0 ? minutos : null;
@@ -1623,44 +1745,73 @@
                     ? temposReparo.reduce((a, b) => a + b, 0) / temposReparo.length
                     : 0;
 
-                const porEquipeConcluidas = contarPorCampo(
-                    listaOS.filter(os => String(os.statusOS || '') === 'Concluída' && (os.equipeResponsavel || os.responsavel)),
-                    'equipeResponsavel'
-                );
+                const produtividadePorLider = contarPorLiderKPI(osConcluidasLista);
 
                 const agora = new Date();
                 const trintaDiasAtras = new Date(agora.getTime() - (30 * 24 * 60 * 60 * 1000));
-                const corretivas30 = corretivas.filter(os => {
-                    const data = parseDataKPI(os.dataAbertura) || parseDataKPI(os.dataInicio) || parseDataKPI(os.dataConclusao);
+
+                const corretivas30 = corretivasValidas.filter(os => {
+                    const data = combinarDataHoraKPI(os.dataAbertura, os.horaAbertura) ||
+                                 combinarDataHoraKPI(os.dataInicio, os.horaInicio) ||
+                                 combinarDataHoraKPI(os.dataConclusao, os.horaConclusao);
                     return data && data >= trintaDiasAtras;
                 });
 
                 const reincidenciaPorEquip = {};
                 corretivas30.forEach(os => {
-                    const chave = os.equipamento || os.idEquipamento || 'Não informado';
+                    const chave = nomeEquipamentoKPI(os);
+                    if (normalizarKPI(chave) === 'nao informado') return;
                     reincidenciaPorEquip[chave] = (reincidenciaPorEquip[chave] || 0) + 1;
                 });
 
                 const reincidentes = Object.entries(reincidenciaPorEquip).filter(([_, total]) => total >= 3);
-                const mtbfTexto = corretivas.length >= 2 ? 'Em cálculo' : 'Dados insuficientes';
+                const mtbfCalculado = calcularMTBFKPI(corretivasConcluidas);
+                const mtbfTexto = mtbfCalculado || 'Em cálculo';
+                const osTesteIgnoradas = listaOS.length - osValidas.length;
 
                 container.innerHTML = `
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:10px; margin-bottom:16px;">
-                        ${montarCardKPI('Disponibilidade', disponibilidade + '%', 'Equipamentos aptos a operar', disponibilidade >= 90 ? '#38a169' : '#d69e2e')}
-                        ${montarCardKPI('MTTR', formatarDuracaoMinutos(mttr), 'Corretivas concluídas', '#3182ce')}
-                        ${montarCardKPI('MTBF', mtbfTexto, 'Mínimo 2 corretivas por equipamento', '#805ad5')}
-                        ${montarCardKPI('Backlog de OS', osBacklog, 'OS abertas e pendentes', '#d69e2e')}
-                        ${montarCardKPI('Produtividade', osConcluidas, 'OS concluídas no total', '#38a169')}
-                        ${montarCardKPI('Reincidência', reincidentes.length, '3 corretivas em 30 dias', reincidentes.length ? '#e53e3e' : '#38a169')}
+                    <div style="background:linear-gradient(135deg,#1e3a5f,#2c5282); color:white; border-radius:24px; padding:18px; margin-bottom:16px; box-shadow:0 12px 28px rgba(30,58,95,0.24); position:relative; overflow:hidden;">
+                        <div style="position:absolute; right:18px; bottom:-12px; font-size:4.8rem; opacity:0.13;">⚙️</div>
+                        <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; position:relative;">
+                            <div>
+                                <h3 style="margin:0; font-size:1.22rem;">📊 Painel Gerencial GMAN</h3>
+                                <p style="margin:5px 0 0; opacity:0.92; font-size:0.84rem;">KPIs revisados com dados reais, líderes destacados e reincidências priorizadas.</p>
+                            </div>
+                            <button onclick="carregarPainelGerencial()" style="border:none; border-radius:999px; padding:10px 14px; background:white; color:#1e3a5f; font-weight:900; cursor:pointer;">🔄 Recalcular</button>
+                        </div>
                     </div>
 
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
-                        ${montarRankingHTML(porEquipeConcluidas, 'Produtividade por equipe')}
-                        ${montarRankingHTML(reincidenciaPorEquip, 'Possíveis reincidências')}
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; margin-bottom:16px;">
+                        ${montarCardKPI('Disponibilidade', disponibilidade + '%', 'Equipamentos aptos a operar', disponibilidade >= 90 ? '#38a169' : '#d69e2e', '✅')}
+                        ${montarCardKPI('MTTR', formatarDuracaoMinutos(mttr), 'Tempo médio de reparo', '#3182ce', '⏱️')}
+                        ${montarCardKPI('MTBF', mtbfTexto, 'Tempo médio entre falhas', '#805ad5', '🔁')}
+                        ${montarCardKPI('Backlog de OS', osBacklog, 'OS abertas e pendentes', '#d69e2e', '📋')}
+                        ${montarCardKPI('Produtividade', osConcluidas, 'OS concluídas válidas', '#38a169', '🏆')}
+                        ${montarCardKPI('Reincidência', reincidentes.length, 'Equipamentos com 3+ corretivas em 30 dias', reincidentes.length ? '#e53e3e' : '#38a169', '⚠️')}
                     </div>
 
-                    <div style="margin-top:14px; background:#ebf8ff; border-left:5px solid #3182ce; border-radius:12px; padding:12px; color:#2c5282; font-size:0.82rem;">
-                        <strong>GMAN:</strong> painel com os 6 KPIs oficiais: disponibilidade, MTTR, MTBF, backlog, produtividade e reincidência.
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:14px;">
+                        ${montarRankingHTML(produtividadePorLider, 'Líderes que mais atenderam OS', 8, 'OS', '🏆')}
+                        ${montarRankingHTML(reincidenciaPorEquip, 'Maiores reincidências', 8, 'OS', '⚠️')}
+                    </div>
+
+                    <div style="margin-top:14px; display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:10px;">
+                        <div style="background:#f0fff4; border-left:5px solid #38a169; border-radius:16px; padding:13px; color:#22543d; font-size:0.82rem;">
+                            <strong>✅ Base dos KPIs</strong><br>
+                            ${osValidas.length} OS válidas consideradas.
+                        </div>
+                        <div style="background:#fffaf0; border-left:5px solid #d69e2e; border-radius:16px; padding:13px; color:#744210; font-size:0.82rem;">
+                            <strong>📋 Backlog</strong><br>
+                            ${osBacklog} OS ainda não encerradas.
+                        </div>
+                        <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:16px; padding:13px; color:#2c5282; font-size:0.82rem;">
+                            <strong>🧪 Testes ignorados</strong><br>
+                            ${osTesteIgnoradas} OS de teste fora dos KPIs.
+                        </div>
+                    </div>
+
+                    <div style="margin-top:14px; background:#edf2f7; border-radius:18px; padding:14px; color:#2d3748; font-size:0.82rem; border:1px solid #e2e8f0;">
+                        <strong>📌 Regra aplicada:</strong> produtividade por líder usa o campo RESPONSAVEL das OS concluídas válidas. Reincidência usa corretivas dos últimos 30 dias por equipamento. OS de teste não entram nos KPIs.
                         <br>
                         <strong>Situação atual:</strong> ${operando} operando, ${indisponiveis} em manutenção/alerta, ${parados} parados e ${osBacklog} OS no backlog.
                     </div>
