@@ -257,8 +257,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.25 — Histórico por perfil, Instalações Mecânicas e atualização 120s';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.25 — Estrutura patrimonial dos grupos';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.26 — Modelos patrimoniais e numeração oficial';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.26 — Numeração oficial de OS e padrão Brasil';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -626,6 +626,28 @@
                 .replace(/'/g, '&#039;');
         }
 
+        function rotuloComponenteGMAN(componente) {
+            return {
+                PAINEL: 'PAINEL',
+                MOTOR: 'MOTOR',
+                BOMBA: 'BOMBA',
+                VS: 'Válvula de Sucção',
+                VR: 'Válvula de Recalque'
+            }[componente] || componente;
+        }
+
+        function modeloDescricaoComponenteGMAN(componente) {
+            const modelos = {
+                PAINEL: 'Localização:\\nTipo de partida:\\nA máxima:\\nSituação da instalação:\\nCondição visual:',
+                MOTOR: 'Marca:\\nModelo:\\nPotência:\\nTensão:\\nCorrente nominal:\\nCorrente de trabalho:\\nRolamentos:\\nCondição visual:',
+                BOMBA: 'Modelo:\\nTipo:\\nDiâmetro da sucção:\\nDiâmetro do recalque:\\nRolamentos:\\nRetentores:\\nSelo:\\nGaxeta:\\nAcoplamento:\\nDiâmetro do rotor:\\nTipo de óleo:',
+                VS: 'Tipo:\\nDiâmetro:\\nAcionamento:\\nFlanges:',
+                VR: 'Tipo:\\nDiâmetro:\\nAcionamento:\\nFlanges:'
+            };
+
+            return modelos[componente] || '';
+        }
+
         function campoPatrimonioPorComponenteGMAN(componente) {
             return {
                 PAINEL: 'PAT_PAINEL',
@@ -702,9 +724,9 @@
             const modo = opcoes.modo || 'consulta';
             const obrigatorio = !!opcoes.obrigatorio;
             const descricoes = opcoes.descricoes || {};
-            const dicaDescricao = 'Marca, modelo, potência, tensão, tipo e condição visual';
 
             return COMPONENTES_GRUPO_GMAN.map(componente => {
+                const rotulo = rotuloComponenteGMAN(componente);
                 const campo = campoPatrimonioPorComponenteGMAN(componente);
                 const campoDesc = campoDescricaoPorComponenteGMAN(componente);
                 const valor = patrimonios[campo] || '';
@@ -714,12 +736,12 @@
                     const idPat = idCampoPatrimonioAberturaGMAN(componente);
                     const idDesc = idCampoDescricaoAberturaGMAN(componente);
                     return `
-                        <label style="display:grid; grid-template-columns:26px 80px 1fr; gap:8px; align-items:center; padding:8px; border:1px solid #e2e8f0; border-radius:10px; background:#ffffff; margin-bottom:7px; cursor:pointer;">
+                        <label style="display:grid; grid-template-columns:26px 150px 1fr; gap:8px; align-items:center; padding:8px; border:1px solid #e2e8f0; border-radius:10px; background:#ffffff; margin-bottom:7px; cursor:pointer;">
                             <input type="checkbox" class="osComponenteSolicitado" value="${componente}">
-                            <strong style="color:#1e3a5f;">${componente}</strong>
+                            <strong style="color:#1e3a5f;">${rotulo}</strong>
                             <div style="display:grid; grid-template-columns:1fr; gap:6px;">
                                 <input id="${idPat}" class="form-field" value="${escaparHTMLGMAN(valor)}" readonly placeholder="PAT ainda não informado" style="margin:0; background:#f7fafc;">
-                                <input id="${idDesc}" class="form-field" value="${escaparHTMLGMAN(descricao)}" readonly placeholder="Descrição ainda não informada" style="margin:0; background:#f7fafc; font-size:0.78rem;">
+                                <textarea id="${idDesc}" class="form-field" readonly placeholder="Descrição ainda não informada" style="margin:0; background:#f7fafc; font-size:0.78rem; min-height:54px;">${escaparHTMLGMAN(descricao)}</textarea>
                             </div>
                         </label>
                     `;
@@ -728,20 +750,22 @@
                 if (modo === 'conclusao') {
                     const idPat = idCampoPatrimonioConclusaoGMAN(componente);
                     const idDesc = idCampoDescricaoConclusaoGMAN(componente);
+                    const textoDescricao = descricao || modeloDescricaoComponenteGMAN(componente);
+
                     return `
-                        <div style="display:grid; grid-template-columns:78px 1fr 1.35fr; gap:8px; align-items:start; margin-bottom:8px;">
-                            <label class="form-label" style="margin:11px 0 0;">${componente}</label>
-                            <input id="${idPat}" class="form-field" value="${escaparHTMLGMAN(valor)}" placeholder="PAT do ${componente}" ${obrigatorio ? 'required' : ''}>
-                            <input id="${idDesc}" class="form-field" value="${escaparHTMLGMAN(descricao)}" placeholder="${dicaDescricao}">
+                        <div style="display:grid; grid-template-columns:150px 1fr 1.5fr; gap:8px; align-items:start; margin-bottom:8px;">
+                            <label class="form-label" style="margin:11px 0 0;">${rotulo}</label>
+                            <input id="${idPat}" class="form-field" value="${escaparHTMLGMAN(valor)}" placeholder="PAT do ${rotulo}" ${obrigatorio ? 'required' : ''}>
+                            <textarea id="${idDesc}" class="form-field" rows="5" placeholder="Descrição opcional do ${rotulo}">${escaparHTMLGMAN(textoDescricao)}</textarea>
                         </div>
                     `;
                 }
 
                 return `
-                    <div style="display:grid; grid-template-columns:90px 1fr 1.35fr; gap:8px; align-items:center; padding:8px; border-bottom:1px solid #e2e8f0;">
-                        <strong style="color:#1e3a5f;">${componente}</strong>
+                    <div style="display:grid; grid-template-columns:150px 1fr 1.35fr; gap:8px; align-items:center; padding:8px; border-bottom:1px solid #e2e8f0;">
+                        <strong style="color:#1e3a5f;">${rotulo}</strong>
                         <span style="color:#2d3748; background:#f7fafc; border-radius:8px; padding:8px;">${valor ? escaparHTMLGMAN(valor) : 'PAT ainda não informado'}</span>
-                        <span style="color:#2d3748; background:#f7fafc; border-radius:8px; padding:8px;">${descricao ? escaparHTMLGMAN(descricao) : 'Descrição opcional não informada'}</span>
+                        <span style="color:#2d3748; background:#f7fafc; border-radius:8px; padding:8px; white-space:pre-line;">${descricao ? escaparHTMLGMAN(descricao) : 'Descrição opcional não informada'}</span>
                     </div>
                 `;
             }).join('');
@@ -776,8 +800,8 @@
             if (!patrimonios.patPainel) faltantes.push('PAT PAINEL');
             if (!patrimonios.patMotor) faltantes.push('PAT MOTOR');
             if (!patrimonios.patBomba) faltantes.push('PAT BOMBA');
-            if (!patrimonios.patVS) faltantes.push('PAT VS');
-            if (!patrimonios.patVR) faltantes.push('PAT VR');
+            if (!patrimonios.patVS) faltantes.push('PAT Válvula de Sucção');
+            if (!patrimonios.patVR) faltantes.push('PAT Válvula de Recalque');
             return faltantes;
         }
 
@@ -1005,8 +1029,8 @@
                         <p><strong>Responsável:</strong> ${os.responsavel || '-'}</p>
                         <p><strong>Membros da equipe:</strong> ${os.membrosEquipe || '-'}</p>
                         <p><strong>Componentes solicitados:</strong> ${os.componentesSolicitados || '-'}</p>
-                        <p><strong>PAT:</strong> Painel ${os.patPainel || '-'} | Motor ${os.patMotor || '-'} | Bomba ${os.patBomba || '-'} | VS ${os.patVS || '-'} | VR ${os.patVR || '-'}</p>
-                        <p><strong>Descrições:</strong> Painel ${os.descPainel || '-'} | Motor ${os.descMotor || '-'} | Bomba ${os.descBomba || '-'} | VS ${os.descVS || '-'} | VR ${os.descVR || '-'}</p>
+                        <p><strong>PAT:</strong> Painel ${os.patPainel || '-'} | Motor ${os.patMotor || '-'} | Bomba ${os.patBomba || '-'} | Válvula de Sucção ${os.patVS || '-'} | Válvula de Recalque ${os.patVR || '-'}</p>
+                        <p><strong>Descrições:</strong> Painel ${os.descPainel || '-'} | Motor ${os.descMotor || '-'} | Bomba ${os.descBomba || '-'} | Válvula de Sucção ${os.descVS || '-'} | Válvula de Recalque ${os.descVR || '-'}</p>
                         <p><strong>Problema:</strong> ${os.descricaoProblema || '-'}</p>
                         ${os.dataAbertura ? `<p><strong>Abertura:</strong> ${formatarDataApi(os.dataAbertura)} ${os.horaAbertura ? '| ' + os.horaAbertura : ''}</p>` : ''}
                         ${os.dataConclusao ? `<p><strong>Conclusão:</strong> ${formatarDataApi(os.dataConclusao)} ${os.horaConclusao ? '| ' + os.horaConclusao : ''}</p>` : ''}
@@ -2820,7 +2844,7 @@ function atualizarPreviewKmRodado() {
                     </div>
 
                     <div style="background:#ebf8ff; border-left:4px solid #3182ce; border-radius:12px; padding:10px; margin-top:12px; color:#2c5282; font-size:0.78rem; text-align:left;">
-                        Os patrimônios são atualizados quando o líder/gestor conclui uma OS e confirma PAINEL, MOTOR, BOMBA, VS e VR.
+                        Os patrimônios são atualizados quando o líder/gestor conclui uma OS e confirma PAINEL, MOTOR, BOMBA, Válvula de Sucção e Válvula de Recalque.
                     </div>
 
                     <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:14px;">
@@ -2928,10 +2952,10 @@ function atualizarPreviewKmRodado() {
                                     ${linhaDetalheHistoricoGMAN('Desc. Motor', os.descMotor)}
                                     ${linhaDetalheHistoricoGMAN('PAT Bomba', os.patBomba)}
                                     ${linhaDetalheHistoricoGMAN('Desc. Bomba', os.descBomba)}
-                                    ${linhaDetalheHistoricoGMAN('PAT VS', os.patVS)}
-                                    ${linhaDetalheHistoricoGMAN('Desc. VS', os.descVS)}
-                                    ${linhaDetalheHistoricoGMAN('PAT VR', os.patVR)}
-                                    ${linhaDetalheHistoricoGMAN('Desc. VR', os.descVR)}
+                                    ${linhaDetalheHistoricoGMAN('PAT Válvula de Sucção', os.patVS)}
+                                    ${linhaDetalheHistoricoGMAN('Desc. Válvula de Sucção', os.descVS)}
+                                    ${linhaDetalheHistoricoGMAN('PAT Válvula de Recalque', os.patVR)}
+                                    ${linhaDetalheHistoricoGMAN('Desc. Válvula de Recalque', os.descVR)}
                                 </div>
                             `).join('')}
                         `).join('') : `
