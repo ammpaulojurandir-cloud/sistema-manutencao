@@ -258,8 +258,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.23 — Correções abertura, andamento e histórico';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.23 — Estrutura patrimonial dos grupos';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.24 — Histórico clicável, membros e descrições';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.24 — Estrutura patrimonial dos grupos';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -669,39 +669,80 @@
             return dados;
         }
 
+        function campoDescricaoPorComponenteGMAN(componente) {
+            return {
+                PAINEL: 'DESC_PAINEL',
+                MOTOR: 'DESC_MOTOR',
+                BOMBA: 'DESC_BOMBA',
+                VS: 'DESC_VS',
+                VR: 'DESC_VR'
+            }[componente] || '';
+        }
+
+        function idCampoDescricaoConclusaoGMAN(componente) {
+            return {
+                PAINEL: 'concluirDescPainel',
+                MOTOR: 'concluirDescMotor',
+                BOMBA: 'concluirDescBomba',
+                VS: 'concluirDescVS',
+                VR: 'concluirDescVR'
+            }[componente] || '';
+        }
+
+        function idCampoDescricaoAberturaGMAN(componente) {
+            return {
+                PAINEL: 'abrirDescPainel',
+                MOTOR: 'abrirDescMotor',
+                BOMBA: 'abrirDescBomba',
+                VS: 'abrirDescVS',
+                VR: 'abrirDescVR'
+            }[componente] || '';
+        }
+
         function montarLinhasPatrimonioGrupoGMAN(patrimonios = {}, opcoes = {}) {
             const modo = opcoes.modo || 'consulta';
             const obrigatorio = !!opcoes.obrigatorio;
+            const descricoes = opcoes.descricoes || {};
+            const dicaDescricao = 'Marca, modelo, potência, tensão, tipo e condição visual';
 
             return COMPONENTES_GRUPO_GMAN.map(componente => {
                 const campo = campoPatrimonioPorComponenteGMAN(componente);
+                const campoDesc = campoDescricaoPorComponenteGMAN(componente);
                 const valor = patrimonios[campo] || '';
+                const descricao = descricoes[campoDesc] || '';
 
                 if (modo === 'abertura') {
                     const idPat = idCampoPatrimonioAberturaGMAN(componente);
+                    const idDesc = idCampoDescricaoAberturaGMAN(componente);
                     return `
                         <label style="display:grid; grid-template-columns:26px 80px 1fr; gap:8px; align-items:center; padding:8px; border:1px solid #e2e8f0; border-radius:10px; background:#ffffff; margin-bottom:7px; cursor:pointer;">
                             <input type="checkbox" class="osComponenteSolicitado" value="${componente}">
                             <strong style="color:#1e3a5f;">${componente}</strong>
-                            <input id="${idPat}" class="form-field" value="${escaparHTMLGMAN(valor)}" readonly placeholder="PAT ainda não informado" style="margin:0; background:#f7fafc;">
+                            <div style="display:grid; grid-template-columns:1fr; gap:6px;">
+                                <input id="${idPat}" class="form-field" value="${escaparHTMLGMAN(valor)}" readonly placeholder="PAT ainda não informado" style="margin:0; background:#f7fafc;">
+                                <input id="${idDesc}" class="form-field" value="${escaparHTMLGMAN(descricao)}" readonly placeholder="Descrição ainda não informada" style="margin:0; background:#f7fafc; font-size:0.78rem;">
+                            </div>
                         </label>
                     `;
                 }
 
                 if (modo === 'conclusao') {
                     const idPat = idCampoPatrimonioConclusaoGMAN(componente);
+                    const idDesc = idCampoDescricaoConclusaoGMAN(componente);
                     return `
-                        <div style="display:grid; grid-template-columns:80px 1fr; gap:8px; align-items:center; margin-bottom:8px;">
-                            <label class="form-label" style="margin:0;">${componente}</label>
-                            <input id="${idPat}" class="form-field" value="${escaparHTMLGMAN(valor)}" placeholder="Informe o patrimônio do ${componente}" ${obrigatorio ? 'required' : ''}>
+                        <div style="display:grid; grid-template-columns:78px 1fr 1.35fr; gap:8px; align-items:start; margin-bottom:8px;">
+                            <label class="form-label" style="margin:11px 0 0;">${componente}</label>
+                            <input id="${idPat}" class="form-field" value="${escaparHTMLGMAN(valor)}" placeholder="PAT do ${componente}" ${obrigatorio ? 'required' : ''}>
+                            <input id="${idDesc}" class="form-field" value="${escaparHTMLGMAN(descricao)}" placeholder="${dicaDescricao}">
                         </div>
                     `;
                 }
 
                 return `
-                    <div style="display:grid; grid-template-columns:90px 1fr; gap:8px; align-items:center; padding:8px; border-bottom:1px solid #e2e8f0;">
+                    <div style="display:grid; grid-template-columns:90px 1fr 1.35fr; gap:8px; align-items:center; padding:8px; border-bottom:1px solid #e2e8f0;">
                         <strong style="color:#1e3a5f;">${componente}</strong>
                         <span style="color:#2d3748; background:#f7fafc; border-radius:8px; padding:8px;">${valor ? escaparHTMLGMAN(valor) : 'PAT ainda não informado'}</span>
+                        <span style="color:#2d3748; background:#f7fafc; border-radius:8px; padding:8px;">${descricao ? escaparHTMLGMAN(descricao) : 'Descrição opcional não informada'}</span>
                     </div>
                 `;
             }).join('');
@@ -718,6 +759,16 @@
                 patBomba: (document.getElementById('concluirPatBomba') || {}).value ? document.getElementById('concluirPatBomba').value.trim() : '',
                 patVS: (document.getElementById('concluirPatVS') || {}).value ? document.getElementById('concluirPatVS').value.trim() : '',
                 patVR: (document.getElementById('concluirPatVR') || {}).value ? document.getElementById('concluirPatVR').value.trim() : ''
+            };
+        }
+
+        function coletarDescricoesConclusaoGMAN() {
+            return {
+                descPainel: (document.getElementById('concluirDescPainel') || {}).value ? document.getElementById('concluirDescPainel').value.trim() : '',
+                descMotor: (document.getElementById('concluirDescMotor') || {}).value ? document.getElementById('concluirDescMotor').value.trim() : '',
+                descBomba: (document.getElementById('concluirDescBomba') || {}).value ? document.getElementById('concluirDescBomba').value.trim() : '',
+                descVS: (document.getElementById('concluirDescVS') || {}).value ? document.getElementById('concluirDescVS').value.trim() : '',
+                descVR: (document.getElementById('concluirDescVR') || {}).value ? document.getElementById('concluirDescVR').value.trim() : ''
             };
         }
 
@@ -956,6 +1007,7 @@
                         <p><strong>Membros da equipe:</strong> ${os.membrosEquipe || '-'}</p>
                         <p><strong>Componentes solicitados:</strong> ${os.componentesSolicitados || '-'}</p>
                         <p><strong>PAT:</strong> Painel ${os.patPainel || '-'} | Motor ${os.patMotor || '-'} | Bomba ${os.patBomba || '-'} | VS ${os.patVS || '-'} | VR ${os.patVR || '-'}</p>
+                        <p><strong>Descrições:</strong> Painel ${os.descPainel || '-'} | Motor ${os.descMotor || '-'} | Bomba ${os.descBomba || '-'} | VS ${os.descVS || '-'} | VR ${os.descVR || '-'}</p>
                         <p><strong>Problema:</strong> ${os.descricaoProblema || '-'}</p>
                         ${os.dataAbertura ? `<p><strong>Abertura:</strong> ${formatarDataApi(os.dataAbertura)} ${os.horaAbertura ? '| ' + os.horaAbertura : ''}</p>` : ''}
                         ${os.dataConclusao ? `<p><strong>Conclusão:</strong> ${formatarDataApi(os.dataConclusao)} ${os.horaConclusao ? '| ' + os.horaConclusao : ''}</p>` : ''}
@@ -1037,7 +1089,7 @@
                     <label class="form-label">Equipamento solicitado dentro do grupo</label>
                     <div style="background:#f7fafc; border:1px solid #e2e8f0; border-radius:14px; padding:10px; margin-bottom:12px;">
                         <p style="color:#718096; font-size:0.75rem; margin:0 0 8px;">Marque o componente que precisa de manutenção/vistoria. O PAT aparece ao lado quando já estiver disponível.</p>
-                        ${montarLinhasPatrimonioGrupoGMAN(patrimonioGrupo.patrimonios || {}, { modo: 'abertura' })}
+                        ${montarLinhasPatrimonioGrupoGMAN(patrimonioGrupo.patrimonios || {}, { modo: 'abertura', descricoes: patrimonioGrupo.descricoes || {} })}
                     </div>
 
                     <label class="form-label">Área / setor</label>
@@ -1443,6 +1495,13 @@ async function criarOSPeloModal() {
                     PAT_BOMBA: os.patBomba || '',
                     PAT_VS: os.patVS || '',
                     PAT_VR: os.patVR || ''
+                },
+                descricoes: {
+                    DESC_PAINEL: os.descPainel || '',
+                    DESC_MOTOR: os.descMotor || '',
+                    DESC_BOMBA: os.descBomba || '',
+                    DESC_VS: os.descVS || '',
+                    DESC_VR: os.descVR || ''
                 }
             };
 
@@ -1450,7 +1509,8 @@ async function criarOSPeloModal() {
                 const eq = equipment.find(e => String(e.id) === String(os.idEquipamento));
                 const consulta = await consultarPatrimonioGrupoFront(os.idEquipamento, eq || null);
                 patrimonioGrupo = {
-                    patrimonios: Object.assign({}, patrimonioGrupo.patrimonios, consulta.patrimonios || {})
+                    patrimonios: Object.assign({}, patrimonioGrupo.patrimonios, consulta.patrimonios || {}),
+                    descricoes: Object.assign({}, patrimonioGrupo.descricoes, consulta.descricoes || {})
                 };
             } catch (erro) {
                 console.warn('Não foi possível carregar patrimônio do grupo para conclusão:', erro);
@@ -1514,12 +1574,15 @@ async function criarOSPeloModal() {
                     <label class="form-label">Observação final</label>
                     <textarea id="concluirObservacaoFinal" class="form-field" rows="3" placeholder="Observação final da OS"></textarea>
 
+                    <label class="form-label">Membros da equipe que participaram</label>
+                    <textarea id="concluirMembrosEquipe" class="form-field" rows="2" placeholder="Informe quem trabalhou na execução. Ex.: Oliveira, Roberto, Mattos"></textarea>
+
                     <div style="margin-top:15px; padding:12px; background:#fffaf0; border-radius:12px; border-left:4px solid #d69e2e; text-align:left;">
                         <p style="color:#744210; font-weight:800; margin:0 0 8px;">🏷️ Patrimônio obrigatório do grupo</p>
                         <p style="color:#744210; font-size:0.75rem; margin:0 0 10px;">
-                            Informe ou confirme todos os patrimônios antes de concluir. Esses dados atualizam a consulta do grupo para as próximas OS.
+                            Informe ou confirme todos os patrimônios antes de concluir. A descrição é opcional e deve conter, quando possível: marca, modelo, potência, tensão, tipo e condição visual.
                         </p>
-                        ${montarLinhasPatrimonioGrupoGMAN(patrimonioGrupo.patrimonios || {}, { modo: 'conclusao', obrigatorio: true })}
+                        ${montarLinhasPatrimonioGrupoGMAN(patrimonioGrupo.patrimonios || {}, { modo: 'conclusao', obrigatorio: true, descricoes: patrimonioGrupo.descricoes || {} })}
                     </div>
 
                     <div style="margin-top:15px; padding:12px; background:#f7fafc; border-radius:12px; border-left:4px solid #3182ce;">
@@ -1607,7 +1670,9 @@ function atualizarPreviewKmRodado() {
             const kmFinalTexto = document.getElementById('concluirKmFinal').value;
             const situacaoFinalEquipamento = document.getElementById('concluirSituacaoFinal').value;
             const observacaoFinal = document.getElementById('concluirObservacaoFinal').value.trim();
+            const membrosEquipe = document.getElementById('concluirMembrosEquipe').value.trim();
             const patrimoniosConclusao = coletarPatrimoniosConclusaoGMAN();
+            const descricoesConclusao = coletarDescricoesConclusaoGMAN();
 
             const kmInicial = kmInicialTexto === '' ? '' : Number(kmInicialTexto);
             const kmFinal = kmFinalTexto === '' ? '' : Number(kmFinalTexto);
@@ -1621,6 +1686,7 @@ function atualizarPreviewKmRodado() {
             if (kmFinalTexto === '') camposFaltantes.push('KM final');
             if (!situacaoFinalEquipamento) camposFaltantes.push('situação final do equipamento');
             if (!observacaoFinal) camposFaltantes.push('observação final');
+            if (!membrosEquipe) camposFaltantes.push('membros da equipe');
 
             camposFaltantes.push(...validarPatrimoniosConclusaoTelaGMAN(patrimoniosConclusao));
 
@@ -1652,11 +1718,17 @@ function atualizarPreviewKmRodado() {
                     situacaoFinalEquipamento,
                     statusFinalEquipamento: situacaoFinalEquipamento,
                     observacaoFinal,
+                    membrosEquipe,
                     patPainel: patrimoniosConclusao.patPainel,
                     patMotor: patrimoniosConclusao.patMotor,
                     patBomba: patrimoniosConclusao.patBomba,
                     patVS: patrimoniosConclusao.patVS,
-                    patVR: patrimoniosConclusao.patVR
+                    patVR: patrimoniosConclusao.patVR,
+                    descPainel: descricoesConclusao.descPainel,
+                    descMotor: descricoesConclusao.descMotor,
+                    descBomba: descricoesConclusao.descBomba,
+                    descVS: descricoesConclusao.descVS,
+                    descVR: descricoesConclusao.descVR
                 });
 
                 document.getElementById('concluirOSModal').remove();
@@ -2745,7 +2817,7 @@ function atualizarPreviewKmRodado() {
                     <p style="color:#718096; font-size:0.82rem; margin:0 0 12px;">${escaparHTMLGMAN(eq.id)} — ${escaparHTMLGMAN(eq.name)}</p>
 
                     <div style="background:#f7fafc; border:1px solid #e2e8f0; border-radius:14px; padding:10px; text-align:left;">
-                        ${montarLinhasPatrimonioGrupoGMAN((consulta && consulta.patrimonios) || {}, { modo: 'consulta' })}
+                        ${montarLinhasPatrimonioGrupoGMAN((consulta && consulta.patrimonios) || {}, { modo: 'consulta', descricoes: (consulta && consulta.descricoes) || {} })}
                     </div>
 
                     <div style="background:#ebf8ff; border-left:4px solid #3182ce; border-radius:12px; padding:10px; margin-top:12px; color:#2c5282; font-size:0.78rem; text-align:left;">
@@ -2759,6 +2831,83 @@ function atualizarPreviewKmRodado() {
             `;
 
             document.body.appendChild(modal);
+        }
+
+        function linhaDetalheHistoricoGMAN(rotulo, valor) {
+            return `
+                <div style="display:grid; grid-template-columns:150px 1fr; gap:8px; padding:7px 0; border-bottom:1px solid #edf2f7;">
+                    <strong style="color:#1e3a5f;">${rotulo}</strong>
+                    <span style="color:#2d3748;">${escaparHTMLGMAN(valor || '-')}</span>
+                </div>
+            `;
+        }
+
+        async function abrirHistoricoDetalhadoGrupo(idGrupo) {
+            const eq = equipment.find(e => String(e.id) === String(idGrupo));
+
+            try {
+                const lista = await listarOSOnline();
+                const historico = lista
+                    .filter(os => String(os.idEquipamento) === String(idGrupo))
+                    .sort((a, b) => String(b.dataConclusao || b.dataAbertura || '').localeCompare(String(a.dataConclusao || a.dataAbertura || '')))
+                    .slice(0, 20);
+
+                const existente = document.getElementById('historicoDetalhadoGrupoModal');
+                if (existente) existente.remove();
+
+                const modal = document.createElement('div');
+                modal.id = 'historicoDetalhadoGrupoModal';
+                modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.78); display:flex; align-items:center; justify-content:center; z-index:1500; padding:18px;';
+                modal.innerHTML = `
+                    <div style="background:white; border-radius:22px; padding:22px; width:96%; max-width:820px; max-height:90vh; overflow-y:auto;">
+                        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:14px;">
+                            <div>
+                                <h2 style="color:#1e3a5f; margin:0;">Histórico detalhado do grupo</h2>
+                                <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">${escaparHTMLGMAN(idGrupo)} ${eq ? '— ' + escaparHTMLGMAN(eq.name) : ''}</p>
+                            </div>
+                            <button onclick="document.getElementById('historicoDetalhadoGrupoModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
+                        </div>
+
+                        ${historico.length ? historico.map(os => `
+                            <div style="border:1px solid #e2e8f0; border-radius:16px; padding:13px; margin-bottom:12px; background:#f7fafc; text-align:left;">
+                                <h3 style="margin:0 0 8px; color:#1e3a5f; font-size:1rem;">OS ${escaparHTMLGMAN(os.numeroOS || os.idOS || '-')} — ${escaparHTMLGMAN(os.statusOS || '-')}</h3>
+                                ${linhaDetalheHistoricoGMAN('Responsável', os.responsavel)}
+                                ${linhaDetalheHistoricoGMAN('Finalizado por', os.finalizadoPor)}
+                                ${linhaDetalheHistoricoGMAN('Membros da equipe', os.membrosEquipe)}
+                                ${linhaDetalheHistoricoGMAN('Componentes', os.componentesSolicitados)}
+                                ${linhaDetalheHistoricoGMAN('Serviço realizado', os.servicoRealizado)}
+                                ${linhaDetalheHistoricoGMAN('Materiais', os.materiais)}
+                                ${linhaDetalheHistoricoGMAN('Situação final', os.situacaoFinalEquipamento)}
+                                ${linhaDetalheHistoricoGMAN('Observação final', os.observacaoFinal)}
+                                ${linhaDetalheHistoricoGMAN('Motorista', os.motorista)}
+                                ${linhaDetalheHistoricoGMAN('Prefixo', os.prefixoVeiculo)}
+                                ${linhaDetalheHistoricoGMAN('KM inicial', os.kmInicial)}
+                                ${linhaDetalheHistoricoGMAN('KM final', os.kmFinal)}
+                                ${linhaDetalheHistoricoGMAN('KM rodado', os.kmRodado)}
+                                ${linhaDetalheHistoricoGMAN('PAT Painel', os.patPainel)}
+                                ${linhaDetalheHistoricoGMAN('Desc. Painel', os.descPainel)}
+                                ${linhaDetalheHistoricoGMAN('PAT Motor', os.patMotor)}
+                                ${linhaDetalheHistoricoGMAN('Desc. Motor', os.descMotor)}
+                                ${linhaDetalheHistoricoGMAN('PAT Bomba', os.patBomba)}
+                                ${linhaDetalheHistoricoGMAN('Desc. Bomba', os.descBomba)}
+                                ${linhaDetalheHistoricoGMAN('PAT VS', os.patVS)}
+                                ${linhaDetalheHistoricoGMAN('Desc. VS', os.descVS)}
+                                ${linhaDetalheHistoricoGMAN('PAT VR', os.patVR)}
+                                ${linhaDetalheHistoricoGMAN('Desc. VR', os.descVR)}
+                            </div>
+                        `).join('') : `
+                            <div style="background:#fffaf0; border-left:5px solid #d69e2e; border-radius:14px; padding:12px; color:#744210;">
+                                Nenhuma OS encontrada para este grupo.
+                            </div>
+                        `}
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+            } catch (erro) {
+                console.error(erro);
+                alert('Erro ao abrir histórico detalhado: ' + erro.message);
+            }
         }
 
 function openEquipment(id) {
@@ -2800,9 +2949,9 @@ function openEquipment(id) {
                     ` : ''}
                     
                     ${eq.historico && eq.historico.length > 0 ? `
-                    <div style="margin: 15px 0; max-height: 150px; overflow-y: auto; text-align: left; background: #f9f9f9; padding: 10px; border-radius: 8px;">
-                        <p style="color: #666; font-size: 0.75rem; margin-bottom: 5px;"><strong>Histórico recente — últimas 5 intervenções:</strong></p>
-                        ${eq.historico.slice(-5).map(h => `
+                    <div onclick="abrirHistoricoDetalhadoGrupo('${eq.id}')" title="Clique para ver os detalhes completos das OS" style="margin: 15px 0; max-height: 120px; overflow-y: auto; text-align: left; background: #f9f9f9; padding: 10px; border-radius: 8px; cursor:pointer; border:1px solid #e2e8f0;">
+                        <p style="color: #666; font-size: 0.75rem; margin-bottom: 5px;"><strong>Histórico recente — últimas 3 intervenções:</strong><br><span style="color:#3182ce; font-weight:700;">Clique para abrir detalhes completos</span></p>
+                        ${eq.historico.slice(-3).map(h => `
                             <div style="font-size: 0.7rem; color: #666; padding: 3px 0; border-bottom: 1px solid #eee;">
                                 ${h.data} - <strong>${h.tecnico}</strong>: <em>${statusLabels[h.statusAnterior]} → ${statusLabels[h.statusNovo]}</em>
                             </div>
