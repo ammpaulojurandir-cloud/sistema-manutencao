@@ -99,7 +99,7 @@
         .form-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e0; border-radius: 9px; color: #1a202c; font-size: 0.9rem; }
         .form-label { display: block; color: #2d3748; font-size: 0.78rem; font-weight: 700; margin: 8px 0 5px; text-align: left; }
      
-        /* GMAN 8.5.6.35 — evolução visual controlada 20% */
+        /* GMAN 8.5.6.37 — evolução visual controlada 20% */
         body::before {
             content: "";
             position: fixed;
@@ -156,7 +156,7 @@
         }
 
 
-        /* GMAN 8.5.6.35 — visual 30% e ícones com leve 3D controlado */
+        /* GMAN 8.5.6.37 — visual 30% e ícones com leve 3D controlado */
         .icon-3d-gman, .status-icon, .action-btn, .system-btn {
             transform-style: preserve-3d;
         }
@@ -218,7 +218,7 @@
         }
 
 
-        /* GMAN 8.5.6.35 — contador real de OS por grupo */
+        /* GMAN 8.5.6.37 — contador real de OS por grupo */
         .mini-os-counter {
             display: inline-block;
             padding: 3px 7px;
@@ -422,8 +422,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.35 — Conciliação exclusiva OS e KPI';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.35 — Conciliação exclusiva OS e KPI';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.37 — KPI reincidência corrigido';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.37 — KPI reincidência corrigido';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -2647,17 +2647,78 @@ function atualizarPreviewKmRodado() {
             return `${horas}h ${mins}min`;
         }
 
-        function normalizarKPI(valor) {
+        
+        function categoriaExclusivaStatusOSGMAN85636(status) {
+            const s = normalizarKPI(status);
+
+            if (!s) return 'semStatus';
+            if (s === 'aberta') return 'abertas';
+            if (s.includes('concluid')) return 'concluidas';
+            if (s.includes('cancel')) return 'canceladas';
+            if (s.includes('fechad') || s.includes('encerrad') || s.includes('finalizad')) return 'encerradasNaoConcluidas';
+            if (s.includes('aguardando')) return 'aguardando';
+            if (s.includes('teste')) return 'teste';
+            if (s.includes('iniciad') || s.includes('execucao') || s.includes('em andamento')) return 'emAndamento';
+            if (s.includes('manutencao') || s.includes('parad') || s.includes('restricao')) return 'manutencao';
+
+            return 'outros';
+        }
+
+        function statusAtivoKPI85636(status) {
+            return ['abertas', 'emAndamento', 'aguardando', 'teste', 'manutencao'].includes(categoriaExclusivaStatusOSGMAN85636(status));
+        }
+
+        function statusConcluidoKPI85636(status) {
+            return categoriaExclusivaStatusOSGMAN85636(status) === 'concluidas';
+        }
+
+        function resumoCategoriasKPI85636(lista) {
+            const categorias = {
+                abertas: 0,
+                emAndamento: 0,
+                aguardando: 0,
+                teste: 0,
+                manutencao: 0,
+                ativas: 0,
+                concluidas: 0,
+                canceladas: 0,
+                encerradasNaoConcluidas: 0,
+                outros: 0,
+                semStatus: 0
+            };
+
+            (Array.isArray(lista) ? lista : []).forEach(os => {
+                const categoria = categoriaExclusivaStatusOSGMAN85636(os.statusOS);
+                if (Object.prototype.hasOwnProperty.call(categorias, categoria)) {
+                    categorias[categoria] += 1;
+                } else {
+                    categorias.outros += 1;
+                }
+
+                if (['abertas', 'emAndamento', 'aguardando', 'teste', 'manutencao'].includes(categoria)) {
+                    categorias.ativas += 1;
+                }
+            });
+
+            return categorias;
+        }
+
+        function explicacaoBacklogKPI85636(categorias) {
+            const cat = categorias || {};
+            return `Aberta: ${cat.abertas || 0} | Em andamento: ${cat.emAndamento || 0} | Aguardando: ${cat.aguardando || 0} | Teste: ${cat.teste || 0} | Manutenção: ${cat.manutencao || 0}`;
+        }
+
+function normalizarKPI(valor) {
             return normalizarTextoGMAN(valor);
         }
 
         function statusEncerradoKPI(status) {
-            const s = normalizarKPI(status);
-            return ['concluida', 'cancelada', 'fechada', 'encerrada', 'finalizada'].includes(s);
+            const categoria = categoriaExclusivaStatusOSGMAN85636(status);
+            return ['concluidas', 'canceladas', 'encerradasNaoConcluidas'].includes(categoria);
         }
 
         function statusConcluidoKPI(status) {
-            return normalizarKPI(status) === 'concluida';
+            return statusConcluidoKPI85636(status);
         }
 
         function ehCorretivaKPI(os) {
@@ -2687,7 +2748,25 @@ function atualizarPreviewKmRodado() {
             );
         }
 
-        function nomeLiderKPI(os) {
+        
+        function chaveReincidenciaKPI85637(os) {
+            const id = os.idEquipamento || os.equipamento || '';
+            const chaveGrupo = chaveGrupoGMAN85633(id);
+            if (chaveGrupo) return chaveGrupo;
+            return normalizarKPI(nomeEquipamentoKPI(os));
+        }
+
+        function rotuloReincidenciaKPI85637(os) {
+            return String(os.equipamento || os.idEquipamento || 'Não informado').trim() || 'Não informado';
+        }
+
+        function dataReincidenciaKPI85637(os) {
+            return combinarDataHoraKPI(os.dataConclusao, os.horaConclusao) ||
+                   combinarDataHoraKPI(os.dataInicio, os.horaInicio) ||
+                   combinarDataHoraKPI(os.dataAbertura, os.horaAbertura);
+        }
+
+function nomeLiderKPI(os) {
             const nome = String(os.responsavel || os.finalizadoPor || '').trim();
             return nome || '';
         }
@@ -2782,13 +2861,13 @@ function atualizarPreviewKmRodado() {
                     cor: '#d69e2e',
                     titulo: 'Backlog de OS',
                     conteudo: [
-                        'Mostra quantas OS válidas ainda estão abertas ou pendentes.',
-                        'Conta OS que ainda não foram encerradas.',
-                        'É o volume atual de trabalho pendente no sistema.'
+                        'Mostra quantas OS válidas ainda estão ativas no sistema.',
+                        'Usa a mesma classificação exclusiva dos cards do grupo.',
+                        'Cada OS entra em apenas uma categoria para evitar dupla contagem.'
                     ],
                     legenda: [
-                        'Entra: Aberta, Em execução, Em teste, Aguardando material, Aguardando liberação, Parado, Em manutenção, Operando com restrição.',
-                        'Não entra: Concluída, Cancelada, Fechada, Encerrada, Finalizada.'
+                        'Entra: Aberta, Iniciada/Em andamento, Aguardando, Em teste e Manutenção.',
+                        'Não entra: Concluída, Cancelada, Encerrada não concluída, Outros e Sem status.'
                     ]
                 },
                 'Produtividade': {
@@ -3114,9 +3193,10 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
 
                 const disponibilidadeInstantanea = totalEquipamentos ? arredondarPercentualKPI((operando / totalEquipamentos) * 100) : 0;
 
-                const osBacklog = osValidas.filter(os => !statusEncerradoKPI(os.statusOS)).length;
+                const categoriasKPI = resumoCategoriasKPI85636(osValidas);
+                const osBacklog = categoriasKPI.ativas;
                 const osConcluidasLista = osValidas.filter(os => statusConcluidoKPI(os.statusOS));
-                const osConcluidas = osConcluidasLista.length;
+                const osConcluidas = categoriasKPI.concluidas;
 
                 const corretivasConcluidas = osValidas.filter(os =>
                     statusConcluidoKPI(os.statusOS) &&
@@ -3144,19 +3224,35 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                 const agora = new Date();
                 const trintaDiasAtras = new Date(agora.getTime() - (30 * 24 * 60 * 60 * 1000));
 
-                const corretivas30 = corretivasValidas.filter(os => {
-                    const data = combinarDataHoraKPI(os.dataAbertura, os.horaAbertura) ||
-                                 combinarDataHoraKPI(os.dataInicio, os.horaInicio) ||
-                                 combinarDataHoraKPI(os.dataConclusao, os.horaConclusao);
+                const corretivasReincidenciaBase = osValidas.filter(os =>
+                    statusConcluidoKPI(os.statusOS) &&
+                    ehCorretivaKPI(os)
+                );
+
+                const corretivas30 = corretivasReincidenciaBase.filter(os => {
+                    const data = dataReincidenciaKPI85637(os);
                     return data && data >= trintaDiasAtras;
                 });
 
                 const reincidenciaPorEquip = {};
+                const reincidenciaRotulos = {};
+
                 corretivas30.forEach(os => {
-                    const chave = nomeEquipamentoKPI(os);
-                    if (normalizarKPI(chave) === 'nao informado') return;
+                    const chave = chaveReincidenciaKPI85637(os);
+                    const rotulo = rotuloReincidenciaKPI85637(os);
+
+                    if (!chave || normalizarKPI(chave) === 'nao informado') return;
+
                     reincidenciaPorEquip[chave] = (reincidenciaPorEquip[chave] || 0) + 1;
+                    reincidenciaRotulos[chave] = reincidenciaRotulos[chave] || rotulo;
                 });
+
+                const reincidenciaRanking = Object.fromEntries(
+                    Object.entries(reincidenciaPorEquip).map(([chave, total]) => [
+                        reincidenciaRotulos[chave] || chave,
+                        total
+                    ])
+                );
 
                 const reincidentes = Object.entries(reincidenciaPorEquip).filter(([_, total]) => total >= 3);
                 const mtbfCalculado = calcularMTBFKPI(corretivasConcluidas);
@@ -3185,20 +3281,29 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                         </div>
                     </div>
 
+                    <div style="background:#f7fafc; border-left:5px solid #3182ce; border-radius:14px; padding:12px; margin-bottom:14px; color:#1e3a5f; font-size:0.82rem;">
+                        <strong>Conciliação KPI:</strong>
+                        Backlog = ${osBacklog} |
+                        Concluídas = ${categoriasKPI.concluidas} |
+                        Canceladas = ${categoriasKPI.canceladas} |
+                        Encerradas não concluídas = ${categoriasKPI.encerradasNaoConcluidas} |
+                        Outras/Sem status = ${(categoriasKPI.outros || 0) + (categoriasKPI.semStatus || 0)}
+                    </div>
+
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; margin-bottom:16px;">
                         ${montarCardKPI('Disponibilidade histórica', disponibilidadeHistoricaTexto, disponibilidadeHistoricaSubtitulo, disponibilidadeHistoricaValor !== null && disponibilidadeHistoricaValor >= 90 ? '#38a169' : '#d69e2e', '✅')}
                         ${montarCardKPI('Disponibilidade instantânea', formatarPercentualKPI(disponibilidadeInstantanea), 'foto atual por status', '#319795', '📍')}
                         ${montarCardKPI('MTTR', formatarDuracaoMinutos(mttr), 'Tempo médio de reparo', '#3182ce', '⏱️')}
                         ${montarCardKPI('MTBF estimado', mtbfTexto, 'Intervalo médio entre corretivas', '#805ad5', '🔁')}
-                        ${montarCardKPI('Backlog de OS', osBacklog, 'OS abertas e pendentes', '#d69e2e', '📋')}
+                        ${montarCardKPI('Backlog de OS', osBacklog, explicacaoBacklogKPI85636(categoriasKPI), '#d69e2e', '📋')}
                         ${montarCardKPI('Produtividade', osConcluidas, 'OS concluídas válidas', '#38a169', '🏆')}
-                        ${montarCardKPI('Reincidência', reincidentes.length, 'Equipamentos com 3+ corretivas em 30 dias', reincidentes.length ? '#e53e3e' : '#38a169', '⚠️')}
+                        ${montarCardKPI('Reincidência', reincidentes.length, `${reincidentes.length} grupo(s) com 3+ corretivas concluídas em 30 dias`, reincidentes.length ? '#e53e3e' : '#38a169', '⚠️')}
                         ${montarCardKPI('OEE adaptado', oeeTexto, 'Indicador gerencial adaptado', oee !== null && oee >= 70 ? '#dd6b20' : '#c53030', '⚙️')}
                     </div>
 
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:14px;">
                         ${montarRankingHTML(produtividadePorLider, 'Líderes que mais atenderam OS', 5, 'OS', '🏆')}
-                        ${montarRankingHTML(reincidenciaPorEquip, 'Maiores reincidências', 5, 'OS', '⚠️')}
+                        ${montarRankingHTML(reincidenciaRanking, 'Maiores reincidências — corretivas concluídas em 30 dias', 5, 'OS', '⚠️')}
                     </div>
 
                     <div style="margin-top:14px; display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:10px;">
@@ -3214,6 +3319,10 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                             <strong>🧪 Testes ignorados</strong><br>
                             ${osTesteIgnoradas} OS de teste fora dos KPIs.
                         </div>
+                        <div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:18px; padding:13px; color:#742a2a; font-size:0.82rem; box-shadow:0 8px 18px rgba(229,62,62,0.08);">
+                            <strong>⚠️ Base da reincidência</strong><br>
+                            ${corretivas30.length} corretivas concluídas nos últimos 30 dias. Reincidente = grupo/equipamento com 3 ou mais.
+                        </div>
                         <div style="background:#fff5f5; border-left:5px solid #dd6b20; border-radius:18px; padding:13px; color:#7b341e; font-size:0.82rem; box-shadow:0 8px 18px rgba(221,107,32,0.08);">
                             <strong>⚙️ OEE adaptado</strong><br>
                             Histórica ${disponibilidadeHistoricaTexto} · Instantânea ${formatarPercentualKPI(disponibilidadeInstantanea)} · Performance ${formatarPercentualKPI(performanceOEE)} · Qualidade ${formatarPercentualKPI(qualidadeOEE)}.
@@ -3221,7 +3330,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                     </div>
 
                     <div style="margin-top:14px; background:linear-gradient(135deg,#edf2f7,#ffffff); border-radius:20px; padding:14px; color:#2d3748; font-size:0.82rem; border:1px solid #e2e8f0;">
-                        <strong>📌 Regra aplicada:</strong> disponibilidade histórica usa MTBF ÷ (MTBF + MTTR) e não se mistura com a disponibilidade instantânea. MTBF é estimado pelo intervalo médio entre corretivas do mesmo equipamento. Produtividade por líder usa o campo RESPONSAVEL das OS concluídas válidas. Reincidência usa corretivas dos últimos 30 dias por equipamento. OEE é gerencial e adaptado ao GMAN. OS de teste não entram nos KPIs.
+                        <strong>📌 Regra aplicada:</strong> disponibilidade histórica usa MTBF ÷ (MTBF + MTTR) e não se mistura com a disponibilidade instantânea. MTBF é estimado pelo intervalo médio entre corretivas do mesmo equipamento. Produtividade por líder usa o campo RESPONSAVEL das OS concluídas válidas. Reincidência usa corretivas concluídas dos últimos 30 dias por grupo/equipamento, excluindo canceladas e testes. OEE é gerencial e adaptado ao GMAN. OS de teste não entram nos KPIs.
                         <br>
                         <strong>Situação atual:</strong> ${operando} operando, ${indisponiveis} em manutenção/alerta, ${parados} parados e ${osBacklog} OS no backlog.
                     </div>
