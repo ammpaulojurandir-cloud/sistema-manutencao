@@ -99,7 +99,7 @@
         .form-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e0; border-radius: 9px; color: #1a202c; font-size: 0.9rem; }
         .form-label { display: block; color: #2d3748; font-size: 0.78rem; font-weight: 700; margin: 8px 0 5px; text-align: left; }
      
-        /* GMAN 8.5.6.31 — evolução visual controlada 20% */
+        /* GMAN 8.5.6.32 — evolução visual controlada 20% */
         body::before {
             content: "";
             position: fixed;
@@ -156,7 +156,7 @@
         }
 
 
-        /* GMAN 8.5.6.31 — visual 30% e ícones com leve 3D controlado */
+        /* GMAN 8.5.6.32 — visual 30% e ícones com leve 3D controlado */
         .icon-3d-gman, .status-icon, .action-btn, .system-btn {
             transform-style: preserve-3d;
         }
@@ -216,6 +216,44 @@
         #loginScreen > div {
             box-shadow: 0 26px 70px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.6) !important;
         }
+
+
+        /* GMAN 8.5.6.32 — contador real de OS por grupo */
+        .mini-os-counter {
+            display: inline-block;
+            padding: 3px 7px;
+            border-radius: 999px;
+            background: rgba(49,130,206,0.16);
+            color: #bee3f8;
+            font-size: 0.66rem;
+            font-weight: 900;
+            border: 1px solid rgba(190,227,248,0.20);
+        }
+        .mini-os-counter.mini-aberta { background: rgba(49,130,206,0.20); }
+        .mini-os-counter.mini-iniciada { background: rgba(237,137,54,0.25); color: #fbd38d; }
+        .mini-os-counter.mini-concluida { background: rgba(56,161,105,0.22); color: #c6f6d5; }
+        .os-count-card {
+            background: linear-gradient(135deg,#ffffff,#f7fafc);
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 10px 6px;
+            box-shadow: 0 8px 16px rgba(30,58,95,0.08);
+        }
+        .os-count-card strong {
+            display: block;
+            color: #1e3a5f;
+            font-size: 1.25rem;
+            line-height: 1;
+        }
+        .os-count-card span {
+            display: block;
+            color: #718096;
+            font-size: 0.68rem;
+            font-weight: 900;
+            margin-top: 4px;
+        }
+        .os-count-card.iniciada strong { color: #dd6b20; }
+        .os-count-card.concluida strong { color: #2f855a; }
 
 </style>
      
@@ -377,8 +415,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.31 — Patrimônio confirmado, OS iniciada e visual 30%';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.31 — Patrimônio confirmado, OS iniciada e visual 30%';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.32 — Alicerce operacional, contador real e horário Brasil';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.32 — Alicerce operacional, contador real e horário Brasil';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -668,10 +706,17 @@
 
         function formatarDataApi(valor) {
             if (!valor) return '';
-            const texto = String(valor);
+            const texto = String(valor).trim();
+
+            if (/^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}:\d{2}$/.test(texto)) return texto;
             if (/^\d{2}\/\d{2}\/\d{4}$/.test(texto)) return texto;
-            const matchISOHora = texto.match(/^1899-12-30T(\d{2}:\d{2}:\d{2})/);
-            if (matchISOHora) return matchISOHora[1];
+            if (/^\d{2}:\d{2}:\d{2}$/.test(texto)) return texto;
+
+            const matchISO1899 = texto.match(/^1899-12-30T(\d{2}:\d{2}:\d{2})/);
+            if (matchISO1899) return matchISO1899[1];
+
+            const matchISO = texto.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2}:\d{2})/);
+            if (matchISO) return `${matchISO[3]}/${matchISO[2]}/${matchISO[1]} ${matchISO[4]}`;
 
             const data = new Date(valor);
             if (isNaN(data.getTime())) return texto;
@@ -689,8 +734,12 @@
 
         function formatarHoraApi(valor) {
             if (!valor) return '';
-            const texto = String(valor);
+            const texto = String(valor).trim();
             if (/^\d{2}:\d{2}:\d{2}$/.test(texto)) return texto;
+
+            const matchBrasil = texto.match(/\b(\d{2}:\d{2}:\d{2})$/);
+            if (matchBrasil) return matchBrasil[1];
+
             const matchISOHora = texto.match(/T(\d{2}:\d{2}:\d{2})/);
             if (matchISOHora) return matchISOHora[1];
 
@@ -724,6 +773,14 @@
                     eq.ultimaAlteracao = formatarDataApi(item.dataUltimaAlteracao);
                     eq.observacaoStatus = item.observacao || '';
                 });
+
+                try {
+                    const listaOSAtualizada = await listarOSOnline();
+                    ordensServicoCache = Array.isArray(listaOSAtualizada) ? listaOSAtualizada : [];
+                    atualizarTotalizadoresOS(ordensServicoCache);
+                } catch (erroOS) {
+                    console.warn('Status sincronizado, mas OS não atualizadas para contador por grupo:', erroOS);
+                }
 
                 apiOnline = true;
                 saveData();
@@ -1019,6 +1076,67 @@
                 const status = normalizarTextoGMAN(os.statusOS);
                 return ['iniciada', 'em execucao', 'em andamento'].includes(status);
             });
+        }
+
+        function resumoOSGrupoGMAN85632(idGrupo) {
+            const resumo = {
+                total: 0,
+                abertas: 0,
+                iniciadas: 0,
+                concluidas: 0,
+                encerradas: 0,
+                ultimaOS: '',
+                ultimaMovimentacao: '',
+                ultimaTempo: 0
+            };
+
+            (ordensServicoCache || []).forEach(os => {
+                if (String(os.idEquipamento) !== String(idGrupo)) return;
+
+                resumo.total += 1;
+
+                if (isOSAberta(os.statusOS)) resumo.abertas += 1;
+                if (isOSIniciada(os.statusOS)) resumo.iniciadas += 1;
+                if (isOSEncerrada(os.statusOS)) resumo.encerradas += 1;
+                if (normalizarTextoGMAN(os.statusOS).includes('conclu')) resumo.concluidas += 1;
+
+                const tempo = Number(os.ultimaMovimentacaoTempo || 0) || tempoHistoricoGMAN(os) || resumo.total;
+                if (tempo >= resumo.ultimaTempo) {
+                    resumo.ultimaTempo = tempo;
+                    resumo.ultimaOS = os.numeroOS || os.idOS || '';
+                    resumo.ultimaMovimentacao = os.ultimaMovimentacaoDataHora || os.dataConclusao || os.dataInicio || os.dataAbertura || '';
+                }
+            });
+
+            return resumo;
+        }
+
+        function resumoOSGrupoHTMLGMAN85632(idGrupo, compacto = false) {
+            const r = resumoOSGrupoGMAN85632(idGrupo);
+
+            if (compacto) {
+                return `
+                    <br><span style="display:inline-flex; flex-wrap:wrap; gap:4px; margin-top:5px;">
+                        <span class="mini-os-counter">OS total: ${r.total}</span>
+                        <span class="mini-os-counter mini-aberta">Abertas: ${r.abertas}</span>
+                        <span class="mini-os-counter mini-iniciada">Iniciadas: ${r.iniciadas}</span>
+                        <span class="mini-os-counter mini-concluida">Concluídas: ${r.concluidas}</span>
+                    </span>
+                `;
+            }
+
+            return `
+                <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin:14px 0;">
+                    <div class="os-count-card"><strong>${r.total}</strong><span>OS totais</span></div>
+                    <div class="os-count-card"><strong>${r.abertas}</strong><span>Abertas</span></div>
+                    <div class="os-count-card iniciada"><strong>${r.iniciadas}</strong><span>Iniciadas</span></div>
+                    <div class="os-count-card concluida"><strong>${r.concluidas}</strong><span>Concluídas</span></div>
+                </div>
+                <div style="background:#f7fafc; border-radius:12px; padding:10px; color:#1e3a5f; font-size:0.78rem; text-align:left;">
+                    <strong>Última OS:</strong> ${r.ultimaOS || '-'}<br>
+                    <strong>Última movimentação:</strong> ${r.ultimaMovimentacao ? formatarDataApi(r.ultimaMovimentacao) : '-'}
+                </div>
+            `;
         }
 
         function statusVisualGrupoGMAN85631(eq) {
@@ -1606,6 +1724,7 @@ async function criarOSPeloModal() {
                 await apiPost({ acao: 'iniciarOS', idOS, usuario: usuarioLogado.nome, funcao: usuarioLogado.funcao });
                 alert('OS iniciada com sucesso. O grupo aparecerá como Iniciada, mas o equipamento permanece Operando até atualização de andamento.');
                 await recarregarPainelOS();
+                await carregarStatusOnline();
                 applyFilters();
             }
             catch (erro) { console.error(erro); alert('Erro ao iniciar OS: ' + erro.message); }
@@ -3371,6 +3490,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                         <div class="equipment-system">
                             <span class="system-tag ${getSystemTagClass(eq.systemCode)}">${eq.systemCode}</span>
                             ${eq.system.toUpperCase()} | ID: ${eq.id}
+                            ${resumoOSGrupoHTMLGMAN85632(eq.id, true)}
                             ${eq.ultimoTecnico ? `<br><span style="font-size: 0.7rem; color: #63b3ed;">👤 ${eq.ultimoTecnico} | 🕐 ${eq.ultimaAlteracao}</span>` : ''}
                             ${grupoTemOSIniciadaGMAN85631(eq.id) && eq.status === 'ok' ? `<br><span style="color:#f6ad55; font-size:0.72rem; font-weight:900;">▶ OS iniciada — equipamento ainda operacionalmente Operando</span>` : ''}
                             ${eq.observacaoStatus ? `<br><span style="display:inline-block; margin-top:4px; color:#fbd38d; font-size:0.7rem; font-weight:800;">📝 ${escaparHTMLGMAN(eq.observacaoStatus).substring(0, 140)}</span>` : ''}
@@ -3717,6 +3837,8 @@ function openEquipment(id) {
                             ${labelStatusEquipamentoMaiusculo(eq.status, eq.observacaoStatus)}
                         </div>
                     </div>
+
+                    ${resumoOSGrupoHTMLGMAN85632(eq.id, false)}
 
                     ${eq.ultimoTecnico ? `
                     <div style="margin: 15px 0; padding: 10px; background: #e6fffa; border-radius: 10px; border-left: 4px solid #38a169; text-align: left;">
