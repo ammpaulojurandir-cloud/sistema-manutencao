@@ -93,12 +93,13 @@
         .os-badge { display: inline-block; padding: 4px 8px; border-radius: 999px; color: white; font-size: 0.68rem; font-weight: 700; margin: 2px 4px 2px 0; }
         .os-aberta { background: #3182ce; }
         .os-execucao { background: #d69e2e; }
+        .os-iniciada { background: #ed8936; }
         .os-concluida { background: #38a169; }
         .os-cancelada { background: #718096; }
         .form-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e0; border-radius: 9px; color: #1a202c; font-size: 0.9rem; }
         .form-label { display: block; color: #2d3748; font-size: 0.78rem; font-weight: 700; margin: 8px 0 5px; text-align: left; }
      
-        /* GMAN 8.5.6.30 — evolução visual controlada 20% */
+        /* GMAN 8.5.6.31 — evolução visual controlada 20% */
         body::before {
             content: "";
             position: fixed;
@@ -152,6 +153,68 @@
             padding: 10px 12px;
             cursor: pointer;
             font-weight: 900;
+        }
+
+
+        /* GMAN 8.5.6.31 — visual 30% e ícones com leve 3D controlado */
+        .icon-3d-gman, .status-icon, .action-btn, .system-btn {
+            transform-style: preserve-3d;
+        }
+        .status-icon {
+            position: relative;
+            font-weight: 1000;
+            text-shadow: 0 2px 2px rgba(0,0,0,0.25), 0 -1px 0 rgba(255,255,255,0.28);
+            box-shadow:
+                inset 0 2px 6px rgba(255,255,255,0.38),
+                inset 0 -5px 10px rgba(0,0,0,0.18),
+                0 10px 20px rgba(0,0,0,0.22);
+            border: 1px solid rgba(255,255,255,0.35);
+        }
+        .status-icon::after {
+            content: "";
+            position: absolute;
+            top: 5px;
+            left: 7px;
+            width: 35%;
+            height: 24%;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.48);
+            filter: blur(0.4px);
+        }
+        .status-iniciada, .badge-iniciada { background: linear-gradient(135deg,#f6ad55,#dd6b20); }
+        .status-ok { background: linear-gradient(135deg,#68d391,#2f855a); }
+        .status-alert { background: linear-gradient(135deg,#f6e05e,#d69e2e); }
+        .status-down { background: linear-gradient(135deg,#fc8181,#c53030); }
+        .status-badge {
+            box-shadow: inset 0 2px 5px rgba(255,255,255,0.22), 0 8px 16px rgba(0,0,0,0.16);
+            border: 1px solid rgba(255,255,255,0.25);
+        }
+        .equipment-item {
+            border-radius: 18px;
+            margin: 8px;
+            box-shadow: 0 10px 22px rgba(0,0,0,0.12);
+        }
+        .equipment-list {
+            padding: 6px;
+            background: linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.025));
+        }
+        .action-btn, .system-btn {
+            background-image: linear-gradient(135deg,rgba(255,255,255,0.18),rgba(255,255,255,0.06));
+            box-shadow:
+                inset 0 1px 3px rgba(255,255,255,0.22),
+                0 10px 20px rgba(0,0,0,0.16);
+        }
+        .action-btn:hover, .system-btn:hover {
+            transform: translateY(-2px) scale(1.01);
+        }
+        .main-actions {
+            padding: 8px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+        }
+        #loginScreen > div {
+            box-shadow: 0 26px 70px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.6) !important;
         }
 
 </style>
@@ -314,8 +377,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.30 — Status, áudio gravado e KPI por meta';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.30 — Status, áudio gravado e KPI por meta';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.31 — Patrimônio confirmado, OS iniciada e visual 30%';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.31 — Patrimônio confirmado, OS iniciada e visual 30%';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -344,6 +407,7 @@
         function isOSIniciada(status) {
             const s = normalizarTextoGMAN(status);
             return [
+                'iniciada',
                 'em execucao',
                 'em teste',
                 'aguardando material',
@@ -378,6 +442,7 @@
         function classificarStatusOSGMAN(status) {
             const s = normalizarTextoGMAN(status);
 
+            if (s.includes('iniciad')) return 'Iniciada';
             if (s.includes('execucao') || s.includes('execucao')) return 'Em execução';
             if (s.includes('teste')) return 'Em teste';
             if (s.includes('aguardando material')) return 'Aguardando material';
@@ -931,7 +996,57 @@
             if (modal) modal.remove();
         }
 
-        function montarLinhasPatrimonioGrupoGMAN(patrimonios = {}, opcoes = {}) {
+        
+        function idCampoConfirmacaoPatGMAN(componente) {
+            return {
+                PAINEL: 'confirmarPatPainel',
+                MOTOR: 'confirmarPatMotor',
+                BOMBA: 'confirmarPatBomba',
+                VS: 'confirmarPatVS',
+                VR: 'confirmarPatVR',
+                RETENCAO: 'confirmarPatRetencao',
+                TUBULACAO: 'confirmarPatTubulacao'
+            }[componente] || '';
+        }
+
+        function componenteObrigatorioPATGMAN(componente) {
+            return COMPONENTES_PAT_OBRIGATORIO_GMAN85627.includes(componente);
+        }
+
+        function grupoTemOSIniciadaGMAN85631(idGrupo) {
+            return (ordensServicoCache || []).some(os => {
+                if (String(os.idEquipamento) !== String(idGrupo)) return false;
+                const status = normalizarTextoGMAN(os.statusOS);
+                return ['iniciada', 'em execucao', 'em andamento'].includes(status);
+            });
+        }
+
+        function statusVisualGrupoGMAN85631(eq) {
+            if (!eq) return {
+                label: 'Sem status',
+                classe: 'badge-alert',
+                iconClass: 'status-alert',
+                iconText: '!'
+            };
+
+            if (grupoTemOSIniciadaGMAN85631(eq.id) && eq.status === 'ok') {
+                return {
+                    label: 'Iniciada',
+                    classe: 'badge-iniciada',
+                    iconClass: 'status-iniciada',
+                    iconText: '▶'
+                };
+            }
+
+            return {
+                label: labelStatusEquipamento(eq.status, eq.observacaoStatus),
+                classe: 'badge-' + eq.status,
+                iconClass: 'status-' + eq.status,
+                iconText: eq.status === 'ok' ? '✓' : eq.status === 'alert' ? '!' : '✕'
+            };
+        }
+
+function montarLinhasPatrimonioGrupoGMAN(patrimonios = {}, opcoes = {}) {
             const modo = opcoes.modo || 'consulta';
             const obrigatorio = !!opcoes.obrigatorio;
             const descricoes = opcoes.descricoes || {};
@@ -942,7 +1057,8 @@
                 const campoDesc = campoDescricaoPorComponenteGMAN(componente);
                 const valor = patrimonios[campo] || '';
                 const descricao = descricoes[campoDesc] || '';
-                const patObrigatorio = obrigatorio && COMPONENTES_PAT_OBRIGATORIO_GMAN85627.includes(componente);
+                const patObrigatorio = obrigatorio && componenteObrigatorioPATGMAN(componente);
+                const jaCadastrado = !!valor;
 
                 if (modo === 'abertura') {
                     const idPat = idCampoPatrimonioAberturaGMAN(componente);
@@ -962,14 +1078,26 @@
                 if (modo === 'conclusao') {
                     const idPat = idCampoPatrimonioConclusaoGMAN(componente);
                     const idDesc = idCampoDescricaoConclusaoGMAN(componente);
+                    const idConf = idCampoConfirmacaoPatGMAN(componente);
                     const textoDescricao = descricao || '';
+                    const labelObrig = componente === 'TUBULACAO'
+                        ? 'PAT opcional'
+                        : jaCadastrado
+                            ? 'PAT já cadastrado — confirmar com tique'
+                            : patObrigatorio
+                                ? 'PAT obrigatório'
+                                : 'PAT opcional';
 
                     return `
-                        <div style="display:grid; grid-template-columns:150px 1fr 1.25fr; gap:8px; align-items:start; margin-bottom:10px; padding:10px; border:1px solid #e2e8f0; border-radius:14px; background:#ffffff;">
+                        <div style="display:grid; grid-template-columns:150px 1.05fr 1.25fr; gap:8px; align-items:start; margin-bottom:10px; padding:10px; border:1px solid #e2e8f0; border-radius:16px; background:linear-gradient(135deg,#ffffff,#f8fbff); box-shadow:0 8px 18px rgba(30,58,95,0.07);">
                             <label class="form-label" style="margin:11px 0 0;">${rotulo}</label>
                             <div>
-                                <input id="${idPat}" class="form-field" value="${escaparHTMLGMAN(valor)}" placeholder="${componente === 'TUBULACAO' ? 'PAT opcional da Tubulação' : 'PAT do ' + rotulo}" ${patObrigatorio ? 'required' : ''}>
-                                <small style="color:#718096;">${patObrigatorio ? 'PAT obrigatório' : 'PAT opcional'}</small>
+                                <input id="${idPat}" class="form-field" value="${escaparHTMLGMAN(valor)}" placeholder="${componente === 'TUBULACAO' ? 'PAT opcional da Tubulação' : 'PAT do ' + rotulo}" ${patObrigatorio && !jaCadastrado ? 'required' : ''}>
+                                <label style="display:flex; align-items:center; gap:7px; color:#1e3a5f; font-size:0.76rem; font-weight:900; background:${jaCadastrado ? '#f0fff4' : '#fffaf0'}; border:1px solid ${jaCadastrado ? '#9ae6b4' : '#fbd38d'}; border-radius:10px; padding:7px; margin-top:4px;">
+                                    <input id="${idConf}" class="confirmarPatObrigatorioGMAN" data-componente="${componente}" data-obrigatorio="${patObrigatorio ? 'sim' : 'nao'}" type="checkbox" ${componente === 'TUBULACAO' ? '' : ''}>
+                                    <span>${componente === 'TUBULACAO' ? 'Confirmar se houver PAT informado' : 'Confirmo que o patrimônio está correto'}</span>
+                                </label>
+                                <small style="color:#718096;">${labelObrig}</small>
                             </div>
                             <div style="display:grid; gap:7px;">
                                 <textarea id="${idDesc}" style="display:none;">${escaparHTMLGMAN(textoDescricao)}</textarea>
@@ -1022,12 +1150,30 @@
             if (!patrimonioObrigatorio) return [];
 
             const faltantes = [];
-            if (!patrimonios.patPainel) faltantes.push('PAT PAINEL');
-            if (!patrimonios.patMotor) faltantes.push('PAT MOTOR');
-            if (!patrimonios.patBomba) faltantes.push('PAT BOMBA');
-            if (!patrimonios.patVS) faltantes.push('PAT Válvula de Sucção');
-            if (!patrimonios.patVR) faltantes.push('PAT Válvula de Recalque');
-            if (!patrimonios.patRetencao) faltantes.push('PAT Válvula de Retenção');
+
+            const regras = [
+                { nome: 'PAT PAINEL', valor: patrimonios.patPainel, componente: 'PAINEL' },
+                { nome: 'PAT MOTOR', valor: patrimonios.patMotor, componente: 'MOTOR' },
+                { nome: 'PAT BOMBA', valor: patrimonios.patBomba, componente: 'BOMBA' },
+                { nome: 'PAT Válvula de Sucção', valor: patrimonios.patVS, componente: 'VS' },
+                { nome: 'PAT Válvula de Recalque', valor: patrimonios.patVR, componente: 'VR' },
+                { nome: 'PAT Válvula de Retenção', valor: patrimonios.patRetencao, componente: 'RETENCAO' }
+            ];
+
+            regras.forEach(regra => {
+                if (!regra.valor) {
+                    faltantes.push(regra.nome);
+                    return;
+                }
+
+                const idConf = idCampoConfirmacaoPatGMAN(regra.componente);
+                const confirmacao = document.getElementById(idConf);
+
+                if (confirmacao && !confirmacao.checked) {
+                    faltantes.push(regra.nome + ' — marque o tique de confirmação');
+                }
+            });
+
             return faltantes;
         }
 
@@ -1093,6 +1239,7 @@
                 const listaOS = await listarOSOnline();
                 ordensServicoCache = listaOS;
                 atualizarTotalizadoresOS(listaOS);
+                applyFilters();
                 if (document.getElementById('osModal')) renderizarOS(listaOS);
             } catch (erro) {
                 console.error('Erro ao atualizar totalizadores de OS:', erro);
@@ -1111,6 +1258,7 @@
 
         function classeStatusOS(status) {
             const s = String(status || '').toLowerCase();
+            if (s.includes('inici')) return 'os-iniciada';
             if (s.includes('exec')) return 'os-execucao';
             if (s.includes('concl')) return 'os-concluida';
             if (s.includes('cancel')) return 'os-cancelada';
@@ -1194,6 +1342,7 @@
                 const lista = await listarOSOnline();
                 ordensServicoCache = lista;
                 atualizarTotalizadoresOS(lista);
+                applyFilters();
                 renderizarOS(lista);
             }
             catch (erro) { console.error(erro); container.innerHTML = '<p style="color:#e53e3e; font-weight:bold;">Erro ao carregar Ordens de Serviço. Confira a API GMAN 8.5.</p>'; }
@@ -1255,7 +1404,7 @@
                 const encerrada = isOSEncerrada(os.statusOS);
                 const permissaoAlterar = usuarioPodeAlterarOS(os);
                 const podeIniciar = !encerrada && permissaoAlterar && String(os.statusOS) === 'Aberta';
-                const statusPermiteAcao = ['Em execução', 'Aguardando material', 'Aguardando liberação', 'Reaberta', 'Parado', 'Em teste', 'Em manutenção (operando)', 'Operando com restrição'].includes(String(os.statusOS));
+                const statusPermiteAcao = ['Iniciada', 'Em execução', 'Aguardando material', 'Aguardando liberação', 'Reaberta', 'Parado', 'Em teste', 'Em manutenção (operando)', 'Operando com restrição', 'Em andamento'].includes(String(os.statusOS));
                 const podeConcluir = !encerrada && permissaoAlterar && statusPermiteAcao;
                 const podeAtualizarAndamento = !encerrada && permissaoAlterar && statusPermiteAcao;
                 const podeCancelar = !encerrada && podeGerenciarOS();
@@ -1453,7 +1602,12 @@ async function criarOSPeloModal() {
         async function iniciarOS(idOS) {
             if (!validarPermissaoTelaOS(idOS, 'iniciar')) return;
             if (!confirm('Confirmar início desta OS?')) return;
-            try { await apiPost({ acao: 'iniciarOS', idOS, usuario: usuarioLogado.nome, funcao: usuarioLogado.funcao }); alert('OS iniciada com sucesso.'); await recarregarPainelOS(); }
+            try {
+                await apiPost({ acao: 'iniciarOS', idOS, usuario: usuarioLogado.nome, funcao: usuarioLogado.funcao });
+                alert('OS iniciada com sucesso. O grupo aparecerá como Iniciada, mas o equipamento permanece Operando até atualização de andamento.');
+                await recarregarPainelOS();
+                applyFilters();
+            }
             catch (erro) { console.error(erro); alert('Erro ao iniciar OS: ' + erro.message); }
         }
 
@@ -3205,10 +3359,12 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
         
         function renderEquipment(list = equipment) {
             const container = document.getElementById('equipmentList');
-            container.innerHTML = list.map(eq => `
+            container.innerHTML = list.map(eq => {
+                const visual = statusVisualGrupoGMAN85631(eq);
+                return `
                 <div class="equipment-item" onclick="openEquipment('${eq.id}')">
-                    <div class="status-icon status-${eq.status}">
-                        ${eq.status === 'ok' ? '✓' : eq.status === 'alert' ? '!' : '✕'}
+                    <div class="status-icon ${visual.iconClass} icon-3d-gman">
+                        ${visual.iconText}
                     </div>
                     <div>
                         <div class="equipment-name">${eq.name}</div>
@@ -3216,14 +3372,16 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                             <span class="system-tag ${getSystemTagClass(eq.systemCode)}">${eq.systemCode}</span>
                             ${eq.system.toUpperCase()} | ID: ${eq.id}
                             ${eq.ultimoTecnico ? `<br><span style="font-size: 0.7rem; color: #63b3ed;">👤 ${eq.ultimoTecnico} | 🕐 ${eq.ultimaAlteracao}</span>` : ''}
-                            ${(eq.status === 'alert' || eq.status === 'down') && eq.ultimaAlteracao ? `<br><span style="color: ${eq.status === 'alert' ? '#ecc94b' : '#f56565'}; font-size: 0.7rem; font-weight: bold;">⚠️ ${labelStatusEquipamento(eq.status, eq.observacaoStatus)} desde: ${eq.ultimaAlteracao}</span>` : ''}
+                            ${grupoTemOSIniciadaGMAN85631(eq.id) && eq.status === 'ok' ? `<br><span style="color:#f6ad55; font-size:0.72rem; font-weight:900;">▶ OS iniciada — equipamento ainda operacionalmente Operando</span>` : ''}
+                            ${eq.observacaoStatus ? `<br><span style="display:inline-block; margin-top:4px; color:#fbd38d; font-size:0.7rem; font-weight:800;">📝 ${escaparHTMLGMAN(eq.observacaoStatus).substring(0, 140)}</span>` : ''}
                         </div>
                     </div>
-                    <span class="status-badge badge-${eq.status}">
-                        ${labelStatusEquipamento(eq.status, eq.observacaoStatus)}
+                    <span class="status-badge ${visual.classe}">
+                        ${visual.label}
                     </span>
                 </div>
-            `).join('');
+            `;
+            }).join('');
             
             let activeList = equipment;
 
@@ -3628,6 +3786,7 @@ function openEquipment(id) {
                 const listaOS = await listarOSOnline();
                 ordensServicoCache = listaOS;
                 atualizarTotalizadoresOS(listaOS);
+                applyFilters();
             } catch (erro) {
                 console.error('Erro ao carregar totalizadores de OS:', erro);
             }
