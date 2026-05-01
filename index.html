@@ -182,7 +182,7 @@
 
      <div class="systems-filter">
          <button class="system-btn active" onclick="filterSystem('all')">TODAS</button>
-         <button class="system-btn" onclick="filterSystem('moinhos de vento')">100 Sistema Moinhos de Vento de Vento de Vento</button>
+         <button class="system-btn" onclick="filterSystem('moinhos de vento')">100- Moinhos De Vento</button>
          <button class="system-btn" onclick="filterSystem('são joao')">200 - São João</button>
          <button class="system-btn" onclick="filterSystem('menino deus')">300 - Menino Deus</button>
          <button class="system-btn" onclick="filterSystem('belem novo')">400 - Belém Novo</button>
@@ -258,8 +258,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.22 — Consulta do grupo e patrimônio';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.22 — Estrutura patrimonial dos grupos';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.23 — Correções abertura, andamento e histórico';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.23 — Estrutura patrimonial dos grupos';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -1067,15 +1067,9 @@
                         <option value="Crítica">Crítica</option>
                     </select>
 
-                    <label class="form-label">Equipe responsável</label>
-                    <input id="osEquipe" class="form-field" placeholder="Ex.: Mecânica Fortes, Elétrica Jeferson, Usinagem Gabriel, Caldeiraria Rocha...">
-
-                    <label class="form-label">Executor principal</label>
+                    <label class="form-label">Executor principal / responsável</label>
                     <select id="osResponsavel" class="form-field">${gerarOpcoesExecutores()}</select>
-                    <p style="color:#718096; font-size:0.75rem; margin:-6px 0 10px;">O executor principal será gravado no campo RESPONSAVEL da OS.</p>
-
-                    <label class="form-label">Membros da equipe</label>
-                    <textarea id="osMembrosEquipe" class="form-field" rows="2" placeholder="Informe os membros da equipe. Ex.: Mattos, Oliveira, Roberto"></textarea>
+                    <p style="color:#718096; font-size:0.75rem; margin:-6px 0 10px;">O executor principal será gravado no campo RESPONSAVEL da OS. Equipe responsável e membros da equipe não são necessários na abertura.</p>
 
                     <label class="form-label">Descrição do problema</label>
                     <textarea id="osDescricao" class="form-field" rows="4" placeholder="Descreva o problema informado ou a atividade solicitada"></textarea>
@@ -1095,9 +1089,9 @@ async function criarOSPeloModal() {
             const area = document.getElementById('osArea').value;
             const tipoManutencao = document.getElementById('osTipo').value;
             const prioridade = document.getElementById('osPrioridade').value;
-            const equipeResponsavel = document.getElementById('osEquipe').value.trim();
+            const equipeResponsavel = '';
             const responsavel = document.getElementById('osResponsavel').value.trim();
-            const membrosEquipe = document.getElementById('osMembrosEquipe').value.trim();
+            const membrosEquipe = '';
             const descricaoProblema = document.getElementById('osDescricao').value.trim();
 
             const faltantes = [];
@@ -1109,9 +1103,7 @@ async function criarOSPeloModal() {
             if (!area) faltantes.push('área/setor');
             if (!tipoManutencao) faltantes.push('tipo de manutenção');
             if (!prioridade) faltantes.push('prioridade');
-            if (!equipeResponsavel) faltantes.push('equipe responsável');
             if (!responsavel) faltantes.push('executor principal/responsável');
-            if (!membrosEquipe) faltantes.push('membros da equipe');
             if (!descricaoProblema) faltantes.push('descrição do problema');
 
             if (faltantes.length) {
@@ -1380,8 +1372,8 @@ async function criarOSPeloModal() {
                         <option value="OS em execução">Manutenção (OS em execução)</option>
                     </select>
 
-                    <label class="form-label">Observação</label>
-                    <textarea id="andamentoObs" class="form-field" rows="4" placeholder="Descreva o andamento, pendência ou condição atual"></textarea>
+                    <label class="form-label">Justificativa / observação obrigatória</label>
+                    <textarea id="andamentoObs" class="form-field" rows="4" placeholder="Descreva obrigatoriamente o andamento, pendência, motivo ou condição atual"></textarea>
 
                     <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;">
                         <button onclick="document.getElementById('andamentoOSModal').remove();" style="padding:11px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">
@@ -1402,6 +1394,11 @@ async function criarOSPeloModal() {
 
             const condicaoOperacional = document.getElementById('andamentoCondicao').value;
             const observacao = document.getElementById('andamentoObs').value.trim();
+
+            if (!observacao) {
+                alert('Informe uma justificativa/observação antes de atualizar o andamento da OS.');
+                return;
+            }
 
             try {
                 await apiPost({
@@ -2347,7 +2344,7 @@ function atualizarPreviewKmRodado() {
         }
 
       const equipment = [
-            // SISTEMA MOINHOS DE VENTO (100)
+            // SISTEMA MOINHOS DE VENTO DE VENTO (100)
             { id: '101-GR1', name: '101 bruta (GR1)', system: 'moinhos de vento', systemCode: '100', status: 'ok' },
             { id: '101-GR2', name: '101 bruta (GR2)', system: 'moinhos de vento', systemCode: '100', status: 'ok' },
             { id: '101-GR3', name: '101 bruta (GR3)', system: 'moinhos de vento', systemCode: '100', status: 'ok' },
@@ -2803,9 +2800,9 @@ function openEquipment(id) {
                     ` : ''}
                     
                     ${eq.historico && eq.historico.length > 0 ? `
-                    <div style="margin: 15px 0; max-height: 100px; overflow-y: auto; text-align: left; background: #f9f9f9; padding: 10px; border-radius: 8px;">
-                        <p style="color: #666; font-size: 0.75rem; margin-bottom: 5px;"><strong>Histórico Recente:</strong></p>
-                        ${eq.historico.slice(-3).map(h => `
+                    <div style="margin: 15px 0; max-height: 150px; overflow-y: auto; text-align: left; background: #f9f9f9; padding: 10px; border-radius: 8px;">
+                        <p style="color: #666; font-size: 0.75rem; margin-bottom: 5px;"><strong>Histórico recente — últimas 5 intervenções:</strong></p>
+                        ${eq.historico.slice(-5).map(h => `
                             <div style="font-size: 0.7rem; color: #666; padding: 3px 0; border-bottom: 1px solid #eee;">
                                 ${h.data} - <strong>${h.tecnico}</strong>: <em>${statusLabels[h.statusAnterior]} → ${statusLabels[h.statusNovo]}</em>
                             </div>
