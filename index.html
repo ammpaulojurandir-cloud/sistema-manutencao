@@ -99,7 +99,7 @@
         .form-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e0; border-radius: 9px; color: #1a202c; font-size: 0.9rem; }
         .form-label { display: block; color: #2d3748; font-size: 0.78rem; font-weight: 700; margin: 8px 0 5px; text-align: left; }
      
-        /* GMAN 8.5.6.32 — evolução visual controlada 20% */
+        /* GMAN 8.5.6.33 — evolução visual controlada 20% */
         body::before {
             content: "";
             position: fixed;
@@ -156,7 +156,7 @@
         }
 
 
-        /* GMAN 8.5.6.32 — visual 30% e ícones com leve 3D controlado */
+        /* GMAN 8.5.6.33 — visual 30% e ícones com leve 3D controlado */
         .icon-3d-gman, .status-icon, .action-btn, .system-btn {
             transform-style: preserve-3d;
         }
@@ -218,7 +218,7 @@
         }
 
 
-        /* GMAN 8.5.6.32 — contador real de OS por grupo */
+        /* GMAN 8.5.6.33 — contador real de OS por grupo */
         .mini-os-counter {
             display: inline-block;
             padding: 3px 7px;
@@ -415,8 +415,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.32 — Alicerce operacional, contador real e horário Brasil';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.32 — Alicerce operacional, contador real e horário Brasil';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.33 — Correção vínculo OS x grupo';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.33 — Correção vínculo OS x grupo';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -426,6 +426,30 @@
                 .toLowerCase()
                 .normalize('NFD')
                 .replace(/[\u0300-\u036f]/g, '');
+        }
+
+        function chaveGrupoGMAN85633(valor) {
+            const texto = String(valor || '')
+                .trim()
+                .toUpperCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '');
+
+            if (!texto) return '';
+
+            const matchGR = texto.match(/(\d{3}).*?GR\s*[- ]?\s*(\d+)/);
+            if (matchGR) return `${matchGR[1]}-GR${Number(matchGR[2])}`;
+
+            const matchCodigo = texto.match(/(\d{3})\s*[- ]?\s*GR\s*[- ]?\s*(\d+)/);
+            if (matchCodigo) return `${matchCodigo[1]}-GR${Number(matchCodigo[2])}`;
+
+            return texto.replace(/[^A-Z0-9]/g, '');
+        }
+
+        function gruposIguaisGMAN85633(a, b) {
+            const ca = chaveGrupoGMAN85633(a);
+            const cb = chaveGrupoGMAN85633(b);
+            return ca !== '' && cb !== '' && ca === cb;
         }
 
         function calcularPercentualGMAN(parte, total) {
@@ -1072,7 +1096,7 @@
 
         function grupoTemOSIniciadaGMAN85631(idGrupo) {
             return (ordensServicoCache || []).some(os => {
-                if (String(os.idEquipamento) !== String(idGrupo)) return false;
+                if (!gruposIguaisGMAN85633(os.idEquipamento || os.equipamento, idGrupo)) return false;
                 const status = normalizarTextoGMAN(os.statusOS);
                 return ['iniciada', 'em execucao', 'em andamento'].includes(status);
             });
@@ -1091,7 +1115,7 @@
             };
 
             (ordensServicoCache || []).forEach(os => {
-                if (String(os.idEquipamento) !== String(idGrupo)) return;
+                if (!gruposIguaisGMAN85633(os.idEquipamento || os.equipamento, idGrupo)) return;
 
                 resumo.total += 1;
 
@@ -1475,7 +1499,7 @@ function montarLinhasPatrimonioGrupoGMAN(patrimonios = {}, opcoes = {}) {
 
             if (String(modo).startsWith('grupo:')) {
                 const idGrupoModo = String(modo).replace('grupo:', '');
-                base = base.filter(os => String(os.idEquipamento) === String(idGrupoModo));
+                base = base.filter(os => gruposIguaisGMAN85633(os.idEquipamento || os.equipamento, idGrupoModo));
             } else if (modo === 'encerradas') {
                 if (!podeGerenciarOS()) {
                     base = [];
@@ -3693,7 +3717,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
             try {
                 const lista = await listarOSOnline();
                 const todasDoGrupo = lista
-                    .filter(os => String(os.idEquipamento) === String(idGrupo))
+                    .filter(os => gruposIguaisGMAN85633(os.idEquipamento || os.equipamento, idGrupo))
                     .sort(ordenarOSMaisRecenteGMAN);
 
                 const ehGestao = podeGerenciarOS();
