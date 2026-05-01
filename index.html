@@ -257,8 +257,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.26 — Modelos patrimoniais e numeração oficial';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.26 — Numeração oficial de OS e padrão Brasil';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.27 — Componentes, exceções e data/hora';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.27 — Componentes, exceções e data/hora';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -542,13 +542,37 @@
 
         function formatarDataApi(valor) {
             if (!valor) return '';
+            const texto = String(valor);
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(texto)) return texto;
+            const matchISOHora = texto.match(/^1899-12-30T(\d{2}:\d{2}:\d{2})/);
+            if (matchISOHora) return matchISOHora[1];
+
             const data = new Date(valor);
-            if (isNaN(data.getTime())) return String(valor);
+            if (isNaN(data.getTime())) return texto;
 
             return data.toLocaleString('pt-BR', {
+                timeZone: 'America/Sao_Paulo',
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        function formatarHoraApi(valor) {
+            if (!valor) return '';
+            const texto = String(valor);
+            if (/^\d{2}:\d{2}:\d{2}$/.test(texto)) return texto;
+            const matchISOHora = texto.match(/T(\d{2}:\d{2}:\d{2})/);
+            if (matchISOHora) return matchISOHora[1];
+
+            const data = new Date(valor);
+            if (isNaN(data.getTime())) return texto;
+
+            return data.toLocaleTimeString('pt-BR', {
+                timeZone: 'America/Sao_Paulo',
                 hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit'
@@ -615,7 +639,8 @@
             return retorno;
         }
 
-        const COMPONENTES_GRUPO_GMAN = ['PAINEL', 'MOTOR', 'BOMBA', 'VS', 'VR'];
+        const COMPONENTES_GRUPO_GMAN = ['PAINEL', 'MOTOR', 'BOMBA', 'VS', 'VR', 'RETENCAO', 'TUBULACAO'];
+        const COMPONENTES_PAT_OBRIGATORIO_GMAN85627 = ['PAINEL', 'MOTOR', 'BOMBA', 'VS', 'VR', 'RETENCAO'];
 
         function escaparHTMLGMAN(valor) {
             return String(valor === null || valor === undefined ? '' : valor)
@@ -632,7 +657,9 @@
                 MOTOR: 'MOTOR',
                 BOMBA: 'BOMBA',
                 VS: 'Válvula de Sucção',
-                VR: 'Válvula de Recalque'
+                VR: 'Válvula de Recalque',
+                RETENCAO: 'Válvula de Retenção',
+                TUBULACAO: 'Tubulação'
             }[componente] || componente;
         }
 
@@ -642,7 +669,9 @@
                 MOTOR: 'Marca:\\nModelo:\\nPotência:\\nTensão:\\nCorrente nominal:\\nCorrente de trabalho:\\nRolamentos:\\nCondição visual:',
                 BOMBA: 'Modelo:\\nTipo:\\nDiâmetro da sucção:\\nDiâmetro do recalque:\\nRolamentos:\\nRetentores:\\nSelo:\\nGaxeta:\\nAcoplamento:\\nDiâmetro do rotor:\\nTipo de óleo:',
                 VS: 'Tipo:\\nDiâmetro:\\nAcionamento:\\nFlanges:',
-                VR: 'Tipo:\\nDiâmetro:\\nAcionamento:\\nFlanges:'
+                VR: 'Tipo:\\nDiâmetro:\\nAcionamento:\\nFlanges:',
+                RETENCAO: 'Tipo:\\nDiâmetro:\\nAcionamento:\\nFlanges:',
+                TUBULACAO: 'Diâmetro:\\nMaterial:\\nSituação visual:'
             };
 
             return modelos[componente] || '';
@@ -654,7 +683,9 @@
                 MOTOR: 'PAT_MOTOR',
                 BOMBA: 'PAT_BOMBA',
                 VS: 'PAT_VS',
-                VR: 'PAT_VR'
+                VR: 'PAT_VR',
+                RETENCAO: 'PAT_RETENCAO',
+                TUBULACAO: 'PAT_TUBULACAO'
             }[componente] || '';
         }
 
@@ -664,7 +695,9 @@
                 MOTOR: 'concluirPatMotor',
                 BOMBA: 'concluirPatBomba',
                 VS: 'concluirPatVS',
-                VR: 'concluirPatVR'
+                VR: 'concluirPatVR',
+                RETENCAO: 'concluirPatRetencao',
+                TUBULACAO: 'concluirPatTubulacao'
             }[componente] || '';
         }
 
@@ -674,7 +707,9 @@
                 MOTOR: 'abrirPatMotor',
                 BOMBA: 'abrirPatBomba',
                 VS: 'abrirPatVS',
-                VR: 'abrirPatVR'
+                VR: 'abrirPatVR',
+                RETENCAO: 'abrirPatRetencao',
+                TUBULACAO: 'abrirPatTubulacao'
             }[componente] || '';
         }
 
@@ -696,7 +731,9 @@
                 MOTOR: 'DESC_MOTOR',
                 BOMBA: 'DESC_BOMBA',
                 VS: 'DESC_VS',
-                VR: 'DESC_VR'
+                VR: 'DESC_VR',
+                RETENCAO: 'DESC_RETENCAO',
+                TUBULACAO: 'DESC_TUBULACAO'
             }[componente] || '';
         }
 
@@ -706,7 +743,9 @@
                 MOTOR: 'concluirDescMotor',
                 BOMBA: 'concluirDescBomba',
                 VS: 'concluirDescVS',
-                VR: 'concluirDescVR'
+                VR: 'concluirDescVR',
+                RETENCAO: 'concluirDescRetencao',
+                TUBULACAO: 'concluirDescTubulacao'
             }[componente] || '';
         }
 
@@ -716,8 +755,15 @@
                 MOTOR: 'abrirDescMotor',
                 BOMBA: 'abrirDescBomba',
                 VS: 'abrirDescVS',
-                VR: 'abrirDescVR'
+                VR: 'abrirDescVR',
+                RETENCAO: 'abrirDescRetencao',
+                TUBULACAO: 'abrirDescTubulacao'
             }[componente] || '';
+        }
+
+        function areaPatrimonioOpcionalTelaGMAN85627(os) {
+            const texto = normalizarTextoGMAN(((os && os.area) || '') + ' ' + ((os && os.equipeResponsavel) || ''));
+            return texto.includes('instalacoes mecanicas') || texto.includes('usinagem') || texto.includes('caldeiraria');
         }
 
         function montarLinhasPatrimonioGrupoGMAN(patrimonios = {}, opcoes = {}) {
@@ -731,6 +777,7 @@
                 const campoDesc = campoDescricaoPorComponenteGMAN(componente);
                 const valor = patrimonios[campo] || '';
                 const descricao = descricoes[campoDesc] || '';
+                const patObrigatorio = obrigatorio && COMPONENTES_PAT_OBRIGATORIO_GMAN85627.includes(componente);
 
                 if (modo === 'abertura') {
                     const idPat = idCampoPatrimonioAberturaGMAN(componente);
@@ -740,8 +787,8 @@
                             <input type="checkbox" class="osComponenteSolicitado" value="${componente}">
                             <strong style="color:#1e3a5f;">${rotulo}</strong>
                             <div style="display:grid; grid-template-columns:1fr; gap:6px;">
-                                <input id="${idPat}" class="form-field" value="${escaparHTMLGMAN(valor)}" readonly placeholder="PAT ainda não informado" style="margin:0; background:#f7fafc;">
-                                <textarea id="${idDesc}" class="form-field" readonly placeholder="Descrição ainda não informada" style="margin:0; background:#f7fafc; font-size:0.78rem; min-height:54px;">${escaparHTMLGMAN(descricao)}</textarea>
+                                <input id="${idPat}" class="form-field" value="${escaparHTMLGMAN(valor)}" readonly placeholder="${componente === 'TUBULACAO' ? 'PAT não obrigatório' : 'PAT ainda não informado'}" style="margin:0; background:#f7fafc;">
+                                <textarea id="${idDesc}" class="form-field" readonly placeholder="Ficha técnica ainda não informada" style="margin:0; background:#f7fafc; font-size:0.78rem; min-height:54px;">${escaparHTMLGMAN(descricao)}</textarea>
                             </div>
                         </label>
                     `;
@@ -755,8 +802,8 @@
                     return `
                         <div style="display:grid; grid-template-columns:150px 1fr 1.5fr; gap:8px; align-items:start; margin-bottom:8px;">
                             <label class="form-label" style="margin:11px 0 0;">${rotulo}</label>
-                            <input id="${idPat}" class="form-field" value="${escaparHTMLGMAN(valor)}" placeholder="PAT do ${rotulo}" ${obrigatorio ? 'required' : ''}>
-                            <textarea id="${idDesc}" class="form-field" rows="5" placeholder="Descrição opcional do ${rotulo}">${escaparHTMLGMAN(textoDescricao)}</textarea>
+                            <input id="${idPat}" class="form-field" value="${escaparHTMLGMAN(valor)}" placeholder="${componente === 'TUBULACAO' ? 'PAT opcional da Tubulação' : 'PAT do ' + rotulo}" ${patObrigatorio ? 'required' : ''}>
+                            <textarea id="${idDesc}" class="form-field" rows="5" placeholder="Ficha técnica opcional do ${rotulo}">${escaparHTMLGMAN(textoDescricao)}</textarea>
                         </div>
                     `;
                 }
@@ -764,8 +811,8 @@
                 return `
                     <div style="display:grid; grid-template-columns:150px 1fr 1.35fr; gap:8px; align-items:center; padding:8px; border-bottom:1px solid #e2e8f0;">
                         <strong style="color:#1e3a5f;">${rotulo}</strong>
-                        <span style="color:#2d3748; background:#f7fafc; border-radius:8px; padding:8px;">${valor ? escaparHTMLGMAN(valor) : 'PAT ainda não informado'}</span>
-                        <span style="color:#2d3748; background:#f7fafc; border-radius:8px; padding:8px; white-space:pre-line;">${descricao ? escaparHTMLGMAN(descricao) : 'Descrição opcional não informada'}</span>
+                        <span style="color:#2d3748; background:#f7fafc; border-radius:8px; padding:8px;">${valor ? escaparHTMLGMAN(valor) : (componente === 'TUBULACAO' ? 'PAT não obrigatório' : 'PAT ainda não informado')}</span>
+                        <span style="color:#2d3748; background:#f7fafc; border-radius:8px; padding:8px; white-space:pre-line;">${descricao ? escaparHTMLGMAN(descricao) : 'Ficha técnica opcional não informada'}</span>
                     </div>
                 `;
             }).join('');
@@ -781,7 +828,9 @@
                 patMotor: (document.getElementById('concluirPatMotor') || {}).value ? document.getElementById('concluirPatMotor').value.trim() : '',
                 patBomba: (document.getElementById('concluirPatBomba') || {}).value ? document.getElementById('concluirPatBomba').value.trim() : '',
                 patVS: (document.getElementById('concluirPatVS') || {}).value ? document.getElementById('concluirPatVS').value.trim() : '',
-                patVR: (document.getElementById('concluirPatVR') || {}).value ? document.getElementById('concluirPatVR').value.trim() : ''
+                patVR: (document.getElementById('concluirPatVR') || {}).value ? document.getElementById('concluirPatVR').value.trim() : '',
+                patRetencao: (document.getElementById('concluirPatRetencao') || {}).value ? document.getElementById('concluirPatRetencao').value.trim() : '',
+                patTubulacao: (document.getElementById('concluirPatTubulacao') || {}).value ? document.getElementById('concluirPatTubulacao').value.trim() : ''
             };
         }
 
@@ -791,17 +840,22 @@
                 descMotor: (document.getElementById('concluirDescMotor') || {}).value ? document.getElementById('concluirDescMotor').value.trim() : '',
                 descBomba: (document.getElementById('concluirDescBomba') || {}).value ? document.getElementById('concluirDescBomba').value.trim() : '',
                 descVS: (document.getElementById('concluirDescVS') || {}).value ? document.getElementById('concluirDescVS').value.trim() : '',
-                descVR: (document.getElementById('concluirDescVR') || {}).value ? document.getElementById('concluirDescVR').value.trim() : ''
+                descVR: (document.getElementById('concluirDescVR') || {}).value ? document.getElementById('concluirDescVR').value.trim() : '',
+                descRetencao: (document.getElementById('concluirDescRetencao') || {}).value ? document.getElementById('concluirDescRetencao').value.trim() : '',
+                descTubulacao: (document.getElementById('concluirDescTubulacao') || {}).value ? document.getElementById('concluirDescTubulacao').value.trim() : ''
             };
         }
 
-        function validarPatrimoniosConclusaoTelaGMAN(patrimonios) {
+        function validarPatrimoniosConclusaoTelaGMAN(patrimonios, patrimonioObrigatorio = true) {
+            if (!patrimonioObrigatorio) return [];
+
             const faltantes = [];
             if (!patrimonios.patPainel) faltantes.push('PAT PAINEL');
             if (!patrimonios.patMotor) faltantes.push('PAT MOTOR');
             if (!patrimonios.patBomba) faltantes.push('PAT BOMBA');
             if (!patrimonios.patVS) faltantes.push('PAT Válvula de Sucção');
             if (!patrimonios.patVR) faltantes.push('PAT Válvula de Recalque');
+            if (!patrimonios.patRetencao) faltantes.push('PAT Válvula de Retenção');
             return faltantes;
         }
 
@@ -1029,11 +1083,11 @@
                         <p><strong>Responsável:</strong> ${os.responsavel || '-'}</p>
                         <p><strong>Membros da equipe:</strong> ${os.membrosEquipe || '-'}</p>
                         <p><strong>Componentes solicitados:</strong> ${os.componentesSolicitados || '-'}</p>
-                        <p><strong>PAT:</strong> Painel ${os.patPainel || '-'} | Motor ${os.patMotor || '-'} | Bomba ${os.patBomba || '-'} | Válvula de Sucção ${os.patVS || '-'} | Válvula de Recalque ${os.patVR || '-'}</p>
-                        <p><strong>Descrições:</strong> Painel ${os.descPainel || '-'} | Motor ${os.descMotor || '-'} | Bomba ${os.descBomba || '-'} | Válvula de Sucção ${os.descVS || '-'} | Válvula de Recalque ${os.descVR || '-'}</p>
+                        <p><strong>PAT:</strong> Painel ${os.patPainel || '-'} | Motor ${os.patMotor || '-'} | Bomba ${os.patBomba || '-'} | Válvula de Sucção ${os.patVS || '-'} | Válvula de Recalque ${os.patVR || '-'} | Válvula de Retenção ${os.patRetencao || '-'} | Tubulação ${os.patTubulacao || 'não obrigatório'}</p>
+                        <p><strong>Descrições:</strong> Painel ${os.descPainel || '-'} | Motor ${os.descMotor || '-'} | Bomba ${os.descBomba || '-'} | Válvula de Sucção ${os.descVS || '-'} | Válvula de Recalque ${os.descVR || '-'} | Válvula de Retenção ${os.descRetencao || '-'} | Tubulação ${os.descTubulacao || '-'}</p>
                         <p><strong>Problema:</strong> ${os.descricaoProblema || '-'}</p>
-                        ${os.dataAbertura ? `<p><strong>Abertura:</strong> ${formatarDataApi(os.dataAbertura)} ${os.horaAbertura ? '| ' + os.horaAbertura : ''}</p>` : ''}
-                        ${os.dataConclusao ? `<p><strong>Conclusão:</strong> ${formatarDataApi(os.dataConclusao)} ${os.horaConclusao ? '| ' + os.horaConclusao : ''}</p>` : ''}
+                        ${os.dataAbertura ? `<p><strong>Abertura:</strong> ${formatarDataApi(os.dataAbertura)} ${os.horaAbertura ? '| ' + formatarHoraApi(os.horaAbertura) : ''}</p>` : ''}
+                        ${os.dataConclusao ? `<p><strong>Conclusão:</strong> ${formatarDataApi(os.dataConclusao)} ${os.horaConclusao ? '| ' + formatarHoraApi(os.horaConclusao) : ''}</p>` : ''}
                         ${os.servicoRealizado ? `<p><strong>Serviço realizado:</strong> ${os.servicoRealizado}</p>` : ''}
                         ${os.finalizadoPor ? `<p><strong>Finalizado por:</strong> ${os.finalizadoPor}</p>` : ''}
                         ${encerrada ? '<p style="color:#2f855a; font-weight:700;">✅ OS encerrada</p>' : ''}
@@ -1517,14 +1571,18 @@ async function criarOSPeloModal() {
                     PAT_MOTOR: os.patMotor || '',
                     PAT_BOMBA: os.patBomba || '',
                     PAT_VS: os.patVS || '',
-                    PAT_VR: os.patVR || ''
+                    PAT_VR: os.patVR || '',
+                    PAT_RETENCAO: os.patRetencao || '',
+                    PAT_TUBULACAO: os.patTubulacao || ''
                 },
                 descricoes: {
                     DESC_PAINEL: os.descPainel || '',
                     DESC_MOTOR: os.descMotor || '',
                     DESC_BOMBA: os.descBomba || '',
                     DESC_VS: os.descVS || '',
-                    DESC_VR: os.descVR || ''
+                    DESC_VR: os.descVR || '',
+                    DESC_RETENCAO: os.descRetencao || '',
+                    DESC_TUBULACAO: os.descTubulacao || ''
                 }
             };
 
@@ -1603,7 +1661,7 @@ async function criarOSPeloModal() {
                     <div style="margin-top:15px; padding:12px; background:#fffaf0; border-radius:12px; border-left:4px solid #d69e2e; text-align:left;">
                         <p style="color:#744210; font-weight:800; margin:0 0 8px;">🏷️ Patrimônio obrigatório do grupo</p>
                         <p style="color:#744210; font-size:0.75rem; margin:0 0 10px;">
-                            Informe ou confirme todos os patrimônios antes de concluir. A descrição é opcional e deve conter, quando possível: marca, modelo, potência, tensão, tipo e condição visual.
+                            Informe ou confirme os patrimônios obrigatórios antes de concluir. Tubulação não exige PAT. Para INSTALAÇÕES MECÂNICAS, USINAGEM e CALDEIRARIA, patrimônio e ficha técnica são opcionais.
                         </p>
                         ${montarLinhasPatrimonioGrupoGMAN(patrimonioGrupo.patrimonios || {}, { modo: 'conclusao', obrigatorio: true, descricoes: patrimonioGrupo.descricoes || {} })}
                     </div>
@@ -1711,7 +1769,9 @@ function atualizarPreviewKmRodado() {
             if (!observacaoFinal) camposFaltantes.push('observação final');
             if (!membrosEquipe) camposFaltantes.push('membros da equipe');
 
-            camposFaltantes.push(...validarPatrimoniosConclusaoTelaGMAN(patrimoniosConclusao));
+            const osAtualConclusao = obterOSPorId(idOS);
+            const patrimonioObrigatorioConclusao = !areaPatrimonioOpcionalTelaGMAN85627(osAtualConclusao);
+            camposFaltantes.push(...validarPatrimoniosConclusaoTelaGMAN(patrimoniosConclusao, patrimonioObrigatorioConclusao));
 
             if (camposFaltantes.length) {
                 return alert('Preencha todos os campos obrigatórios antes de concluir a OS: ' + camposFaltantes.join(', ') + '. Fotos e áudio não são obrigatórios.');
@@ -1747,11 +1807,15 @@ function atualizarPreviewKmRodado() {
                     patBomba: patrimoniosConclusao.patBomba,
                     patVS: patrimoniosConclusao.patVS,
                     patVR: patrimoniosConclusao.patVR,
+                    patRetencao: patrimoniosConclusao.patRetencao,
+                    patTubulacao: patrimoniosConclusao.patTubulacao,
                     descPainel: descricoesConclusao.descPainel,
                     descMotor: descricoesConclusao.descMotor,
                     descBomba: descricoesConclusao.descBomba,
                     descVS: descricoesConclusao.descVS,
-                    descVR: descricoesConclusao.descVR
+                    descVR: descricoesConclusao.descVR,
+                    descRetencao: descricoesConclusao.descRetencao,
+                    descTubulacao: descricoesConclusao.descTubulacao
                 });
 
                 document.getElementById('concluirOSModal').remove();
@@ -2844,7 +2908,7 @@ function atualizarPreviewKmRodado() {
                     </div>
 
                     <div style="background:#ebf8ff; border-left:4px solid #3182ce; border-radius:12px; padding:10px; margin-top:12px; color:#2c5282; font-size:0.78rem; text-align:left;">
-                        Os patrimônios são atualizados quando o líder/gestor conclui uma OS e confirma PAINEL, MOTOR, BOMBA, Válvula de Sucção e Válvula de Recalque.
+                        Os patrimônios são atualizados quando o líder/gestor conclui uma OS e confirma PAINEL, MOTOR, BOMBA, Válvula de Sucção, Válvula de Recalque, Válvula de Retenção e Tubulação.
                     </div>
 
                     <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:14px;">
