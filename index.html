@@ -99,7 +99,7 @@
         .form-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e0; border-radius: 9px; color: #1a202c; font-size: 0.9rem; }
         .form-label { display: block; color: #2d3748; font-size: 0.78rem; font-weight: 700; margin: 8px 0 5px; text-align: left; }
      
-        /* GMAN 8.5.6.33 — evolução visual controlada 20% */
+        /* GMAN 8.5.6.34 — evolução visual controlada 20% */
         body::before {
             content: "";
             position: fixed;
@@ -156,7 +156,7 @@
         }
 
 
-        /* GMAN 8.5.6.33 — visual 30% e ícones com leve 3D controlado */
+        /* GMAN 8.5.6.34 — visual 30% e ícones com leve 3D controlado */
         .icon-3d-gman, .status-icon, .action-btn, .system-btn {
             transform-style: preserve-3d;
         }
@@ -218,7 +218,7 @@
         }
 
 
-        /* GMAN 8.5.6.33 — contador real de OS por grupo */
+        /* GMAN 8.5.6.34 — contador real de OS por grupo */
         .mini-os-counter {
             display: inline-block;
             padding: 3px 7px;
@@ -254,6 +254,13 @@
         }
         .os-count-card.iniciada strong { color: #dd6b20; }
         .os-count-card.concluida strong { color: #2f855a; }
+
+
+        .mini-os-counter.mini-encerrada { background: rgba(113,128,150,0.26); color: #e2e8f0; }
+        .mini-os-counter.mini-faltante { background: rgba(221,107,32,0.28); color: #fbd38d; border-color: rgba(251,211,141,0.45); }
+        .os-count-card.detalhe strong { font-size:1.05rem; }
+        .os-count-card.problema { border-color:#fbd38d; background:#fffaf0; }
+        .os-count-card.problema strong { color:#dd6b20; }
 
 </style>
      
@@ -415,8 +422,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.33 — Correção vínculo OS x grupo';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.33 — Correção vínculo OS x grupo';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.34 — Conciliação de OS faltantes';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.34 — Conciliação de OS faltantes';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -1102,27 +1109,68 @@
             });
         }
 
-        function resumoOSGrupoGMAN85632(idGrupo) {
+        
+        function categoriaStatusOSGrupoGMAN85634(status) {
+            const s = normalizarTextoGMAN(status);
+
+            if (!s) return 'semStatus';
+            if (s === 'aberta') return 'abertas';
+            if (s.includes('concluid')) return 'concluidas';
+            if (s.includes('cancel')) return 'canceladas';
+            if (s.includes('fechad') || s.includes('encerrad') || s.includes('finalizad')) return 'encerradas';
+            if (s.includes('iniciad') || s.includes('execucao') || s.includes('em andamento')) return 'emAndamento';
+            if (s.includes('aguardando')) return 'aguardando';
+            if (s.includes('teste')) return 'teste';
+            if (s.includes('manutencao') || s.includes('parad') || s.includes('restricao')) return 'manutencao';
+
+            return 'outros';
+        }
+
+function resumoOSGrupoGMAN85632(idGrupo) {
             const resumo = {
                 total: 0,
                 abertas: 0,
                 iniciadas: 0,
+                emAndamento: 0,
+                aguardando: 0,
+                teste: 0,
+                manutencao: 0,
                 concluidas: 0,
+                canceladas: 0,
                 encerradas: 0,
+                outros: 0,
+                semStatus: 0,
+                conciliacao: 0,
+                diferenca: 0,
                 ultimaOS: '',
                 ultimaMovimentacao: '',
-                ultimaTempo: 0
+                ultimaTempo: 0,
+                listaOutros: []
             };
 
             (ordensServicoCache || []).forEach(os => {
                 if (!gruposIguaisGMAN85633(os.idEquipamento || os.equipamento, idGrupo)) return;
 
                 resumo.total += 1;
+                const categoria = categoriaStatusOSGrupoGMAN85634(os.statusOS);
 
-                if (isOSAberta(os.statusOS)) resumo.abertas += 1;
-                if (isOSIniciada(os.statusOS)) resumo.iniciadas += 1;
-                if (isOSEncerrada(os.statusOS)) resumo.encerradas += 1;
-                if (normalizarTextoGMAN(os.statusOS).includes('conclu')) resumo.concluidas += 1;
+                if (Object.prototype.hasOwnProperty.call(resumo, categoria)) {
+                    resumo[categoria] += 1;
+                } else {
+                    resumo.outros += 1;
+                }
+
+                if (['emAndamento', 'aguardando', 'teste', 'manutencao'].includes(categoria)) {
+                    resumo.iniciadas += 1;
+                }
+
+                if (categoria === 'canceladas' || categoria === 'encerradas') {
+                    resumo.encerradas += 1;
+                }
+
+                if (categoria === 'outros' || categoria === 'semStatus') {
+                    resumo.listaOutros.push(`${os.numeroOS || os.idOS || '-'} — ${os.statusOS || 'Sem status'}`);
+                }
 
                 const tempo = Number(os.ultimaMovimentacaoTempo || 0) || tempoHistoricoGMAN(os) || resumo.total;
                 if (tempo >= resumo.ultimaTempo) {
@@ -1132,19 +1180,38 @@
                 }
             });
 
+            resumo.conciliacao =
+                resumo.abertas +
+                resumo.emAndamento +
+                resumo.aguardando +
+                resumo.teste +
+                resumo.manutencao +
+                resumo.concluidas +
+                resumo.canceladas +
+                resumo.encerradas +
+                resumo.outros +
+                resumo.semStatus;
+
+            resumo.diferenca = resumo.total - resumo.conciliacao;
+
             return resumo;
         }
 
         function resumoOSGrupoHTMLGMAN85632(idGrupo, compacto = false) {
             const r = resumoOSGrupoGMAN85632(idGrupo);
+            const pendentes = r.emAndamento + r.aguardando + r.teste + r.manutencao + r.outros + r.semStatus;
+            const encerradasNaoConcluidas = r.canceladas + r.encerradas;
+            const outras = r.outros + r.semStatus + Math.max(r.diferenca, 0);
 
             if (compacto) {
                 return `
                     <br><span style="display:inline-flex; flex-wrap:wrap; gap:4px; margin-top:5px;">
-                        <span class="mini-os-counter">OS total: ${r.total}</span>
+                        <span class="mini-os-counter">Total: ${r.total}</span>
                         <span class="mini-os-counter mini-aberta">Abertas: ${r.abertas}</span>
-                        <span class="mini-os-counter mini-iniciada">Iniciadas: ${r.iniciadas}</span>
+                        <span class="mini-os-counter mini-iniciada">Pendentes: ${pendentes}</span>
                         <span class="mini-os-counter mini-concluida">Concluídas: ${r.concluidas}</span>
+                        ${encerradasNaoConcluidas ? `<span class="mini-os-counter mini-encerrada">Encerradas/Canceladas: ${encerradasNaoConcluidas}</span>` : ''}
+                        ${outras ? `<span class="mini-os-counter mini-faltante">Outras/Sem classe: ${outras}</span>` : ''}
                     </span>
                 `;
             }
@@ -1153,10 +1220,28 @@
                 <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin:14px 0;">
                     <div class="os-count-card"><strong>${r.total}</strong><span>OS totais</span></div>
                     <div class="os-count-card"><strong>${r.abertas}</strong><span>Abertas</span></div>
-                    <div class="os-count-card iniciada"><strong>${r.iniciadas}</strong><span>Iniciadas</span></div>
+                    <div class="os-count-card iniciada"><strong>${pendentes}</strong><span>Pendentes</span></div>
                     <div class="os-count-card concluida"><strong>${r.concluidas}</strong><span>Concluídas</span></div>
                 </div>
+
+                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin:7px 0 14px;">
+                    <div class="os-count-card detalhe"><strong>${r.emAndamento}</strong><span>Em andamento</span></div>
+                    <div class="os-count-card detalhe"><strong>${r.aguardando}</strong><span>Aguardando</span></div>
+                    <div class="os-count-card detalhe"><strong>${r.teste}</strong><span>Em teste</span></div>
+                    <div class="os-count-card detalhe"><strong>${r.manutencao}</strong><span>Manutenção</span></div>
+                    <div class="os-count-card detalhe"><strong>${encerradasNaoConcluidas}</strong><span>Encerradas/Canceladas</span></div>
+                    <div class="os-count-card detalhe ${outras ? 'problema' : ''}"><strong>${outras}</strong><span>Outras/Sem classe</span></div>
+                </div>
+
+                ${(r.listaOutros && r.listaOutros.length) ? `
+                    <div style="background:#fffaf0; border-left:4px solid #dd6b20; border-radius:12px; padding:10px; color:#744210; font-size:0.75rem; text-align:left; margin-bottom:10px;">
+                        <strong>OS sem classificação clara:</strong><br>
+                        ${r.listaOutros.map(item => escaparHTMLGMAN(item)).join('<br>')}
+                    </div>
+                ` : ''}
+
                 <div style="background:#f7fafc; border-radius:12px; padding:10px; color:#1e3a5f; font-size:0.78rem; text-align:left;">
+                    <strong>Conciliação:</strong> ${r.conciliacao}/${r.total} OS classificadas<br>
                     <strong>Última OS:</strong> ${r.ultimaOS || '-'}<br>
                     <strong>Última movimentação:</strong> ${r.ultimaMovimentacao ? formatarDataApi(r.ultimaMovimentacao) : '-'}
                 </div>
