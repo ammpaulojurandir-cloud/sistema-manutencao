@@ -99,7 +99,7 @@
         .form-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e0; border-radius: 9px; color: #1a202c; font-size: 0.9rem; }
         .form-label { display: block; color: #2d3748; font-size: 0.78rem; font-weight: 700; margin: 8px 0 5px; text-align: left; }
      
-        /* GMAN 8.5.6.37 — evolução visual controlada 20% */
+        /* GMAN 8.5.6.38 — evolução visual controlada 20% */
         body::before {
             content: "";
             position: fixed;
@@ -156,7 +156,7 @@
         }
 
 
-        /* GMAN 8.5.6.37 — visual 30% e ícones com leve 3D controlado */
+        /* GMAN 8.5.6.38 — visual 30% e ícones com leve 3D controlado */
         .icon-3d-gman, .status-icon, .action-btn, .system-btn {
             transform-style: preserve-3d;
         }
@@ -218,7 +218,7 @@
         }
 
 
-        /* GMAN 8.5.6.37 — contador real de OS por grupo */
+        /* GMAN 8.5.6.38 — contador real de OS por grupo */
         .mini-os-counter {
             display: inline-block;
             padding: 3px 7px;
@@ -422,8 +422,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.37 — KPI reincidência corrigido';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.37 — KPI reincidência corrigido';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.38 — Ranking reincidência por grupo';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.38 — Ranking reincidência por grupo';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -3255,6 +3255,8 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                 );
 
                 const reincidentes = Object.entries(reincidenciaPorEquip).filter(([_, total]) => total >= 3);
+                const maiorReincidenciaGrupo = Object.values(reincidenciaPorEquip).reduce((maior, total) => Math.max(maior, total), 0);
+                const totalGruposReincidentes = reincidentes.length;
                 const mtbfCalculado = calcularMTBFKPI(corretivasConcluidas);
                 const mtbfTexto = mtbfCalculado.texto;
                 const disponibilidadeHistoricaValor = calcularDisponibilidadeManutencaoKPI(mtbfCalculado.horas, mttr);
@@ -3297,13 +3299,13 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                         ${montarCardKPI('MTBF estimado', mtbfTexto, 'Intervalo médio entre corretivas', '#805ad5', '🔁')}
                         ${montarCardKPI('Backlog de OS', osBacklog, explicacaoBacklogKPI85636(categoriasKPI), '#d69e2e', '📋')}
                         ${montarCardKPI('Produtividade', osConcluidas, 'OS concluídas válidas', '#38a169', '🏆')}
-                        ${montarCardKPI('Reincidência', reincidentes.length, `${reincidentes.length} grupo(s) com 3+ corretivas concluídas em 30 dias`, reincidentes.length ? '#e53e3e' : '#38a169', '⚠️')}
+                        ${montarCardKPI('Reincidência', maiorReincidenciaGrupo, `maior grupo do ranking | ${totalGruposReincidentes} grupo(s) com 3+`, maiorReincidenciaGrupo >= 3 ? '#e53e3e' : '#38a169', '⚠️')}
                         ${montarCardKPI('OEE adaptado', oeeTexto, 'Indicador gerencial adaptado', oee !== null && oee >= 70 ? '#dd6b20' : '#c53030', '⚙️')}
                     </div>
 
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:14px;">
                         ${montarRankingHTML(produtividadePorLider, 'Líderes que mais atenderam OS', 5, 'OS', '🏆')}
-                        ${montarRankingHTML(reincidenciaRanking, 'Maiores reincidências — corretivas concluídas em 30 dias', 5, 'OS', '⚠️')}
+                        ${montarRankingHTML(reincidenciaRanking, 'OS grupos de maior reincidência', 5, 'OS recorrentes', '⚠️')}
                     </div>
 
                     <div style="margin-top:14px; display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:10px;">
@@ -3321,7 +3323,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                         </div>
                         <div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:18px; padding:13px; color:#742a2a; font-size:0.82rem; box-shadow:0 8px 18px rgba(229,62,62,0.08);">
                             <strong>⚠️ Base da reincidência</strong><br>
-                            ${corretivas30.length} corretivas concluídas nos últimos 30 dias. Reincidente = grupo/equipamento com 3 ou mais.
+                            ${corretivas30.length} corretivas concluídas nos últimos 30 dias. O ranking soma as OS recorrentes por grupo/equipamento.
                         </div>
                         <div style="background:#fff5f5; border-left:5px solid #dd6b20; border-radius:18px; padding:13px; color:#7b341e; font-size:0.82rem; box-shadow:0 8px 18px rgba(221,107,32,0.08);">
                             <strong>⚙️ OEE adaptado</strong><br>
@@ -3330,7 +3332,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                     </div>
 
                     <div style="margin-top:14px; background:linear-gradient(135deg,#edf2f7,#ffffff); border-radius:20px; padding:14px; color:#2d3748; font-size:0.82rem; border:1px solid #e2e8f0;">
-                        <strong>📌 Regra aplicada:</strong> disponibilidade histórica usa MTBF ÷ (MTBF + MTTR) e não se mistura com a disponibilidade instantânea. MTBF é estimado pelo intervalo médio entre corretivas do mesmo equipamento. Produtividade por líder usa o campo RESPONSAVEL das OS concluídas válidas. Reincidência usa corretivas concluídas dos últimos 30 dias por grupo/equipamento, excluindo canceladas e testes. OEE é gerencial e adaptado ao GMAN. OS de teste não entram nos KPIs.
+                        <strong>📌 Regra aplicada:</strong> disponibilidade histórica usa MTBF ÷ (MTBF + MTTR) e não se mistura com a disponibilidade instantânea. MTBF é estimado pelo intervalo médio entre corretivas do mesmo equipamento. Produtividade por líder usa o campo RESPONSAVEL das OS concluídas válidas. Reincidência usa corretivas concluídas dos últimos 30 dias por grupo/equipamento. O ranking mostra OS grupos de maior reincidência. OEE é gerencial e adaptado ao GMAN. OS de teste não entram nos KPIs.
                         <br>
                         <strong>Situação atual:</strong> ${operando} operando, ${indisponiveis} em manutenção/alerta, ${parados} parados e ${osBacklog} OS no backlog.
                     </div>
