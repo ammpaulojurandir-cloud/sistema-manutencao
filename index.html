@@ -97,7 +97,64 @@
         .os-cancelada { background: #718096; }
         .form-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e0; border-radius: 9px; color: #1a202c; font-size: 0.9rem; }
         .form-label { display: block; color: #2d3748; font-size: 0.78rem; font-weight: 700; margin: 8px 0 5px; text-align: left; }
-     </style>
+     
+        /* GMAN 8.5.6.30 — evolução visual controlada 20% */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 12% 8%, rgba(56,161,105,0.28), transparent 28%),
+                radial-gradient(circle at 88% 16%, rgba(49,130,206,0.28), transparent 32%),
+                radial-gradient(circle at 50% 100%, rgba(255,255,255,0.10), transparent 35%);
+            z-index: -1;
+        }
+        h1 { letter-spacing: 0.03em; text-shadow: 0 6px 22px rgba(0,0,0,0.22); }
+        .equipment-list {
+            border: 1px solid rgba(255,255,255,0.14);
+            box-shadow: 0 18px 42px rgba(0,0,0,0.18);
+            backdrop-filter: blur(14px);
+        }
+        .equipment-item {
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            background: linear-gradient(135deg, rgba(255,255,255,0.075), rgba(255,255,255,0.025));
+        }
+        .equipment-item:hover {
+            background: linear-gradient(135deg, rgba(255,255,255,0.18), rgba(56,161,105,0.12));
+            transform: translateY(-1px);
+        }
+        .status-icon {
+            box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+        }
+        .system-btn, .action-btn {
+            box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+        }
+        .system-btn.active {
+            background: linear-gradient(135deg,#38a169,#3182ce);
+            border-color: rgba(255,255,255,0.55);
+        }
+        .form-field {
+            border: 1px solid #d7e3f1;
+            border-radius: 12px;
+        }
+        .audio-recorder-gman {
+            background: linear-gradient(135deg,#ebf8ff,#f0fff4);
+            border: 1px solid #bee3f8;
+            border-radius: 16px;
+            padding: 12px;
+            display: grid;
+            gap: 8px;
+        }
+        .audio-recorder-gman button {
+            border: none;
+            border-radius: 12px;
+            padding: 10px 12px;
+            cursor: pointer;
+            font-weight: 900;
+        }
+
+</style>
      
      <link rel="icon" type="image/png" href="./logo.png">
      <link rel="apple-touch-icon" href="./logo.png">
@@ -257,8 +314,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.29 — OS por grupo, andamento e metas KPI';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.29 — OS por grupo, andamento e metas KPI';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.30 — Status, áudio gravado e KPI por meta';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.30 — Status, áudio gravado e KPI por meta';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -528,10 +585,12 @@
             const condicao = formatarCondicaoParaStatus(extrairCondicaoOperacional(observacao));
 
             if (status === 'alert') {
+                if (String(observacao || '').toLowerCase().includes('em manutenção (operando)')) return 'Em manutenção (operando)';
                 return condicao ? `Manutenção (${condicao})` : 'Manutenção';
             }
 
             if (status === 'down') {
+                if (String(observacao || '').toLowerCase().includes('em manutenção (parado)')) return 'Em manutenção (parado)';
                 return condicao ? `Manutenção (${condicao})` : 'Manutenção (parado)';
             }
 
@@ -1500,7 +1559,172 @@ async function criarOSPeloModal() {
             return 'Outro';
         }
 
-        async function anexarArquivoOS(idOS, idEquipamento, inputId, observacaoId) {
+        
+        let mediaRecorderGMAN = null;
+        let audioChunksGMAN = [];
+        let audioBlobGMAN = null;
+        let audioTimerGMAN = null;
+        let audioInicioGMAN = null;
+        let audioDuracaoGMAN = 0;
+
+        function atualizarStatusAudioGMAN(texto) {
+            const el = document.getElementById('audioStatusGMAN');
+            if (el) el.textContent = texto;
+        }
+
+        async function iniciarGravacaoAudioGMAN() {
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    alert('Este navegador não liberou o gravador de voz. Use o Chrome/Edge no celular ou computador com permissão de microfone.');
+                    return;
+                }
+
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioChunksGMAN = [];
+                audioBlobGMAN = null;
+                audioDuracaoGMAN = 0;
+                audioInicioGMAN = Date.now();
+
+                mediaRecorderGMAN = new MediaRecorder(stream);
+                mediaRecorderGMAN.ondataavailable = evento => {
+                    if (evento.data && evento.data.size > 0) audioChunksGMAN.push(evento.data);
+                };
+
+                mediaRecorderGMAN.onstop = () => {
+                    stream.getTracks().forEach(track => track.stop());
+                    audioDuracaoGMAN = Math.max(1, Math.round((Date.now() - audioInicioGMAN) / 1000));
+                    audioBlobGMAN = new Blob(audioChunksGMAN, { type: mediaRecorderGMAN.mimeType || 'audio/webm' });
+
+                    const preview = document.getElementById('audioPreviewGMAN');
+                    if (preview) {
+                        preview.src = URL.createObjectURL(audioBlobGMAN);
+                        preview.style.display = 'block';
+                    }
+
+                    const enviar = document.getElementById('btnEnviarAudioGMAN');
+                    if (enviar) enviar.disabled = false;
+
+                    const iniciar = document.getElementById('btnIniciarAudioGMAN');
+                    if (iniciar) iniciar.disabled = false;
+
+                    const parar = document.getElementById('btnPararAudioGMAN');
+                    if (parar) parar.disabled = true;
+
+                    atualizarStatusAudioGMAN('Áudio gravado no momento: ' + audioDuracaoGMAN + 's. Agora clique em enviar áudio gravado.');
+                    clearTimeout(audioTimerGMAN);
+                };
+
+                mediaRecorderGMAN.start();
+
+                const iniciar = document.getElementById('btnIniciarAudioGMAN');
+                if (iniciar) iniciar.disabled = true;
+
+                const parar = document.getElementById('btnPararAudioGMAN');
+                if (parar) parar.disabled = false;
+
+                const enviar = document.getElementById('btnEnviarAudioGMAN');
+                if (enviar) enviar.disabled = true;
+
+                atualizarStatusAudioGMAN('Gravando áudio agora... limite máximo de 1 minuto.');
+
+                audioTimerGMAN = setTimeout(() => {
+                    if (mediaRecorderGMAN && mediaRecorderGMAN.state === 'recording') {
+                        pararGravacaoAudioGMAN();
+                    }
+                }, 60000);
+
+            } catch (erro) {
+                console.error(erro);
+                alert('Não foi possível abrir o gravador de voz. Autorize o microfone e tente novamente.');
+            }
+        }
+
+        function pararGravacaoAudioGMAN() {
+            if (mediaRecorderGMAN && mediaRecorderGMAN.state === 'recording') {
+                mediaRecorderGMAN.stop();
+            }
+        }
+
+        function extensaoAudioGMAN(mime) {
+            const m = String(mime || '').toLowerCase();
+            if (m.includes('mp4')) return 'm4a';
+            if (m.includes('mpeg')) return 'mp3';
+            if (m.includes('ogg')) return 'ogg';
+            return 'webm';
+        }
+
+        async function anexarAudioGravadoOS(idOS, idEquipamento, observacaoId) {
+            if (!validarPermissaoTelaOS(idOS, 'anexar áudio na')) return;
+
+            if (!audioBlobGMAN) {
+                alert('Grave o áudio no momento antes de enviar.');
+                return;
+            }
+
+            if (audioDuracaoGMAN > 60) {
+                alert('Áudio máximo de 1 minuto atingido. Grave novamente.');
+                return;
+            }
+
+            const obs = document.getElementById(observacaoId);
+            const botao = document.getElementById('btnEnviarAudioGMAN');
+            const textoOriginal = botao ? botao.textContent : '';
+
+            try {
+                if (botao) {
+                    botao.disabled = true;
+                    botao.textContent = '⏳ Enviando áudio...';
+                }
+
+                const nomeArquivo = 'audio_gravado_gman_' + Date.now() + '.' + extensaoAudioGMAN(audioBlobGMAN.type);
+                const arquivo = new File([audioBlobGMAN], nomeArquivo, { type: audioBlobGMAN.type || 'audio/webm' });
+                const arquivoProcessado = await arquivoParaBase64(arquivo);
+
+                await apiPost({
+                    acao: 'anexarArquivo',
+                    idOS,
+                    idEquipamento,
+                    usuario: usuarioLogado.nome,
+                    funcao: usuarioLogado.funcao,
+                    tipoAnexo: 'Audio',
+                    nomeArquivo: arquivoProcessado.nomeArquivo,
+                    mimeType: arquivoProcessado.mimeType,
+                    conteudoBase64: arquivoProcessado.base64,
+                    duracaoSegundos: audioDuracaoGMAN,
+                    observacao: obs ? obs.value.trim() : ''
+                });
+
+                audioBlobGMAN = null;
+                audioChunksGMAN = [];
+                audioDuracaoGMAN = 0;
+
+                const preview = document.getElementById('audioPreviewGMAN');
+                if (preview) {
+                    preview.removeAttribute('src');
+                    preview.style.display = 'none';
+                }
+
+                atualizarStatusAudioGMAN('Áudio enviado com sucesso. Para enviar outro, grave novamente no momento.');
+
+                if (botao) {
+                    botao.textContent = '✅ Áudio enviado';
+                    botao.style.background = '#38a169';
+                }
+
+                alert('Áudio gravado no momento enviado com sucesso e registrado na OS.');
+
+            } catch (erro) {
+                console.error(erro);
+                alert(erro.message || 'Erro ao enviar áudio gravado.');
+
+                if (botao) {
+                    botao.disabled = false;
+                    botao.textContent = textoOriginal;
+                }
+            }
+        }
+
+async function anexarArquivoOS(idOS, idEquipamento, inputId, observacaoId) {
             if (!validarPermissaoTelaOS(idOS, 'anexar evidência na')) return;
 
             const input = document.getElementById(inputId);
@@ -1809,9 +2033,17 @@ async function criarOSPeloModal() {
                         <input id="anexoFoto2OS" type="file" accept="image/*" capture="environment" class="form-field">
                         <button onclick="anexarArquivoOS('${idOS}', '${os.idEquipamento}', 'anexoFoto2OS', 'anexoObsOS')" class="action-btn">📷 Enviar foto 2</button>
 
-                        <label class="form-label">Áudio — gravar ou anexar</label>
-                        <input id="anexoAudioOS" type="file" accept="audio/*" capture="microphone" class="form-field">
-                        <button onclick="anexarArquivoOS('${idOS}', '${os.idEquipamento}', 'anexoAudioOS', 'anexoObsOS')" class="action-btn">🎙️ Enviar áudio</button>
+                        <label class="form-label">Áudio — gravado no momento</label>
+                        <div class="audio-recorder-gman">
+                            <div id="audioStatusGMAN" style="font-size:0.78rem; color:#1e3a5f; font-weight:800;">Nenhum áudio gravado. Clique em iniciar para abrir o gravador de voz.</div>
+                            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px;">
+                                <button id="btnIniciarAudioGMAN" onclick="iniciarGravacaoAudioGMAN()" style="background:#3182ce; color:white;">🎙️ Iniciar gravação</button>
+                                <button id="btnPararAudioGMAN" onclick="pararGravacaoAudioGMAN()" style="background:#d69e2e; color:white;" disabled>⏹️ Parar</button>
+                                <button id="btnEnviarAudioGMAN" onclick="anexarAudioGravadoOS('${idOS}', '${os.idEquipamento}', 'anexoObsOS')" style="background:#38a169; color:white;" disabled>📤 Enviar áudio gravado</button>
+                            </div>
+                            <audio id="audioPreviewGMAN" controls style="width:100%; display:none;"></audio>
+                            <small style="color:#4a5568;">O GMAN não busca áudio do aparelho. Ele grava na hora e limita a 1 minuto.</small>
+                        </div>
 
                         <label class="form-label">Observação da evidência</label>
                         <input id="anexoObsOS" class="form-field" placeholder="Ex.: ruído identificado, vazamento, peça substituída...">
@@ -2307,14 +2539,75 @@ function atualizarPreviewKmRodado() {
             return metas[chave] || 'Acompanhar tendência';
         }
 
+
+        function numeroKPIValor(valor) {
+            const texto = String(valor || '').toLowerCase();
+            if (texto.includes('cálculo') || texto.includes('calculo')) return null;
+
+            const match = texto.replace(',', '.').match(/-?\d+(\.\d+)?/);
+            if (!match) return null;
+
+            let n = Number(match[0]);
+            if (texto.includes('dia')) n = n * 24;
+            return isNaN(n) ? null : n;
+        }
+
+        function gradienteNumeroKPI(chave, valor) {
+            const n = numeroKPIValor(valor);
+            if (n === null) return 'linear-gradient(135deg,#718096,#a0aec0)';
+
+            const c = String(chave || '').toLowerCase();
+
+            if (c.includes('mttr')) {
+                if (n <= 24) return 'linear-gradient(135deg,#38a169,#68d391)';
+                if (n <= 48) return 'linear-gradient(135deg,#d69e2e,#f6ad55)';
+                return 'linear-gradient(135deg,#c53030,#fc8181)';
+            }
+
+            if (c.includes('mtbf')) {
+                if (n >= 720) return 'linear-gradient(135deg,#38a169,#68d391)';
+                if (n >= 168) return 'linear-gradient(135deg,#d69e2e,#f6ad55)';
+                return 'linear-gradient(135deg,#c53030,#fc8181)';
+            }
+
+            if (c.includes('backlog')) {
+                if (n <= 5) return 'linear-gradient(135deg,#38a169,#68d391)';
+                if (n <= 15) return 'linear-gradient(135deg,#d69e2e,#f6ad55)';
+                return 'linear-gradient(135deg,#c53030,#fc8181)';
+            }
+
+            if (c.includes('reincid')) {
+                if (n === 0) return 'linear-gradient(135deg,#38a169,#68d391)';
+                if (n <= 2) return 'linear-gradient(135deg,#d69e2e,#f6ad55)';
+                return 'linear-gradient(135deg,#c53030,#fc8181)';
+            }
+
+            if (c.includes('oee')) {
+                if (n >= 85) return 'linear-gradient(135deg,#38a169,#68d391)';
+                if (n >= 70) return 'linear-gradient(135deg,#d69e2e,#f6ad55)';
+                return 'linear-gradient(135deg,#c53030,#fc8181)';
+            }
+
+            if (c.includes('produtividade')) {
+                if (n > 0) return 'linear-gradient(135deg,#38a169,#68d391)';
+                return 'linear-gradient(135deg,#d69e2e,#f6ad55)';
+            }
+
+            if (n >= 95) return 'linear-gradient(135deg,#38a169,#68d391)';
+            if (n >= 90) return 'linear-gradient(135deg,#2f855a,#38b2ac)';
+            if (n >= 70) return 'linear-gradient(135deg,#d69e2e,#f6ad55)';
+            return 'linear-gradient(135deg,#c53030,#fc8181)';
+        }
+
 function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊') {
             const brilho = `linear-gradient(135deg, ${cor}18, #ffffff 55%, #f7fafc)`;
+            const gradienteResultado = gradienteNumeroKPI(chave, valor);
             return `
                 <button onclick="abrirInfoKPI('${chave.replace(/'/g, "\\'")}')" style="width:100%; text-align:left; background:${brilho}; border:none; border-left:7px solid ${cor}; border-radius:24px; padding:17px; min-height:126px; box-shadow:0 12px 26px rgba(30,58,95,0.12); position:relative; overflow:hidden; cursor:pointer; transition:transform 0.15s ease, box-shadow 0.15s ease;">
                     <div style="position:absolute; top:-6px; right:8px; font-size:2.4rem; opacity:0.15;">${icone}</div>
                     <div style="position:absolute; bottom:-18px; left:-8px; font-size:3.3rem; opacity:0.07;">✨</div>
                     <div style="font-size:0.70rem; color:#718096; font-weight:900; text-transform:uppercase; letter-spacing:0.04em;">${chave}</div>
-                    <div style="font-size:1.95rem; color:#1e3a5f; font-weight:950; margin-top:8px; line-height:1.05;">${valor}</div>
+                    <div style="font-size:2.05rem; background:${gradienteResultado}; -webkit-background-clip:text; background-clip:text; color:transparent; font-weight:1000; margin-top:8px; line-height:1.05; filter:drop-shadow(0 3px 8px rgba(30,58,95,0.10));">${valor}</div>
                     <div style="font-size:0.76rem; color:#4a5568; margin-top:7px;">${subtitulo || ''}</div>
                     <div style="font-size:0.71rem; color:#1e3a5f; font-weight:900; margin-top:8px; background:rgba(255,255,255,0.78); border-radius:999px; padding:6px 8px;">🎯 Meta mínima: ${metaMinimaKPI(chave)}</div>
                     <div style="font-size:0.73rem; color:${cor}; font-weight:900; margin-top:9px;">Clique para entender este KPI</div>
@@ -3272,6 +3565,15 @@ function openEquipment(id) {
                         <p style="color: #234e52; font-size: 0.8rem; margin: 0;">
                             👤 <strong>Última alteração por:</strong> ${eq.ultimoTecnico}<br>
                             🕐 <strong>Data/Hora:</strong> ${eq.ultimaAlteracao}
+                        </p>
+                    </div>
+                    ` : ''}
+
+                    ${eq.observacaoStatus ? `
+                    <div style="margin: 12px 0; padding: 11px; background: #fffaf0; border-radius: 12px; border-left: 4px solid #d69e2e; text-align: left;">
+                        <p style="color:#744210; font-size:0.8rem; margin:0;">
+                            📝 <strong>Justificativa da mudança de status:</strong><br>
+                            ${escaparHTMLGMAN(eq.observacaoStatus)}
                         </p>
                     </div>
                     ` : ''}
