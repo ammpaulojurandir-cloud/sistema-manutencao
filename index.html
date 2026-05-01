@@ -225,41 +225,40 @@
       <script>
         // LISTA DE USUÁRIOS (Restaurada com senha padrão 'dmae2026' e sem usuário teste)
         const usuarios = [
-            // SUPERVISORES (veem tudo)
-            { nome: 'Rogério Alves', senha: 'dmae2026', funcao: 'supervisor', area: 'todos' },
-            { nome: 'Rafael Spies', senha: 'dmae2026', funcao: 'supervisor', area: 'todos' },
-            
-            // ADMINISTRADORES MECÂNICA
-            { nome: 'Valtemir Olmos', senha: 'dmae2026', funcao: 'administrador', area: 'mecanica' },
-            { nome: 'Paulo Jurandir', senha: 'dmae2026', funcao: 'administrador', area: 'mecanica' },
-            { nome: 'Paulo Jurandir', senha: 'dmae2026', funcao: 'supervisor', area: 'todos' },
-            
-            // ADMINISTRADORES ELÉTRICA
-            { nome: 'Mauricio do Carmo', senha: 'dmae2026', funcao: 'administrador', area: 'eletrica' },
-            { nome: 'Jeferson Machado', senha: 'dmae2026', funcao: 'administrador', area: 'eletrica' },
-            
-            // LÍDERES MECÂNICA
-            { nome: 'Rodrigo Fortes', senha: 'dmae2026', funcao: 'lider', area: 'mecanica' },
-            { nome: 'Luciano Cruz', senha: 'dmae2026', funcao: 'lider', area: 'mecanica' },
-            { nome: 'Ronaldo Lemos', senha: 'dmae2026', funcao: 'lider', area: 'mecanica' },
-            { nome: 'Valneir Oliveira', senha: 'dmae2026', funcao: 'lider', area: 'mecanica' },
-            { nome: 'Antonio Carlos Leal', senha: 'dmae2026', funcao: 'lider', area: 'mecanica' },
-            { nome: 'Ricardo Mathiola', senha: 'dmae2026', funcao: 'lider', area: 'mecanica' },
-            
-            // LÍDERES ELÉTRICA
-            { nome: 'Carlos Alberto', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
-            { nome: 'Andre Marques', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
-            { nome: 'Roque Becker', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
-            { nome: 'Saulo Lockman', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
-            { nome: 'Sidnei Rocha', senha: 'dmae2026', funcao: 'lider', area: 'caldeiraria' },
-            { nome: 'Gabriel Stumm', senha: 'dmae2026', funcao: 'lider', area: 'usinagem' },
+            // GESTÃO OFICIAL
+            { nome: 'PAULO JURANDIR', senha: 'dmae2026', funcao: 'administrador', area: 'todos' },
+            { nome: 'RAFAEL SPIES', senha: 'dmae2026', funcao: 'supervisor', area: 'todos' },
+            { nome: 'JEFERSON MACHADO', senha: 'dmae2026', funcao: 'coordenador', area: 'eletrica' },
+            { nome: 'VALTEMIR OLMOS', senha: 'dmae2026', funcao: 'coordenador', area: 'mecanica' },
+            { nome: 'MAURICIO DO CARMO', senha: 'dmae2026', funcao: 'coordenador', area: 'eletrica' },
+            { nome: 'ROGÉRIO ALVES', senha: 'dmae2026', funcao: 'gerente', area: 'todos' },
 
+            // LÍDERES MECÂNICA
+            { nome: 'RODRIGO FORTES', senha: 'dmae2026', funcao: 'lider', area: 'mecanica' },
+            { nome: 'LUCIANO CRUZ', senha: 'dmae2026', funcao: 'lider', area: 'mecanica' },
+            { nome: 'RONALDO LEMOS', senha: 'dmae2026', funcao: 'lider', area: 'mecanica' },
+            { nome: 'VALNEIR OLIVEIRA', senha: 'dmae2026', funcao: 'lider', area: 'mecanica' },
+            { nome: 'ANTONIO CARLOS LEAL', senha: 'dmae2026', funcao: 'lider', area: 'mecanica' },
+            { nome: 'RICARDO MATHIOLA', senha: 'dmae2026', funcao: 'lider', area: 'mecanica' },
+
+            // INSTALAÇÕES MECÂNICAS
+            { nome: 'PAULO JURANDIR', senha: 'dmae2026', funcao: 'lider', area: 'instalações mecânicas' },
+
+            // LÍDERES ELÉTRICA
+            { nome: 'CARLOS ALBERTO', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
+            { nome: 'ANDRE MARQUES', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
+            { nome: 'ROQUE BECKER', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
+            { nome: 'SAULO LOCKMAN', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
+
+            // USINAGEM E CALDEIRARIA
+            { nome: 'SIDNEI ROCHA', senha: 'dmae2026', funcao: 'lider', area: 'caldeiraria' },
+            { nome: 'GABRIEL STUMM', senha: 'dmae2026', funcao: 'lider', area: 'usinagem' },
         ];
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.24 — Histórico clicável, membros e descrições';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.24 — Estrutura patrimonial dos grupos';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.25 — Histórico por perfil, Instalações Mecânicas e atualização 120s';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.25 — Estrutura patrimonial dos grupos';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -2833,6 +2832,29 @@ function atualizarPreviewKmRodado() {
             document.body.appendChild(modal);
         }
 
+        function dataReferenciaOSHistoricoGMAN(os) {
+            return os.dataConclusao || os.dataInicio || os.dataAbertura || '';
+        }
+
+        function chaveDataHistoricoGMAN(os) {
+            const data = dataReferenciaOSHistoricoGMAN(os);
+            if (!data) return 'Sem data informada';
+            return String(data).split(' ')[0];
+        }
+
+        function ordenarOSMaisRecenteGMAN(a, b) {
+            const dataA = String(dataReferenciaOSHistoricoGMAN(a) || '');
+            const dataB = String(dataReferenciaOSHistoricoGMAN(b) || '');
+            return dataB.localeCompare(dataA, 'pt-BR', { numeric: true });
+        }
+
+        function tituloEscopoHistoricoGMAN(total, exibidas) {
+            if (podeGerenciarOS()) {
+                return `Gestão visualiza todas as ${total} OS deste grupo, organizadas por data.`;
+            }
+            return `Líder/equipe visualiza apenas as últimas ${exibidas} OS deste grupo.`;
+        }
+
         function linhaDetalheHistoricoGMAN(rotulo, valor) {
             return `
                 <div style="display:grid; grid-template-columns:150px 1fr; gap:8px; padding:7px 0; border-bottom:1px solid #edf2f7;">
@@ -2847,10 +2869,21 @@ function atualizarPreviewKmRodado() {
 
             try {
                 const lista = await listarOSOnline();
-                const historico = lista
+                const todasDoGrupo = lista
                     .filter(os => String(os.idEquipamento) === String(idGrupo))
-                    .sort((a, b) => String(b.dataConclusao || b.dataAbertura || '').localeCompare(String(a.dataConclusao || a.dataAbertura || '')))
-                    .slice(0, 20);
+                    .sort(ordenarOSMaisRecenteGMAN);
+
+                const ehGestao = podeGerenciarOS();
+                const historico = ehGestao ? todasDoGrupo : todasDoGrupo.slice(0, 3);
+
+                const gruposPorData = historico.reduce((acc, os) => {
+                    const chave = chaveDataHistoricoGMAN(os);
+                    acc[chave] = acc[chave] || [];
+                    acc[chave].push(os);
+                    return acc;
+                }, {});
+
+                const datasOrdenadas = Object.keys(gruposPorData).sort((a, b) => b.localeCompare(a, 'pt-BR', { numeric: true }));
 
                 const existente = document.getElementById('historicoDetalhadoGrupoModal');
                 if (existente) existente.remove();
@@ -2859,42 +2892,48 @@ function atualizarPreviewKmRodado() {
                 modal.id = 'historicoDetalhadoGrupoModal';
                 modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.78); display:flex; align-items:center; justify-content:center; z-index:1500; padding:18px;';
                 modal.innerHTML = `
-                    <div style="background:white; border-radius:22px; padding:22px; width:96%; max-width:820px; max-height:90vh; overflow-y:auto;">
+                    <div style="background:white; border-radius:22px; padding:22px; width:96%; max-width:840px; max-height:90vh; overflow-y:auto;">
                         <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:14px;">
                             <div>
                                 <h2 style="color:#1e3a5f; margin:0;">Histórico detalhado do grupo</h2>
                                 <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">${escaparHTMLGMAN(idGrupo)} ${eq ? '— ' + escaparHTMLGMAN(eq.name) : ''}</p>
+                                <p style="color:#2c5282; margin:5px 0 0; font-size:0.78rem; font-weight:800;">${escaparHTMLGMAN(tituloEscopoHistoricoGMAN(todasDoGrupo.length, historico.length))}</p>
                             </div>
                             <button onclick="document.getElementById('historicoDetalhadoGrupoModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                         </div>
 
-                        ${historico.length ? historico.map(os => `
-                            <div style="border:1px solid #e2e8f0; border-radius:16px; padding:13px; margin-bottom:12px; background:#f7fafc; text-align:left;">
-                                <h3 style="margin:0 0 8px; color:#1e3a5f; font-size:1rem;">OS ${escaparHTMLGMAN(os.numeroOS || os.idOS || '-')} — ${escaparHTMLGMAN(os.statusOS || '-')}</h3>
-                                ${linhaDetalheHistoricoGMAN('Responsável', os.responsavel)}
-                                ${linhaDetalheHistoricoGMAN('Finalizado por', os.finalizadoPor)}
-                                ${linhaDetalheHistoricoGMAN('Membros da equipe', os.membrosEquipe)}
-                                ${linhaDetalheHistoricoGMAN('Componentes', os.componentesSolicitados)}
-                                ${linhaDetalheHistoricoGMAN('Serviço realizado', os.servicoRealizado)}
-                                ${linhaDetalheHistoricoGMAN('Materiais', os.materiais)}
-                                ${linhaDetalheHistoricoGMAN('Situação final', os.situacaoFinalEquipamento)}
-                                ${linhaDetalheHistoricoGMAN('Observação final', os.observacaoFinal)}
-                                ${linhaDetalheHistoricoGMAN('Motorista', os.motorista)}
-                                ${linhaDetalheHistoricoGMAN('Prefixo', os.prefixoVeiculo)}
-                                ${linhaDetalheHistoricoGMAN('KM inicial', os.kmInicial)}
-                                ${linhaDetalheHistoricoGMAN('KM final', os.kmFinal)}
-                                ${linhaDetalheHistoricoGMAN('KM rodado', os.kmRodado)}
-                                ${linhaDetalheHistoricoGMAN('PAT Painel', os.patPainel)}
-                                ${linhaDetalheHistoricoGMAN('Desc. Painel', os.descPainel)}
-                                ${linhaDetalheHistoricoGMAN('PAT Motor', os.patMotor)}
-                                ${linhaDetalheHistoricoGMAN('Desc. Motor', os.descMotor)}
-                                ${linhaDetalheHistoricoGMAN('PAT Bomba', os.patBomba)}
-                                ${linhaDetalheHistoricoGMAN('Desc. Bomba', os.descBomba)}
-                                ${linhaDetalheHistoricoGMAN('PAT VS', os.patVS)}
-                                ${linhaDetalheHistoricoGMAN('Desc. VS', os.descVS)}
-                                ${linhaDetalheHistoricoGMAN('PAT VR', os.patVR)}
-                                ${linhaDetalheHistoricoGMAN('Desc. VR', os.descVR)}
+                        ${historico.length ? datasOrdenadas.map(dataGrupo => `
+                            <div style="margin:14px 0 8px; padding:9px 12px; background:#ebf8ff; color:#1e3a5f; border-radius:12px; font-weight:900; border-left:5px solid #3182ce;">
+                                📅 ${escaparHTMLGMAN(dataGrupo)}
                             </div>
+                            ${gruposPorData[dataGrupo].map(os => `
+                                <div style="border:1px solid #e2e8f0; border-radius:16px; padding:13px; margin-bottom:12px; background:#f7fafc; text-align:left;">
+                                    <h3 style="margin:0 0 8px; color:#1e3a5f; font-size:1rem;">OS ${escaparHTMLGMAN(os.numeroOS || os.idOS || '-')} — ${escaparHTMLGMAN(os.statusOS || '-')}</h3>
+                                    ${linhaDetalheHistoricoGMAN('Responsável', os.responsavel)}
+                                    ${linhaDetalheHistoricoGMAN('Finalizado por', os.finalizadoPor)}
+                                    ${linhaDetalheHistoricoGMAN('Membros da equipe', os.membrosEquipe)}
+                                    ${linhaDetalheHistoricoGMAN('Componentes', os.componentesSolicitados)}
+                                    ${linhaDetalheHistoricoGMAN('Serviço realizado', os.servicoRealizado)}
+                                    ${linhaDetalheHistoricoGMAN('Materiais', os.materiais)}
+                                    ${linhaDetalheHistoricoGMAN('Situação final', os.situacaoFinalEquipamento)}
+                                    ${linhaDetalheHistoricoGMAN('Observação final', os.observacaoFinal)}
+                                    ${linhaDetalheHistoricoGMAN('Motorista', os.motorista)}
+                                    ${linhaDetalheHistoricoGMAN('Prefixo', os.prefixoVeiculo)}
+                                    ${linhaDetalheHistoricoGMAN('KM inicial', os.kmInicial)}
+                                    ${linhaDetalheHistoricoGMAN('KM final', os.kmFinal)}
+                                    ${linhaDetalheHistoricoGMAN('KM rodado', os.kmRodado)}
+                                    ${linhaDetalheHistoricoGMAN('PAT Painel', os.patPainel)}
+                                    ${linhaDetalheHistoricoGMAN('Desc. Painel', os.descPainel)}
+                                    ${linhaDetalheHistoricoGMAN('PAT Motor', os.patMotor)}
+                                    ${linhaDetalheHistoricoGMAN('Desc. Motor', os.descMotor)}
+                                    ${linhaDetalheHistoricoGMAN('PAT Bomba', os.patBomba)}
+                                    ${linhaDetalheHistoricoGMAN('Desc. Bomba', os.descBomba)}
+                                    ${linhaDetalheHistoricoGMAN('PAT VS', os.patVS)}
+                                    ${linhaDetalheHistoricoGMAN('Desc. VS', os.descVS)}
+                                    ${linhaDetalheHistoricoGMAN('PAT VR', os.patVR)}
+                                    ${linhaDetalheHistoricoGMAN('Desc. VR', os.descVR)}
+                                </div>
+                            `).join('')}
                         `).join('') : `
                             <div style="background:#fffaf0; border-left:5px solid #d69e2e; border-radius:14px; padding:12px; color:#744210;">
                                 Nenhuma OS encontrada para este grupo.
@@ -2910,7 +2949,7 @@ function atualizarPreviewKmRodado() {
             }
         }
 
-function openEquipment(id) {
+        function openEquipment(id) {
             const eq = equipment.find(e => e.id === id);
             
             const existingModal = document.getElementById('qrModal');
@@ -3010,7 +3049,7 @@ function openEquipment(id) {
                 } catch (erro) {
                     console.error('Erro ao atualizar totalizadores de OS:', erro);
                 }
-            }, 180000);
+            }, 120000);
         }
 
         iniciarSistema();
