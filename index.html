@@ -257,8 +257,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.27 — Componentes, exceções e data/hora';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.27 — Componentes, exceções e data/hora';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.28 — Status, histórico real e ficha técnica';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.28 — Status, histórico real e ficha técnica';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -326,6 +326,8 @@
             if (s.includes('aguardando material')) return 'Aguardando material';
             if (s.includes('aguardando liberacao')) return 'Aguardando liberação';
             if (s.includes('restricao')) return 'Operando com restrição';
+            if (s.includes('manutencao') && s.includes('operando')) return 'Em manutenção (operando)';
+            if (s.includes('manutencao') && s.includes('parado')) return 'Em manutenção (parado)';
             if (s.includes('parad')) return 'Parado';
             if (s.includes('manutencao')) return 'Em manutenção';
             if (s.includes('reabert')) return 'Reaberta';
@@ -479,8 +481,8 @@
                 .normalize('NFD')
                 .replace(/[\u0300-\u036f]/g, '');
 
-            if (texto.includes('parad') || obs.includes('condicao operacional: parado') || obs.includes('condição operacional: parado')) return 'down';
-            if (texto.includes('manut') || texto.includes('aguard') || texto.includes('restri') || obs.includes('em teste') || texto.includes('em teste') || texto.includes('alert') || texto.includes('atencao')) return 'alert';
+            if (texto.includes('manutencao (parado)') || texto.includes('manutenção (parado)') || texto.includes('parad') || obs.includes('condicao operacional: parado') || obs.includes('condição operacional: parado')) return 'down';
+            if (texto.includes('manutencao (operando)') || texto.includes('manutenção (operando)') || texto.includes('manut') || texto.includes('aguard') || texto.includes('restri') || obs.includes('em teste') || texto.includes('em teste') || texto.includes('alert') || texto.includes('atencao')) return 'alert';
             return 'ok';
         }
 
@@ -511,7 +513,7 @@
             const lower = c.toLowerCase();
 
             if (lower === 'parado') return 'parado';
-            if (lower === 'os em execução' || lower === 'os em execucao') return 'OS em execução';
+            if (lower === 'os em execução' || lower === 'os em execucao') return 'Em manutenção (operando)';
             if (lower === 'aguardando material') return 'aguardando material';
             if (lower === 'aguardando liberação' || lower === 'aguardando liberacao') return 'aguardando liberação';
             if (lower === 'em teste') return 'em teste';
@@ -766,6 +768,110 @@
             return texto.includes('instalacoes mecanicas') || texto.includes('usinagem') || texto.includes('caldeiraria');
         }
 
+        function camposFichaTecnicaGMAN(componente) {
+            const campos = {
+                PAINEL: ['Localização', 'Tipo de partida', 'A máxima', 'Situação da instalação', 'Condição visual'],
+                MOTOR: ['Marca', 'Modelo', 'Potência', 'Tensão', 'Corrente nominal', 'Corrente de trabalho', 'Rolamentos', 'Condição visual'],
+                BOMBA: ['Modelo', 'Tipo', 'Diâmetro da sucção', 'Diâmetro do recalque', 'Rolamentos', 'Retentores', 'Selo', 'Gaxeta', 'Acoplamento', 'Diâmetro do rotor', 'Tipo de óleo'],
+                VS: ['Tipo', 'Diâmetro', 'Acionamento', 'Flanges'],
+                VR: ['Tipo', 'Diâmetro', 'Acionamento', 'Flanges'],
+                RETENCAO: ['Tipo', 'Diâmetro', 'Acionamento', 'Flanges'],
+                TUBULACAO: ['Diâmetro', 'Material', 'Situação visual']
+            };
+
+            return campos[componente] || [];
+        }
+
+        function parseDescricaoFichaGMAN(texto) {
+            const resultado = {};
+            String(texto || '').split(/\n/).forEach(linha => {
+                const partes = linha.split(':');
+                if (partes.length >= 2) {
+                    const chave = partes.shift().trim();
+                    resultado[chave] = partes.join(':').trim();
+                }
+            });
+            return resultado;
+        }
+
+        function montarDescricaoFichaGMAN(componente) {
+            return camposFichaTecnicaGMAN(componente)
+                .map(campo => {
+                    const id = `ficha_${componente}_${normalizarTextoGMAN(campo).replace(/[^a-z0-9]/g, '_')}`;
+                    const el = document.getElementById(id);
+                    return `${campo}: ${el ? el.value.trim() : ''}`;
+                })
+                .join('\n');
+        }
+
+        function atualizarPreviewFichaTecnicaGMAN(componente) {
+            const descId = idCampoDescricaoConclusaoGMAN(componente);
+            const desc = document.getElementById(descId);
+            const preview = document.getElementById('previewFicha_' + componente);
+            if (preview) {
+                const texto = desc && desc.value ? desc.value : 'Ficha técnica ainda não preenchida.';
+                preview.textContent = texto;
+            }
+        }
+
+        function abrirFichaTecnicaPatrimonialGMAN(componente) {
+            const rotulo = rotuloComponenteGMAN(componente);
+            const descId = idCampoDescricaoConclusaoGMAN(componente);
+            const desc = document.getElementById(descId);
+            const valores = parseDescricaoFichaGMAN(desc ? desc.value : '');
+            const campos = camposFichaTecnicaGMAN(componente);
+
+            const existente = document.getElementById('fichaTecnicaPatrimonialModal');
+            if (existente) existente.remove();
+
+            const modal = document.createElement('div');
+            modal.id = 'fichaTecnicaPatrimonialModal';
+            modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.72); display:flex; align-items:center; justify-content:center; z-index:1800; padding:16px;';
+            modal.innerHTML = `
+                <div style="background:white; border-radius:22px; width:96%; max-width:620px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.25);">
+                    <div style="background:linear-gradient(135deg,#1e88e5,#0d47a1); color:white; padding:18px 20px; border-radius:22px 22px 0 0;">
+                        <div style="font-size:0.78rem; opacity:0.9;">Ficha Técnica Patrimonial</div>
+                        <h2 style="margin:4px 0 0; font-size:1.25rem;">${escaparHTMLGMAN(rotulo)}</h2>
+                    </div>
+
+                    <div style="padding:18px;">
+                        <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:14px; padding:12px; margin-bottom:14px; color:#1e3a5f; font-size:0.82rem;">
+                            Os requisitos abaixo são fixos. Preencha apenas as lacunas disponíveis. Ao salvar, o sistema organiza tudo na planilha.
+                        </div>
+
+                        <div style="display:grid; gap:10px;">
+                            ${campos.map(campo => {
+                                const id = `ficha_${componente}_${normalizarTextoGMAN(campo).replace(/[^a-z0-9]/g, '_')}`;
+                                return `
+                                    <label style="display:grid; gap:5px; font-weight:800; color:#1e3a5f; font-size:0.84rem;">
+                                        ${escaparHTMLGMAN(campo)}
+                                        <input id="${id}" class="form-field" value="${escaparHTMLGMAN(valores[campo] || '')}" placeholder="Preencher ${escaparHTMLGMAN(campo.toLowerCase())}">
+                                    </label>
+                                `;
+                            }).join('')}
+                        </div>
+
+                        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:18px;">
+                            <button onclick="document.getElementById('fichaTecnicaPatrimonialModal').remove();" style="padding:11px 14px; border:none; border-radius:12px; background:#718096; color:white; cursor:pointer;">Cancelar</button>
+                            <button onclick="salvarFichaTecnicaPatrimonialGMAN('${componente}')" style="padding:11px 14px; border:none; border-radius:12px; background:#38a169; color:white; cursor:pointer; font-weight:900;">Salvar ficha</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function salvarFichaTecnicaPatrimonialGMAN(componente) {
+            const descId = idCampoDescricaoConclusaoGMAN(componente);
+            const desc = document.getElementById(descId);
+            if (desc) desc.value = montarDescricaoFichaGMAN(componente);
+
+            atualizarPreviewFichaTecnicaGMAN(componente);
+
+            const modal = document.getElementById('fichaTecnicaPatrimonialModal');
+            if (modal) modal.remove();
+        }
+
         function montarLinhasPatrimonioGrupoGMAN(patrimonios = {}, opcoes = {}) {
             const modo = opcoes.modo || 'consulta';
             const obrigatorio = !!opcoes.obrigatorio;
@@ -797,13 +903,20 @@
                 if (modo === 'conclusao') {
                     const idPat = idCampoPatrimonioConclusaoGMAN(componente);
                     const idDesc = idCampoDescricaoConclusaoGMAN(componente);
-                    const textoDescricao = descricao || modeloDescricaoComponenteGMAN(componente);
+                    const textoDescricao = descricao || '';
 
                     return `
-                        <div style="display:grid; grid-template-columns:150px 1fr 1.5fr; gap:8px; align-items:start; margin-bottom:8px;">
+                        <div style="display:grid; grid-template-columns:150px 1fr 1.25fr; gap:8px; align-items:start; margin-bottom:10px; padding:10px; border:1px solid #e2e8f0; border-radius:14px; background:#ffffff;">
                             <label class="form-label" style="margin:11px 0 0;">${rotulo}</label>
-                            <input id="${idPat}" class="form-field" value="${escaparHTMLGMAN(valor)}" placeholder="${componente === 'TUBULACAO' ? 'PAT opcional da Tubulação' : 'PAT do ' + rotulo}" ${patObrigatorio ? 'required' : ''}>
-                            <textarea id="${idDesc}" class="form-field" rows="5" placeholder="Ficha técnica opcional do ${rotulo}">${escaparHTMLGMAN(textoDescricao)}</textarea>
+                            <div>
+                                <input id="${idPat}" class="form-field" value="${escaparHTMLGMAN(valor)}" placeholder="${componente === 'TUBULACAO' ? 'PAT opcional da Tubulação' : 'PAT do ' + rotulo}" ${patObrigatorio ? 'required' : ''}>
+                                <small style="color:#718096;">${patObrigatorio ? 'PAT obrigatório' : 'PAT opcional'}</small>
+                            </div>
+                            <div style="display:grid; gap:7px;">
+                                <textarea id="${idDesc}" style="display:none;">${escaparHTMLGMAN(textoDescricao)}</textarea>
+                                <button type="button" onclick="abrirFichaTecnicaPatrimonialGMAN('${componente}')" style="padding:10px 12px; border:none; border-radius:12px; background:#3182ce; color:white; cursor:pointer; font-weight:900;">🧾 Preencher ficha técnica</button>
+                                <pre id="previewFicha_${componente}" style="white-space:pre-wrap; min-height:42px; max-height:95px; overflow:auto; margin:0; padding:9px; border-radius:10px; background:#f7fafc; color:#2d3748; font-size:0.74rem;">${textoDescricao ? escaparHTMLGMAN(textoDescricao) : 'Ficha técnica ainda não preenchida.'}</pre>
+                            </div>
                         </div>
                     `;
                 }
@@ -1068,7 +1181,7 @@
                 const encerrada = isOSEncerrada(os.statusOS);
                 const permissaoAlterar = usuarioPodeAlterarOS(os);
                 const podeIniciar = !encerrada && permissaoAlterar && String(os.statusOS) === 'Aberta';
-                const statusPermiteAcao = ['Em execução', 'Aguardando material', 'Aguardando liberação', 'Reaberta', 'Parado', 'Em teste', 'OS em execução', 'Operando com restrição'].includes(String(os.statusOS));
+                const statusPermiteAcao = ['Em execução', 'Aguardando material', 'Aguardando liberação', 'Reaberta', 'Parado', 'Em teste', 'Em manutenção (operando)', 'Operando com restrição'].includes(String(os.statusOS));
                 const podeConcluir = !encerrada && permissaoAlterar && statusPermiteAcao;
                 const podeAtualizarAndamento = !encerrada && permissaoAlterar && statusPermiteAcao;
                 const podeCancelar = !encerrada && podeGerenciarOS();
@@ -1493,12 +1606,12 @@ async function criarOSPeloModal() {
 
                     <label class="form-label">Condição operacional</label>
                     <select id="andamentoCondicao" class="form-field">
-                        <option value="Parado">Manutenção (parado)</option>
-                        <option value="Aguardando material">Manutenção (aguardando material)</option>
-                        <option value="Aguardando liberação">Manutenção (aguardando liberação)</option>
-                        <option value="Em teste">Manutenção (em teste)</option>
-                        <option value="Operando com restrição">Operando com restrição</option>
-                        <option value="OS em execução">Manutenção (OS em execução)</option>
+                        <option value="Parado">Em manutenção (parado)</option>
+                        <option value="Aguardando material">Em manutenção (parado) — aguardando material</option>
+                        <option value="Aguardando liberação">Em manutenção (parado) — aguardando liberação</option>
+                        <option value="Em teste">Em manutenção (operando) — em teste</option>
+                        <option value="Operando com restrição">Em manutenção (operando) — com restrição</option>
+                        <option value="Em manutenção (operando)">Em manutenção (operando)</option>
                     </select>
 
                     <label class="form-label">Justificativa / observação obrigatória</label>
@@ -2921,7 +3034,7 @@ function atualizarPreviewKmRodado() {
         }
 
         function dataReferenciaOSHistoricoGMAN(os) {
-            return os.dataConclusao || os.dataInicio || os.dataAbertura || '';
+            return os.ultimaMovimentacaoDataHora || os.dataConclusao || os.dataInicio || os.dataAbertura || '';
         }
 
         function chaveDataHistoricoGMAN(os) {
@@ -2930,10 +3043,26 @@ function atualizarPreviewKmRodado() {
             return String(data).split(' ')[0];
         }
 
+        function tempoHistoricoGMAN(os) {
+            if (os.ultimaMovimentacaoTempo) return Number(os.ultimaMovimentacaoTempo) || 0;
+            const data = String(dataReferenciaOSHistoricoGMAN(os) || '');
+            const partes = data.match(/(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}):(\d{2}))?/);
+            if (partes) {
+                return new Date(
+                    Number(partes[3]),
+                    Number(partes[2]) - 1,
+                    Number(partes[1]),
+                    Number(partes[4] || 0),
+                    Number(partes[5] || 0),
+                    Number(partes[6] || 0)
+                ).getTime();
+            }
+            const d = new Date(data);
+            return isNaN(d.getTime()) ? 0 : d.getTime();
+        }
+
         function ordenarOSMaisRecenteGMAN(a, b) {
-            const dataA = String(dataReferenciaOSHistoricoGMAN(a) || '');
-            const dataB = String(dataReferenciaOSHistoricoGMAN(b) || '');
-            return dataB.localeCompare(dataA, 'pt-BR', { numeric: true });
+            return tempoHistoricoGMAN(b) - tempoHistoricoGMAN(a);
         }
 
         function tituloEscopoHistoricoGMAN(total, exibidas) {
@@ -2997,6 +3126,10 @@ function atualizarPreviewKmRodado() {
                             ${gruposPorData[dataGrupo].map(os => `
                                 <div style="border:1px solid #e2e8f0; border-radius:16px; padding:13px; margin-bottom:12px; background:#f7fafc; text-align:left;">
                                     <h3 style="margin:0 0 8px; color:#1e3a5f; font-size:1rem;">OS ${escaparHTMLGMAN(os.numeroOS || os.idOS || '-')} — ${escaparHTMLGMAN(os.statusOS || '-')}</h3>
+                                    ${linhaDetalheHistoricoGMAN('Última movimentação', os.ultimaMovimentacaoDataHora)}
+                                    ${linhaDetalheHistoricoGMAN('Ação mais recente', os.ultimaMovimentacaoAcao)}
+                                    ${linhaDetalheHistoricoGMAN('Usuário da movimentação', os.ultimaMovimentacaoUsuario)}
+                                    ${linhaDetalheHistoricoGMAN('Observação da movimentação', os.ultimaMovimentacaoObservacao)}
                                     ${linhaDetalheHistoricoGMAN('Responsável', os.responsavel)}
                                     ${linhaDetalheHistoricoGMAN('Finalizado por', os.finalizadoPor)}
                                     ${linhaDetalheHistoricoGMAN('Membros da equipe', os.membrosEquipe)}
