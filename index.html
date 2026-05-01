@@ -182,7 +182,7 @@
 
      <div class="systems-filter">
          <button class="system-btn active" onclick="filterSystem('all')">TODAS</button>
-         <button class="system-btn" onclick="filterSystem('moinhos de vento')">100 - Moinhos</button>
+         <button class="system-btn" onclick="filterSystem('moinhos de vento')">100 Sistema Moinhos de Vento de Vento de Vento</button>
          <button class="system-btn" onclick="filterSystem('são joao')">200 - São João</button>
          <button class="system-btn" onclick="filterSystem('menino deus')">300 - Menino Deus</button>
          <button class="system-btn" onclick="filterSystem('belem novo')">400 - Belém Novo</button>
@@ -258,8 +258,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.21 — Ajuste técnico final dos KPIs';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.6 — Regras abertura OS e conclusão obrigatória';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.22 — Consulta do grupo e patrimônio';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.22 — Estrutura patrimonial dos grupos';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -607,6 +607,130 @@
             return retorno;
         }
 
+        async function apiGet(params) {
+            const query = new URLSearchParams(Object.assign({}, params || {}, { t: Date.now() })).toString();
+            const resposta = await fetch(`${API_URL}?${query}`);
+            if (!resposta.ok) throw new Error('Falha ao consultar a API GMAN.');
+            const retorno = await resposta.json();
+            if (retorno && retorno.sucesso === false) throw new Error(retorno.erro || retorno.mensagem || 'Erro desconhecido na API.');
+            return retorno;
+        }
+
+        const COMPONENTES_GRUPO_GMAN = ['PAINEL', 'MOTOR', 'BOMBA', 'VS', 'VR'];
+
+        function escaparHTMLGMAN(valor) {
+            return String(valor === null || valor === undefined ? '' : valor)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function campoPatrimonioPorComponenteGMAN(componente) {
+            return {
+                PAINEL: 'PAT_PAINEL',
+                MOTOR: 'PAT_MOTOR',
+                BOMBA: 'PAT_BOMBA',
+                VS: 'PAT_VS',
+                VR: 'PAT_VR'
+            }[componente] || '';
+        }
+
+        function idCampoPatrimonioConclusaoGMAN(componente) {
+            return {
+                PAINEL: 'concluirPatPainel',
+                MOTOR: 'concluirPatMotor',
+                BOMBA: 'concluirPatBomba',
+                VS: 'concluirPatVS',
+                VR: 'concluirPatVR'
+            }[componente] || '';
+        }
+
+        function idCampoPatrimonioAberturaGMAN(componente) {
+            return {
+                PAINEL: 'abrirPatPainel',
+                MOTOR: 'abrirPatMotor',
+                BOMBA: 'abrirPatBomba',
+                VS: 'abrirPatVS',
+                VR: 'abrirPatVR'
+            }[componente] || '';
+        }
+
+        async function consultarPatrimonioGrupoFront(idGrupo, eq = null) {
+            const dados = await apiGet({
+                acao: 'consultarPatrimonioGrupo',
+                idGrupo: idGrupo,
+                idEquipamento: idGrupo,
+                sistema: eq ? eq.system : '',
+                nomeGrupo: eq ? eq.name : idGrupo
+            });
+
+            return dados;
+        }
+
+        function montarLinhasPatrimonioGrupoGMAN(patrimonios = {}, opcoes = {}) {
+            const modo = opcoes.modo || 'consulta';
+            const obrigatorio = !!opcoes.obrigatorio;
+
+            return COMPONENTES_GRUPO_GMAN.map(componente => {
+                const campo = campoPatrimonioPorComponenteGMAN(componente);
+                const valor = patrimonios[campo] || '';
+
+                if (modo === 'abertura') {
+                    const idPat = idCampoPatrimonioAberturaGMAN(componente);
+                    return `
+                        <label style="display:grid; grid-template-columns:26px 80px 1fr; gap:8px; align-items:center; padding:8px; border:1px solid #e2e8f0; border-radius:10px; background:#ffffff; margin-bottom:7px; cursor:pointer;">
+                            <input type="checkbox" class="osComponenteSolicitado" value="${componente}">
+                            <strong style="color:#1e3a5f;">${componente}</strong>
+                            <input id="${idPat}" class="form-field" value="${escaparHTMLGMAN(valor)}" readonly placeholder="PAT ainda não informado" style="margin:0; background:#f7fafc;">
+                        </label>
+                    `;
+                }
+
+                if (modo === 'conclusao') {
+                    const idPat = idCampoPatrimonioConclusaoGMAN(componente);
+                    return `
+                        <div style="display:grid; grid-template-columns:80px 1fr; gap:8px; align-items:center; margin-bottom:8px;">
+                            <label class="form-label" style="margin:0;">${componente}</label>
+                            <input id="${idPat}" class="form-field" value="${escaparHTMLGMAN(valor)}" placeholder="Informe o patrimônio do ${componente}" ${obrigatorio ? 'required' : ''}>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div style="display:grid; grid-template-columns:90px 1fr; gap:8px; align-items:center; padding:8px; border-bottom:1px solid #e2e8f0;">
+                        <strong style="color:#1e3a5f;">${componente}</strong>
+                        <span style="color:#2d3748; background:#f7fafc; border-radius:8px; padding:8px;">${valor ? escaparHTMLGMAN(valor) : 'PAT ainda não informado'}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function coletarComponentesSolicitadosModalGMAN() {
+            return Array.from(document.querySelectorAll('.osComponenteSolicitado:checked')).map(item => item.value);
+        }
+
+        function coletarPatrimoniosConclusaoGMAN() {
+            return {
+                patPainel: (document.getElementById('concluirPatPainel') || {}).value ? document.getElementById('concluirPatPainel').value.trim() : '',
+                patMotor: (document.getElementById('concluirPatMotor') || {}).value ? document.getElementById('concluirPatMotor').value.trim() : '',
+                patBomba: (document.getElementById('concluirPatBomba') || {}).value ? document.getElementById('concluirPatBomba').value.trim() : '',
+                patVS: (document.getElementById('concluirPatVS') || {}).value ? document.getElementById('concluirPatVS').value.trim() : '',
+                patVR: (document.getElementById('concluirPatVR') || {}).value ? document.getElementById('concluirPatVR').value.trim() : ''
+            };
+        }
+
+        function validarPatrimoniosConclusaoTelaGMAN(patrimonios) {
+            const faltantes = [];
+            if (!patrimonios.patPainel) faltantes.push('PAT PAINEL');
+            if (!patrimonios.patMotor) faltantes.push('PAT MOTOR');
+            if (!patrimonios.patBomba) faltantes.push('PAT BOMBA');
+            if (!patrimonios.patVS) faltantes.push('PAT VS');
+            if (!patrimonios.patVR) faltantes.push('PAT VR');
+            return faltantes;
+        }
+
         function podeGerenciarOS() {
             if (!usuarioLogado) return false;
             const f = String(usuarioLogado.funcao || '').toLowerCase();
@@ -830,6 +954,8 @@
                         <p><strong>Sistema:</strong> ${os.sistema || '-'} | <strong>Equipe:</strong> ${os.equipeResponsavel || '-'}</p>
                         <p><strong>Responsável:</strong> ${os.responsavel || '-'}</p>
                         <p><strong>Membros da equipe:</strong> ${os.membrosEquipe || '-'}</p>
+                        <p><strong>Componentes solicitados:</strong> ${os.componentesSolicitados || '-'}</p>
+                        <p><strong>PAT:</strong> Painel ${os.patPainel || '-'} | Motor ${os.patMotor || '-'} | Bomba ${os.patBomba || '-'} | VS ${os.patVS || '-'} | VR ${os.patVR || '-'}</p>
                         <p><strong>Problema:</strong> ${os.descricaoProblema || '-'}</p>
                         ${os.dataAbertura ? `<p><strong>Abertura:</strong> ${formatarDataApi(os.dataAbertura)} ${os.horaAbertura ? '| ' + os.horaAbertura : ''}</p>` : ''}
                         ${os.dataConclusao ? `<p><strong>Conclusão:</strong> ${formatarDataApi(os.dataConclusao)} ${os.horaConclusao ? '| ' + os.horaConclusao : ''}</p>` : ''}
@@ -866,19 +992,54 @@
             return opcoes.join('');
         }
 
-        function abrirModalCriarOS(idEquipamentoPreSelecionado = '') {
+                async function abrirModalCriarOS(idEquipamentoPreSelecionado = '') {
             if (!podeGerenciarOS()) return alert('Abertura de OS é permitida apenas para gestão.');
+            if (!idEquipamentoPreSelecionado) return alert('Abra a OS clicando primeiro no grupo/equipamento específico.');
+
+            const eq = equipment.find(e => String(e.id) === String(idEquipamentoPreSelecionado));
+            if (!eq) return alert('Grupo/equipamento não localizado na tela. Atualize e tente novamente.');
+
             const existing = document.getElementById('criarOSModal');
             if (existing) existing.remove();
-            const opcoes = equipment.map(eq => `<option value="${eq.id}" ${eq.id === idEquipamentoPreSelecionado ? 'selected' : ''}>${eq.id} — ${eq.name}</option>`).join('');
+
+            let patrimonioGrupo = {
+                patrimonios: {
+                    PAT_PAINEL: '',
+                    PAT_MOTOR: '',
+                    PAT_BOMBA: '',
+                    PAT_VS: '',
+                    PAT_VR: ''
+                }
+            };
+
+            try {
+                patrimonioGrupo = await consultarPatrimonioGrupoFront(eq.id, eq);
+            } catch (erro) {
+                console.warn('Não foi possível consultar patrimônio do grupo antes da abertura:', erro);
+            }
+
             const modal = document.createElement('div');
             modal.id = 'criarOSModal';
             modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.82); z-index:1200; display:flex; align-items:center; justify-content:center; padding:18px;';
             modal.innerHTML = `
-                <div style="background:white; border-radius:20px; padding:24px; width:95%; max-width:560px; max-height:92vh; overflow-y:auto;">
+                <div style="background:white; border-radius:20px; padding:24px; width:95%; max-width:620px; max-height:92vh; overflow-y:auto;">
                     <h2 style="color:#1e3a5f; margin:0 0 8px;">Abrir Ordem de Serviço</h2>
-                    <p style="color:#718096; font-size:0.82rem; margin-bottom:14px;">Somente gestão abre OS. A equipe executa e conclui. Agora escolha o executor principal. Status só muda no encerramento da OS. Painel Gerencial liberado somente para gestão.</p>
-                    <label class="form-label">Equipamento</label><select id="osEquipamento" class="form-field">${opcoes}</select>
+                    <p style="color:#718096; font-size:0.82rem; margin-bottom:14px;">A OS será aberta diretamente para o grupo selecionado. Não há escolha de outro grupo nesta tela.</p>
+
+                    <input type="hidden" id="osEquipamento" value="${escaparHTMLGMAN(eq.id)}">
+
+                    <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:14px; padding:12px; margin-bottom:14px; text-align:left;">
+                        <strong style="color:#1e3a5f;">Grupo selecionado</strong><br>
+                        <span style="color:#2d3748;">${escaparHTMLGMAN(eq.id)} — ${escaparHTMLGMAN(eq.name)}</span><br>
+                        <span style="color:#718096; font-size:0.78rem;">Sistema: ${escaparHTMLGMAN(eq.system.toUpperCase())}</span>
+                    </div>
+
+                    <label class="form-label">Equipamento solicitado dentro do grupo</label>
+                    <div style="background:#f7fafc; border:1px solid #e2e8f0; border-radius:14px; padding:10px; margin-bottom:12px;">
+                        <p style="color:#718096; font-size:0.75rem; margin:0 0 8px;">Marque o componente que precisa de manutenção/vistoria. O PAT aparece ao lado quando já estiver disponível.</p>
+                        ${montarLinhasPatrimonioGrupoGMAN(patrimonioGrupo.patrimonios || {}, { modo: 'abertura' })}
+                    </div>
+
                     <label class="form-label">Área / setor</label>
                     <select id="osArea" class="form-field">
                         <option value="">Selecione a área/setor</option>
@@ -926,9 +1087,11 @@
             document.body.appendChild(modal);
         }
 
-        async function criarOSPeloModal() {
+
+async function criarOSPeloModal() {
             const idEquipamento = document.getElementById('osEquipamento').value;
             const eq = equipment.find(e => e.id === idEquipamento);
+            const componentesSolicitados = coletarComponentesSolicitadosModalGMAN();
             const area = document.getElementById('osArea').value;
             const tipoManutencao = document.getElementById('osTipo').value;
             const prioridade = document.getElementById('osPrioridade').value;
@@ -942,6 +1105,7 @@
             if (!usuarioLogado || !usuarioLogado.nome) faltantes.push('usuário criador');
             if (!usuarioLogado || !usuarioLogado.funcao) faltantes.push('função do usuário');
             if (!idEquipamento) faltantes.push('equipamento');
+            if (!componentesSolicitados.length) faltantes.push('equipamento solicitado dentro do grupo');
             if (!area) faltantes.push('área/setor');
             if (!tipoManutencao) faltantes.push('tipo de manutenção');
             if (!prioridade) faltantes.push('prioridade');
@@ -968,7 +1132,8 @@
                     descricaoProblema,
                     equipeResponsavel,
                     responsavel,
-                    membrosEquipe
+                    membrosEquipe,
+                    componentesSolicitados: componentesSolicitados.join(', ')
                 });
 
                 document.getElementById('criarOSModal').remove();
@@ -1261,7 +1426,7 @@
             }
         }
 
-        function abrirModalConcluirOS(idOS) {
+        async function abrirModalConcluirOS(idOS) {
             const os = ordensServicoCache.find(item => String(item.idOS) === String(idOS));
 
             if (!os) {
@@ -1274,16 +1439,41 @@
             const existing = document.getElementById('concluirOSModal');
             if (existing) existing.remove();
 
+            let patrimonioGrupo = {
+                patrimonios: {
+                    PAT_PAINEL: os.patPainel || '',
+                    PAT_MOTOR: os.patMotor || '',
+                    PAT_BOMBA: os.patBomba || '',
+                    PAT_VS: os.patVS || '',
+                    PAT_VR: os.patVR || ''
+                }
+            };
+
+            try {
+                const eq = equipment.find(e => String(e.id) === String(os.idEquipamento));
+                const consulta = await consultarPatrimonioGrupoFront(os.idEquipamento, eq || null);
+                patrimonioGrupo = {
+                    patrimonios: Object.assign({}, patrimonioGrupo.patrimonios, consulta.patrimonios || {})
+                };
+            } catch (erro) {
+                console.warn('Não foi possível carregar patrimônio do grupo para conclusão:', erro);
+            }
+
             const modal = document.createElement('div');
             modal.id = 'concluirOSModal';
             modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.82); z-index:1300; display:flex; align-items:center; justify-content:center; padding:18px;';
 
             modal.innerHTML = `
-                <div style="background:white; border-radius:20px; padding:24px; width:95%; max-width:650px; max-height:90vh; overflow-y:auto;">
+                <div style="background:white; border-radius:20px; padding:24px; width:95%; max-width:700px; max-height:90vh; overflow-y:auto;">
                     <h2 style="color:#1e3a5f; margin:0 0 12px;">Concluir OS</h2>
                     <p style="color:#718096; font-size:0.82rem; margin:0 0 12px;">
                         A OS só encerra quando o equipamento estiver Operando. Se ainda não voltou a operar, use Atualizar andamento.
                     </p>
+
+                    <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:14px; padding:12px; margin-bottom:14px; text-align:left;">
+                        <strong style="color:#1e3a5f;">Grupo da OS:</strong> ${escaparHTMLGMAN(os.idEquipamento || '-')}<br>
+                        <span style="color:#2d3748;">Componentes solicitados: ${escaparHTMLGMAN(os.componentesSolicitados || '-')}</span>
+                    </div>
 
                     <label class="form-label">Serviço executado</label>
                     <textarea id="concluirServico" class="form-field" rows="4" placeholder="Descreva o serviço executado"></textarea>
@@ -1327,6 +1517,14 @@
                     <label class="form-label">Observação final</label>
                     <textarea id="concluirObservacaoFinal" class="form-field" rows="3" placeholder="Observação final da OS"></textarea>
 
+                    <div style="margin-top:15px; padding:12px; background:#fffaf0; border-radius:12px; border-left:4px solid #d69e2e; text-align:left;">
+                        <p style="color:#744210; font-weight:800; margin:0 0 8px;">🏷️ Patrimônio obrigatório do grupo</p>
+                        <p style="color:#744210; font-size:0.75rem; margin:0 0 10px;">
+                            Informe ou confirme todos os patrimônios antes de concluir. Esses dados atualizam a consulta do grupo para as próximas OS.
+                        </p>
+                        ${montarLinhasPatrimonioGrupoGMAN(patrimonioGrupo.patrimonios || {}, { modo: 'conclusao', obrigatorio: true })}
+                    </div>
+
                     <div style="margin-top:15px; padding:12px; background:#f7fafc; border-radius:12px; border-left:4px solid #3182ce;">
                         <p style="color:#1e3a5f; font-weight:700; margin:0 0 8px;">📎 Evidências da OS</p>
                         <p style="color:#718096; font-size:0.75rem; margin:0 0 10px;">
@@ -1363,7 +1561,8 @@
         }
 
 
-        function atualizarPreviewKmRodado() {
+
+function atualizarPreviewKmRodado() {
             const ini = document.getElementById('concluirKmInicial');
             const fim = document.getElementById('concluirKmFinal');
             const prev = document.getElementById('previewKmRodado');
@@ -1411,6 +1610,7 @@
             const kmFinalTexto = document.getElementById('concluirKmFinal').value;
             const situacaoFinalEquipamento = document.getElementById('concluirSituacaoFinal').value;
             const observacaoFinal = document.getElementById('concluirObservacaoFinal').value.trim();
+            const patrimoniosConclusao = coletarPatrimoniosConclusaoGMAN();
 
             const kmInicial = kmInicialTexto === '' ? '' : Number(kmInicialTexto);
             const kmFinal = kmFinalTexto === '' ? '' : Number(kmFinalTexto);
@@ -1424,6 +1624,8 @@
             if (kmFinalTexto === '') camposFaltantes.push('KM final');
             if (!situacaoFinalEquipamento) camposFaltantes.push('situação final do equipamento');
             if (!observacaoFinal) camposFaltantes.push('observação final');
+
+            camposFaltantes.push(...validarPatrimoniosConclusaoTelaGMAN(patrimoniosConclusao));
 
             if (camposFaltantes.length) {
                 return alert('Preencha todos os campos obrigatórios antes de concluir a OS: ' + camposFaltantes.join(', ') + '. Fotos e áudio não são obrigatórios.');
@@ -1452,7 +1654,12 @@
                     kmRodado: (kmInicial !== '' && kmFinal !== '') ? (kmFinal - kmInicial) : '',
                     situacaoFinalEquipamento,
                     statusFinalEquipamento: situacaoFinalEquipamento,
-                    observacaoFinal
+                    observacaoFinal,
+                    patPainel: patrimoniosConclusao.patPainel,
+                    patMotor: patrimoniosConclusao.patMotor,
+                    patBomba: patrimoniosConclusao.patBomba,
+                    patVS: patrimoniosConclusao.patVS,
+                    patVR: patrimoniosConclusao.patVR
                 });
 
                 document.getElementById('concluirOSModal').remove();
@@ -2511,7 +2718,53 @@
             renderEquipment(filtered);
         }
         
-        function openEquipment(id) {
+                async function abrirConsultaGrupo(idGrupo) {
+            const eq = equipment.find(e => String(e.id) === String(idGrupo));
+
+            if (!eq) {
+                alert('Grupo/equipamento não localizado.');
+                return;
+            }
+
+            let consulta;
+
+            try {
+                consulta = await consultarPatrimonioGrupoFront(eq.id, eq);
+            } catch (erro) {
+                console.error(erro);
+                alert('Erro ao consultar patrimônio do grupo: ' + erro.message);
+                return;
+            }
+
+            const existente = document.getElementById('consultaGrupoModal');
+            if (existente) existente.remove();
+
+            const modal = document.createElement('div');
+            modal.id = 'consultaGrupoModal';
+            modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.78); display:flex; align-items:center; justify-content:center; z-index:1400; padding:18px;';
+            modal.innerHTML = `
+                <div style="background:white; border-radius:22px; padding:22px; width:95%; max-width:540px; max-height:90vh; overflow-y:auto;">
+                    <h2 style="color:#1e3a5f; margin:0 0 8px;">Consultar grupo</h2>
+                    <p style="color:#718096; font-size:0.82rem; margin:0 0 12px;">${escaparHTMLGMAN(eq.id)} — ${escaparHTMLGMAN(eq.name)}</p>
+
+                    <div style="background:#f7fafc; border:1px solid #e2e8f0; border-radius:14px; padding:10px; text-align:left;">
+                        ${montarLinhasPatrimonioGrupoGMAN((consulta && consulta.patrimonios) || {}, { modo: 'consulta' })}
+                    </div>
+
+                    <div style="background:#ebf8ff; border-left:4px solid #3182ce; border-radius:12px; padding:10px; margin-top:12px; color:#2c5282; font-size:0.78rem; text-align:left;">
+                        Os patrimônios são atualizados quando o líder/gestor conclui uma OS e confirma PAINEL, MOTOR, BOMBA, VS e VR.
+                    </div>
+
+                    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:14px;">
+                        <button onclick="document.getElementById('consultaGrupoModal').remove();" style="padding:11px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+        }
+
+function openEquipment(id) {
             const eq = equipment.find(e => e.id === id);
             
             const existingModal = document.getElementById('qrModal');
@@ -2565,7 +2818,10 @@
                             🔒 <strong>Status bloqueado:</strong> o status do equipamento só pode ser alterado no encerramento de uma OS vinculada.
                         </p>
                     </div>
-                    ${podeGerenciarOS() ? `<button onclick="abrirModalCriarOS('${eq.id}')" style="padding: 10px 15px; background: #3182ce; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; margin-bottom: 12px;">➕ Abrir OS deste equipamento</button>` : ''}
+                    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
+                        <button onclick="abrirConsultaGrupo('${eq.id}')" style="padding: 10px 15px; background: #805ad5; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight:bold;">🔎 Consultar grupo</button>
+                        ${podeGerenciarOS() ? `<button onclick="abrirModalCriarOS('${eq.id}')" style="padding: 10px 15px; background: #3182ce; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight:bold;">➕ Abrir OS deste equipamento</button>` : ''}
+                    </div>
 
                     <div style="margin: 20px 0;">
                         <p style="color: #666; font-size: 0.8rem; margin-bottom: 10px;">QR CODE:</p>
