@@ -99,7 +99,7 @@
         .form-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e0; border-radius: 9px; color: #1a202c; font-size: 0.9rem; }
         .form-label { display: block; color: #2d3748; font-size: 0.78rem; font-weight: 700; margin: 8px 0 5px; text-align: left; }
      
-        /* GMAN 8.5.6.34 — evolução visual controlada 20% */
+        /* GMAN 8.5.6.35 — evolução visual controlada 20% */
         body::before {
             content: "";
             position: fixed;
@@ -156,7 +156,7 @@
         }
 
 
-        /* GMAN 8.5.6.34 — visual 30% e ícones com leve 3D controlado */
+        /* GMAN 8.5.6.35 — visual 30% e ícones com leve 3D controlado */
         .icon-3d-gman, .status-icon, .action-btn, .system-btn {
             transform-style: preserve-3d;
         }
@@ -218,7 +218,7 @@
         }
 
 
-        /* GMAN 8.5.6.34 — contador real de OS por grupo */
+        /* GMAN 8.5.6.35 — contador real de OS por grupo */
         .mini-os-counter {
             display: inline-block;
             padding: 3px 7px;
@@ -422,8 +422,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.34 — Conciliação de OS faltantes';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.34 — Conciliação de OS faltantes';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.35 — Conciliação exclusiva OS e KPI';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.35 — Conciliação exclusiva OS e KPI';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -596,7 +596,7 @@
                     cards.push({ titulo: status, valor: contagem[status] || 0 });
                 });
             } else {
-                ['Aberta', 'Em execução', 'Em teste', 'Aguardando material', 'Aguardando liberação', 'Parado', 'Em manutenção', 'Operando com restrição'].forEach(status => {
+                ['Aberta', 'Iniciada', 'Em andamento', 'Em execução', 'Em teste', 'Aguardando material', 'Aguardando liberação', 'Parado', 'Em manutenção', 'Operando com restrição', 'Cancelada', 'Encerrada', 'Outros/Sem status'].forEach(status => {
                     cards.push({ titulo: status, valor: contagem[status] || 0 });
                 });
             }
@@ -1126,18 +1126,35 @@
             return 'outros';
         }
 
+
+        function categoriaExclusivaStatusOSGMAN85635(status) {
+            const s = normalizarTextoGMAN(status);
+
+            if (!s) return 'semStatus';
+            if (s === 'aberta') return 'abertas';
+            if (s.includes('concluid')) return 'concluidas';
+            if (s.includes('cancel')) return 'canceladas';
+            if (s.includes('fechad') || s.includes('encerrad') || s.includes('finalizad')) return 'encerradasNaoConcluidas';
+            if (s.includes('aguardando')) return 'aguardando';
+            if (s.includes('teste')) return 'teste';
+            if (s.includes('iniciad') || s.includes('execucao') || s.includes('em andamento')) return 'emAndamento';
+            if (s.includes('manutencao') || s.includes('parad') || s.includes('restricao')) return 'manutencao';
+
+            return 'outros';
+        }
+
 function resumoOSGrupoGMAN85632(idGrupo) {
             const resumo = {
                 total: 0,
                 abertas: 0,
-                iniciadas: 0,
                 emAndamento: 0,
                 aguardando: 0,
                 teste: 0,
                 manutencao: 0,
+                ativas: 0,
                 concluidas: 0,
                 canceladas: 0,
-                encerradas: 0,
+                encerradasNaoConcluidas: 0,
                 outros: 0,
                 semStatus: 0,
                 conciliacao: 0,
@@ -1152,7 +1169,7 @@ function resumoOSGrupoGMAN85632(idGrupo) {
                 if (!gruposIguaisGMAN85633(os.idEquipamento || os.equipamento, idGrupo)) return;
 
                 resumo.total += 1;
-                const categoria = categoriaStatusOSGrupoGMAN85634(os.statusOS);
+                const categoria = categoriaExclusivaStatusOSGMAN85635(os.statusOS);
 
                 if (Object.prototype.hasOwnProperty.call(resumo, categoria)) {
                     resumo[categoria] += 1;
@@ -1161,11 +1178,7 @@ function resumoOSGrupoGMAN85632(idGrupo) {
                 }
 
                 if (['emAndamento', 'aguardando', 'teste', 'manutencao'].includes(categoria)) {
-                    resumo.iniciadas += 1;
-                }
-
-                if (categoria === 'canceladas' || categoria === 'encerradas') {
-                    resumo.encerradas += 1;
+                    resumo.ativas += 1;
                 }
 
                 if (categoria === 'outros' || categoria === 'semStatus') {
@@ -1188,7 +1201,7 @@ function resumoOSGrupoGMAN85632(idGrupo) {
                 resumo.manutencao +
                 resumo.concluidas +
                 resumo.canceladas +
-                resumo.encerradas +
+                resumo.encerradasNaoConcluidas +
                 resumo.outros +
                 resumo.semStatus;
 
@@ -1199,8 +1212,8 @@ function resumoOSGrupoGMAN85632(idGrupo) {
 
         function resumoOSGrupoHTMLGMAN85632(idGrupo, compacto = false) {
             const r = resumoOSGrupoGMAN85632(idGrupo);
-            const pendentes = r.emAndamento + r.aguardando + r.teste + r.manutencao + r.outros + r.semStatus;
-            const encerradasNaoConcluidas = r.canceladas + r.encerradas;
+            const pendentes = r.ativas + r.outros + r.semStatus;
+            const encerradasOutras = r.canceladas + r.encerradasNaoConcluidas;
             const outras = r.outros + r.semStatus + Math.max(r.diferenca, 0);
 
             if (compacto) {
@@ -1208,9 +1221,10 @@ function resumoOSGrupoGMAN85632(idGrupo) {
                     <br><span style="display:inline-flex; flex-wrap:wrap; gap:4px; margin-top:5px;">
                         <span class="mini-os-counter">Total: ${r.total}</span>
                         <span class="mini-os-counter mini-aberta">Abertas: ${r.abertas}</span>
-                        <span class="mini-os-counter mini-iniciada">Pendentes: ${pendentes}</span>
+                        <span class="mini-os-counter mini-iniciada">Ativas: ${r.ativas}</span>
                         <span class="mini-os-counter mini-concluida">Concluídas: ${r.concluidas}</span>
-                        ${encerradasNaoConcluidas ? `<span class="mini-os-counter mini-encerrada">Encerradas/Canceladas: ${encerradasNaoConcluidas}</span>` : ''}
+                        ${r.canceladas ? `<span class="mini-os-counter mini-encerrada">Canceladas: ${r.canceladas}</span>` : ''}
+                        ${r.encerradasNaoConcluidas ? `<span class="mini-os-counter mini-encerrada">Encerradas: ${r.encerradasNaoConcluidas}</span>` : ''}
                         ${outras ? `<span class="mini-os-counter mini-faltante">Outras/Sem classe: ${outras}</span>` : ''}
                     </span>
                 `;
@@ -1220,7 +1234,7 @@ function resumoOSGrupoGMAN85632(idGrupo) {
                 <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin:14px 0;">
                     <div class="os-count-card"><strong>${r.total}</strong><span>OS totais</span></div>
                     <div class="os-count-card"><strong>${r.abertas}</strong><span>Abertas</span></div>
-                    <div class="os-count-card iniciada"><strong>${pendentes}</strong><span>Pendentes</span></div>
+                    <div class="os-count-card iniciada"><strong>${r.ativas}</strong><span>Ativas</span></div>
                     <div class="os-count-card concluida"><strong>${r.concluidas}</strong><span>Concluídas</span></div>
                 </div>
 
@@ -1229,8 +1243,8 @@ function resumoOSGrupoGMAN85632(idGrupo) {
                     <div class="os-count-card detalhe"><strong>${r.aguardando}</strong><span>Aguardando</span></div>
                     <div class="os-count-card detalhe"><strong>${r.teste}</strong><span>Em teste</span></div>
                     <div class="os-count-card detalhe"><strong>${r.manutencao}</strong><span>Manutenção</span></div>
-                    <div class="os-count-card detalhe"><strong>${encerradasNaoConcluidas}</strong><span>Encerradas/Canceladas</span></div>
-                    <div class="os-count-card detalhe ${outras ? 'problema' : ''}"><strong>${outras}</strong><span>Outras/Sem classe</span></div>
+                    <div class="os-count-card detalhe"><strong>${r.canceladas}</strong><span>Canceladas</span></div>
+                    <div class="os-count-card detalhe ${outras || r.encerradasNaoConcluidas ? 'problema' : ''}"><strong>${r.encerradasNaoConcluidas + outras}</strong><span>Encerradas/Outras</span></div>
                 </div>
 
                 ${(r.listaOutros && r.listaOutros.length) ? `
@@ -1241,7 +1255,8 @@ function resumoOSGrupoGMAN85632(idGrupo) {
                 ` : ''}
 
                 <div style="background:#f7fafc; border-radius:12px; padding:10px; color:#1e3a5f; font-size:0.78rem; text-align:left;">
-                    <strong>Conciliação:</strong> ${r.conciliacao}/${r.total} OS classificadas<br>
+                    <strong>Conciliação exclusiva:</strong> ${r.conciliacao}/${r.total} OS<br>
+                    <strong>Regra:</strong> cada OS entra em apenas uma categoria.<br>
                     <strong>Última OS:</strong> ${r.ultimaOS || '-'}<br>
                     <strong>Última movimentação:</strong> ${r.ultimaMovimentacao ? formatarDataApi(r.ultimaMovimentacao) : '-'}
                 </div>
