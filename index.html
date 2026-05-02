@@ -99,7 +99,7 @@
         .form-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e0; border-radius: 9px; color: #1a202c; font-size: 0.9rem; }
         .form-label { display: block; color: #2d3748; font-size: 0.78rem; font-weight: 700; margin: 8px 0 5px; text-align: left; }
      
-        /* GMAN 8.5.6.51 — evolução visual controlada 20% */
+        /* GMAN 8.5.6.52 — evolução visual controlada 20% */
         body::before {
             content: "";
             position: fixed;
@@ -156,7 +156,7 @@
         }
 
 
-        /* GMAN 8.5.6.51 — visual 30% e ícones com leve 3D controlado */
+        /* GMAN 8.5.6.52 — visual 30% e ícones com leve 3D controlado */
         .icon-3d-gman, .status-icon, .action-btn, .system-btn {
             transform-style: preserve-3d;
         }
@@ -218,7 +218,7 @@
         }
 
 
-        /* GMAN 8.5.6.51 — contador real de OS por grupo */
+        /* GMAN 8.5.6.52 — contador real de OS por grupo */
         .mini-os-counter {
             display: inline-block;
             padding: 3px 7px;
@@ -382,7 +382,7 @@
         <button class="action-btn" id="btnOrdensIniciadasHome" onclick="abrirPainelOS('iniciadas')" style="display:none;">🛠️ OS Iniciadas <span id="totalOrdensIniciadasHome">(0)</span></button>
         <button class="action-btn" id="btnOrdensEncerradasHome" onclick="abrirPainelOS('encerradas')" style="display:none;">✅ Ordens Encerradas <span id="totalOrdensEncerradasHome">(0)</span></button>
         <button class="action-btn" id="btnPainelKPI" onclick="abrirPainelGerencial()" style="display:none;">📊 KPIs Industriais</button>
-        <!-- Núcleo técnico GMAN 8.5.6.51: acesso discreto por ícone fixo, apenas para gestão -->
+        <!-- Núcleo técnico GMAN 8.5.6.52: acesso discreto por ícone fixo, apenas para gestão -->
         <button class="action-btn" onclick="atualizarAgora()">🔄 Atualizar agora</button>
         <button class="action-btn" onclick="limparCacheOperacionalGMAN85645()">🧹 Limpar cache</button>
       </div>
@@ -424,8 +424,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.51 — Compatibilidade OS antigas, reparo de status concluído e botão Ver OS corrigido';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.51 — Compatibilidade OS antigas, reparo de status concluído e botão Ver OS corrigido';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.52 — Reparo de status desbloqueado, diagnóstico flexível e OS antigas compatíveis';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.52 — Reparo de status desbloqueado, diagnóstico flexível e OS antigas compatíveis';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -3296,7 +3296,7 @@ const NOMES_OFICIAIS_LIDERES_GMAN85645 = {
                 return `
                     <div style="margin-top:14px; background:#fffaf0; border-left:5px solid #d69e2e; border-radius:18px; padding:13px; color:#744210; font-size:0.82rem;">
                         <strong>🩺 Diagnóstico das últimas OS lidas</strong><br>
-                        Não foi possível carregar o diagnóstico agora. Recalcule o painel após publicar a API 8.5.6.51.
+                        Não foi possível carregar o diagnóstico agora. Recalcule o painel após publicar a API 8.5.6.52.
                     </div>
                 `;
             }
@@ -3471,7 +3471,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
                             <h2 style="color:#1e3a5f; margin:0; font-size:1.25rem;">Painel Gerencial — KPIs</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Visível somente para gestão. Dados calculados pelo Banco Central GMAN. <strong>Versão 8.5.6.51</strong></p>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Visível somente para gestão. Dados calculados pelo Banco Central GMAN. <strong>Versão 8.5.6.52</strong></p>
                         </div>
                         <button onclick="document.getElementById('kpiModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
@@ -3692,7 +3692,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                         <div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:18px; padding:13px; color:#742a2a; font-size:0.82rem; box-shadow:0 8px 18px rgba(229,62,62,0.08);">
                             <strong>⚠️ Base da reincidência</strong><br>
                             ${corretivas30.length} corretivas concluídas nos últimos 30 dias antes da deduplicação. ${reincidenciaDuplicadasMesmaBase} atendimento(s) da mesma OS base foram ignorados no ranking.<br>
-                            <small>Versão do cálculo: 8.5.6.51 com reincidência técnica oficial.</small>
+                            <small>Versão do cálculo: 8.5.6.52 com reincidência técnica oficial.</small>
                         </div>
                         <div style="background:#fff5f5; border-left:5px solid #dd6b20; border-radius:18px; padding:13px; color:#7b341e; font-size:0.82rem; box-shadow:0 8px 18px rgba(221,107,32,0.08);">
                             <strong>⚙️ OEE adaptado</strong><br>
@@ -3706,7 +3706,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                         <strong>📌 Regra aplicada:</strong> disponibilidade histórica usa MTBF ÷ (MTBF + MTTR) e não se mistura com a disponibilidade instantânea. MTBF é estimado pelo intervalo médio entre corretivas do mesmo equipamento. Produtividade por líder prioriza FINALIZADO_POR, depois USUARIO_INICIO e RESPONSAVEL, unificando maiúsculas/minúsculas e espaços. Reincidência usa corretivas concluídas válidas dos últimos 30 dias por grupo/equipamento, ignora OS de teste e não duplica atendimentos da mesma OS base. O ranking principal mostra apenas grupos com 2+ OS; 3+ é crítico. OEE é gerencial e adaptado ao GMAN. OS de teste não entram nos KPIs. Ranking por área mostra apenas áreas oficiais.
                         <br>
                         <strong>Situação atual:</strong> ${operando} operando, ${indisponiveis} em manutenção/alerta, ${parados} parados e ${osBacklog} OS no backlog.<br>
-                        <strong>Versão ativa do painel:</strong> GMAN 8.5.6.51 — blindagem de continuidade, auditoria forte e proteção do que já funciona.
+                        <strong>Versão ativa do painel:</strong> GMAN 8.5.6.52 — blindagem de continuidade, auditoria forte e proteção do que já funciona.
                     </div>
                 `;
 
@@ -4651,7 +4651,7 @@ function openEquipment(id) {
             }
 
             ordensServicoCache = [];
-            alert('Cache operacional limpo. A tela será recarregada para buscar a GMAN 8.5.6.51 no Banco Central.');
+            alert('Cache operacional limpo. A tela será recarregada para buscar a GMAN 8.5.6.52 no Banco Central.');
             const base = window.location.origin + window.location.pathname;
             window.location.href = base + '?nocache=' + Date.now();
         }
@@ -4687,7 +4687,7 @@ function openEquipment(id) {
 
 
         /* ============================================================
-           GMAN 8.5.6.51 — FONTE ÚNICA NO BANCO CENTRAL
+           GMAN 8.5.6.52 — FONTE ÚNICA NO BANCO CENTRAL
            Estas funções sobrescrevem as versões antigas do Index.
            O Index passa a exibir o pacote oficial do Apps Script.
            ============================================================ */
@@ -4696,12 +4696,12 @@ function openEquipment(id) {
         let ultimaSincronizacaoPainelGMAN85645 = 0;
 
         function saveData() {
-            // GMAN 8.5.6.51: status/equipamentos não são mais fonte oficial no localStorage.
+            // GMAN 8.5.6.52: status/equipamentos não são mais fonte oficial no localStorage.
             return true;
         }
 
         function loadData() {
-            // GMAN 8.5.6.51: evita reaproveitar status antigo do navegador.
+            // GMAN 8.5.6.52: evita reaproveitar status antigo do navegador.
             return true;
         }
 
@@ -5084,7 +5084,7 @@ function openEquipment(id) {
 
 
         /* ============================================================
-           GMAN 8.5.6.51 — BLINDAGEM DE CONTINUIDADE NO INDEX
+           GMAN 8.5.6.52 — BLINDAGEM DE CONTINUIDADE NO INDEX
            Sobrescreve funções finais sem alterar os fluxos de OS.
            ============================================================ */
 
@@ -5217,7 +5217,7 @@ function openEquipment(id) {
                 registrarAuditoriaClienteGMAN85647('DIAGNOSTICO_TECNICO', 'Diagnóstico técnico aberto no Index', 'OK');
             } catch (erro) {
                 console.error(erro);
-                container.innerHTML = `<div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:14px; padding:12px; color:#742a2a; font-weight:bold;">Erro ao carregar diagnóstico técnico: ${escaparHTMLGMAN(erro.message || erro)}<br><span style="font-weight:700; color:#4a5568;">A correção 8.5.6.51 impede que alertas normais de auditoria sejam tratados como erro fatal. Confira se Apps Script e Index foram publicados na mesma versão.</span></div>`;
+                container.innerHTML = `<div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:14px; padding:12px; color:#742a2a; font-weight:bold;">Erro ao carregar diagnóstico técnico: ${escaparHTMLGMAN(erro.message || erro)}<br><span style="font-weight:700; color:#4a5568;">A correção 8.5.6.52 impede que alertas normais de auditoria sejam tratados como erro fatal. Confira se Apps Script e Index foram publicados na mesma versão.</span></div>`;
             }
         }
 
@@ -5290,7 +5290,7 @@ function openEquipment(id) {
                             Status incomum: <strong>${limpeza.statusIncomum || 0}</strong> | 
                             Aba: <strong>${escaparHTMLGMAN(limpeza.abaQuarentenaSugerida || 'QUARENTENA_TESTES_GMAN')}</strong>
                         </p>
-                        <p style="font-size:0.78rem; margin:8px 0 0;">Nada é apagado. A 8.5.6.51 só permite copiar candidatos para quarentena com confirmação forte.</p>
+                        <p style="font-size:0.78rem; margin:8px 0 0;">Nada é apagado. A 8.5.6.52 só permite copiar candidatos para quarentena com confirmação forte.</p>
                     </div>
 
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -5308,7 +5308,7 @@ function openEquipment(id) {
 
 
         /* ============================================================
-           GMAN 8.5.6.51 — NÚCLEO PROTEGIDO DISCRETO
+           GMAN 8.5.6.52 — NÚCLEO PROTEGIDO DISCRETO
            Ícone técnico visível somente para gestão.
            ============================================================ */
 
@@ -5538,7 +5538,7 @@ function openEquipment(id) {
 
 
         /* ============================================================
-           GMAN 8.5.6.51 — VER OS CORRIGIDO E REPARO STATUS DO GRUPO
+           GMAN 8.5.6.52 — VER OS CORRIGIDO E REPARO STATUS DO GRUPO
            Compatível com OS antigas e novas. Gestão vê botão de reparo
            quando o grupo ficou Parado/Manutenção mesmo sem OS ativa.
            ============================================================ */
@@ -5693,7 +5693,8 @@ function openEquipment(id) {
                                 <strong>Concluídas:</strong> ${diag.totalOSConcluidas || 0}<br>
                                 <strong>Canceladas:</strong> ${diag.totalOSCanceladas || 0}<br>
                                 <strong>OS em padrão antigo:</strong> ${diag.totalOSPadraoAntigo || 0}<br>
-                                <strong>Resultado:</strong> ${escaparHTMLGMAN(diag.motivo || '-')}
+                                <strong>Resultado:</strong> ${escaparHTMLGMAN(diag.motivo || '-')}<br>
+                                ${diag.podeReparar ? '<strong style="color:#2f855a;">✅ Reparo liberado pelo diagnóstico.</strong>' : '<strong style="color:#b7791f;">⚠️ Botão liberado para gestão, mas a API ainda fará a trava final se houver OS ativa.</strong>'}
                             </div>
                             <label class="form-label">Justificativa do reparo</label>
                             <textarea id="justificativaReparoStatusGrupo" class="form-field" rows="4" placeholder="Ex.: Grupo possui 5 OS, 4 concluídas e 1 cancelada. Não há OS ativa bloqueando o retorno para Operando."></textarea>
@@ -5704,7 +5705,7 @@ function openEquipment(id) {
                             <input id="confirmacaoReparoStatusGrupo" class="form-field" placeholder="Digite a confirmação forte">
                             <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end; margin-top:14px;">
                                 <button onclick="document.getElementById('reparoStatusGrupoModal').remove();" style="padding:11px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Cancelar</button>
-                                <button ${diag.podeReparar ? '' : 'disabled'} onclick="executarReparoStatusGrupoGMAN85651('${escaparHTMLGMAN(idGrupo)}')" style="padding:11px 14px; border:none; border-radius:10px; background:${diag.podeReparar ? '#b7791f' : '#cbd5e0'}; color:white; cursor:${diag.podeReparar ? 'pointer' : 'not-allowed'}; font-weight:900;">🛠️ Reparar para Operando</button>
+                                <button onclick="executarReparoStatusGrupoGMAN85651('${escaparHTMLGMAN(idGrupo)}')" style="padding:11px 14px; border:none; border-radius:10px; background:#b7791f; color:white; cursor:pointer; font-weight:900;">🛠️ Reparar para Operando</button>
                             </div>
                         </div>
                     </div>
