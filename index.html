@@ -99,7 +99,7 @@
         .form-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e0; border-radius: 9px; color: #1a202c; font-size: 0.9rem; }
         .form-label { display: block; color: #2d3748; font-size: 0.78rem; font-weight: 700; margin: 8px 0 5px; text-align: left; }
      
-        /* GMAN 8.5.6.46 — evolução visual controlada 20% */
+        /* GMAN 8.5.6.47 — evolução visual controlada 20% */
         body::before {
             content: "";
             position: fixed;
@@ -156,7 +156,7 @@
         }
 
 
-        /* GMAN 8.5.6.46 — visual 30% e ícones com leve 3D controlado */
+        /* GMAN 8.5.6.47 — visual 30% e ícones com leve 3D controlado */
         .icon-3d-gman, .status-icon, .action-btn, .system-btn {
             transform-style: preserve-3d;
         }
@@ -218,7 +218,7 @@
         }
 
 
-        /* GMAN 8.5.6.46 — contador real de OS por grupo */
+        /* GMAN 8.5.6.47 — contador real de OS por grupo */
         .mini-os-counter {
             display: inline-block;
             padding: 3px 7px;
@@ -382,6 +382,7 @@
         <button class="action-btn" id="btnOrdensIniciadasHome" onclick="abrirPainelOS('iniciadas')" style="display:none;">🛠️ OS Iniciadas <span id="totalOrdensIniciadasHome">(0)</span></button>
         <button class="action-btn" id="btnOrdensEncerradasHome" onclick="abrirPainelOS('encerradas')" style="display:none;">✅ Ordens Encerradas <span id="totalOrdensEncerradasHome">(0)</span></button>
         <button class="action-btn" id="btnPainelKPI" onclick="abrirPainelGerencial()" style="display:none;">📊 Painel Gerencial</button>
+        <button class="action-btn" id="btnDiagnosticoTecnico" onclick="abrirDiagnosticoTecnicoGMAN85647()" style="display:none;">🛡️ Diagnóstico técnico</button>
         <button class="action-btn" onclick="atualizarAgora()">🔄 Atualizar agora</button>
         <button class="action-btn" onclick="limparCacheOperacionalGMAN85645()">🧹 Limpar cache</button>
       </div>
@@ -423,8 +424,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.46 — Correção de sessão, Enter no login e cache sem deslogar';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.46 — Correção de sessão, Enter no login e cache sem deslogar';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.47 — Blindagem de continuidade, auditoria forte e proteção do que já funciona';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.47 — Blindagem de continuidade, auditoria forte e proteção do que já funciona';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -1463,6 +1464,9 @@ function montarLinhasPatrimonioGrupoGMAN(patrimonios = {}, opcoes = {}) {
 
             const btnKPI = document.getElementById('btnPainelKPI');
             if (btnKPI) btnKPI.style.display = ehGestao ? 'inline-block' : 'none';
+
+            const btnDiagnosticoTecnico = document.getElementById('btnDiagnosticoTecnico');
+            if (btnDiagnosticoTecnico) btnDiagnosticoTecnico.style.display = ehGestao ? 'inline-block' : 'none';
 
             const btnNaoIniciadas = document.getElementById('btnOrdensNaoIniciadasHome');
             if (btnNaoIniciadas) btnNaoIniciadas.style.display = ehGestao ? 'inline-block' : 'none';
@@ -3174,7 +3178,7 @@ const NOMES_OFICIAIS_LIDERES_GMAN85645 = {
                 return `
                     <div style="margin-top:14px; background:#fffaf0; border-left:5px solid #d69e2e; border-radius:18px; padding:13px; color:#744210; font-size:0.82rem;">
                         <strong>🩺 Diagnóstico das últimas OS lidas</strong><br>
-                        Não foi possível carregar o diagnóstico agora. Recalcule o painel após publicar a API 8.5.6.46.
+                        Não foi possível carregar o diagnóstico agora. Recalcule o painel após publicar a API 8.5.6.47.
                     </div>
                 `;
             }
@@ -3294,7 +3298,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
                             <h2 style="color:#1e3a5f; margin:0; font-size:1.25rem;">Painel Gerencial — KPIs</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Visível somente para gestão. Dados calculados pelo Banco Central GMAN. <strong>Versão 8.5.6.46</strong></p>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Visível somente para gestão. Dados calculados pelo Banco Central GMAN. <strong>Versão 8.5.6.47</strong></p>
                         </div>
                         <button onclick="document.getElementById('kpiModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
@@ -3506,7 +3510,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                         <div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:18px; padding:13px; color:#742a2a; font-size:0.82rem; box-shadow:0 8px 18px rgba(229,62,62,0.08);">
                             <strong>⚠️ Base da reincidência</strong><br>
                             ${corretivas30.length} corretivas concluídas nos últimos 30 dias antes da deduplicação. ${reincidenciaDuplicadasMesmaBase} atendimento(s) da mesma OS base foram ignorados no ranking.<br>
-                            <small>Versão do cálculo: 8.5.6.46 com reincidência técnica oficial.</small>
+                            <small>Versão do cálculo: 8.5.6.47 com reincidência técnica oficial.</small>
                         </div>
                         <div style="background:#fff5f5; border-left:5px solid #dd6b20; border-radius:18px; padding:13px; color:#7b341e; font-size:0.82rem; box-shadow:0 8px 18px rgba(221,107,32,0.08);">
                             <strong>⚙️ OEE adaptado</strong><br>
@@ -3520,7 +3524,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                         <strong>📌 Regra aplicada:</strong> disponibilidade histórica usa MTBF ÷ (MTBF + MTTR) e não se mistura com a disponibilidade instantânea. MTBF é estimado pelo intervalo médio entre corretivas do mesmo equipamento. Produtividade por líder prioriza FINALIZADO_POR, depois USUARIO_INICIO e RESPONSAVEL, unificando maiúsculas/minúsculas e espaços. Reincidência usa corretivas concluídas válidas dos últimos 30 dias por grupo/equipamento, ignora OS de teste e não duplica atendimentos da mesma OS base. O ranking principal mostra apenas grupos com 2+ OS; 3+ é crítico. OEE é gerencial e adaptado ao GMAN. OS de teste não entram nos KPIs. Ranking por área mostra apenas áreas oficiais.
                         <br>
                         <strong>Situação atual:</strong> ${operando} operando, ${indisponiveis} em manutenção/alerta, ${parados} parados e ${osBacklog} OS no backlog.<br>
-                        <strong>Versão ativa do painel:</strong> GMAN 8.5.6.46 — histórico recente sincronizado, KPIs sem TESTE e limpeza segura da base.
+                        <strong>Versão ativa do painel:</strong> GMAN 8.5.6.47 — blindagem de continuidade, auditoria forte e proteção do que já funciona.
                     </div>
                 `;
 
@@ -4465,7 +4469,7 @@ function openEquipment(id) {
             }
 
             ordensServicoCache = [];
-            alert('Cache operacional limpo. A tela será recarregada para buscar a GMAN 8.5.6.46 no Banco Central.');
+            alert('Cache operacional limpo. A tela será recarregada para buscar a GMAN 8.5.6.47 no Banco Central.');
             const base = window.location.origin + window.location.pathname;
             window.location.href = base + '?nocache=' + Date.now();
         }
@@ -4501,7 +4505,7 @@ function openEquipment(id) {
 
 
         /* ============================================================
-           GMAN 8.5.6.46 — FONTE ÚNICA NO BANCO CENTRAL
+           GMAN 8.5.6.47 — FONTE ÚNICA NO BANCO CENTRAL
            Estas funções sobrescrevem as versões antigas do Index.
            O Index passa a exibir o pacote oficial do Apps Script.
            ============================================================ */
@@ -4510,12 +4514,12 @@ function openEquipment(id) {
         let ultimaSincronizacaoPainelGMAN85645 = 0;
 
         function saveData() {
-            // GMAN 8.5.6.46: status/equipamentos não são mais fonte oficial no localStorage.
+            // GMAN 8.5.6.47: status/equipamentos não são mais fonte oficial no localStorage.
             return true;
         }
 
         function loadData() {
-            // GMAN 8.5.6.46: evita reaproveitar status antigo do navegador.
+            // GMAN 8.5.6.47: evita reaproveitar status antigo do navegador.
             return true;
         }
 
@@ -4895,6 +4899,229 @@ function openEquipment(id) {
                 garantirSessaoVisualGMAN85646();
             }, 120000);
         }
+
+
+        /* ============================================================
+           GMAN 8.5.6.47 — BLINDAGEM DE CONTINUIDADE NO INDEX
+           Sobrescreve funções finais sem alterar os fluxos de OS.
+           ============================================================ */
+
+        async function registrarAuditoriaClienteGMAN85647(tipo, detalhe, resultado = 'INFO', extra = {}) {
+            try {
+                await apiPost(Object.assign({
+                    acao: 'registrarAuditoriaCliente',
+                    usuario: usuarioLogado ? usuarioLogado.nome : '',
+                    tipo: tipo,
+                    detalhe: detalhe,
+                    resultado: resultado,
+                    versaoIndex: VERSAO_FRONTEND_GMAN
+                }, extra || {}));
+            } catch (erro) {
+                console.warn('Auditoria cliente indisponível:', erro);
+            }
+        }
+
+        function renderizarResumoSaudeGMAN85647(saude) {
+            const checks = (saude && saude.checks) || [];
+            return `
+                <div style="background:${saude && saude.sucesso ? '#f0fff4' : '#fffaf0'}; border-left:5px solid ${saude && saude.sucesso ? '#38a169' : '#d69e2e'}; border-radius:14px; padding:12px; color:#1a202c; margin-bottom:14px;">
+                    <h3 style="margin:0 0 8px; color:#1e3a5f;">🧪 Teste de saúde da API</h3>
+                    <p style="margin:0 0 8px; color:#4a5568; font-size:0.82rem;">Status: <strong>${saude && saude.status ? escaparHTMLGMAN(saude.status) : '-'}</strong> | Falhas: <strong>${saude && saude.falhas !== undefined ? saude.falhas : '-'}</strong></p>
+                    ${checks.slice(0, 8).map(c => `
+                        <div style="font-size:0.78rem; padding:5px 0; border-bottom:1px solid rgba(0,0,0,0.06);">
+                            ${c.ok ? '✅' : '⚠️'} <strong>${escaparHTMLGMAN(c.nome || '-')}</strong> — ${escaparHTMLGMAN(c.detalhe || c.erro || '-')}
+                        </div>
+                    `).join('') || '<p style="color:#718096;">Sem checks disponíveis.</p>'}
+                </div>
+            `;
+        }
+
+        function renderizarValidacaoEstruturaGMAN85647(estrutura) {
+            const abas = (estrutura && estrutura.abas) || [];
+            return `
+                <div style="background:#f7fafc; border-left:5px solid ${estrutura && estrutura.sucesso ? '#38a169' : '#d69e2e'}; border-radius:14px; padding:12px; color:#1a202c; margin-bottom:14px;">
+                    <h3 style="margin:0 0 8px; color:#1e3a5f;">🧱 Validação de abas e cabeçalhos</h3>
+                    <p style="font-size:0.82rem; margin:0 0 8px; color:#4a5568;">Campos ausentes: <strong>${estrutura && estrutura.totalCamposAusentes !== undefined ? estrutura.totalCamposAusentes : '-'}</strong> | Cabeçalhos duplicados: <strong>${estrutura && estrutura.totalAlertasDuplicados !== undefined ? estrutura.totalAlertasDuplicados : '-'}</strong></p>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:8px;">
+                        ${abas.map(a => `
+                            <div style="background:white; border-radius:12px; padding:9px; border:1px solid #e2e8f0; font-size:0.76rem;">
+                                <strong>${a.existe ? '✅' : '❌'} ${escaparHTMLGMAN(a.aba || '-')}</strong><br>
+                                <span>Status: ${escaparHTMLGMAN(a.status || '-')}</span><br>
+                                ${a.ausentes && a.ausentes.length ? `<span style="color:#c53030;">Faltam: ${escaparHTMLGMAN(a.ausentes.join(', '))}</span>` : '<span style="color:#2f855a;">Cabeçalhos principais OK</span>'}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderizarConferenciaStatusOSGMAN85647(conf) {
+            const alertas = (conf && conf.alertas) || [];
+            return `
+                <div style="background:${alertas.length ? '#fffaf0' : '#f0fff4'}; border-left:5px solid ${alertas.length ? '#dd6b20' : '#38a169'}; border-radius:14px; padding:12px; color:#1a202c; margin-bottom:14px;">
+                    <h3 style="margin:0 0 8px; color:#1e3a5f;">🔎 Conferência OS x STATUS_ATUAL</h3>
+                    <p style="font-size:0.82rem; margin:0 0 8px; color:#4a5568;">Alertas encontrados: <strong>${conf && conf.totalAlertas !== undefined ? conf.totalAlertas : '-'}</strong>. Esta conferência não muda status automaticamente.</p>
+                    ${alertas.slice(0, 10).map(a => `
+                        <div style="font-size:0.78rem; padding:6px 0; border-bottom:1px solid rgba(0,0,0,0.07);">
+                            ⚠️ <strong>${escaparHTMLGMAN(a.chaveGrupo || '-')}</strong> — ${escaparHTMLGMAN(a.tipo || '-')}<br>
+                            <span style="color:#4a5568;">${escaparHTMLGMAN(a.detalhe || '')}</span>
+                        </div>
+                    `).join('') || '<p style="color:#2f855a; font-weight:800;">Nenhuma divergência crítica encontrada na amostra.</p>'}
+                </div>
+            `;
+        }
+
+        function renderizarProvaNumerosGMAN85647(painel) {
+            const p = painel.provaDosNumeros || {};
+            return `
+                <div style="background:linear-gradient(135deg,#edf2f7,#ffffff); border:1px solid #e2e8f0; border-radius:18px; padding:14px; color:#1a202c; margin-bottom:14px;">
+                    <h3 style="margin:0 0 10px; color:#1e3a5f;">📌 Prova oficial dos números</h3>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;">
+                        ${cardKPIOficialGMAN85645('OS brutas', p.totalOSBrutas || painel.totalOSBrutas || 0, 'ORDENS_SERVICO')}
+                        ${cardKPIOficialGMAN85645('OS válidas', p.totalOSValidasSemTeste || painel.totalOSValidasSemTeste || 0, 'Sem TESTE')}
+                        ${cardKPIOficialGMAN85645('TESTE ignoradas', p.osTesteIgnoradas || painel.osTesteIgnoradas || 0, 'Fora dos KPIs')}
+                        ${cardKPIOficialGMAN85645('Equipamentos oficiais', p.totalEquipamentosOficiais || ((painel.kpisOficiais || {}).totalEquipamentos || 0), 'Banco Central')}
+                    </div>
+                    <p style="font-size:0.78rem; color:#4a5568; margin:10px 0 0;">Fonte: ${escaparHTMLGMAN(p.fonte || 'Banco Central GMAN')} | Leitura: ${escaparHTMLGMAN(p.leituraEm || painel.horarioServidorBrasil || '-')}</p>
+                </div>
+            `;
+        }
+
+        async function abrirDiagnosticoTecnicoGMAN85647() {
+            if (!podeGerenciarOS()) {
+                alert('Diagnóstico técnico disponível somente para gestão.');
+                return;
+            }
+            const existente = document.getElementById('diagnosticoTecnicoModal');
+            if (existente) existente.remove();
+
+            const modal = document.createElement('div');
+            modal.id = 'diagnosticoTecnicoModal';
+            modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.82); display:flex; align-items:center; justify-content:center; z-index:1400; padding:18px;';
+            modal.innerHTML = `
+                <div style="background:white; border-radius:22px; padding:22px; width:96%; max-width:980px; max-height:92vh; overflow-y:auto;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px;">
+                        <div>
+                            <h2 style="color:#1e3a5f; margin:0; font-size:1.25rem;">🛡️ Diagnóstico técnico GMAN</h2>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Blindagem de continuidade, auditoria forte e proteção do que já funciona.</p>
+                        </div>
+                        <button onclick="document.getElementById('diagnosticoTecnicoModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
+                    </div>
+                    <div id="diagnosticoTecnicoConteudo" style="color:#1a202c;">🔄 Carregando diagnóstico técnico...</div>
+                </div>`;
+            document.body.appendChild(modal);
+            await carregarDiagnosticoTecnicoGMAN85647();
+        }
+
+        async function carregarDiagnosticoTecnicoGMAN85647() {
+            const container = document.getElementById('diagnosticoTecnicoConteudo');
+            if (!container) return;
+            try {
+                const diag = await apiGet({ acao: 'diagnosticoTecnico', limite: 50, versaoIndex: VERSAO_FRONTEND_GMAN });
+                container.innerHTML = `
+                    <div style="background:${diag.sucesso ? '#f0fff4' : '#fffaf0'}; border-left:5px solid ${diag.sucesso ? '#38a169' : '#dd6b20'}; border-radius:16px; padding:13px; margin-bottom:14px;">
+                        <strong>${diag.sucesso ? '✅ Blindagem sem alertas críticos na amostra' : '⚠️ Blindagem encontrou alertas para revisar'}</strong><br>
+                        <span style="font-size:0.82rem; color:#4a5568;">Versão: ${escaparHTMLGMAN(diag.versao || '-')} | Leitura: ${escaparHTMLGMAN(diag.horarioServidorBrasil || '-')}</span>
+                    </div>
+                    ${(diag.alertas || []).length ? `<div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:14px; padding:12px; color:#742a2a; margin-bottom:14px;"><strong>Alertas:</strong><br>${diag.alertas.map(a => '• ' + escaparHTMLGMAN(a)).join('<br>')}</div>` : ''}
+                    ${renderizarResumoSaudeGMAN85647(diag.saudeAPI || {})}
+                    ${renderizarValidacaoEstruturaGMAN85647(diag.validacaoEstrutura || {})}
+                    ${renderizarConferenciaStatusOSGMAN85647(diag.conferenciaStatusOS || {})}
+                    <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:14px; padding:12px; color:#1e3a5f;">
+                        <h3 style="margin:0 0 8px;">🔐 Proteções ativas</h3>
+                        ${(diag.protecoesAtivas || []).map(p => `<div style="font-size:0.80rem; padding:4px 0;">✅ ${escaparHTMLGMAN(p)}</div>`).join('')}
+                    </div>
+                `;
+                registrarAuditoriaClienteGMAN85647('DIAGNOSTICO_TECNICO', 'Diagnóstico técnico aberto no Index', 'OK');
+            } catch (erro) {
+                console.error(erro);
+                container.innerHTML = `<p style="color:#e53e3e; font-weight:bold;">Erro ao carregar diagnóstico técnico: ${escaparHTMLGMAN(erro.message || erro)}</p>`;
+            }
+        }
+
+        async function carregarPainelGerencial() {
+            const container = document.getElementById('kpiConteudo');
+            if (!container) return;
+            container.innerHTML = '<p style="color:#4a5568;">🔄 Carregando painel oficial blindado...</p>';
+            try {
+                const painel = await carregarPainelConsolidadoGMAN85645(true);
+                aplicarPainelConsolidadoNaTelaGMAN85645(painel);
+                const k = painel.kpisOficiais || {};
+                const rankArea = (painel.rankingOcorrenciasArea && painel.rankingOcorrenciasArea.ranking) || [];
+                const rankReinc = (painel.rankingReincidenciaOficial && painel.rankingReincidenciaOficial.ranking) || [];
+                const diag = painel.diagnosticoUltimasOSLidas || {};
+                const limpeza = painel.diagnosticoLimpezaBase || {};
+                const tecnico = painel.diagnosticoTecnico || {};
+
+                container.innerHTML = `
+                    <div style="background:linear-gradient(135deg,#1e3a5f,#2c5282,#3182ce); color:white; border-radius:22px; padding:18px; margin-bottom:14px;">
+                        <h3 style="margin:0 0 6px;">🛡️ Painel oficial blindado GMAN</h3>
+                        <p style="margin:0; font-size:0.84rem; opacity:0.95;">Fonte única: Banco Central GMAN | Backend: ${escaparHTMLGMAN(painel.versao || '-')} | Index: ${escaparHTMLGMAN(VERSAO_FRONTEND_GMAN)}</p>
+                        <p style="margin:6px 0 0; font-size:0.78rem; opacity:0.9;">Regra: se diagnóstico falhar, ele não deve derrubar abertura, início, andamento, conclusão e consulta de OS.</p>
+                    </div>
+
+                    ${renderizarProvaNumerosGMAN85647(painel)}
+
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:14px;">
+                        ${cardKPIOficialGMAN85645('Disponibilidade', (k.disponibilidadePercentual || 0) + '%', 'Meta mínima: 95%')}
+                        ${cardKPIOficialGMAN85645('Operando', k.operando || 0, 'Status oficial')}
+                        ${cardKPIOficialGMAN85645('Indisponíveis', k.indisponiveis || 0, 'Manutenção/Parado')}
+                        ${cardKPIOficialGMAN85645('Backlog OS', k.backlogOS || 0, 'Ativas')}
+                        ${cardKPIOficialGMAN85645('OS concluídas', k.osConcluidas || 0, 'Sem TESTE')}
+                        ${cardKPIOficialGMAN85645('Alertas OS x Status', (painel.conferenciaStatusOS || {}).totalAlertas || 0, 'Apenas diagnóstico')}
+                    </div>
+
+                    ${renderizarResumoSaudeGMAN85647(painel.testeSaudeAPI || tecnico.saudeAPI || {})}
+                    ${renderizarValidacaoEstruturaGMAN85647(painel.validacaoEstrutura || tecnico.validacaoEstrutura || {})}
+                    ${renderizarConferenciaStatusOSGMAN85647(painel.conferenciaStatusOS || tecnico.conferenciaStatusOS || {})}
+
+                    <div style="background:#f7fafc; border-radius:14px; padding:12px; margin-bottom:14px; color:#1a202c;">
+                        <h3 style="color:#1e3a5f; margin:0 0 8px;">Diagnóstico das últimas OS lidas</h3>
+                        <p style="font-size:0.82rem; color:#4a5568; margin:0 0 8px;">
+                            OS brutas: <strong>${diag.totalOSBrutas || painel.totalOSBrutas || 0}</strong> | 
+                            OS válidas sem TESTE: <strong>${diag.totalOSValidasSemTeste || painel.totalOSValidasSemTeste || 0}</strong> | 
+                            TESTE ignoradas: <strong>${diag.osTesteIgnoradas || painel.osTesteIgnoradas || 0}</strong>
+                        </p>
+                        ${((diag.ultimasOS || []).slice(0, 8)).map(os => `
+                            <div style="font-size:0.78rem; padding:7px 0; border-bottom:1px solid #e2e8f0;">
+                                <strong>${escaparHTMLGMAN(os.numeroOS || os.idOS || '-')}</strong> — ${escaparHTMLGMAN(os.idEquipamento || '-')} — ${escaparHTMLGMAN(os.statusOS || '-')}
+                                <br><span style="color:#718096;">${escaparHTMLGMAN(os.ultimaMovimentacaoDataHora || os.dataConclusao || os.dataInicio || os.dataAbertura || '-')}</span>
+                            </div>
+                        `).join('') || '<p style="color:#718096;">Sem OS recentes no diagnóstico.</p>'}
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; margin-bottom:14px;">
+                        <div style="background:#f7fafc; border-radius:14px; padding:12px; color:#1a202c;">
+                            <h3 style="color:#1e3a5f; margin:0 0 8px;">Ranking por área/equipe</h3>
+                            ${rankArea.map((item, i) => `<p style="margin:5px 0;"><strong>${i + 1}. ${escaparHTMLGMAN(item.nome)}</strong>: ${item.total} OS</p>`).join('') || '<p style="color:#718096;">Sem ranking oficial disponível.</p>'}
+                        </div>
+                        <div style="background:#f7fafc; border-radius:14px; padding:12px; color:#1a202c;">
+                            <h3 style="color:#1e3a5f; margin:0 0 8px;">OS grupos de maior reincidência</h3>
+                            ${rankReinc.map((item, i) => `<p style="margin:5px 0;"><strong>${i + 1}. ${escaparHTMLGMAN(item.nome)}</strong>: ${item.total} OS recorrentes</p>`).join('') || '<p style="color:#718096;">Nenhum grupo com 2+ OS recorrentes no período.</p>'}
+                        </div>
+                    </div>
+
+                    <div style="background:#fffaf0; border-left:5px solid #dd6b20; border-radius:14px; padding:12px; color:#744210; margin-bottom:14px;">
+                        <h3 style="margin:0 0 8px;">Quarentena segura da base</h3>
+                        <p style="font-size:0.82rem; margin:0;">
+                            Candidatos TESTE: <strong>${limpeza.candidatosTeste || 0}</strong> | 
+                            Status incomum: <strong>${limpeza.statusIncomum || 0}</strong> | 
+                            Aba: <strong>${escaparHTMLGMAN(limpeza.abaQuarentenaSugerida || 'QUARENTENA_TESTES_GMAN')}</strong>
+                        </p>
+                        <p style="font-size:0.78rem; margin:8px 0 0;">Nada é apagado. A 8.5.6.47 só permite copiar candidatos para quarentena com confirmação forte.</p>
+                    </div>
+
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button onclick="abrirDiagnosticoTecnicoGMAN85647()" style="padding:10px 14px; border:none; border-radius:10px; background:#2c5282; color:white; cursor:pointer; font-weight:900;">🛡️ Abrir diagnóstico técnico completo</button>
+                    </div>
+                `;
+                registrarAuditoriaClienteGMAN85647('PAINEL_GERENCIAL', 'Painel gerencial blindado carregado', 'OK');
+            } catch (erro) {
+                console.error(erro);
+                container.innerHTML = '<p style="color:#e53e3e; font-weight:bold;">Erro ao carregar painel oficial blindado: ' + escaparHTMLGMAN(erro.message || erro) + '</p>';
+            }
+        }
+
 
         iniciarSistema();
       </script>
