@@ -99,7 +99,7 @@
         .form-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e0; border-radius: 9px; color: #1a202c; font-size: 0.9rem; }
         .form-label { display: block; color: #2d3748; font-size: 0.78rem; font-weight: 700; margin: 8px 0 5px; text-align: left; }
      
-        /* GMAN 8.5.6.45 — evolução visual controlada 20% */
+        /* GMAN 8.5.6.46 — evolução visual controlada 20% */
         body::before {
             content: "";
             position: fixed;
@@ -156,7 +156,7 @@
         }
 
 
-        /* GMAN 8.5.6.45 — visual 30% e ícones com leve 3D controlado */
+        /* GMAN 8.5.6.46 — visual 30% e ícones com leve 3D controlado */
         .icon-3d-gman, .status-icon, .action-btn, .system-btn {
             transform-style: preserve-3d;
         }
@@ -218,7 +218,7 @@
         }
 
 
-        /* GMAN 8.5.6.45 — contador real de OS por grupo */
+        /* GMAN 8.5.6.46 — contador real de OS por grupo */
         .mini-os-counter {
             display: inline-block;
             padding: 3px 7px;
@@ -294,7 +294,7 @@
             <h2 style="color: #1e3a5f; margin-bottom: 5px;">Sistema de Manutenção</h2>
             <p style="color: #718096; margin-bottom: 30px; font-size: 0.9rem;">GMAN DMAE — Gestão de Manutenção de Bombeamento e Reservação</p>
             
-            <form onsubmit="event.preventDefault(); fazerLogin();" style="width: 100%;">
+            <form id="loginFormGMAN" onsubmit="event.preventDefault(); fazerLogin(); return false;" style="width: 100%;">
                 <input type="text" id="loginUser" placeholder="Usuário (nome completo)" style="
                     width: 100%;
                     padding: 12px;
@@ -423,8 +423,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.45 — Fonte única no Banco Central, auditoria limpa e painel oficial consolidado';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.45 — Fonte única no Banco Central, auditoria limpa e painel oficial consolidado';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.46 — Correção de sessão, Enter no login e cache sem deslogar';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.46 — Correção de sessão, Enter no login e cache sem deslogar';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -3174,7 +3174,7 @@ const NOMES_OFICIAIS_LIDERES_GMAN85645 = {
                 return `
                     <div style="margin-top:14px; background:#fffaf0; border-left:5px solid #d69e2e; border-radius:18px; padding:13px; color:#744210; font-size:0.82rem;">
                         <strong>🩺 Diagnóstico das últimas OS lidas</strong><br>
-                        Não foi possível carregar o diagnóstico agora. Recalcule o painel após publicar a API 8.5.6.45.
+                        Não foi possível carregar o diagnóstico agora. Recalcule o painel após publicar a API 8.5.6.46.
                     </div>
                 `;
             }
@@ -3294,7 +3294,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
                             <h2 style="color:#1e3a5f; margin:0; font-size:1.25rem;">Painel Gerencial — KPIs</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Visível somente para gestão. Dados calculados pelo Banco Central GMAN. <strong>Versão 8.5.6.45</strong></p>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Visível somente para gestão. Dados calculados pelo Banco Central GMAN. <strong>Versão 8.5.6.46</strong></p>
                         </div>
                         <button onclick="document.getElementById('kpiModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
@@ -3506,7 +3506,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                         <div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:18px; padding:13px; color:#742a2a; font-size:0.82rem; box-shadow:0 8px 18px rgba(229,62,62,0.08);">
                             <strong>⚠️ Base da reincidência</strong><br>
                             ${corretivas30.length} corretivas concluídas nos últimos 30 dias antes da deduplicação. ${reincidenciaDuplicadasMesmaBase} atendimento(s) da mesma OS base foram ignorados no ranking.<br>
-                            <small>Versão do cálculo: 8.5.6.45 com reincidência técnica oficial.</small>
+                            <small>Versão do cálculo: 8.5.6.46 com reincidência técnica oficial.</small>
                         </div>
                         <div style="background:#fff5f5; border-left:5px solid #dd6b20; border-radius:18px; padding:13px; color:#7b341e; font-size:0.82rem; box-shadow:0 8px 18px rgba(221,107,32,0.08);">
                             <strong>⚙️ OEE adaptado</strong><br>
@@ -3520,7 +3520,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                         <strong>📌 Regra aplicada:</strong> disponibilidade histórica usa MTBF ÷ (MTBF + MTTR) e não se mistura com a disponibilidade instantânea. MTBF é estimado pelo intervalo médio entre corretivas do mesmo equipamento. Produtividade por líder prioriza FINALIZADO_POR, depois USUARIO_INICIO e RESPONSAVEL, unificando maiúsculas/minúsculas e espaços. Reincidência usa corretivas concluídas válidas dos últimos 30 dias por grupo/equipamento, ignora OS de teste e não duplica atendimentos da mesma OS base. O ranking principal mostra apenas grupos com 2+ OS; 3+ é crítico. OEE é gerencial e adaptado ao GMAN. OS de teste não entram nos KPIs. Ranking por área mostra apenas áreas oficiais.
                         <br>
                         <strong>Situação atual:</strong> ${operando} operando, ${indisponiveis} em manutenção/alerta, ${parados} parados e ${osBacklog} OS no backlog.<br>
-                        <strong>Versão ativa do painel:</strong> GMAN 8.5.6.45 — histórico recente sincronizado, KPIs sem TESTE e limpeza segura da base.
+                        <strong>Versão ativa do painel:</strong> GMAN 8.5.6.46 — histórico recente sincronizado, KPIs sem TESTE e limpeza segura da base.
                     </div>
                 `;
 
@@ -4465,7 +4465,7 @@ function openEquipment(id) {
             }
 
             ordensServicoCache = [];
-            alert('Cache operacional limpo. A tela será recarregada para buscar a GMAN 8.5.6.45 no Banco Central.');
+            alert('Cache operacional limpo. A tela será recarregada para buscar a GMAN 8.5.6.46 no Banco Central.');
             const base = window.location.origin + window.location.pathname;
             window.location.href = base + '?nocache=' + Date.now();
         }
@@ -4501,7 +4501,7 @@ function openEquipment(id) {
 
 
         /* ============================================================
-           GMAN 8.5.6.45 — FONTE ÚNICA NO BANCO CENTRAL
+           GMAN 8.5.6.46 — FONTE ÚNICA NO BANCO CENTRAL
            Estas funções sobrescrevem as versões antigas do Index.
            O Index passa a exibir o pacote oficial do Apps Script.
            ============================================================ */
@@ -4510,12 +4510,12 @@ function openEquipment(id) {
         let ultimaSincronizacaoPainelGMAN85645 = 0;
 
         function saveData() {
-            // GMAN 8.5.6.45: status/equipamentos não são mais fonte oficial no localStorage.
+            // GMAN 8.5.6.46: status/equipamentos não são mais fonte oficial no localStorage.
             return true;
         }
 
         function loadData() {
-            // GMAN 8.5.6.45: evita reaproveitar status antigo do navegador.
+            // GMAN 8.5.6.46: evita reaproveitar status antigo do navegador.
             return true;
         }
 
@@ -4791,45 +4791,108 @@ function openEquipment(id) {
             `;
         }
 
+        function garantirSessaoVisualGMAN85646() {
+            if (usuarioLogado && usuarioLogado.nome) {
+                const login = document.getElementById('loginScreen');
+                if (login) login.style.display = 'none';
+                mostrarUsuarioLogado();
+                aplicarPermissoes();
+                aplicarBotoesPermissao();
+                return true;
+            }
+            return false;
+        }
+
+        function configurarEnterLoginGMAN85646() {
+            const form = document.getElementById('loginFormGMAN') || document.querySelector('#loginScreen form');
+            const user = document.getElementById('loginUser');
+            const pass = document.getElementById('loginPass');
+
+            if (form && !form.dataset.gmanEnterConfigurado) {
+                form.dataset.gmanEnterConfigurado = 'sim';
+                form.addEventListener('submit', function(evento) {
+                    evento.preventDefault();
+                    fazerLogin();
+                    return false;
+                });
+            }
+
+            [user, pass].forEach(campo => {
+                if (!campo || campo.dataset.gmanEnterConfigurado) return;
+                campo.dataset.gmanEnterConfigurado = 'sim';
+                campo.addEventListener('keydown', function(evento) {
+                    if (evento.key === 'Enter') {
+                        evento.preventDefault();
+                        fazerLogin();
+                    }
+                });
+            });
+        }
+
         async function atualizarAgora() {
-            await carregarPainelConsolidadoGMAN85645(true);
-            await carregarStatusOnline();
-            if (document.getElementById('osModal')) renderizarOS(ordensServicoCache);
-            if (document.getElementById('kpiModal')) await carregarPainelGerencial();
-            alert('Sistema atualizado com o painel consolidado oficial do Banco Central GMAN.');
+            const usuarioAntes = usuarioLogado ? Object.assign({}, usuarioLogado) : null;
+
+            try {
+                await carregarPainelConsolidadoGMAN85645(true);
+                await carregarStatusOnline();
+                if (document.getElementById('osModal')) renderizarOS(ordensServicoCache);
+                if (document.getElementById('kpiModal')) await carregarPainelGerencial();
+
+                if (!usuarioLogado && usuarioAntes) usuarioLogado = usuarioAntes;
+                garantirSessaoVisualGMAN85646();
+                alert('Sistema atualizado com o painel consolidado oficial do Banco Central GMAN.');
+            } catch (erro) {
+                if (!usuarioLogado && usuarioAntes) usuarioLogado = usuarioAntes;
+                garantirSessaoVisualGMAN85646();
+                console.error('Erro ao atualizar agora:', erro);
+                alert('Não foi possível atualizar agora: ' + (erro && erro.message ? erro.message : erro));
+            }
         }
 
         function limparCacheOperacionalGMAN85645() {
+            const usuarioAntes = usuarioLogado ? Object.assign({}, usuarioLogado) : null;
+            const sessaoAntes = sessionStorage.getItem('manutencao_usuario_logado');
+
             try {
                 localStorage.removeItem('gman_kpi_cache');
                 localStorage.removeItem('gman_rankings_cache');
                 localStorage.removeItem('ordensServicoCache');
                 localStorage.removeItem('equipmentData');
                 localStorage.removeItem('manutencao_equipment');
-                localStorage.removeItem('manutencao_usuario_logado');
-                sessionStorage.removeItem('manutencao_usuario_logado');
-                sessionStorage.clear();
-                if ('caches' in window) caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
+
+                // Não apagar login nem limpar sessionStorage inteiro.
+                // A limpeza aqui é apenas operacional, para não derrubar o usuário em campo.
+                painelConsolidadoCacheGMAN85645 = null;
+                ultimaSincronizacaoPainelGMAN85645 = 0;
+                ordensServicoCache = [];
+
+                if (usuarioAntes && usuarioAntes.nome) {
+                    usuarioLogado = usuarioAntes;
+                    sessionStorage.setItem('manutencao_usuario_logado', JSON.stringify(usuarioAntes));
+                } else if (sessaoAntes) {
+                    sessionStorage.setItem('manutencao_usuario_logado', sessaoAntes);
+                }
             } catch (erro) {
-                console.warn('Não foi possível limpar todos os caches:', erro);
+                console.warn('Não foi possível limpar todos os caches operacionais:', erro);
             }
-            painelConsolidadoCacheGMAN85645 = null;
-            ordensServicoCache = [];
-            alert('Cache limpo. A tela será recarregada e buscará o painel consolidado GMAN 8.5.6.45.');
-            const base = window.location.origin + window.location.pathname;
-            window.location.href = base + '?nocache=' + Date.now();
+
+            garantirSessaoVisualGMAN85646();
+            alert('Cache operacional limpo sem sair do login. Agora clique em Atualizar agora para buscar o painel consolidado.');
         }
 
         async function iniciarSistema() {
             exibirMarcadorVersaoGMAN85645();
+            configurarEnterLoginGMAN85646();
             loadData();
             renderEquipment();
             recuperarLoginSalvo();
             aplicarBotoesPermissao();
             await carregarStatusOnline();
+            garantirSessaoVisualGMAN85646();
 
             setInterval(async () => {
                 await carregarStatusOnline();
+                garantirSessaoVisualGMAN85646();
             }, 120000);
         }
 
