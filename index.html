@@ -99,7 +99,7 @@
         .form-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e0; border-radius: 9px; color: #1a202c; font-size: 0.9rem; }
         .form-label { display: block; color: #2d3748; font-size: 0.78rem; font-weight: 700; margin: 8px 0 5px; text-align: left; }
      
-        /* GMAN 8.5.6.54 — evolução visual controlada 20% */
+        /* GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
         body::before {
             content: "";
             position: fixed;
@@ -156,7 +156,7 @@
         }
 
 
-        /* GMAN 8.5.6.54 — visual 30% e ícones com leve 3D controlado */
+        /* GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
         .icon-3d-gman, .status-icon, .action-btn, .system-btn {
             transform-style: preserve-3d;
         }
@@ -218,7 +218,7 @@
         }
 
 
-        /* GMAN 8.5.6.54 — contador real de OS por grupo */
+        /* GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
         .mini-os-counter {
             display: inline-block;
             padding: 3px 7px;
@@ -382,7 +382,7 @@
         <button class="action-btn" id="btnOrdensIniciadasHome" onclick="abrirPainelOS('iniciadas')" style="display:none;">🛠️ OS Iniciadas <span id="totalOrdensIniciadasHome">(0)</span></button>
         <button class="action-btn" id="btnOrdensEncerradasHome" onclick="abrirPainelOS('encerradas')" style="display:none;">✅ Ordens Encerradas <span id="totalOrdensEncerradasHome">(0)</span></button>
         <button class="action-btn" id="btnPainelKPI" onclick="abrirPainelGerencial()" style="display:none;">📊 KPIs Industriais</button>
-        <!-- Núcleo técnico GMAN 8.5.6.54: acesso discreto por ícone fixo, apenas para gestão -->
+        <!-- Núcleo técnico GMAN 8.5.6.56: acesso discreto por ícone fixo, apenas para gestão -->
         <button class="action-btn" onclick="atualizarAgora()">🔄 Atualizar agora</button>
         <button class="action-btn" onclick="limparCacheOperacionalGMAN85645()">🧹 Limpar cache</button>
       </div>
@@ -424,8 +424,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.54 — Status oficial deduplicado, refresh sem retorno indevido e reparo persistente';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.54 — Status oficial deduplicado, refresh sem retorno indevido e reparo persistente';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -665,19 +665,8 @@
             indicador.textContent = mensagem;
         }
 
-        function normalizarStatusApp(valor, observacao = '') {
-            const texto = String(valor || '').toLowerCase()
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '');
-
-            const obs = String(observacao || '').toLowerCase()
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '');
-
-            if (texto.includes('manutencao (parado)') || texto.includes('manutenção (parado)') || texto.includes('parad') || obs.includes('condicao operacional: parado') || obs.includes('condição operacional: parado')) return 'down';
-            if (texto.includes('manutencao (operando)') || texto.includes('manutenção (operando)') || texto.includes('manut') || texto.includes('aguard') || texto.includes('restri') || obs.includes('em teste') || texto.includes('em teste') || texto.includes('alert') || texto.includes('atencao')) return 'alert';
-            return 'ok';
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: normalizarStatusApp */
 
         function statusParaPlanilha(status) {
             if (status === 'alert') return 'Manutenção';
@@ -787,75 +776,18 @@
             });
         }
 
-        async function carregarStatusOnline() {
-            atualizarIndicadorConexao('🔄 Sincronizando com o Banco Central...', 'neutro');
-
-            try {
-                const resposta = await fetch(`${API_URL}?acao=listarStatus&v=85645&t=${Date.now()}`, { cache: 'no-store' });
-                if (!resposta.ok) throw new Error('Falha ao consultar a API.');
-
-                const statusOnline = await resposta.json();
-                if (!Array.isArray(statusOnline)) throw new Error('Resposta da API não veio em formato de lista.');
-
-                statusOnline.forEach(item => {
-                    const eq = equipment.find(e => String(e.id) === String(item.idEquipamento));
-                    if (!eq) return;
-
-                    eq.status = normalizarStatusApp(item.statusAtual, item.observacao);
-                    eq.ultimoTecnico = item.usuarioUltimaAlteracao || '';
-                    eq.ultimaAlteracao = formatarDataApi(item.dataUltimaAlteracao);
-                    eq.observacaoStatus = item.observacao || '';
-                });
-
-                try {
-                    const listaOSAtualizada = await listarOSOnline();
-                    ordensServicoCache = Array.isArray(listaOSAtualizada) ? listaOSAtualizada : [];
-                    atualizarTotalizadoresOS(ordensServicoCache);
-                } catch (erroOS) {
-                    console.warn('Status sincronizado, mas OS não atualizadas para contador por grupo:', erroOS);
-                }
-
-                apiOnline = true;
-                saveData();
-                applyFilters();
-                atualizarIndicadorConexao('✅ Online: conectado ao Banco Central GMAN', 'online');
-                atualizarMarcadorConexaoGMAN85645('Banco Central: conectado', true);
-                return true;
-
-            } catch (erro) {
-                apiOnline = false;
-                loadData();
-                applyFilters();
-                atualizarIndicadorConexao('⚠️ Modo local: não foi possível sincronizar com o Banco Central', 'offline');
-                atualizarMarcadorConexaoGMAN85645('Banco Central: falha de conexão', false);
-                console.error('Erro ao carregar status online:', erro);
-                return false;
-            }
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: carregarStatusOnline */
 
         async function salvarStatusOnline(id, newStatus) {
             throw new Error('Alteração direta de status bloqueada. Abra ou conclua uma OS vinculada ao equipamento.');
         }
 
-        async function apiPost(payload) {
-            const resposta = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload)
-            });
-            const retorno = await resposta.json();
-            if (!retorno.sucesso) throw new Error(retorno.erro || retorno.mensagem || 'Erro desconhecido na API.');
-            return retorno;
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: apiPost */
 
-        async function apiGet(params) {
-            const query = new URLSearchParams(Object.assign({}, params || {}, { t: Date.now() })).toString();
-            const resposta = await fetch(`${API_URL}?${query}`);
-            if (!resposta.ok) throw new Error('Falha ao consultar a API GMAN.');
-            const retorno = await resposta.json();
-            if (retorno && retorno.sucesso === false) throw new Error(retorno.erro || retorno.mensagem || 'Erro desconhecido na API.');
-            return retorno;
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: apiGet */
 
         const COMPONENTES_GRUPO_GMAN = ['PAINEL', 'MOTOR', 'BOMBA', 'VS', 'VR', 'RETENCAO', 'TUBULACAO'];
         const COMPONENTES_PAT_OBRIGATORIO_GMAN85627 = ['PAINEL', 'MOTOR', 'BOMBA', 'VS', 'VR', 'RETENCAO'];
@@ -1459,66 +1391,18 @@ function montarLinhasPatrimonioGrupoGMAN(patrimonios = {}, opcoes = {}) {
             return true;
         }
 
-        function aplicarBotoesPermissao() {
-            const ehGestao = podeGerenciarOS();
-
-            const btnKPI = document.getElementById('btnPainelKPI');
-            if (btnKPI) btnKPI.style.display = ehGestao ? 'inline-block' : 'none';
-
-            const btnDiagnosticoTecnico = document.getElementById('btnDiagnosticoTecnico');
-            if (btnDiagnosticoTecnico) btnDiagnosticoTecnico.style.display = ehGestao ? 'inline-block' : 'none';
-
-            const btnNaoIniciadas = document.getElementById('btnOrdensNaoIniciadasHome');
-            if (btnNaoIniciadas) btnNaoIniciadas.style.display = ehGestao ? 'inline-block' : 'none';
-
-            const btnIniciadas = document.getElementById('btnOrdensIniciadasHome');
-            if (btnIniciadas) btnIniciadas.style.display = ehGestao ? 'inline-block' : 'none';
-
-            const btnEncerradas = document.getElementById('btnOrdensEncerradasHome');
-            if (btnEncerradas) btnEncerradas.style.display = ehGestao ? 'inline-block' : 'none';
-
-            const stats = document.querySelector('.stats');
-            if (stats) stats.style.display = ehGestao ? 'grid' : 'none';
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: aplicarBotoesPermissao */
 
         
-        function limparCacheOperacionalGMAN85645() {
-            try {
-                localStorage.removeItem('gman_kpi_cache');
-                localStorage.removeItem('gman_rankings_cache');
-                localStorage.removeItem('ordensServicoCache');
-                sessionStorage.clear();
-            } catch (erro) {
-                console.warn('Não foi possível limpar todos os caches:', erro);
-            }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: limparCacheOperacionalGMAN85645 */
 
-            ordensServicoCache = [];
-            alert('Cache operacional limpo. Clique em Atualizar agora para recarregar do Banco Central.');
-        }
 
-async function atualizarAgora() {
-            await carregarStatusOnline();
+/* GMAN 8.5.6.56: função duplicada anterior removida: atualizarAgora */
 
-            try {
-                const listaOS = await listarOSOnline();
-                ordensServicoCache = listaOS;
-                atualizarTotalizadoresOS(listaOS);
-                applyFilters();
-                if (document.getElementById('osModal')) renderizarOS(listaOS);
-            } catch (erro) {
-                console.error('Erro ao atualizar totalizadores de OS:', erro);
-            }
-
-            alert('Sistema atualizado com o Banco Central GMAN.');
-        }
-
-        async function listarOSOnline() {
-            const resposta = await fetch(`${API_URL}?acao=listarOS&v=85645&t=${Date.now()}`, { cache: 'no-store' });
-            if (!resposta.ok) throw new Error('Falha ao consultar Ordens de Serviço.');
-            const lista = await resposta.json();
-            if (!Array.isArray(lista)) throw new Error('Resposta de OS não veio em formato de lista.');
-            return lista;
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: listarOSOnline */
 
         function classeStatusOS(status) {
             const s = String(status || '').toLowerCase();
@@ -3296,7 +3180,7 @@ const NOMES_OFICIAIS_LIDERES_GMAN85645 = {
                 return `
                     <div style="margin-top:14px; background:#fffaf0; border-left:5px solid #d69e2e; border-radius:18px; padding:13px; color:#744210; font-size:0.82rem;">
                         <strong>🩺 Diagnóstico das últimas OS lidas</strong><br>
-                        Não foi possível carregar o diagnóstico agora. Recalcule o painel após publicar a API 8.5.6.54.
+                        Não foi possível carregar o diagnóstico agora. Recalcule o painel após publicar a API 8.5.6.55.
                     </div>
                 `;
             }
@@ -3471,7 +3355,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
                             <h2 style="color:#1e3a5f; margin:0; font-size:1.25rem;">Painel Gerencial — KPIs</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Visível somente para gestão. Dados calculados pelo Banco Central GMAN. <strong>Versão 8.5.6.54</strong></p>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Visível somente para gestão. Dados calculados pelo Banco Central GMAN. <strong>Versão 8.5.6.55</strong></p>
                         </div>
                         <button onclick="document.getElementById('kpiModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
@@ -3483,294 +3367,14 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
             await carregarPainelGerencial();
         }
 
-        async function carregarPainelGerencial() {
-            const container = document.getElementById('kpiConteudo');
-            if (!container) return;
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: carregarPainelGerencial */
 
-            container.innerHTML = '<p style="color:#4a5568;">🔄 Calculando indicadores GMAN...</p>';
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: recuperarLoginSalvo */
 
-            try {
-                await carregarStatusOnline();
-                const listaOS = await listarOSOnline();
-                const osValidas = listaOS.filter(os => !ehOSTesteKPI(os));
-
-                let kpisIndustriaisOficiais = null;
-                try {
-                    kpisIndustriaisOficiais = await apiGet({ acao: 'calcularKPIsIndustriaisOficiais' });
-                } catch (erroKPIIndustrial) {
-                    console.warn('KPIs industriais oficiais indisponíveis:', erroKPIIndustrial);
-                }
-
-                let diagnosticoUltimasOS = null;
-                try {
-                    diagnosticoUltimasOS = await apiGet({ acao: 'diagnosticoUltimasOSLidas', limite: 8 });
-                } catch (erroDiag) {
-                    console.warn('Diagnóstico de últimas OS indisponível:', erroDiag);
-                }
-
-                const equipamentosValidos = equipment.filter(e => !ehEquipamentoTesteGMAN85645(e));
-                const equipamentosTesteIgnorados = equipment.length - equipamentosValidos.length;
-                const totalEquipamentos = equipamentosValidos.length;
-                const operando = equipamentosValidos.filter(e => e.status === 'ok').length;
-                const indisponiveis = equipamentosValidos.filter(e => e.status === 'alert' || e.status === 'down').length;
-                const parados = equipamentosValidos.filter(e => e.status === 'down').length;
-
-                const disponibilidadeInstantanea = totalEquipamentos ? arredondarPercentualKPI((operando / totalEquipamentos) * 100) : 0;
-
-                const categoriasKPI = resumoCategoriasKPI85636(osValidas);
-                const osBacklog = categoriasKPI.ativas;
-                const osConcluidasLista = osValidas.filter(os => statusConcluidoKPI(os.statusOS));
-                const osConcluidas = categoriasKPI.concluidas;
-
-                const corretivasConcluidas = osValidas.filter(os =>
-                    statusConcluidoKPI(os.statusOS) &&
-                    ehCorretivaKPI(os)
-                );
-
-                const corretivasValidas = osValidas.filter(os => ehCorretivaKPI(os));
-
-                const temposReparo = corretivasConcluidas
-                    .map(os => {
-                        const inicio = combinarDataHoraKPI(os.dataInicio, os.horaInicio);
-                        const fim = combinarDataHoraKPI(os.dataConclusao, os.horaConclusao);
-                        if (!inicio || !fim) return null;
-                        const minutos = (fim.getTime() - inicio.getTime()) / 60000;
-                        return minutos > 0 ? minutos : null;
-                    })
-                    .filter(Boolean);
-
-                const mttr = temposReparo.length
-                    ? temposReparo.reduce((a, b) => a + b, 0) / temposReparo.length
-                    : 0;
-
-                const produtividadePorLider = contarPorLiderKPI(osConcluidasLista);
-                const rankingOcorrenciasArea = calcularRankingOcorrenciasAreaGMAN85645(osValidas);
-
-                const agora = new Date();
-                const trintaDiasAtras = new Date(agora.getTime() - (30 * 24 * 60 * 60 * 1000));
-
-                const corretivasReincidenciaBase = osValidas.filter(os =>
-                    statusConcluidoKPI(os.statusOS) &&
-                    ehCorretivaKPI(os)
-                );
-
-                const corretivas30 = corretivasReincidenciaBase.filter(os => {
-                    const data = dataReincidenciaKPI85637(os);
-                    return data && data >= trintaDiasAtras;
-                });
-
-                const reincidenciaPorEquip = {};
-                const reincidenciaRotulos = {};
-                const reincidenciaBasesPorEquip = {};
-                let reincidenciaDuplicadasMesmaBase = 0;
-
-                corretivas30.forEach(os => {
-                    const chave = chaveReincidenciaKPI85637(os);
-                    const rotulo = rotuloReincidenciaKPI85637(os);
-                    const baseOS = baseNumeroOSReincidenciaGMAN85645(os) || String(os.idOS || os.numeroOS || '').trim();
-
-                    if (!chave || normalizarKPI(chave) === 'nao informado') return;
-
-                    reincidenciaBasesPorEquip[chave] = reincidenciaBasesPorEquip[chave] || new Set();
-                    if (baseOS && reincidenciaBasesPorEquip[chave].has(baseOS)) {
-                        reincidenciaDuplicadasMesmaBase++;
-                        return;
-                    }
-                    if (baseOS) reincidenciaBasesPorEquip[chave].add(baseOS);
-
-                    reincidenciaPorEquip[chave] = (reincidenciaPorEquip[chave] || 0) + 1;
-                    reincidenciaRotulos[chave] = reincidenciaRotulos[chave] || rotulo;
-                });
-
-                const reincidenciaRankingCompleto = Object.fromEntries(
-                    Object.entries(reincidenciaPorEquip).map(([chave, total]) => [
-                        reincidenciaRotulos[chave] || chave,
-                        total
-                    ])
-                );
-
-                const reincidenciaRanking = Object.fromEntries(
-                    Object.entries(reincidenciaPorEquip)
-                        .filter(([_, total]) => total >= 2)
-                        .map(([chave, total]) => [
-                            reincidenciaRotulos[chave] || chave,
-                            total
-                        ])
-                );
-
-                const gruposEmObservacao = Object.fromEntries(
-                    Object.entries(reincidenciaPorEquip)
-                        .filter(([_, total]) => total === 1)
-                        .map(([chave, total]) => [
-                            reincidenciaRotulos[chave] || chave,
-                            total
-                        ])
-                );
-
-                const reincidentes = Object.entries(reincidenciaPorEquip).filter(([_, total]) => total >= 2);
-                const reincidentesCriticos = Object.entries(reincidenciaPorEquip).filter(([_, total]) => total >= 3);
-                const maiorReincidenciaGrupo = Object.values(reincidenciaRanking).reduce((maior, total) => Math.max(maior, total), 0);
-                const totalGruposReincidentes = reincidentes.length;
-                const totalGruposCriticos = reincidentesCriticos.length;
-                const mtbfCalculado = calcularMTBFKPI(corretivasConcluidas);
-                const mtbfTexto = mtbfCalculado.texto;
-                const disponibilidadeHistoricaValor = calcularDisponibilidadeManutencaoKPI(mtbfCalculado.horas, mttr);
-                const disponibilidadeHistoricaTexto = disponibilidadeHistoricaValor === null ? 'Em cálculo' : formatarPercentualKPI(disponibilidadeHistoricaValor);
-                const disponibilidadeHistoricaSubtitulo = disponibilidadeHistoricaValor === null ? 'aguardando histórico suficiente' : 'MTBF ÷ (MTBF + MTTR)';
-                const osTesteIgnoradas = listaOS.length - osValidas.length;
-
-                const performanceOEE = osValidas.length ? arredondarPercentualKPI((osConcluidas / osValidas.length) * 100) : 0;
-                const baseQualidade = totalEquipamentos ? Math.max(0, 100 - ((reincidentes.length / totalEquipamentos) * 100)) : 0;
-                const qualidadeOEE = arredondarPercentualKPI(baseQualidade);
-                const oee = disponibilidadeHistoricaValor === null ? null : calcularOEEKPI(disponibilidadeHistoricaValor, performanceOEE, qualidadeOEE);
-                const oeeTexto = oee === null ? 'Em cálculo' : formatarPercentualKPI(oee);
-
-                container.innerHTML = `
-                    <div style="background:linear-gradient(135deg,#1e3a5f,#2c5282,#3182ce); color:white; border-radius:26px; padding:20px; margin-bottom:16px; box-shadow:0 14px 30px rgba(30,58,95,0.24); position:relative; overflow:hidden;">
-                        <div style="position:absolute; right:18px; bottom:-12px; font-size:4.8rem; opacity:0.13;">⚙️</div>
-                        <div style="position:absolute; left:12px; top:-18px; font-size:4.5rem; opacity:0.08;">✨</div>
-                        <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; position:relative;">
-                            <div>
-                                <h3 style="margin:0; font-size:1.24rem;">📊 Painel Gerencial GMAN</h3>
-                                <p style="margin:5px 0 0; opacity:0.92; font-size:0.84rem;">KPIs clicáveis, painel mais vivo, Top 5 e OEE adaptado ao cenário do GMAN.</p>
-                            </div>
-                            <button onclick="carregarPainelGerencial()" style="border:none; border-radius:999px; padding:10px 14px; background:white; color:#1e3a5f; font-weight:900; cursor:pointer;">🔄 Recalcular</button>
-                        </div>
-                    </div>
-
-                    ${montarKPIsIndustriaisOficiaisHTMLGMAN85650(kpisIndustriaisOficiais)}
-
-                    <div style="background:#f7fafc; border-left:5px solid #3182ce; border-radius:14px; padding:12px; margin-bottom:14px; color:#1e3a5f; font-size:0.82rem;">
-                        <strong>Conciliação KPI:</strong>
-                        Backlog = ${osBacklog} |
-                        Concluídas = ${categoriasKPI.concluidas} |
-                        Canceladas = ${categoriasKPI.canceladas} |
-                        Encerradas não concluídas = ${categoriasKPI.encerradasNaoConcluidas} |
-                        Outras/Sem status = ${(categoriasKPI.outros || 0) + (categoriasKPI.semStatus || 0)}
-                    </div>
-
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; margin-bottom:16px;">
-                        ${montarCardKPI('Disponibilidade histórica', disponibilidadeHistoricaTexto, disponibilidadeHistoricaSubtitulo, disponibilidadeHistoricaValor !== null && disponibilidadeHistoricaValor >= 90 ? '#38a169' : '#d69e2e', '✅')}
-                        ${montarCardKPI('Disponibilidade instantânea', formatarPercentualKPI(disponibilidadeInstantanea), 'foto atual por status', '#319795', '📍')}
-                        ${montarCardKPI('MTTR', formatarDuracaoMinutos(mttr), 'Tempo médio de reparo', '#3182ce', '⏱️')}
-                        ${montarCardKPI('MTBF estimado', mtbfTexto, 'Intervalo médio entre corretivas', '#805ad5', '🔁')}
-                        ${montarCardKPI('Backlog de OS', osBacklog, explicacaoBacklogKPI85636(categoriasKPI), '#d69e2e', '📋')}
-                        ${montarCardKPI('Produtividade', osConcluidas, 'OS concluídas válidas', '#38a169', '🏆')}
-                        ${montarCardKPI('Reincidência', maiorReincidenciaGrupo, `maior grupo | ${totalGruposReincidentes} reincidente(s), ${totalGruposCriticos} crítico(s)`, maiorReincidenciaGrupo >= 3 ? '#e53e3e' : maiorReincidenciaGrupo >= 2 ? '#d69e2e' : '#38a169', '⚠️')}
-                        ${montarCardKPI('OEE adaptado', oeeTexto, 'Indicador gerencial adaptado', oee !== null && oee >= 70 ? '#dd6b20' : '#c53030', '⚙️')}
-                    </div>
-
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:14px;">
-                        ${montarRankingHTML(produtividadePorLider, 'Líderes que mais atenderam OS', 5, 'OS', '🏆')}
-                        ${montarRankingHTML(reincidenciaRanking, 'OS grupos de maior reincidência — 2+ OS', 5, 'OS recorrentes', '⚠️', 2)}
-                        ${montarRankingHTML(rankingOcorrenciasArea, 'Ocorrências por área/equipe', 6, 'OS', '🏭')}
-                    </div>
-
-                    ${Object.keys(gruposEmObservacao).length ? `
-                        <div style="margin-top:12px; background:#fffaf0; border-left:5px solid #d69e2e; border-radius:16px; padding:12px; color:#744210; font-size:0.80rem;">
-                            <strong>👀 Grupos em observação:</strong>
-                            grupos com apenas 1 OS recorrente não entram no ranking principal de reincidência.
-                            <div style="margin-top:6px;">
-                                ${Object.entries(gruposEmObservacao).slice(0, 5).map(([nome, total]) => `${escaparHTMLGMAN(nome)} — ${total} ocorrência`).join('<br>')}
-                            </div>
-                        </div>
-                    ` : ''}
-
-                    <div style="margin-top:14px; display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:10px;">
-                        <div style="background:#f0fff4; border-left:5px solid #38a169; border-radius:18px; padding:13px; color:#22543d; font-size:0.82rem; box-shadow:0 8px 18px rgba(56,161,105,0.08);">
-                            <strong>✅ Base dos KPIs</strong><br>
-                            ${osValidas.length} OS válidas consideradas.
-                        </div>
-                        <div style="background:#fffaf0; border-left:5px solid #d69e2e; border-radius:18px; padding:13px; color:#744210; font-size:0.82rem; box-shadow:0 8px 18px rgba(214,158,46,0.08);">
-                            <strong>📋 Backlog</strong><br>
-                            ${osBacklog} OS ainda não encerradas.
-                        </div>
-                        <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:18px; padding:13px; color:#2c5282; font-size:0.82rem; box-shadow:0 8px 18px rgba(49,130,206,0.08);">
-                            <strong>🧪 Testes ignorados</strong><br>
-                            ${osTesteIgnoradas} OS de teste e ${equipamentosTesteIgnorados} equipamento(s) TESTE fora dos KPIs.
-                        </div>
-                        <div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:18px; padding:13px; color:#742a2a; font-size:0.82rem; box-shadow:0 8px 18px rgba(229,62,62,0.08);">
-                            <strong>⚠️ Base da reincidência</strong><br>
-                            ${corretivas30.length} corretivas concluídas nos últimos 30 dias antes da deduplicação. ${reincidenciaDuplicadasMesmaBase} atendimento(s) da mesma OS base foram ignorados no ranking.<br>
-                            <small>Versão do cálculo: 8.5.6.54 com reincidência técnica oficial.</small>
-                        </div>
-                        <div style="background:#fff5f5; border-left:5px solid #dd6b20; border-radius:18px; padding:13px; color:#7b341e; font-size:0.82rem; box-shadow:0 8px 18px rgba(221,107,32,0.08);">
-                            <strong>⚙️ OEE adaptado</strong><br>
-                            Histórica ${disponibilidadeHistoricaTexto} · Instantânea ${formatarPercentualKPI(disponibilidadeInstantanea)} · Performance ${formatarPercentualKPI(performanceOEE)} · Qualidade ${formatarPercentualKPI(qualidadeOEE)}.
-                        </div>
-                    </div>
-
-                    ${montarDiagnosticoUltimasOSPainelGMAN85645(diagnosticoUltimasOS)}
-
-                    <div style="margin-top:14px; background:linear-gradient(135deg,#edf2f7,#ffffff); border-radius:20px; padding:14px; color:#2d3748; font-size:0.82rem; border:1px solid #e2e8f0;">
-                        <strong>📌 Regra aplicada:</strong> disponibilidade histórica usa MTBF ÷ (MTBF + MTTR) e não se mistura com a disponibilidade instantânea. MTBF é estimado pelo intervalo médio entre corretivas do mesmo equipamento. Produtividade por líder prioriza FINALIZADO_POR, depois USUARIO_INICIO e RESPONSAVEL, unificando maiúsculas/minúsculas e espaços. Reincidência usa corretivas concluídas válidas dos últimos 30 dias por grupo/equipamento, ignora OS de teste e não duplica atendimentos da mesma OS base. O ranking principal mostra apenas grupos com 2+ OS; 3+ é crítico. OEE é gerencial e adaptado ao GMAN. OS de teste não entram nos KPIs. Ranking por área mostra apenas áreas oficiais.
-                        <br>
-                        <strong>Situação atual:</strong> ${operando} operando, ${indisponiveis} em manutenção/alerta, ${parados} parados e ${osBacklog} OS no backlog.<br>
-                        <strong>Versão ativa do painel:</strong> GMAN 8.5.6.54 — blindagem de continuidade, auditoria forte e proteção do que já funciona.
-                    </div>
-                `;
-
-            } catch (erro) {
-                console.error(erro);
-                container.innerHTML = '<p style="color:#e53e3e; font-weight:bold;">Erro ao carregar KPIs. Confira a conexão com a API, a planilha e os nomes das abas.</p>';
-            }
-        }
-
-        function recuperarLoginSalvo() {
-            const usuarioSalvo = localStorage.getItem('manutencao_usuario_logado');
-            if (!usuarioSalvo) return false;
-
-            try {
-                const dados = JSON.parse(usuarioSalvo);
-                const encontrado = usuarios.find(u =>
-                    u.nome === dados.nome &&
-                    u.funcao === dados.funcao &&
-                    u.area === dados.area
-                );
-
-                if (!encontrado) {
-                    localStorage.removeItem('manutencao_usuario_logado');
-                    return false;
-                }
-
-                usuarioLogado = encontrado;
-                document.getElementById('loginScreen').style.display = 'none';
-                mostrarUsuarioLogado();
-                aplicarPermissoes();
-                aplicarBotoesPermissao();
-                return true;
-            } catch (e) {
-                localStorage.removeItem('manutencao_usuario_logado');
-                return false;
-            }
-        }
-
-        function fazerLogin() {
-            const user = document.getElementById('loginUser').value.trim();
-            const pass = document.getElementById('loginPass').value;
-            const erro = document.getElementById('loginErro');
-            
-            const encontrado = usuarios.find(u => 
-                u.nome.toLowerCase() === user.toLowerCase() && u.senha === pass
-            );
-            
-            if (!encontrado) {
-                erro.textContent = 'Usuário ou senha incorretos!';
-                erro.style.display = 'block';
-                return;
-            }
-            
-            usuarioLogado = encontrado;
-            localStorage.setItem('manutencao_usuario_logado', JSON.stringify({
-                nome: encontrado.nome,
-                funcao: encontrado.funcao,
-                area: encontrado.area
-            }));
-            document.getElementById('loginScreen').style.display = 'none';
-            mostrarUsuarioLogado();
-            aplicarPermissoes();
-            aplicarBotoesPermissao();
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: fazerLogin */
 
         function mostrarUsuarioLogado() {
             const existente = document.getElementById('userInfo');
@@ -3804,20 +3408,9 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
             header.parentNode.insertBefore(info, header.nextSibling);
         }
         
-        function fazerLogout() {
-            localStorage.removeItem('manutencao_usuario_logado');
-            usuarioLogado = null;
-            document.getElementById('loginScreen').style.display = 'flex';
-            document.getElementById('loginUser').value = '';
-            document.getElementById('loginPass').value = '';
-            document.getElementById('loginErro').style.display = 'none';
-            
-            const info = document.getElementById('userInfo');
-            if (info) info.remove();
-            aplicarBotoesPermissao();
-        }
         
-        function aplicarPermissoes() {
+/* GMAN 8.5.6.56: função duplicada anterior removida: fazerLogout */
+function aplicarPermissoes() {
             if (usuarioLogado.funcao === 'supervisor' || usuarioLogado.funcao === 'administrador') {
                 return; 
             }
@@ -4062,28 +3655,11 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
         let currentStatusFilter = 'all';
         let ordensServicoCache = []; 
 
-        function saveData() {
-            localStorage.setItem('manutencao_equipment', JSON.stringify(equipment));
-        }
         
-        function loadData() {
-            const saved = localStorage.getItem('manutencao_equipment');
-            if (saved) {
-                const savedEquipment = JSON.parse(saved);
-                savedEquipment.forEach(savedEq => {
-                    const eq = equipment.find(e => e.id === savedEq.id);
-                    if (eq) {
-                        eq.status = savedEq.status;
-                        eq.ultimoTecnico = savedEq.ultimoTecnico;
-                        eq.ultimaAlteracao = savedEq.ultimaAlteracao;
-                        eq.historico = savedEq.historico;
-                        eq.observacaoStatus = savedEq.observacaoStatus;
-                    }
-                });
-            }
-        }
-        
-        function renderEquipment(list = equipment) {
+/* GMAN 8.5.6.56: função duplicada anterior removida: saveData */
+
+/* GMAN 8.5.6.56: função duplicada anterior removida: loadData */
+function renderEquipment(list = equipment) {
             const container = document.getElementById('equipmentList');
             container.innerHTML = list.map(eq => {
                 const visual = statusVisualGrupoGMAN85631(eq);
@@ -4383,72 +3959,15 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
             }
         }
 
-                async function verOSDoGrupoGMAN(idGrupo) {
-            try {
-                const lista = await listarOSOnline();
-                modoPainelOSAtual = 'grupo:' + idGrupo;
-
-                const existingModal = document.getElementById('osModal');
-                if (existingModal) existingModal.remove();
-
-                const modal = document.createElement('div');
-                modal.id = 'osModal';
-                modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.82); display: flex; align-items: center; justify-content: center; z-index: 1100; padding: 18px;';
-                modal.innerHTML = `
-                    <div style="background:linear-gradient(180deg,#ffffff,#f7fafc); border-radius:24px; padding:22px; width:96%; max-width:880px; max-height:90vh; overflow-y:auto; box-shadow:0 18px 44px rgba(0,0,0,0.22);">
-                        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
-                            <div>
-                                <h2 style="color:#1e3a5f; margin:0; font-size:1.22rem;">📋 OS do grupo ${escaparHTMLGMAN(idGrupo)}</h2>
-                                <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Acesso direto às OS vinculadas ao grupo selecionado.</p>
-                            </div>
-                            <button onclick="document.getElementById('osModal').remove();" style="padding:10px 14px; border:none; border-radius:12px; background:#718096; color:white; cursor:pointer;">Fechar</button>
-                        </div>
-                        <div id="osConteudo">Carregando OS do grupo...</div>
-                    </div>
-                `;
-
-                document.body.appendChild(modal);
-                renderizarOS(lista);
-            } catch (erro) {
-                console.error(erro);
-                alert('Erro ao abrir OS do grupo: ' + erro.message);
-            }
-        }
+                
+/* GMAN 8.5.6.56: função duplicada anterior removida: verOSDoGrupoGMAN */
 
 
-        function historicoRecenteGrupoGMAN85645(idGrupo, limite = 3) {
-            return (Array.isArray(ordensServicoCache) ? ordensServicoCache : [])
-                .filter(os => gruposIguaisGMAN85633(os.idEquipamento || os.equipamento, idGrupo))
-                .filter(os => !ehOSTesteKPI(os))
-                .sort(ordenarOSMaisRecenteGMAN)
-                .slice(0, limite);
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: historicoRecenteGrupoGMAN85645 */
 
-        function montarHistoricoRecenteGrupoHTMLGMAN85645(idGrupo) {
-            const ultimas = historicoRecenteGrupoGMAN85645(idGrupo, 3);
-
-            if (!ultimas.length) {
-                return `
-                    <div onclick="abrirHistoricoDetalhadoGrupo('${idGrupo}')" title="Clique para tentar abrir o histórico detalhado" style="margin: 15px 0; text-align: left; background: #fffaf0; padding: 11px; border-radius: 12px; cursor:pointer; border-left:4px solid #d69e2e;">
-                        <p style="color:#744210; font-size:0.78rem; margin:0;"><strong>Histórico recente sincronizado:</strong><br>Nenhuma OS válida carregada para este grupo no cache atual. Clique em Atualizar agora ou abra os detalhes.</p>
-                    </div>
-                `;
-            }
-
-            return `
-                <div onclick="abrirHistoricoDetalhadoGrupo('${idGrupo}')" title="Clique para ver os detalhes completos das OS" style="margin: 15px 0; max-height: 152px; overflow-y: auto; text-align: left; background: #f7fafc; padding: 11px; border-radius: 12px; cursor:pointer; border:1px solid #e2e8f0; border-left:4px solid #3182ce;">
-                    <p style="color:#1e3a5f; font-size:0.78rem; margin:0 0 7px;"><strong>Histórico recente sincronizado — últimas 3 OS reais:</strong><br><span style="color:#3182ce; font-weight:800;">Clique para abrir detalhes completos</span></p>
-                    ${ultimas.map(os => `
-                        <div style="font-size:0.72rem; color:#2d3748; padding:6px 0; border-bottom:1px solid #e2e8f0;">
-                            <strong>${escaparHTMLGMAN(os.numeroOS || os.idOS || '-')}</strong> — ${escaparHTMLGMAN(os.statusOS || '-')}<br>
-                            <span>${escaparHTMLGMAN(os.ultimaMovimentacaoDataHora || os.dataConclusao || os.dataInicio || os.dataAbertura || '-')}</span>
-                            ${os.responsavel ? `<br><span>Responsável: ${escaparHTMLGMAN(os.responsavel)}</span>` : ''}
-                            ${os.ultimaMovimentacaoAcao ? `<br><span>Ação: ${escaparHTMLGMAN(os.ultimaMovimentacaoAcao)}</span>` : ''}
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: montarHistoricoRecenteGrupoHTMLGMAN85645 */
 
 function openEquipment(id) {
             const eq = equipment.find(e => e.id === id);
@@ -4588,14 +4107,8 @@ function openEquipment(id) {
             return retorno && retorno.payload ? retorno.payload : retorno;
         }
 
-        async function listarOSOnline() {
-            const retorno = await apiGet({ acao: 'listarOS' });
-            if (Array.isArray(retorno)) return retorno;
-            if (retorno && Array.isArray(retorno.payload)) return retorno.payload;
-            if (retorno && Array.isArray(retorno.dados)) return retorno.dados;
-            if (retorno && Array.isArray(retorno.os)) return retorno.os;
-            throw new Error('Falha ao consultar Ordens de Serviço. A API respondeu, mas não enviou uma lista de OS.');
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: listarOSOnline */
 
         const AREAS_OFICIAIS_RANKING_GMAN85645 = ['Automação', 'Elétrica', 'Mecânica', 'Usinagem', 'Caldeiraria', 'Instalações Mecânicas'];
 
@@ -4636,58 +4149,15 @@ function openEquipment(id) {
             }
         }
 
-        function limparCacheOperacionalGMAN85645() {
-            try {
-                localStorage.removeItem('gman_kpi_cache');
-                localStorage.removeItem('gman_rankings_cache');
-                localStorage.removeItem('ordensServicoCache');
-                localStorage.removeItem('equipmentData');
-                sessionStorage.clear();
-                if ('caches' in window) {
-                    caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
-                }
-            } catch (erro) {
-                console.warn('Não foi possível limpar todos os caches:', erro);
-            }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: limparCacheOperacionalGMAN85645 */
 
-            ordensServicoCache = [];
-            alert('Cache operacional limpo. A tela será recarregada para buscar a GMAN 8.5.6.54 no Banco Central.');
-            const base = window.location.origin + window.location.pathname;
-            window.location.href = base + '?nocache=' + Date.now();
-        }
-
-        async function iniciarSistema() {
-            exibirMarcadorVersaoGMAN85645();
-            loadData();
-            renderEquipment();
-            recuperarLoginSalvo();
-            aplicarBotoesPermissao();
-            await carregarStatusOnline();
-
-            try {
-                const listaOS = await listarOSOnline();
-                ordensServicoCache = listaOS;
-                atualizarTotalizadoresOS(listaOS);
-                applyFilters();
-            } catch (erro) {
-                console.error('Erro ao carregar totalizadores de OS:', erro);
-            }
-
-            setInterval(async () => {
-                await carregarStatusOnline();
-                try {
-                    const listaOS = await listarOSOnline();
-                    ordensServicoCache = listaOS;
-                    atualizarTotalizadoresOS(listaOS);
-                } catch (erro) {
-                    console.error('Erro ao atualizar totalizadores de OS:', erro);
-                }
-            }, 120000);
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: iniciarSistema */
 
 
         /* ============================================================
-           GMAN 8.5.6.54 — FONTE ÚNICA NO BANCO CENTRAL
+           GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
            Estas funções sobrescrevem as versões antigas do Index.
            O Index passa a exibir o pacote oficial do Apps Script.
            ============================================================ */
@@ -4696,31 +4166,17 @@ function openEquipment(id) {
         let ultimaSincronizacaoPainelGMAN85645 = 0;
 
         function saveData() {
-            // GMAN 8.5.6.54: status/equipamentos não são mais fonte oficial no localStorage.
+            // GMAN 8.5.6.56: status/equipamentos não são mais fonte oficial no localStorage.
             return true;
         }
 
         function loadData() {
-            // GMAN 8.5.6.54: evita reaproveitar status antigo do navegador.
+            // GMAN 8.5.6.56: evita reaproveitar status antigo do navegador.
             return true;
         }
 
-        function normalizarEquipamentoPainelGMAN85645(item) {
-            const id = String(item.id || item.idEquipamento || item.codigo || item.grupo || '').trim();
-            const sistema = item.system || normalizarTextoGMAN(item.sistema || '');
-            const codigo = item.systemCode || (id.match(/^(\d{3})/) || ['', ''])[1] || '';
-            return {
-                id: id,
-                name: item.name || item.nome || item.equipamento || id,
-                system: sistema,
-                systemCode: codigo,
-                status: item.status || normalizarStatusApp(item.statusAtual, item.observacaoStatus || item.observacao),
-                ultimoTecnico: item.ultimoTecnico || item.usuarioUltimaAlteracao || '',
-                ultimaAlteracao: formatarDataApi(item.ultimaAlteracao || item.dataUltimaAlteracao || ''),
-                observacaoStatus: item.observacaoStatus || item.observacao || '',
-                fonte: 'Banco Central'
-            };
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: normalizarEquipamentoPainelGMAN85645 */
 
         async function carregarPainelConsolidadoGMAN85645(forcar = false) {
             const agora = Date.now();
@@ -4738,49 +4194,14 @@ function openEquipment(id) {
             return painel;
         }
 
-        function aplicarPainelConsolidadoNaTelaGMAN85645(painel) {
-            if (!painel) return;
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: aplicarPainelConsolidadoNaTelaGMAN85645 */
 
-            if (Array.isArray(painel.equipamentosOficiais) && painel.equipamentosOficiais.length) {
-                const lista = painel.equipamentosOficiais.map(normalizarEquipamentoPainelGMAN85645).filter(e => e.id);
-                equipment.splice(0, equipment.length, ...lista);
-            }
+        async 
+/* GMAN 8.5.6.56: função duplicada anterior removida: carregarStatusOnline */
 
-            if (Array.isArray(painel.ordensServicoValidas)) {
-                ordensServicoCache = painel.ordensServicoValidas;
-            }
-
-            atualizarTotalizadoresOS(ordensServicoCache);
-            applyFilters();
-        }
-
-        async function carregarStatusOnline() {
-            atualizarIndicadorConexao('🔄 Sincronizando pacote oficial com o Banco Central...', 'neutro');
-            try {
-                const painel = await carregarPainelConsolidadoGMAN85645(true);
-                aplicarPainelConsolidadoNaTelaGMAN85645(painel);
-                apiOnline = true;
-                atualizarIndicadorConexao('✅ Online: fonte única conectada ao Banco Central GMAN', 'online');
-                atualizarMarcadorConexaoGMAN85645('Banco Central: painel consolidado conectado', true);
-                return true;
-            } catch (erro) {
-                apiOnline = false;
-                applyFilters();
-                atualizarIndicadorConexao('⚠️ Falha ao buscar painel consolidado. A tela pode exibir dados estáticos até nova sincronização.', 'offline');
-                atualizarMarcadorConexaoGMAN85645('Banco Central: falha no painel consolidado', false);
-                console.error('Erro ao carregar painel consolidado:', erro);
-                return false;
-            }
-        }
-
-        async function listarOSOnline() {
-            const painel = await carregarPainelConsolidadoGMAN85645(false);
-            if (painel && Array.isArray(painel.ordensServicoValidas)) return painel.ordensServicoValidas;
-            const retorno = await apiGet({ acao: 'listarOS' });
-            if (Array.isArray(retorno)) return retorno.filter(os => !ehOSTesteKPI(os));
-            if (retorno && Array.isArray(retorno.ordensServicoValidas)) return retorno.ordensServicoValidas;
-            throw new Error('Falha ao consultar OS válidas do Banco Central.');
-        }
+        async 
+/* GMAN 8.5.6.56: função duplicada anterior removida: listarOSOnline */
 
         function historicoRecenteGrupoGMAN85645(idGrupo, limite = 3) {
             const painel = painelConsolidadoCacheGMAN85645 || {};
@@ -4896,76 +4317,8 @@ function openEquipment(id) {
             aplicarBotoesPermissao();
         }
 
-        async function carregarPainelGerencial() {
-            const container = document.getElementById('kpiConteudo');
-            if (!container) return;
-            container.innerHTML = '<p style="color:#4a5568;">🔄 Carregando painel consolidado oficial...</p>';
-            try {
-                const painel = await carregarPainelConsolidadoGMAN85645(true);
-                aplicarPainelConsolidadoNaTelaGMAN85645(painel);
-                const k = painel.kpisOficiais || {};
-                const rankArea = (painel.rankingOcorrenciasArea && painel.rankingOcorrenciasArea.ranking) || [];
-                const rankReinc = (painel.rankingReincidenciaOficial && painel.rankingReincidenciaOficial.ranking) || [];
-                const diag = painel.diagnosticoUltimasOSLidas || {};
-                const limpeza = painel.diagnosticoLimpezaBase || {};
-
-                container.innerHTML = `
-                    <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:14px; padding:12px; margin-bottom:14px; color:#1e3a5f;">
-                        <strong>Fonte única oficial:</strong> Banco Central GMAN<br>
-                        <span style="font-size:0.82rem;">Versão backend: ${escaparHTMLGMAN(painel.versao || '-')} | Atualizado em: ${escaparHTMLGMAN(painel.horarioServidorBrasil || '-')}</span><br>
-                        <span style="font-size:0.78rem; color:#2d3748;">O Index não recalcula os indicadores oficiais nesta versão.</span>
-                    </div>
-
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:14px;">
-                        ${cardKPIOficialGMAN85645('Equipamentos oficiais', k.totalEquipamentos || 0, 'Ignora TESTE')}
-                        ${cardKPIOficialGMAN85645('Disponibilidade', (k.disponibilidadePercentual || 0) + '%', 'Meta mínima: 95%')}
-                        ${cardKPIOficialGMAN85645('Operando', k.operando || 0, 'Status oficial')}
-                        ${cardKPIOficialGMAN85645('Indisponíveis', k.indisponiveis || 0, 'Manutenção/Parado')}
-                        ${cardKPIOficialGMAN85645('Backlog OS', k.backlogOS || 0, 'Ativas')}
-                        ${cardKPIOficialGMAN85645('OS concluídas', k.osConcluidas || 0, 'Sem TESTE')}
-                    </div>
-
-                    <div style="background:#f7fafc; border-radius:14px; padding:12px; margin-bottom:14px; color:#1a202c;">
-                        <h3 style="color:#1e3a5f; margin:0 0 8px;">Diagnóstico das últimas OS lidas</h3>
-                        <p style="font-size:0.82rem; color:#4a5568; margin:0 0 8px;">
-                            OS brutas: <strong>${diag.totalOSBrutas || painel.totalOSBrutas || 0}</strong> | 
-                            OS válidas sem TESTE: <strong>${diag.totalOSValidasSemTeste || painel.totalOSValidasSemTeste || 0}</strong> | 
-                            TESTE ignoradas: <strong>${diag.osTesteIgnoradas || painel.osTesteIgnoradas || 0}</strong>
-                        </p>
-                        ${((diag.ultimasOS || []).slice(0, 8)).map(os => `
-                            <div style="font-size:0.78rem; padding:7px 0; border-bottom:1px solid #e2e8f0;">
-                                <strong>${escaparHTMLGMAN(os.numeroOS || os.idOS || '-')}</strong> — ${escaparHTMLGMAN(os.idEquipamento || '-')} — ${escaparHTMLGMAN(os.statusOS || '-')}
-                                <br><span style="color:#718096;">${escaparHTMLGMAN(os.ultimaMovimentacaoDataHora || os.dataConclusao || os.dataInicio || os.dataAbertura || '-')}</span>
-                            </div>
-                        `).join('') || '<p style="color:#718096;">Sem OS recentes no diagnóstico.</p>'}
-                    </div>
-
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; margin-bottom:14px;">
-                        <div style="background:#f7fafc; border-radius:14px; padding:12px; color:#1a202c;">
-                            <h3 style="color:#1e3a5f; margin:0 0 8px;">Ranking por área/equipe</h3>
-                            ${rankArea.map((item, i) => `<p style="margin:5px 0;"><strong>${i + 1}. ${escaparHTMLGMAN(item.nome)}</strong>: ${item.total} OS</p>`).join('') || '<p style="color:#718096;">Sem ranking oficial disponível.</p>'}
-                        </div>
-                        <div style="background:#f7fafc; border-radius:14px; padding:12px; color:#1a202c;">
-                            <h3 style="color:#1e3a5f; margin:0 0 8px;">OS grupos de maior reincidência</h3>
-                            ${rankReinc.map((item, i) => `<p style="margin:5px 0;"><strong>${i + 1}. ${escaparHTMLGMAN(item.nome)}</strong>: ${item.total} OS recorrentes</p>`).join('') || '<p style="color:#718096;">Nenhum grupo com 2+ OS recorrentes no período.</p>'}
-                        </div>
-                    </div>
-
-                    <div style="background:#fffaf0; border-left:5px solid #dd6b20; border-radius:14px; padding:12px; color:#744210;">
-                        <h3 style="margin:0 0 8px;">Limpeza segura da base</h3>
-                        <p style="font-size:0.82rem; margin:0;">
-                            Candidatos TESTE: <strong>${limpeza.candidatosTeste || 0}</strong> | 
-                            Status incomum: <strong>${limpeza.statusIncomum || 0}</strong> | 
-                            Aba sugerida: <strong>${escaparHTMLGMAN(limpeza.abaQuarentenaSugerida || 'QUARENTENA_TESTES_GMAN')}</strong>
-                        </p>
-                        <p style="font-size:0.78rem; margin:8px 0 0;">Nada é apagado automaticamente. A limpeza deve ser auditável.</p>
-                    </div>
-                `;
-            } catch (erro) {
-                console.error(erro);
-                container.innerHTML = '<p style="color:#e53e3e; font-weight:bold;">Erro ao carregar painel consolidado oficial: ' + escaparHTMLGMAN(erro.message) + '</p>';
-            }
-        }
+        async 
+/* GMAN 8.5.6.56: função duplicada anterior removida: carregarPainelGerencial */
 
         function cardKPIOficialGMAN85645(titulo, valor, legenda) {
             return `
@@ -5015,56 +4368,11 @@ function openEquipment(id) {
             });
         }
 
-        async function atualizarAgora() {
-            const usuarioAntes = usuarioLogado ? Object.assign({}, usuarioLogado) : null;
+        async 
+/* GMAN 8.5.6.56: função duplicada anterior removida: atualizarAgora */
 
-            try {
-                await carregarPainelConsolidadoGMAN85645(true);
-                await carregarStatusOnline();
-                if (document.getElementById('osModal')) renderizarOS(ordensServicoCache);
-                if (document.getElementById('kpiModal')) await carregarPainelGerencial();
-
-                if (!usuarioLogado && usuarioAntes) usuarioLogado = usuarioAntes;
-                garantirSessaoVisualGMAN85646();
-                alert('Sistema atualizado com o painel consolidado oficial do Banco Central GMAN.');
-            } catch (erro) {
-                if (!usuarioLogado && usuarioAntes) usuarioLogado = usuarioAntes;
-                garantirSessaoVisualGMAN85646();
-                console.error('Erro ao atualizar agora:', erro);
-                alert('Não foi possível atualizar agora: ' + (erro && erro.message ? erro.message : erro));
-            }
-        }
-
-        function limparCacheOperacionalGMAN85645() {
-            const usuarioAntes = usuarioLogado ? Object.assign({}, usuarioLogado) : null;
-            const sessaoAntes = sessionStorage.getItem('manutencao_usuario_logado');
-
-            try {
-                localStorage.removeItem('gman_kpi_cache');
-                localStorage.removeItem('gman_rankings_cache');
-                localStorage.removeItem('ordensServicoCache');
-                localStorage.removeItem('equipmentData');
-                localStorage.removeItem('manutencao_equipment');
-
-                // Não apagar login nem limpar sessionStorage inteiro.
-                // A limpeza aqui é apenas operacional, para não derrubar o usuário em campo.
-                painelConsolidadoCacheGMAN85645 = null;
-                ultimaSincronizacaoPainelGMAN85645 = 0;
-                ordensServicoCache = [];
-
-                if (usuarioAntes && usuarioAntes.nome) {
-                    usuarioLogado = usuarioAntes;
-                    sessionStorage.setItem('manutencao_usuario_logado', JSON.stringify(usuarioAntes));
-                } else if (sessaoAntes) {
-                    sessionStorage.setItem('manutencao_usuario_logado', sessaoAntes);
-                }
-            } catch (erro) {
-                console.warn('Não foi possível limpar todos os caches operacionais:', erro);
-            }
-
-            garantirSessaoVisualGMAN85646();
-            alert('Cache operacional limpo sem sair do login. Agora clique em Atualizar agora para buscar o painel consolidado.');
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: limparCacheOperacionalGMAN85645 */
 
         async function iniciarSistema() {
             exibirMarcadorVersaoGMAN85645();
@@ -5084,7 +4392,7 @@ function openEquipment(id) {
 
 
         /* ============================================================
-           GMAN 8.5.6.54 — BLINDAGEM DE CONTINUIDADE NO INDEX
+           GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
            Sobrescreve funções finais sem alterar os fluxos de OS.
            ============================================================ */
 
@@ -5217,7 +4525,7 @@ function openEquipment(id) {
                 registrarAuditoriaClienteGMAN85647('DIAGNOSTICO_TECNICO', 'Diagnóstico técnico aberto no Index', 'OK');
             } catch (erro) {
                 console.error(erro);
-                container.innerHTML = `<div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:14px; padding:12px; color:#742a2a; font-weight:bold;">Erro ao carregar diagnóstico técnico: ${escaparHTMLGMAN(erro.message || erro)}<br><span style="font-weight:700; color:#4a5568;">A correção 8.5.6.54 impede que alertas normais de auditoria sejam tratados como erro fatal. Confira se Apps Script e Index foram publicados na mesma versão.</span></div>`;
+                container.innerHTML = `<div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:14px; padding:12px; color:#742a2a; font-weight:bold;">Erro ao carregar diagnóstico técnico: ${escaparHTMLGMAN(erro.message || erro)}<br><span style="font-weight:700; color:#4a5568;">A correção 8.5.6.55 impede que alertas normais de auditoria sejam tratados como erro fatal. Confira se Apps Script e Index foram publicados na mesma versão.</span></div>`;
             }
         }
 
@@ -5290,7 +4598,7 @@ function openEquipment(id) {
                             Status incomum: <strong>${limpeza.statusIncomum || 0}</strong> | 
                             Aba: <strong>${escaparHTMLGMAN(limpeza.abaQuarentenaSugerida || 'QUARENTENA_TESTES_GMAN')}</strong>
                         </p>
-                        <p style="font-size:0.78rem; margin:8px 0 0;">Nada é apagado. A 8.5.6.54 só permite copiar candidatos para quarentena com confirmação forte.</p>
+                        <p style="font-size:0.78rem; margin:8px 0 0;">Nada é apagado. A 8.5.6.55 só permite copiar candidatos para quarentena com confirmação forte.</p>
                     </div>
 
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -5308,7 +4616,7 @@ function openEquipment(id) {
 
 
         /* ============================================================
-           GMAN 8.5.6.54 — NÚCLEO PROTEGIDO DISCRETO
+           GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
            Ícone técnico visível somente para gestão.
            ============================================================ */
 
@@ -5538,7 +4846,7 @@ function openEquipment(id) {
 
 
         /* ============================================================
-           GMAN 8.5.6.54 — VER OS CORRIGIDO E REPARO STATUS DO GRUPO
+           GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
            Compatível com OS antigas e novas. Gestão vê botão de reparo
            quando o grupo ficou Parado/Manutenção mesmo sem OS ativa.
            ============================================================ */
@@ -5670,89 +4978,23 @@ function openEquipment(id) {
             }
         }
 
-        async function abrirModalReparoStatusGrupoGMAN85651(idGrupo) {
-            if (!podeGerenciarOS()) return alert('Reparo de status disponível somente para gestão.');
-            try {
-                const diag = await apiGet({ acao: 'diagnosticoReparoStatusGrupo', idGrupo: idGrupo, versaoIndex: VERSAO_FRONTEND_GMAN });
-                const existing = document.getElementById('reparoStatusGrupoModal');
-                if (existing) existing.remove();
-                const modal = document.createElement('div');
-                modal.id = 'reparoStatusGrupoModal';
-                modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.76); display:flex; align-items:center; justify-content:center; z-index:1900; padding:16px;';
-                modal.innerHTML = `
-                    <div style="background:white; border-radius:22px; width:96%; max-width:640px; max-height:90vh; overflow:auto; box-shadow:0 20px 60px rgba(0,0,0,0.28);">
-                        <div style="background:linear-gradient(135deg,#b7791f,#744210); color:white; padding:18px 20px; border-radius:22px 22px 0 0;">
-                            <div style="font-size:0.78rem; opacity:0.9;">Reparo seguro de status</div>
-                            <h2 style="margin:4px 0 0; font-size:1.2rem;">🛠️ ${escaparHTMLGMAN(idGrupo)}</h2>
-                        </div>
-                        <div style="padding:18px; color:#1a202c;">
-                            <div style="background:${diag.podeReparar ? '#fffaf0' : '#f7fafc'}; border-left:5px solid ${diag.podeReparar ? '#d69e2e' : '#718096'}; border-radius:14px; padding:12px; margin-bottom:12px;">
-                                <strong>Status atual:</strong> ${escaparHTMLGMAN(diag.statusAtual || '-')}<br>
-                                <strong>OS do grupo:</strong> ${diag.totalOSGrupo || 0}<br>
-                                <strong>Ativas:</strong> ${diag.totalOSAtivas || 0}<br>
-                                <strong>Concluídas:</strong> ${diag.totalOSConcluidas || 0}<br>
-                                <strong>Canceladas:</strong> ${diag.totalOSCanceladas || 0}<br>
-                                <strong>OS em padrão antigo:</strong> ${diag.totalOSPadraoAntigo || 0}<br>
-                                <strong>Resultado:</strong> ${escaparHTMLGMAN(diag.motivo || '-')}<br>
-                                ${diag.podeReparar ? '<strong style="color:#2f855a;">✅ Reparo liberado pelo diagnóstico.</strong>' : '<strong style="color:#b7791f;">⚠️ Botão liberado para gestão, mas a API ainda fará a trava final se houver OS ativa.</strong>'}
-                            </div>
-                            <label class="form-label">Justificativa do reparo</label>
-                            <textarea id="justificativaReparoStatusGrupo" class="form-field" rows="4" placeholder="Ex.: Grupo possui 5 OS, 4 concluídas e 1 cancelada. Não há OS ativa bloqueando o retorno para Operando."></textarea>
-                            <div style="background:#edf2f7; border-radius:12px; padding:10px; color:#2d3748; font-size:0.82rem; margin:10px 0;">
-                                Para executar, digite exatamente:<br>
-                                <strong>${CONFIRMACAO_REPARO_GRUPO_GMAN_85651}</strong>
-                            </div>
-                            <input id="confirmacaoReparoStatusGrupo" class="form-field" placeholder="Digite a confirmação forte">
-                            <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end; margin-top:14px;">
-                                <button onclick="document.getElementById('reparoStatusGrupoModal').remove();" style="padding:11px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Cancelar</button>
-                                <button onclick="executarReparoStatusGrupoGMAN85651('${escaparHTMLGMAN(idGrupo)}')" style="padding:11px 14px; border:none; border-radius:10px; background:#b7791f; color:white; cursor:pointer; font-weight:900;">🛠️ Reparar para Operando</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(modal);
-            } catch (erro) {
-                console.error(erro);
-                alert('Erro ao abrir reparo de status: ' + (erro.message || erro));
-            }
-        }
+        async 
+/* GMAN 8.5.6.56: função duplicada anterior removida: abrirModalReparoStatusGrupoGMAN85651 */
 
-        async function executarReparoStatusGrupoGMAN85651(idGrupo) {
-            const justificativa = (document.getElementById('justificativaReparoStatusGrupo') || {}).value || '';
-            const confirmacao = (document.getElementById('confirmacaoReparoStatusGrupo') || {}).value || '';
-            if (!justificativa.trim()) return alert('Informe a justificativa do reparo.');
-            if (confirmacao.trim() !== CONFIRMACAO_REPARO_GRUPO_GMAN_85651) return alert('Confirmação incorreta. O reparo não foi executado.');
-            try {
-                const retorno = await apiPost({
-                    acao: 'repararStatusGrupoConcluido',
-                    usuario: usuarioLogado ? usuarioLogado.nome : '',
-                    funcao: usuarioLogado ? usuarioLogado.funcao : '',
-                    idGrupo: idGrupo,
-                    justificativa: justificativa.trim(),
-                    confirmacao: confirmacao.trim()
-                });
-                alert(retorno.mensagem || 'Reparo concluído.');
-                const modal = document.getElementById('reparoStatusGrupoModal');
-                if (modal) modal.remove();
-                await atualizarAgora();
-                try { await verOSDoGrupoGMAN(idGrupo); } catch (e) {}
-            } catch (erro) {
-                console.error(erro);
-                alert('Erro ao executar reparo: ' + (erro.message || erro));
-            }
-        }
+        async 
+/* GMAN 8.5.6.56: função duplicada anterior removida: executarReparoStatusGrupoGMAN85651 */
 
         iniciarSistema();
       
 
 /* ============================================================
-   GMAN 8.5.6.54 — REFRESH SEM RETORNO INDEVIDO
+   GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
    A tela deixa de usar listarStatus bruto/duplicado para atualizar cards.
    Fonte operacional: painelOperacionalRapido/listarStatus oficial deduplicado.
    ============================================================ */
 
-const VERSAO_FRONTEND_GMAN_85654 = 'GMAN 8.5.6.54';
-const COMMIT_GMAN_85654 = 'GMAN 8.5.6.54 — Status oficial deduplicado, refresh sem retorno indevido e reparo persistente';
+const VERSAO_FRONTEND_GMAN_85654 = 'GMAN 8.5.6.56';
+const COMMIT_GMAN_85654 = 'GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados';
 
 function aplicarPainelOperacionalRapidoNaTelaGMAN85654(painel) {
     if (!painel) return false;
@@ -5771,122 +5013,24 @@ function aplicarPainelOperacionalRapidoNaTelaGMAN85654(painel) {
     return true;
 }
 
-async function carregarStatusOnline() {
-    atualizarIndicadorConexao('🔄 Sincronizando com o Banco Central oficial...', 'neutro');
-    try {
-        let painel = null;
-        try {
-            painel = await apiGet({ acao: 'painelOperacionalRapido', v: '85654', t: Date.now() });
-        } catch (erroPainel) {
-            console.warn('Falha no painel operacional rápido, tentando painel consolidado:', erroPainel);
-            painel = await apiGet({ acao: 'painelConsolidado', v: '85654', t: Date.now() });
-        }
+async 
+/* GMAN 8.5.6.56: função duplicada anterior removida: carregarStatusOnline */
 
-        if (!painel || painel.sucesso === false) {
-            throw new Error((painel && (painel.erro || painel.mensagem)) || 'Banco Central não retornou painel operacional válido.');
-        }
+async 
+/* GMAN 8.5.6.56: função duplicada anterior removida: atualizarAgora */
 
-        painelOperacionalRapidoCacheGMAN85653 = painel;
-        painelConsolidadoCacheGMAN85645 = null;
-        aplicarPainelOperacionalRapidoNaTelaGMAN85654(painel);
 
-        apiOnline = true;
-        atualizarIndicadorConexao('✅ Online: Banco Central oficial sincronizado', 'online');
-        atualizarMarcadorConexaoGMAN85645('Banco Central: oficial sincronizado', true);
-        return true;
-    } catch (erro) {
-        apiOnline = false;
-        applyFilters();
-        atualizarIndicadorConexao('⚠️ Falha ao sincronizar com o Banco Central oficial', 'offline');
-        atualizarMarcadorConexaoGMAN85645('Banco Central: falha na leitura oficial', false);
-        console.error('Erro ao carregar status oficial:', erro);
-        return false;
-    }
-}
+/* GMAN 8.5.6.56: função duplicada anterior removida: limparCacheOperacionalGMAN85643 */
 
-async function atualizarAgora() {
-    painelOperacionalRapidoCacheGMAN85653 = null;
-    painelConsolidadoCacheGMAN85645 = null;
-    await carregarStatusOnline();
-    if (document.getElementById('osModal')) renderizarOS(ordensServicoCache);
-    if (document.getElementById('osGrupoCompatModal')) {
-        // Mantém o modal aberto, mas não força releitura bruta.
-    }
-    alert('Tela operacional atualizada pela fonte oficial deduplicada. O cache/localStorage não manda no status.');
-}
-
-function limparCacheOperacionalGMAN85643() {
-    try {
-        localStorage.removeItem('gman_kpi_cache');
-        localStorage.removeItem('gman_rankings_cache');
-        localStorage.removeItem('ordensServicoCache');
-        localStorage.removeItem('equipmentData');
-        localStorage.removeItem('manutencao_equipment');
-        sessionStorage.removeItem('gman_kpi_cache');
-        sessionStorage.removeItem('gman_rankings_cache');
-        if ('caches' in window) {
-            caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
-        }
-    } catch (erro) {
-        console.warn('Não foi possível limpar todos os caches:', erro);
-    }
-    painelOperacionalRapidoCacheGMAN85653 = null;
-    painelConsolidadoCacheGMAN85645 = null;
-    // Mantém usuário logado e não repõe dados antigos.
-    alert('Cache operacional limpo. Login mantido. Clique em Atualizar agora para ler a fonte oficial.');
-}
-
-async function executarReparoStatusGrupoGMAN85651(idGrupo) {
-    const justificativa = (document.getElementById('justificativaReparoStatusGrupo') || {}).value || '';
-    const confirmacao = (document.getElementById('confirmacaoReparoStatusGrupo') || {}).value || '';
-    if (!justificativa.trim()) return alert('Informe a justificativa do reparo.');
-    if (confirmacao.trim() !== CONFIRMACAO_OPERANDO_GMAN_85653) return alert('Confirmação incorreta. O reparo não foi executado.');
-    try {
-        const retorno = await apiPost({
-            acao: 'forcarOperandoGrupoSemOSAtiva',
-            idGrupo: idGrupo,
-            usuario: usuarioLogado ? usuarioLogado.nome : '',
-            funcao: usuarioLogado ? usuarioLogado.funcao : '',
-            justificativa: justificativa,
-            confirmacao: confirmacao.trim()
-        });
-
-        const confirmado = retorno.confirmacaoPosGravacao || {};
-        alert((retorno.mensagem || 'Grupo devolvido para Operando.') +
-            '\nLinhas STATUS_ATUAL atualizadas: ' + (retorno.totalLinhasAtualizadas || 0) +
-            '\nConfirmação pós-gravação: ' + (confirmado.statusAtual || 'não informada'));
-
-        const modal = document.getElementById('reparoStatusGrupoModal');
-        if (modal) modal.remove();
-
-        painelOperacionalRapidoCacheGMAN85653 = null;
-        painelConsolidadoCacheGMAN85645 = null;
-        await carregarStatusOnline();
-
-        const eq = equipment.find(e => gruposIguaisGMAN85633(e.id || e.name, idGrupo));
-        if (eq) {
-            eq.status = 'ok';
-            eq.statusAtual = 'Operando';
-            eq.observacaoStatus = retorno.mensagem || 'Reparo persistente para Operando executado.';
-        }
-        applyFilters();
-
-        if (document.getElementById('osGrupoCompatModal')) {
-            const m = document.getElementById('osGrupoCompatModal');
-            m.remove();
-            await abrirOSGrupoCompatGMAN85651(idGrupo);
-        }
-    } catch (erro) {
-        alert('Erro ao forçar Operando: ' + (erro.message || erro));
-    }
-}
+async 
+/* GMAN 8.5.6.56: função duplicada anterior removida: executarReparoStatusGrupoGMAN85651 */
 
 </script>
 
 
 <script>
 /* ============================================================
-   GMAN 8.5.6.54 — TELA RÁPIDA E REPARO REAL PARA OPERANDO
+   GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
    ============================================================ */
 const CONFIRMACAO_OPERANDO_GMAN_85653 = 'CONFIRMO OPERANDO GMAN';
 let painelOperacionalRapidoCacheGMAN85653 = null;
@@ -5908,21 +5052,31 @@ async function carregarPainelOperacionalRapidoGMAN85653(forcar = false) {
 
 // Sobrescreve a carga da tela inicial: agora é leve. Diagnósticos pesados só no escudo/núcleo.
 async function carregarStatusOnline() {
-    atualizarIndicadorConexao('🔄 Carregando tela operacional rápida...', 'neutro');
+    atualizarIndicadorConexao('🔄 Carregando fonte oficial rápida...', 'neutro');
     try {
         const painel = await carregarPainelOperacionalRapidoGMAN85653(true);
         aplicarPainelConsolidadoNaTelaGMAN85645(painel);
         apiOnline = true;
-        atualizarIndicadorConexao('✅ Online: tela operacional rápida conectada ao Banco Central', 'online');
-        atualizarMarcadorConexaoGMAN85645('Banco Central: operacional rápido conectado', true);
+        atualizarIndicadorConexao('✅ Online: fonte oficial do Banco Central carregada', 'online');
+        atualizarMarcadorConexaoGMAN85645('Banco Central: fonte oficial carregada', true);
         return true;
     } catch (erro) {
         apiOnline = false;
-        applyFilters();
-        atualizarIndicadorConexao('⚠️ Falha ao carregar tela rápida. Tente Atualizar agora.', 'offline');
-        atualizarMarcadorConexaoGMAN85645('Banco Central: falha na tela rápida', false);
-        console.error('Erro ao carregar painel operacional rápido:', erro);
-        return false;
+        console.error('Erro ao carregar fonte oficial rápida:', erro);
+        try {
+            const painel = await apiGet({ acao: 'painelConsolidado', versaoIndex: VERSAO_FRONTEND_GMAN });
+            aplicarPainelConsolidadoNaTelaGMAN85645(painel);
+            apiOnline = true;
+            atualizarIndicadorConexao('✅ Online: painel consolidado carregado em fallback', 'online');
+            atualizarMarcadorConexaoGMAN85645('Banco Central: fallback consolidado', true);
+            return true;
+        } catch (erroFallback) {
+            applyFilters();
+            atualizarIndicadorConexao('⚠️ Falha ao carregar fonte oficial. Tente Atualizar agora.', 'offline');
+            atualizarMarcadorConexaoGMAN85645('Banco Central: falha na fonte oficial', false);
+            console.error('Fallback também falhou:', erroFallback);
+            return false;
+        }
     }
 }
 
@@ -5978,7 +5132,7 @@ function limparCacheOperacionalGMAN85643() {
 
 function abrirModalReparoStatusGrupoGMAN85651(idGrupo) {
     if (!podeGerenciarOS()) return alert('Reparo de status disponível somente para gestão.');
-    apiGet({ acao: 'diagnosticoForcarOperandoGrupo', idGrupo: idGrupo, versaoIndex: 'GMAN 8.5.6.54' })
+    apiGet({ acao: 'diagnosticoForcarOperandoGrupo', idGrupo: idGrupo, versaoIndex: 'GMAN 8.5.6.56' })
         .then(diag => {
             const existing = document.getElementById('reparoStatusGrupoModal');
             if (existing) existing.remove();
@@ -5988,7 +5142,7 @@ function abrirModalReparoStatusGrupoGMAN85651(idGrupo) {
             modal.innerHTML = `
                 <div style="background:white; border-radius:22px; width:96%; max-width:620px; max-height:90vh; overflow:auto; box-shadow:0 24px 70px rgba(0,0,0,.28);">
                     <div style="background:linear-gradient(135deg,#1e3a5f,#2c5282); color:white; padding:18px 20px; border-radius:22px 22px 0 0;">
-                        <div style="font-size:.78rem; opacity:.9;">Reparo seguro 8.5.6.54</div>
+                        <div style="font-size:.78rem; opacity:.9;">Reparo seguro 8.5.6.55</div>
                         <h2 style="margin:4px 0 0; font-size:1.2rem;">Forçar retorno para Operando</h2>
                     </div>
                     <div style="padding:18px; color:#1a202c;">
@@ -6018,6 +5172,114 @@ function abrirModalReparoStatusGrupoGMAN85651(idGrupo) {
         .catch(erro => alert('Erro ao abrir reparo para Operando: ' + (erro.message || erro)));
 }
 
+async 
+/* GMAN 8.5.6.56: função duplicada anterior removida: executarReparoStatusGrupoGMAN85651 */
+</script>
+
+
+
+<script>
+/* ============================================================
+   GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
+   Regra: STATUS_ATUAL = Operando manda. Observação antiga não derruba
+   o card para Manutenção/Parado após atualizar ou limpar cache.
+   ============================================================ */
+const COMMIT_GMAN_85655 = 'GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados';
+
+function normalizarStatusApp(valor, observacao = '') {
+    const statusTexto = String(valor || '').toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+
+    const obsTexto = String(observacao || '').toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+
+    // GMAN 8.5.6.56 — REGRA OFICIAL NA TELA:
+    // STATUS_ATUAL manda. Observação antiga não derruba Operando.
+    if (statusTexto === 'operando') return 'ok';
+    if (statusTexto.includes('operando') && !statusTexto.includes('restricao')) return 'ok';
+
+    if (statusTexto.includes('manutencao') && statusTexto.includes('parado')) return 'down';
+    if (statusTexto.includes('parado')) return 'down';
+    if (statusTexto.includes('fora') && statusTexto.includes('operacao')) return 'down';
+
+    if (statusTexto.includes('manutencao')) return 'alert';
+    if (statusTexto.includes('aguard')) return 'alert';
+    if (statusTexto.includes('restri')) return 'alert';
+    if (statusTexto.includes('teste')) return 'alert';
+
+    // Observação só classifica quando status oficial não veio.
+    if (!statusTexto || statusTexto === 'sem status' || statusTexto === 'undefined' || statusTexto === 'null') {
+        if (obsTexto.includes('parado')) return 'down';
+        if (obsTexto.includes('manutencao') || obsTexto.includes('aguard') || obsTexto.includes('restri') || obsTexto.includes('teste')) return 'alert';
+        return 'alert';
+    }
+
+    return 'alert';
+}
+
+function normalizarEquipamentoPainelGMAN85645(item) {
+    const id = String(item.id || item.idEquipamento || item.codigo || item.grupo || '').trim();
+    const sistema = item.system || normalizarTextoGMAN(item.sistema || '');
+    const codigo = item.systemCode || (id.match(/^(\d{3})/) || ['', ''])[1] || '';
+    const statusAtualOficial = item.statusAtual || item.status_atual || item.statusRotuloOficial || '';
+    const obs = item.observacaoStatus || item.observacao || '';
+    const classeOficial = item.statusClasseOficial || item.statusFrontend || item.status || '';
+    const statusClasse = ['ok', 'alert', 'down'].includes(String(classeOficial))
+        ? String(classeOficial)
+        : normalizarStatusApp(statusAtualOficial, obs);
+
+    return {
+        id: id,
+        name: item.name || item.nome || item.equipamento || id,
+        system: sistema,
+        systemCode: codigo,
+        status: statusClasse,
+        statusAtual: statusAtualOficial || (statusClasse === 'ok' ? 'Operando' : ''),
+        statusClasseOficial: statusClasse,
+        statusRotuloOficial: item.statusRotuloOficial || (statusClasse === 'ok' ? 'Operando' : (statusAtualOficial || 'Atenção')),
+        ultimoTecnico: item.ultimoTecnico || item.usuarioUltimaAlteracao || '',
+        ultimaAlteracao: formatarDataApi(item.ultimaAlteracao || item.dataUltimaAlteracao || ''),
+        observacaoStatus: obs,
+        fonte: 'Banco Central — status único oficial 8.5.6.56'
+    };
+}
+
+function aplicarPainelConsolidadoNaTelaGMAN85645(painel) {
+    if (!painel) return;
+
+    // Preferência absoluta: equipamentos oficiais já calculados pelo backend.
+    if (Array.isArray(painel.equipamentosOficiais) && painel.equipamentosOficiais.length) {
+        const lista = painel.equipamentosOficiais.map(normalizarEquipamentoPainelGMAN85645).filter(e => e.id);
+        equipment.splice(0, equipment.length, ...lista);
+    } else if (Array.isArray(painel.statusAtualOficial) && painel.statusAtualOficial.length) {
+        // Fallback: aplica status oficial deduplicado sobre lista atual.
+        painel.statusAtualOficial.forEach(item => {
+            const id = item.idEquipamento || item.id || item.chaveGrupo || '';
+            const eq = equipment.find(e => gruposIguaisGMAN85633(e.id || e.name, id));
+            if (!eq) return;
+            const classe = item.statusClasseOficial || item.statusFrontend || normalizarStatusApp(item.statusAtual || '', item.observacao || '');
+            eq.status = classe;
+            eq.statusAtual = item.statusAtual || (classe === 'ok' ? 'Operando' : eq.statusAtual || '');
+            eq.statusClasseOficial = classe;
+            eq.statusRotuloOficial = item.statusRotuloOficial || (classe === 'ok' ? 'Operando' : (item.statusAtual || 'Atenção'));
+            eq.ultimoTecnico = item.usuarioUltimaAlteracao || eq.ultimoTecnico || '';
+            eq.ultimaAlteracao = formatarDataApi(item.dataUltimaAlteracao || eq.ultimaAlteracao || '');
+            eq.observacaoStatus = item.observacao || eq.observacaoStatus || '';
+        });
+    }
+
+    if (Array.isArray(painel.ordensServicoValidas)) {
+        ordensServicoCache = painel.ordensServicoValidas;
+    }
+
+    atualizarTotalizadoresOS(ordensServicoCache);
+    applyFilters();
+}
+
 async function executarReparoStatusGrupoGMAN85651(idGrupo) {
     const justificativa = (document.getElementById('justificativaReparoStatusGrupo') || {}).value || '';
     const confirmacao = (document.getElementById('confirmacaoReparoStatusGrupo') || {}).value || '';
@@ -6032,19 +5294,30 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
             justificativa: justificativa,
             confirmacao: confirmacao.trim()
         });
-        alert((retorno.mensagem || 'Grupo devolvido para Operando.') + '\nLinhas STATUS_ATUAL atualizadas: ' + (retorno.totalLinhasAtualizadas || 0));
+        const confirmado = retorno.confirmacaoPosGravacao || {};
+        const statusFinal = confirmado.statusAtual || retorno.statusNovo || 'Operando';
+        const classeFinal = confirmado.statusClasseOficial || confirmado.statusFrontend || normalizarStatusApp(statusFinal, '');
+        alert((retorno.mensagem || 'Grupo devolvido para Operando.') +
+            '\nLinhas STATUS_ATUAL atualizadas: ' + (retorno.totalLinhasAtualizadas || 0) +
+            '\nStatus oficial pós-gravação: ' + statusFinal +
+            '\nClassificação oficial: ' + classeFinal.toUpperCase());
+
         const modal = document.getElementById('reparoStatusGrupoModal');
         if (modal) modal.remove();
+
         painelOperacionalRapidoCacheGMAN85653 = null;
         painelConsolidadoCacheGMAN85645 = null;
         await carregarStatusOnline();
+
         const eq = equipment.find(e => gruposIguaisGMAN85633(e.id || e.name, idGrupo));
-        if (eq) {
+        if (eq && classeFinal === 'ok') {
             eq.status = 'ok';
             eq.statusAtual = 'Operando';
-            eq.observacaoStatus = retorno.mensagem || 'Reparo seguro para Operando executado.';
+            eq.statusClasseOficial = 'ok';
+            eq.statusRotuloOficial = 'Operando';
         }
         applyFilters();
+
         if (document.getElementById('osGrupoCompatModal')) {
             const m = document.getElementById('osGrupoCompatModal');
             m.remove();
@@ -6058,3 +5331,10 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
 
 </body>
 </html>
+
+
+<!--
+GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
+Recompilação limpa: duplicidades anteriores removidas; tela usa status único oficial retornado pelo Banco Central.
+Duplicidades removidas do Index: {'executarReparoStatusGrupoGMAN85651': 3, 'limparCacheOperacionalGMAN85643': 1, 'atualizarAgora': 2, 'carregarStatusOnline': 2, 'abrirModalReparoStatusGrupoGMAN85651': 1, 'limparCacheOperacionalGMAN85645': 1, 'carregarPainelGerencial': 1, 'listarOSOnline': 1, 'aplicarPainelConsolidadoNaTelaGMAN85645': 1, 'normalizarEquipamentoPainelGMAN85645': 1}
+-->
