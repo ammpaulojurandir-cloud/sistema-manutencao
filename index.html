@@ -99,7 +99,7 @@
         .form-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e0; border-radius: 9px; color: #1a202c; font-size: 0.9rem; }
         .form-label { display: block; color: #2d3748; font-size: 0.78rem; font-weight: 700; margin: 8px 0 5px; text-align: left; }
      
-        /* GMAN 8.5.6.49 — evolução visual controlada 20% */
+        /* GMAN 8.5.6.50 — evolução visual controlada 20% */
         body::before {
             content: "";
             position: fixed;
@@ -156,7 +156,7 @@
         }
 
 
-        /* GMAN 8.5.6.49 — visual 30% e ícones com leve 3D controlado */
+        /* GMAN 8.5.6.50 — visual 30% e ícones com leve 3D controlado */
         .icon-3d-gman, .status-icon, .action-btn, .system-btn {
             transform-style: preserve-3d;
         }
@@ -218,7 +218,7 @@
         }
 
 
-        /* GMAN 8.5.6.49 — contador real de OS por grupo */
+        /* GMAN 8.5.6.50 — contador real de OS por grupo */
         .mini-os-counter {
             display: inline-block;
             padding: 3px 7px;
@@ -381,8 +381,8 @@
         <button class="action-btn" id="btnOrdensNaoIniciadasHome" onclick="abrirPainelOS('naoIniciadas')" style="display:none;">⏳ OS Não Iniciadas <span id="totalOrdensNaoIniciadasHome">(0)</span></button>
         <button class="action-btn" id="btnOrdensIniciadasHome" onclick="abrirPainelOS('iniciadas')" style="display:none;">🛠️ OS Iniciadas <span id="totalOrdensIniciadasHome">(0)</span></button>
         <button class="action-btn" id="btnOrdensEncerradasHome" onclick="abrirPainelOS('encerradas')" style="display:none;">✅ Ordens Encerradas <span id="totalOrdensEncerradasHome">(0)</span></button>
-        <button class="action-btn" id="btnPainelKPI" onclick="abrirPainelGerencial()" style="display:none;">📊 Painel Gerencial</button>
-        <!-- Núcleo técnico GMAN 8.5.6.49: acesso discreto por ícone fixo, apenas para gestão -->
+        <button class="action-btn" id="btnPainelKPI" onclick="abrirPainelGerencial()" style="display:none;">📊 KPIs Industriais</button>
+        <!-- Núcleo técnico GMAN 8.5.6.50: acesso discreto por ícone fixo, apenas para gestão -->
         <button class="action-btn" onclick="atualizarAgora()">🔄 Atualizar agora</button>
         <button class="action-btn" onclick="limparCacheOperacionalGMAN85645()">🧹 Limpar cache</button>
       </div>
@@ -424,8 +424,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.49 — Núcleo protegido, auditoria avançada, KPIs oficiais e reparo seguro';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.49 — Núcleo protegido, auditoria avançada, KPIs oficiais e reparo seguro';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.50 — KPIs industriais oficiais, fechamento assistido e carregamento otimizado';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.50 — KPIs industriais oficiais, fechamento assistido e carregamento otimizado';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -1697,6 +1697,7 @@ async function atualizarAgora() {
                             ${podeAtualizarAndamento ? `<button onclick="abrirModalAndamentoOS('${os.idOS}')" style="padding:8px 10px; border:none; border-radius:8px; background:#3182ce; color:white; cursor:pointer;">📝 Atualizar andamento</button>` : ''}
                             ${podeConcluir ? `<button onclick="abrirModalConcluirOS('${os.idOS}')" style="padding:8px 10px; border:none; border-radius:8px; background:#38a169; color:white; cursor:pointer;">✅ Concluir</button>` : ''}
                             ${podeCancelar ? `<button onclick="cancelarOS('${os.idOS}')" style="padding:8px 10px; border:none; border-radius:8px; background:#718096; color:white; cursor:pointer;">Cancelar</button>` : ''}
+                            ${(!encerrada && podeGerenciarOS()) ? `<button onclick="abrirModalFechamentoAssistidoOS('${os.idOS}')" style="padding:8px 10px; border:none; border-radius:8px; background:#b7791f; color:white; cursor:pointer; font-weight:800;">🧯 Fechamento assistido</button>` : ''}
                         </div>
                     </div>`;
             }).join('');
@@ -2608,6 +2609,123 @@ function atualizarPreviewKmRodado() {
             }
         }
 
+
+        async function abrirModalFechamentoAssistidoOS(idOS) {
+            if (!podeGerenciarOS()) return alert('Fechamento assistido disponível somente para gestão.');
+            const os = obterOSPorId(idOS);
+            if (!os) return alert('OS não encontrada na tela. Atualize a lista e tente novamente.');
+
+            let diagnostico = null;
+            try {
+                diagnostico = await apiGet({ acao: 'diagnosticarBloqueioConclusaoOS', idOS });
+            } catch (erroDiag) {
+                console.warn('Diagnóstico de bloqueio indisponível:', erroDiag);
+            }
+
+            const existing = document.getElementById('fechamentoAssistidoModal');
+            if (existing) existing.remove();
+
+            const faltantes = diagnostico && Array.isArray(diagnostico.faltantes) ? diagnostico.faltantes : [];
+            const modal = document.createElement('div');
+            modal.id = 'fechamentoAssistidoModal';
+            modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.84); z-index:1900; display:flex; align-items:center; justify-content:center; padding:18px;';
+            modal.innerHTML = `
+                <div style="background:white; border-radius:22px; padding:22px; width:96%; max-width:700px; max-height:92vh; overflow-y:auto;">
+                    <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start; margin-bottom:12px;">
+                        <div>
+                            <h2 style="color:#1e3a5f; margin:0; font-size:1.2rem;">🧯 Fechamento assistido de OS</h2>
+                            <p style="color:#718096; margin:5px 0 0; font-size:0.82rem;">Uso exclusivo da gestão para OS travada por validação. Registra histórico e auditoria.</p>
+                        </div>
+                        <button onclick="document.getElementById('fechamentoAssistidoModal').remove();" style="padding:9px 12px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
+                    </div>
+
+                    <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:14px; padding:12px; margin-bottom:12px; color:#1e3a5f; font-size:0.82rem;">
+                        <strong>OS:</strong> ${escaparHTMLGMAN(idOS)}<br>
+                        <strong>Grupo:</strong> ${escaparHTMLGMAN(os.idEquipamento || '-')}<br>
+                        <strong>Status atual:</strong> ${escaparHTMLGMAN(os.statusOS || '-')}
+                    </div>
+
+                    <div style="background:${faltantes.length ? '#fffaf0' : '#f0fff4'}; border-left:5px solid ${faltantes.length ? '#d69e2e' : '#38a169'}; border-radius:14px; padding:12px; margin-bottom:12px; color:${faltantes.length ? '#744210' : '#22543d'}; font-size:0.82rem;">
+                        <strong>${faltantes.length ? 'Campos que provavelmente estão travando:' : 'Diagnóstico:'}</strong><br>
+                        ${faltantes.length ? faltantes.map(f => '• ' + escaparHTMLGMAN(f)).join('<br>') : 'Nenhum campo obrigatório faltante foi identificado, mas o fechamento assistido ainda pode registrar saneamento administrativo.'}
+                    </div>
+
+                    <label class="form-label">Serviço realizado / saneamento</label>
+                    <textarea id="assistServico" class="form-field" rows="3" placeholder="Ex.: OS antiga encerrada administrativamente após conferência em campo.">${escaparHTMLGMAN(os.servicoRealizado || '')}</textarea>
+
+                    <label class="form-label">Materiais</label>
+                    <input id="assistMateriais" class="form-field" value="${escaparHTMLGMAN(os.materiais || 'Não informado / não aplicável')}" placeholder="Materiais ou Não aplicável">
+
+                    <label class="form-label">Justificativa obrigatória</label>
+                    <textarea id="assistJustificativa" class="form-field" rows="3" placeholder="Explique por que esta OS precisa de fechamento assistido. Ex.: OS antiga sem campos de veículo, serviço já conferido pela gestão."></textarea>
+
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;">
+                        <div>
+                            <label class="form-label">KM inicial</label>
+                            <input id="assistKmInicial" type="number" class="form-field" value="${escaparHTMLGMAN(os.kmInicial || '0')}">
+                        </div>
+                        <div>
+                            <label class="form-label">KM final</label>
+                            <input id="assistKmFinal" type="number" class="form-field" value="${escaparHTMLGMAN(os.kmFinal || os.kmInicial || '0')}">
+                        </div>
+                    </div>
+
+                    <label class="form-label">Confirmação forte</label>
+                    <input id="assistConfirmacao" class="form-field" placeholder="Digite: CONFIRMO FECHAMENTO ASSISTIDO GMAN">
+
+                    <div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:14px; padding:12px; color:#742a2a; font-size:0.80rem; margin-top:10px;">
+                        Esta ação conclui a OS com auditoria. Não apaga nada da planilha, não mexe em ORDENS_SERVICO antigas e registra histórico.
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px; flex-wrap:wrap;">
+                        <button onclick="document.getElementById('fechamentoAssistidoModal').remove();" style="padding:11px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Cancelar</button>
+                        <button onclick="executarFechamentoAssistidoOS('${idOS}')" style="padding:11px 14px; border:none; border-radius:10px; background:#b7791f; color:white; cursor:pointer; font-weight:900;">Concluir com assistência</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        async function executarFechamentoAssistidoOS(idOS) {
+            if (!podeGerenciarOS()) return alert('Fechamento assistido disponível somente para gestão.');
+            const servicoRealizado = (document.getElementById('assistServico') || {}).value ? document.getElementById('assistServico').value.trim() : '';
+            const materiais = (document.getElementById('assistMateriais') || {}).value ? document.getElementById('assistMateriais').value.trim() : '';
+            const justificativa = (document.getElementById('assistJustificativa') || {}).value ? document.getElementById('assistJustificativa').value.trim() : '';
+            const confirmacao = (document.getElementById('assistConfirmacao') || {}).value ? document.getElementById('assistConfirmacao').value.trim() : '';
+            const kmInicial = Number((document.getElementById('assistKmInicial') || {}).value || 0);
+            const kmFinal = Number((document.getElementById('assistKmFinal') || {}).value || kmInicial);
+
+            if (!servicoRealizado) return alert('Informe o serviço realizado/saneamento.');
+            if (!justificativa || justificativa.length < 12) return alert('Informe uma justificativa clara para o fechamento assistido.');
+            if (confirmacao.toUpperCase() !== 'CONFIRMO FECHAMENTO ASSISTIDO GMAN') return alert('Digite a confirmação exatamente como solicitado.');
+            if (kmFinal < kmInicial) return alert('KM final não pode ser menor que KM inicial.');
+
+            if (!confirm('Confirmar fechamento assistido desta OS? Essa ação será registrada em auditoria.')) return;
+
+            try {
+                await apiPost({
+                    acao: 'fechamentoAssistidoOS',
+                    idOS,
+                    usuario: usuarioLogado.nome,
+                    funcao: usuarioLogado.funcao,
+                    servicoRealizado,
+                    materiais,
+                    justificativaAssistida: justificativa,
+                    confirmacao,
+                    kmInicial,
+                    kmFinal
+                });
+                const modal = document.getElementById('fechamentoAssistidoModal');
+                if (modal) modal.remove();
+                alert('OS concluída por fechamento assistido.');
+                await carregarStatusOnline();
+                if (document.getElementById('osModal')) await recarregarPainelOS();
+            } catch (erro) {
+                console.error(erro);
+                alert('Erro no fechamento assistido: ' + erro.message);
+            }
+        }
+
         async function cancelarOS(idOS) {
             if (!podeGerenciarOS()) return alert('Somente gestão pode cancelar OS.');
             const motivo = prompt('Motivo do cancelamento:') || '';
@@ -3178,7 +3296,7 @@ const NOMES_OFICIAIS_LIDERES_GMAN85645 = {
                 return `
                     <div style="margin-top:14px; background:#fffaf0; border-left:5px solid #d69e2e; border-radius:18px; padding:13px; color:#744210; font-size:0.82rem;">
                         <strong>🩺 Diagnóstico das últimas OS lidas</strong><br>
-                        Não foi possível carregar o diagnóstico agora. Recalcule o painel após publicar a API 8.5.6.49.
+                        Não foi possível carregar o diagnóstico agora. Recalcule o painel após publicar a API 8.5.6.50.
                     </div>
                 `;
             }
@@ -3281,6 +3399,61 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
             return null;
         }
 
+
+        function corKPIIndustrialGMAN85650(card) {
+            const chave = normalizarTextoGMAN(card && card.chave);
+            const n = Number(card && card.numero);
+            if (String(card && card.valor || '').toLowerCase().includes('em cálculo')) return '#718096';
+            if (chave.includes('mttr')) return !isNaN(n) && n <= 1440 ? '#38a169' : '#d69e2e';
+            if (chave.includes('backlog') || chave.includes('reincidencia')) return !isNaN(n) && n > 0 ? '#d69e2e' : '#38a169';
+            if (chave.includes('oee')) return !isNaN(n) && n >= 70 ? '#38a169' : '#d69e2e';
+            if (chave.includes('disponibilidade')) return !isNaN(n) && n >= 90 ? '#38a169' : '#d69e2e';
+            return '#3182ce';
+        }
+
+        function montarKPIsIndustriaisOficiaisHTMLGMAN85650(kpis) {
+            if (!kpis || kpis.sucesso === false || !Array.isArray(kpis.cards)) {
+                return `
+                    <div style="background:#fffaf0; border-left:5px solid #d69e2e; border-radius:16px; padding:12px; margin-bottom:14px; color:#744210; font-size:0.82rem;">
+                        ⚠️ KPIs industriais oficiais ainda não foram carregados. Use Recalcular ou Atualizar agora.
+                    </div>
+                `;
+            }
+
+            return `
+                <div style="background:linear-gradient(135deg,#0f2742,#1e3a5f,#2c5282); color:white; border-radius:24px; padding:18px; margin-bottom:14px; box-shadow:0 14px 30px rgba(30,58,95,0.24);">
+                    <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start; flex-wrap:wrap;">
+                        <div>
+                            <h3 style="margin:0; font-size:1.15rem;">⚙️ KPIs industriais oficiais GMAN</h3>
+                            <p style="margin:5px 0 0; opacity:0.9; font-size:0.80rem;">Fonte única: Banco Central GMAN · ${escaparHTMLGMAN(kpis.atualizadoEm || '')}</p>
+                        </div>
+                        <span style="background:${kpis.statusGeral === 'OK' ? '#38a169' : '#d69e2e'}; padding:7px 10px; border-radius:999px; font-size:0.75rem; font-weight:900;">${escaparHTMLGMAN(kpis.statusGeral || 'OK')}</span>
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; margin-bottom:16px;">
+                    ${kpis.cards.map(card => {
+                        const cor = corKPIIndustrialGMAN85650(card);
+                        return `
+                            <div onclick="abrirInfoKPI('${String(card.chave || '').replace(/'/g, "\\'")}')" style="background:linear-gradient(135deg,#ffffff,#f7fafc); border-left:7px solid ${cor}; border-radius:22px; padding:15px; min-height:132px; box-shadow:0 10px 22px rgba(30,58,95,0.12); cursor:pointer;">
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                                    <div style="color:#1e3a5f; font-size:0.78rem; font-weight:900; text-transform:uppercase;">${escaparHTMLGMAN(card.chave || '')}</div>
+                                    <div style="font-size:1.35rem;">${card.icone || '📊'}</div>
+                                </div>
+                                <div style="font-size:1.75rem; font-weight:1000; color:${cor}; margin-top:7px;">${escaparHTMLGMAN(card.valor || '')}</div>
+                                <div style="font-size:0.70rem; color:#4a5568; font-weight:800; margin-top:6px;">🎯 ${escaparHTMLGMAN(card.meta || '')}</div>
+                                <div style="font-size:0.68rem; color:#718096; margin-top:6px; line-height:1.25;">${escaparHTMLGMAN(card.prova || '')}</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:16px; padding:12px; margin-bottom:14px; color:#1e3a5f; font-size:0.80rem;">
+                    <strong>Base dos KPIs:</strong>
+                    ${kpis.base.totalEquipamentos} equipamentos oficiais · ${kpis.base.totalOSConsideradas} OS consideradas · ${kpis.base.osTesteIgnoradas} OS TESTE ignoradas · ${kpis.base.amostrasMTTR} amostra(s) de MTTR · ${kpis.base.amostrasMTBF} amostra(s) de MTBF.
+                    <br><strong>Observação:</strong> ${escaparHTMLGMAN(kpis.observacaoOEE || '')}
+                </div>
+            `;
+        }
+
         async function abrirPainelGerencial() {
             if (!podeGerenciarOS()) {
                 alert('Painel gerencial disponível somente para gestão.');
@@ -3298,7 +3471,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
                             <h2 style="color:#1e3a5f; margin:0; font-size:1.25rem;">Painel Gerencial — KPIs</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Visível somente para gestão. Dados calculados pelo Banco Central GMAN. <strong>Versão 8.5.6.49</strong></p>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Visível somente para gestão. Dados calculados pelo Banco Central GMAN. <strong>Versão 8.5.6.50</strong></p>
                         </div>
                         <button onclick="document.getElementById('kpiModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
@@ -3320,6 +3493,13 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                 await carregarStatusOnline();
                 const listaOS = await listarOSOnline();
                 const osValidas = listaOS.filter(os => !ehOSTesteKPI(os));
+
+                let kpisIndustriaisOficiais = null;
+                try {
+                    kpisIndustriaisOficiais = await apiGet({ acao: 'calcularKPIsIndustriaisOficiais' });
+                } catch (erroKPIIndustrial) {
+                    console.warn('KPIs industriais oficiais indisponíveis:', erroKPIIndustrial);
+                }
 
                 let diagnosticoUltimasOS = null;
                 try {
@@ -3458,6 +3638,8 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                         </div>
                     </div>
 
+                    ${montarKPIsIndustriaisOficiaisHTMLGMAN85650(kpisIndustriaisOficiais)}
+
                     <div style="background:#f7fafc; border-left:5px solid #3182ce; border-radius:14px; padding:12px; margin-bottom:14px; color:#1e3a5f; font-size:0.82rem;">
                         <strong>Conciliação KPI:</strong>
                         Backlog = ${osBacklog} |
@@ -3510,7 +3692,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                         <div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:18px; padding:13px; color:#742a2a; font-size:0.82rem; box-shadow:0 8px 18px rgba(229,62,62,0.08);">
                             <strong>⚠️ Base da reincidência</strong><br>
                             ${corretivas30.length} corretivas concluídas nos últimos 30 dias antes da deduplicação. ${reincidenciaDuplicadasMesmaBase} atendimento(s) da mesma OS base foram ignorados no ranking.<br>
-                            <small>Versão do cálculo: 8.5.6.49 com reincidência técnica oficial.</small>
+                            <small>Versão do cálculo: 8.5.6.50 com reincidência técnica oficial.</small>
                         </div>
                         <div style="background:#fff5f5; border-left:5px solid #dd6b20; border-radius:18px; padding:13px; color:#7b341e; font-size:0.82rem; box-shadow:0 8px 18px rgba(221,107,32,0.08);">
                             <strong>⚙️ OEE adaptado</strong><br>
@@ -3524,7 +3706,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                         <strong>📌 Regra aplicada:</strong> disponibilidade histórica usa MTBF ÷ (MTBF + MTTR) e não se mistura com a disponibilidade instantânea. MTBF é estimado pelo intervalo médio entre corretivas do mesmo equipamento. Produtividade por líder prioriza FINALIZADO_POR, depois USUARIO_INICIO e RESPONSAVEL, unificando maiúsculas/minúsculas e espaços. Reincidência usa corretivas concluídas válidas dos últimos 30 dias por grupo/equipamento, ignora OS de teste e não duplica atendimentos da mesma OS base. O ranking principal mostra apenas grupos com 2+ OS; 3+ é crítico. OEE é gerencial e adaptado ao GMAN. OS de teste não entram nos KPIs. Ranking por área mostra apenas áreas oficiais.
                         <br>
                         <strong>Situação atual:</strong> ${operando} operando, ${indisponiveis} em manutenção/alerta, ${parados} parados e ${osBacklog} OS no backlog.<br>
-                        <strong>Versão ativa do painel:</strong> GMAN 8.5.6.49 — blindagem de continuidade, auditoria forte e proteção do que já funciona.
+                        <strong>Versão ativa do painel:</strong> GMAN 8.5.6.50 — blindagem de continuidade, auditoria forte e proteção do que já funciona.
                     </div>
                 `;
 
@@ -4469,7 +4651,7 @@ function openEquipment(id) {
             }
 
             ordensServicoCache = [];
-            alert('Cache operacional limpo. A tela será recarregada para buscar a GMAN 8.5.6.49 no Banco Central.');
+            alert('Cache operacional limpo. A tela será recarregada para buscar a GMAN 8.5.6.50 no Banco Central.');
             const base = window.location.origin + window.location.pathname;
             window.location.href = base + '?nocache=' + Date.now();
         }
@@ -4505,7 +4687,7 @@ function openEquipment(id) {
 
 
         /* ============================================================
-           GMAN 8.5.6.49 — FONTE ÚNICA NO BANCO CENTRAL
+           GMAN 8.5.6.50 — FONTE ÚNICA NO BANCO CENTRAL
            Estas funções sobrescrevem as versões antigas do Index.
            O Index passa a exibir o pacote oficial do Apps Script.
            ============================================================ */
@@ -4514,12 +4696,12 @@ function openEquipment(id) {
         let ultimaSincronizacaoPainelGMAN85645 = 0;
 
         function saveData() {
-            // GMAN 8.5.6.49: status/equipamentos não são mais fonte oficial no localStorage.
+            // GMAN 8.5.6.50: status/equipamentos não são mais fonte oficial no localStorage.
             return true;
         }
 
         function loadData() {
-            // GMAN 8.5.6.49: evita reaproveitar status antigo do navegador.
+            // GMAN 8.5.6.50: evita reaproveitar status antigo do navegador.
             return true;
         }
 
@@ -4902,7 +5084,7 @@ function openEquipment(id) {
 
 
         /* ============================================================
-           GMAN 8.5.6.49 — BLINDAGEM DE CONTINUIDADE NO INDEX
+           GMAN 8.5.6.50 — BLINDAGEM DE CONTINUIDADE NO INDEX
            Sobrescreve funções finais sem alterar os fluxos de OS.
            ============================================================ */
 
@@ -5035,7 +5217,7 @@ function openEquipment(id) {
                 registrarAuditoriaClienteGMAN85647('DIAGNOSTICO_TECNICO', 'Diagnóstico técnico aberto no Index', 'OK');
             } catch (erro) {
                 console.error(erro);
-                container.innerHTML = `<div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:14px; padding:12px; color:#742a2a; font-weight:bold;">Erro ao carregar diagnóstico técnico: ${escaparHTMLGMAN(erro.message || erro)}<br><span style="font-weight:700; color:#4a5568;">A correção 8.5.6.49 impede que alertas normais de auditoria sejam tratados como erro fatal. Confira se Apps Script e Index foram publicados na mesma versão.</span></div>`;
+                container.innerHTML = `<div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:14px; padding:12px; color:#742a2a; font-weight:bold;">Erro ao carregar diagnóstico técnico: ${escaparHTMLGMAN(erro.message || erro)}<br><span style="font-weight:700; color:#4a5568;">A correção 8.5.6.50 impede que alertas normais de auditoria sejam tratados como erro fatal. Confira se Apps Script e Index foram publicados na mesma versão.</span></div>`;
             }
         }
 
@@ -5108,7 +5290,7 @@ function openEquipment(id) {
                             Status incomum: <strong>${limpeza.statusIncomum || 0}</strong> | 
                             Aba: <strong>${escaparHTMLGMAN(limpeza.abaQuarentenaSugerida || 'QUARENTENA_TESTES_GMAN')}</strong>
                         </p>
-                        <p style="font-size:0.78rem; margin:8px 0 0;">Nada é apagado. A 8.5.6.49 só permite copiar candidatos para quarentena com confirmação forte.</p>
+                        <p style="font-size:0.78rem; margin:8px 0 0;">Nada é apagado. A 8.5.6.50 só permite copiar candidatos para quarentena com confirmação forte.</p>
                     </div>
 
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -5126,7 +5308,7 @@ function openEquipment(id) {
 
 
         /* ============================================================
-           GMAN 8.5.6.49 — NÚCLEO PROTEGIDO DISCRETO
+           GMAN 8.5.6.50 — NÚCLEO PROTEGIDO DISCRETO
            Ícone técnico visível somente para gestão.
            ============================================================ */
 
