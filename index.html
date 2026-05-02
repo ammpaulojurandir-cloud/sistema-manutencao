@@ -99,7 +99,7 @@
         .form-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e0; border-radius: 9px; color: #1a202c; font-size: 0.9rem; }
         .form-label { display: block; color: #2d3748; font-size: 0.78rem; font-weight: 700; margin: 8px 0 5px; text-align: left; }
      
-        /* GMAN 8.5.6.40 — evolução visual controlada 20% */
+        /* GMAN 8.5.6.41 — evolução visual controlada 20% */
         body::before {
             content: "";
             position: fixed;
@@ -156,7 +156,7 @@
         }
 
 
-        /* GMAN 8.5.6.40 — visual 30% e ícones com leve 3D controlado */
+        /* GMAN 8.5.6.41 — visual 30% e ícones com leve 3D controlado */
         .icon-3d-gman, .status-icon, .action-btn, .system-btn {
             transform-style: preserve-3d;
         }
@@ -218,7 +218,7 @@
         }
 
 
-        /* GMAN 8.5.6.40 — contador real de OS por grupo */
+        /* GMAN 8.5.6.41 — contador real de OS por grupo */
         .mini-os-counter {
             display: inline-block;
             padding: 3px 7px;
@@ -383,7 +383,7 @@
         <button class="action-btn" id="btnOrdensEncerradasHome" onclick="abrirPainelOS('encerradas')" style="display:none;">✅ Ordens Encerradas <span id="totalOrdensEncerradasHome">(0)</span></button>
         <button class="action-btn" id="btnPainelKPI" onclick="abrirPainelGerencial()" style="display:none;">📊 Painel Gerencial</button>
         <button class="action-btn" onclick="atualizarAgora()">🔄 Atualizar agora</button>
-        <button class="action-btn" onclick="limparCacheOperacionalGMAN85640()">🧹 Limpar cache</button>
+        <button class="action-btn" onclick="limparCacheOperacionalGMAN85641()">🧹 Limpar cache</button>
       </div>
 
       <div class="equipment-list" id="equipmentList"></div>
@@ -423,8 +423,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.40 — Rankings, horário e cache';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.40 — Rankings, horário e cache';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.41 — Rankings, horário e cache';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.41 — Rankings, horário e cache';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -790,7 +790,7 @@
             atualizarIndicadorConexao('🔄 Sincronizando com o Banco Central...', 'neutro');
 
             try {
-                const resposta = await fetch(`${API_URL}?acao=listarStatus&v=85640&t=${Date.now()}`, { cache: 'no-store' });
+                const resposta = await fetch(`${API_URL}?acao=listarStatus&v=85641&t=${Date.now()}`, { cache: 'no-store' });
                 if (!resposta.ok) throw new Error('Falha ao consultar a API.');
 
                 const statusOnline = await resposta.json();
@@ -818,6 +818,7 @@
                 saveData();
                 applyFilters();
                 atualizarIndicadorConexao('✅ Online: conectado ao Banco Central GMAN', 'online');
+                atualizarMarcadorConexaoGMAN85641('Banco Central: conectado', true);
                 return true;
 
             } catch (erro) {
@@ -825,6 +826,7 @@
                 loadData();
                 applyFilters();
                 atualizarIndicadorConexao('⚠️ Modo local: não foi possível sincronizar com o Banco Central', 'offline');
+                atualizarMarcadorConexaoGMAN85641('Banco Central: falha de conexão', false);
                 console.error('Erro ao carregar status online:', erro);
                 return false;
             }
@@ -1476,7 +1478,7 @@ function montarLinhasPatrimonioGrupoGMAN(patrimonios = {}, opcoes = {}) {
         }
 
         
-        function limparCacheOperacionalGMAN85640() {
+        function limparCacheOperacionalGMAN85641() {
             try {
                 localStorage.removeItem('gman_kpi_cache');
                 localStorage.removeItem('gman_rankings_cache');
@@ -1507,7 +1509,7 @@ async function atualizarAgora() {
         }
 
         async function listarOSOnline() {
-            const resposta = await fetch(`${API_URL}?acao=listarOS&v=85640&t=${Date.now()}`, { cache: 'no-store' });
+            const resposta = await fetch(`${API_URL}?acao=listarOS&v=85641&t=${Date.now()}`, { cache: 'no-store' });
             if (!resposta.ok) throw new Error('Falha ao consultar Ordens de Serviço.');
             const lista = await resposta.json();
             if (!Array.isArray(lista)) throw new Error('Resposta de OS não veio em formato de lista.');
@@ -3179,7 +3181,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
                             <h2 style="color:#1e3a5f; margin:0; font-size:1.25rem;">Painel Gerencial — KPIs</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Visível somente para gestão. Dados calculados pelo Banco Central GMAN. <strong>Versão 8.5.6.40</strong></p>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Visível somente para gestão. Dados calculados pelo Banco Central GMAN. <strong>Versão 8.5.6.41</strong></p>
                         </div>
                         <button onclick="document.getElementById('kpiModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
@@ -3236,6 +3238,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                     : 0;
 
                 const produtividadePorLider = contarPorLiderKPI(osConcluidasLista);
+                const rankingOcorrenciasArea = calcularRankingOcorrenciasAreaGMAN85641(osValidas);
 
                 const agora = new Date();
                 const trintaDiasAtras = new Date(agora.getTime() - (30 * 24 * 60 * 60 * 1000));
@@ -3342,6 +3345,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:14px;">
                         ${montarRankingHTML(produtividadePorLider, 'Líderes que mais atenderam OS', 5, 'OS', '🏆')}
                         ${montarRankingHTML(reincidenciaRanking, 'OS grupos de maior reincidência — 2+ OS', 5, 'OS recorrentes', '⚠️', 2)}
+                        ${montarRankingHTML(rankingOcorrenciasArea, 'Ocorrências por área/equipe', 6, 'OS', '🏭')}
                     </div>
 
                     ${Object.keys(gruposEmObservacao).length ? `
@@ -3370,7 +3374,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                         <div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:18px; padding:13px; color:#742a2a; font-size:0.82rem; box-shadow:0 8px 18px rgba(229,62,62,0.08);">
                             <strong>⚠️ Base da reincidência</strong><br>
                             ${corretivas30.length} corretivas concluídas nos últimos 30 dias. Ranking principal mostra grupos com 2+ OS; 3+ é crítico.<br>
-                            <small>Versão do cálculo: 8.5.6.40 sem cache.</small>
+                            <small>Versão do cálculo: 8.5.6.41 sem cache.</small>
                         </div>
                         <div style="background:#fff5f5; border-left:5px solid #dd6b20; border-radius:18px; padding:13px; color:#7b341e; font-size:0.82rem; box-shadow:0 8px 18px rgba(221,107,32,0.08);">
                             <strong>⚙️ OEE adaptado</strong><br>
@@ -3382,7 +3386,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                         <strong>📌 Regra aplicada:</strong> disponibilidade histórica usa MTBF ÷ (MTBF + MTTR) e não se mistura com a disponibilidade instantânea. MTBF é estimado pelo intervalo médio entre corretivas do mesmo equipamento. Produtividade por líder usa o campo RESPONSAVEL das OS concluídas válidas. Reincidência usa corretivas concluídas dos últimos 30 dias por grupo/equipamento. O ranking principal mostra apenas grupos com 2+ OS recorrentes; 3+ é crítico. OEE é gerencial e adaptado ao GMAN. OS de teste não entram nos KPIs.
                         <br>
                         <strong>Situação atual:</strong> ${operando} operando, ${indisponiveis} em manutenção/alerta, ${parados} parados e ${osBacklog} OS no backlog.<br>
-                        <strong>Versão ativa do painel:</strong> GMAN 8.5.6.40 — rankings sem cache, líder por finalização e horário Brasil.
+                        <strong>Versão ativa do painel:</strong> GMAN 8.5.6.41 — rankings sem cache, líder por finalização e horário Brasil.
                     </div>
                 `;
 
@@ -4180,7 +4184,125 @@ function openEquipment(id) {
             return;
         }
 
+
+        function exibirMarcadorVersaoGMAN85641() {
+            let marcador = document.getElementById('versaoGMAN85641');
+            if (!marcador) {
+                marcador = document.createElement('div');
+                marcador.id = 'versaoGMAN85641';
+                marcador.style.cssText = 'text-align:center; margin:0 auto 10px auto; padding:8px 12px; border-radius:14px; max-width:520px; font-size:0.78rem; font-weight:900; background:rgba(255,255,255,0.16); border:1px solid rgba(255,255,255,0.28); color:#e6fffa; box-shadow:0 8px 18px rgba(0,0,0,0.12);';
+                const subtitulo = document.querySelector('.subtitle');
+                if (subtitulo && subtitulo.parentNode) {
+                    subtitulo.parentNode.insertBefore(marcador, subtitulo.nextSibling);
+                } else {
+                    document.body.insertBefore(marcador, document.body.firstChild);
+                }
+            }
+            marcador.textContent = VERSAO_FRONTEND_GMAN + ' | Banco Central: aguardando sincronização';
+        }
+
+        async function gmanFetchJSON85641(url, opcoes = {}) {
+            const resposta = await fetch(url, Object.assign({ cache: 'no-store' }, opcoes));
+            const texto = await resposta.text();
+
+            if (!resposta.ok) {
+                throw new Error('Falha na conexão com o Banco Central GMAN. HTTP ' + resposta.status + '. Verifique a URL /exec e a implantação do Apps Script.');
+            }
+
+            let json;
+            try {
+                json = texto ? JSON.parse(texto) : null;
+            } catch (erro) {
+                throw new Error('A API GMAN não retornou JSON válido. Verifique se a URL publicada é do Apps Script /exec. Resposta inicial: ' + texto.substring(0, 120));
+            }
+
+            if (!json) {
+                throw new Error('Resposta vazia da API GMAN.');
+            }
+
+            if (json.sucesso === false || json.ok === false) {
+                throw new Error(json.erro || json.mensagem || 'A API GMAN retornou erro sem mensagem.');
+            }
+
+            return json;
+        }
+
+        async function apiPost(payload) {
+            const retorno = await gmanFetchJSON85641(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload || {})
+            });
+            return retorno && retorno.payload ? retorno.payload : retorno;
+        }
+
+        async function apiGet(params) {
+            const query = new URLSearchParams(Object.assign({}, params || {}, { v: '85641', t: Date.now() })).toString();
+            const retorno = await gmanFetchJSON85641(`${API_URL}?${query}`);
+            return retorno && retorno.payload ? retorno.payload : retorno;
+        }
+
+        async function listarOSOnline() {
+            const retorno = await apiGet({ acao: 'listarOS' });
+            if (Array.isArray(retorno)) return retorno;
+            if (retorno && Array.isArray(retorno.payload)) return retorno.payload;
+            if (retorno && Array.isArray(retorno.dados)) return retorno.dados;
+            if (retorno && Array.isArray(retorno.os)) return retorno.os;
+            throw new Error('Falha ao consultar Ordens de Serviço. A API respondeu, mas não enviou uma lista de OS.');
+        }
+
+        function classificarAreaOcorrenciaGMAN85641(valor) {
+            const texto = normalizarTextoGMAN(valor);
+            if (!texto) return 'Não informado';
+            if (texto.includes('automacao')) return 'Automação';
+            if (texto.includes('eletrica')) return 'Elétrica';
+            if (texto.includes('instalacoes mecanicas')) return 'Instalações Mecânicas';
+            if (texto.includes('usinagem')) return 'Usinagem';
+            if (texto.includes('caldeiraria')) return 'Caldeiraria';
+            if (texto.includes('mecanica')) return 'Mecânica';
+            return String(valor || 'Não informado').trim();
+        }
+
+        function calcularRankingOcorrenciasAreaGMAN85641(listaOS) {
+            const mapa = {};
+            (Array.isArray(listaOS) ? listaOS : []).forEach(os => {
+                const area = classificarAreaOcorrenciaGMAN85641(os.area || os.equipeResponsavel || os.equipe || os.setor || '');
+                if (normalizarTextoGMAN(area) === 'nao informado') return;
+                mapa[area] = (mapa[area] || 0) + 1;
+            });
+            return mapa;
+        }
+
+        function atualizarMarcadorConexaoGMAN85641(texto, online = false) {
+            const marcador = document.getElementById('versaoGMAN85641');
+            if (marcador) {
+                marcador.textContent = `${VERSAO_FRONTEND_GMAN} | ${texto}`;
+                marcador.style.color = online ? '#c6f6d5' : '#fed7d7';
+            }
+        }
+
+        function limparCacheOperacionalGMAN85641() {
+            try {
+                localStorage.removeItem('gman_kpi_cache');
+                localStorage.removeItem('gman_rankings_cache');
+                localStorage.removeItem('ordensServicoCache');
+                localStorage.removeItem('equipmentData');
+                sessionStorage.clear();
+                if ('caches' in window) {
+                    caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
+                }
+            } catch (erro) {
+                console.warn('Não foi possível limpar todos os caches:', erro);
+            }
+
+            ordensServicoCache = [];
+            alert('Cache operacional limpo. A tela será recarregada para buscar a GMAN 8.5.6.41 no Banco Central.');
+            const base = window.location.origin + window.location.pathname;
+            window.location.href = base + '?nocache=' + Date.now();
+        }
+
         async function iniciarSistema() {
+            exibirMarcadorVersaoGMAN85641();
             loadData();
             renderEquipment();
             recuperarLoginSalvo();
