@@ -99,7 +99,7 @@
         .form-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e0; border-radius: 9px; color: #1a202c; font-size: 0.9rem; }
         .form-label { display: block; color: #2d3748; font-size: 0.78rem; font-weight: 700; margin: 8px 0 5px; text-align: left; }
      
-        /* GMAN 8.5.6.50 — evolução visual controlada 20% */
+        /* GMAN 8.5.6.51 — evolução visual controlada 20% */
         body::before {
             content: "";
             position: fixed;
@@ -156,7 +156,7 @@
         }
 
 
-        /* GMAN 8.5.6.50 — visual 30% e ícones com leve 3D controlado */
+        /* GMAN 8.5.6.51 — visual 30% e ícones com leve 3D controlado */
         .icon-3d-gman, .status-icon, .action-btn, .system-btn {
             transform-style: preserve-3d;
         }
@@ -218,7 +218,7 @@
         }
 
 
-        /* GMAN 8.5.6.50 — contador real de OS por grupo */
+        /* GMAN 8.5.6.51 — contador real de OS por grupo */
         .mini-os-counter {
             display: inline-block;
             padding: 3px 7px;
@@ -382,7 +382,7 @@
         <button class="action-btn" id="btnOrdensIniciadasHome" onclick="abrirPainelOS('iniciadas')" style="display:none;">🛠️ OS Iniciadas <span id="totalOrdensIniciadasHome">(0)</span></button>
         <button class="action-btn" id="btnOrdensEncerradasHome" onclick="abrirPainelOS('encerradas')" style="display:none;">✅ Ordens Encerradas <span id="totalOrdensEncerradasHome">(0)</span></button>
         <button class="action-btn" id="btnPainelKPI" onclick="abrirPainelGerencial()" style="display:none;">📊 KPIs Industriais</button>
-        <!-- Núcleo técnico GMAN 8.5.6.50: acesso discreto por ícone fixo, apenas para gestão -->
+        <!-- Núcleo técnico GMAN 8.5.6.51: acesso discreto por ícone fixo, apenas para gestão -->
         <button class="action-btn" onclick="atualizarAgora()">🔄 Atualizar agora</button>
         <button class="action-btn" onclick="limparCacheOperacionalGMAN85645()">🧹 Limpar cache</button>
       </div>
@@ -424,8 +424,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.50 — KPIs industriais oficiais, fechamento assistido e carregamento otimizado';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.50 — KPIs industriais oficiais, fechamento assistido e carregamento otimizado';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.51 — Compatibilidade OS antigas, reparo de status concluído e botão Ver OS corrigido';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.51 — Compatibilidade OS antigas, reparo de status concluído e botão Ver OS corrigido';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -3296,7 +3296,7 @@ const NOMES_OFICIAIS_LIDERES_GMAN85645 = {
                 return `
                     <div style="margin-top:14px; background:#fffaf0; border-left:5px solid #d69e2e; border-radius:18px; padding:13px; color:#744210; font-size:0.82rem;">
                         <strong>🩺 Diagnóstico das últimas OS lidas</strong><br>
-                        Não foi possível carregar o diagnóstico agora. Recalcule o painel após publicar a API 8.5.6.50.
+                        Não foi possível carregar o diagnóstico agora. Recalcule o painel após publicar a API 8.5.6.51.
                     </div>
                 `;
             }
@@ -3471,7 +3471,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
                             <h2 style="color:#1e3a5f; margin:0; font-size:1.25rem;">Painel Gerencial — KPIs</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Visível somente para gestão. Dados calculados pelo Banco Central GMAN. <strong>Versão 8.5.6.50</strong></p>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Visível somente para gestão. Dados calculados pelo Banco Central GMAN. <strong>Versão 8.5.6.51</strong></p>
                         </div>
                         <button onclick="document.getElementById('kpiModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
@@ -3692,7 +3692,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                         <div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:18px; padding:13px; color:#742a2a; font-size:0.82rem; box-shadow:0 8px 18px rgba(229,62,62,0.08);">
                             <strong>⚠️ Base da reincidência</strong><br>
                             ${corretivas30.length} corretivas concluídas nos últimos 30 dias antes da deduplicação. ${reincidenciaDuplicadasMesmaBase} atendimento(s) da mesma OS base foram ignorados no ranking.<br>
-                            <small>Versão do cálculo: 8.5.6.50 com reincidência técnica oficial.</small>
+                            <small>Versão do cálculo: 8.5.6.51 com reincidência técnica oficial.</small>
                         </div>
                         <div style="background:#fff5f5; border-left:5px solid #dd6b20; border-radius:18px; padding:13px; color:#7b341e; font-size:0.82rem; box-shadow:0 8px 18px rgba(221,107,32,0.08);">
                             <strong>⚙️ OEE adaptado</strong><br>
@@ -3706,7 +3706,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                         <strong>📌 Regra aplicada:</strong> disponibilidade histórica usa MTBF ÷ (MTBF + MTTR) e não se mistura com a disponibilidade instantânea. MTBF é estimado pelo intervalo médio entre corretivas do mesmo equipamento. Produtividade por líder prioriza FINALIZADO_POR, depois USUARIO_INICIO e RESPONSAVEL, unificando maiúsculas/minúsculas e espaços. Reincidência usa corretivas concluídas válidas dos últimos 30 dias por grupo/equipamento, ignora OS de teste e não duplica atendimentos da mesma OS base. O ranking principal mostra apenas grupos com 2+ OS; 3+ é crítico. OEE é gerencial e adaptado ao GMAN. OS de teste não entram nos KPIs. Ranking por área mostra apenas áreas oficiais.
                         <br>
                         <strong>Situação atual:</strong> ${operando} operando, ${indisponiveis} em manutenção/alerta, ${parados} parados e ${osBacklog} OS no backlog.<br>
-                        <strong>Versão ativa do painel:</strong> GMAN 8.5.6.50 — blindagem de continuidade, auditoria forte e proteção do que já funciona.
+                        <strong>Versão ativa do painel:</strong> GMAN 8.5.6.51 — blindagem de continuidade, auditoria forte e proteção do que já funciona.
                     </div>
                 `;
 
@@ -4651,7 +4651,7 @@ function openEquipment(id) {
             }
 
             ordensServicoCache = [];
-            alert('Cache operacional limpo. A tela será recarregada para buscar a GMAN 8.5.6.50 no Banco Central.');
+            alert('Cache operacional limpo. A tela será recarregada para buscar a GMAN 8.5.6.51 no Banco Central.');
             const base = window.location.origin + window.location.pathname;
             window.location.href = base + '?nocache=' + Date.now();
         }
@@ -4687,7 +4687,7 @@ function openEquipment(id) {
 
 
         /* ============================================================
-           GMAN 8.5.6.50 — FONTE ÚNICA NO BANCO CENTRAL
+           GMAN 8.5.6.51 — FONTE ÚNICA NO BANCO CENTRAL
            Estas funções sobrescrevem as versões antigas do Index.
            O Index passa a exibir o pacote oficial do Apps Script.
            ============================================================ */
@@ -4696,12 +4696,12 @@ function openEquipment(id) {
         let ultimaSincronizacaoPainelGMAN85645 = 0;
 
         function saveData() {
-            // GMAN 8.5.6.50: status/equipamentos não são mais fonte oficial no localStorage.
+            // GMAN 8.5.6.51: status/equipamentos não são mais fonte oficial no localStorage.
             return true;
         }
 
         function loadData() {
-            // GMAN 8.5.6.50: evita reaproveitar status antigo do navegador.
+            // GMAN 8.5.6.51: evita reaproveitar status antigo do navegador.
             return true;
         }
 
@@ -5084,7 +5084,7 @@ function openEquipment(id) {
 
 
         /* ============================================================
-           GMAN 8.5.6.50 — BLINDAGEM DE CONTINUIDADE NO INDEX
+           GMAN 8.5.6.51 — BLINDAGEM DE CONTINUIDADE NO INDEX
            Sobrescreve funções finais sem alterar os fluxos de OS.
            ============================================================ */
 
@@ -5217,7 +5217,7 @@ function openEquipment(id) {
                 registrarAuditoriaClienteGMAN85647('DIAGNOSTICO_TECNICO', 'Diagnóstico técnico aberto no Index', 'OK');
             } catch (erro) {
                 console.error(erro);
-                container.innerHTML = `<div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:14px; padding:12px; color:#742a2a; font-weight:bold;">Erro ao carregar diagnóstico técnico: ${escaparHTMLGMAN(erro.message || erro)}<br><span style="font-weight:700; color:#4a5568;">A correção 8.5.6.50 impede que alertas normais de auditoria sejam tratados como erro fatal. Confira se Apps Script e Index foram publicados na mesma versão.</span></div>`;
+                container.innerHTML = `<div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:14px; padding:12px; color:#742a2a; font-weight:bold;">Erro ao carregar diagnóstico técnico: ${escaparHTMLGMAN(erro.message || erro)}<br><span style="font-weight:700; color:#4a5568;">A correção 8.5.6.51 impede que alertas normais de auditoria sejam tratados como erro fatal. Confira se Apps Script e Index foram publicados na mesma versão.</span></div>`;
             }
         }
 
@@ -5290,7 +5290,7 @@ function openEquipment(id) {
                             Status incomum: <strong>${limpeza.statusIncomum || 0}</strong> | 
                             Aba: <strong>${escaparHTMLGMAN(limpeza.abaQuarentenaSugerida || 'QUARENTENA_TESTES_GMAN')}</strong>
                         </p>
-                        <p style="font-size:0.78rem; margin:8px 0 0;">Nada é apagado. A 8.5.6.50 só permite copiar candidatos para quarentena com confirmação forte.</p>
+                        <p style="font-size:0.78rem; margin:8px 0 0;">Nada é apagado. A 8.5.6.51 só permite copiar candidatos para quarentena com confirmação forte.</p>
                     </div>
 
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -5308,7 +5308,7 @@ function openEquipment(id) {
 
 
         /* ============================================================
-           GMAN 8.5.6.50 — NÚCLEO PROTEGIDO DISCRETO
+           GMAN 8.5.6.51 — NÚCLEO PROTEGIDO DISCRETO
            Ícone técnico visível somente para gestão.
            ============================================================ */
 
@@ -5533,6 +5533,212 @@ function openEquipment(id) {
             ordensServicoCache = [];
             alert('Cache operacional limpo. Login preservado. Clique em Atualizar agora para buscar o Banco Central.');
             atualizarIconeNucleoProtegidoGMAN85649();
+        }
+
+
+
+        /* ============================================================
+           GMAN 8.5.6.51 — VER OS CORRIGIDO E REPARO STATUS DO GRUPO
+           Compatível com OS antigas e novas. Gestão vê botão de reparo
+           quando o grupo ficou Parado/Manutenção mesmo sem OS ativa.
+           ============================================================ */
+
+        const CONFIRMACAO_REPARO_GRUPO_GMAN_85651 = 'CONFIRMO REPARO STATUS GMAN';
+
+        function statusOSEncerradaCompatTelaGMAN85651(status) {
+            const s = normalizarTextoGMAN(status);
+            return s.includes('concluid') || s.includes('cancel') || s.includes('encerrad') || s.includes('fechad') || s.includes('finalizad');
+        }
+
+        function statusOSAtivaCompatTelaGMAN85651(status) {
+            return !statusOSEncerradaCompatTelaGMAN85651(status || '');
+        }
+
+        function statusGrupoPrecisaReparoTelaGMAN85651(eq) {
+            if (!eq) return false;
+            const texto = normalizarTextoGMAN((eq.statusAtual || '') + ' ' + (eq.observacaoStatus || '') + ' ' + (eq.status || ''));
+            if (!texto) return false;
+            if (texto.includes('operando') && !texto.includes('manutencao') && !texto.includes('parado')) return false;
+            return texto.includes('parado') || texto.includes('manutencao') || texto.includes('aguard') || texto.includes('teste') || texto.includes('restricao') || eq.status === 'down' || eq.status === 'alert';
+        }
+
+        async function listarOSGrupoCompatOnlineGMAN85651(idGrupo) {
+            const dados = await apiGet({ acao: 'listarOSGrupoCompat', idGrupo: idGrupo, versaoIndex: VERSAO_FRONTEND_GMAN });
+            if (!dados || dados.sucesso === false) throw new Error((dados && (dados.mensagem || dados.erro)) || 'Erro ao listar OS do grupo.');
+            return dados;
+        }
+
+        function cardOSGrupoDiretoGMAN85651(os, idGrupo) {
+            const encerrada = statusOSEncerradaCompatTelaGMAN85651(os.statusOS);
+            const permissaoAlterar = usuarioPodeAlterarOS(os);
+            const statusPermiteAcao = ['Iniciada', 'Em execução', 'Aguardando material', 'Aguardando liberação', 'Reaberta', 'Parado', 'Em teste', 'Em manutenção (operando)', 'Em manutenção (parado)', 'Operando com restrição', 'Em andamento'].includes(String(os.statusOS));
+            const podeIniciar = !encerrada && permissaoAlterar && String(os.statusOS) === 'Aberta';
+            const podeAtualizarAndamento = !encerrada && permissaoAlterar && statusPermiteAcao;
+            const podeConcluir = !encerrada && permissaoAlterar && statusPermiteAcao;
+            const podeCancelar = !encerrada && podeGerenciarOS();
+            const formatoAntigo = !/^\d{4}\.\d{2}\/\d{2}$/.test(String(os.numeroOS || os.idOS || '').trim());
+
+            return `
+                <div class="os-card">
+                    <h4>${escaparHTMLGMAN(os.numeroOS || os.idOS || '-')} — ${escaparHTMLGMAN(os.equipamento || os.idEquipamento || idGrupo)}</h4>
+                    <span class="os-badge ${classeStatusOS(os.statusOS)}">${escaparHTMLGMAN(os.statusOS || 'Sem status')}</span>
+                    ${formatoAntigo ? '<span class="os-badge os-cancelada">Padrão antigo</span>' : '<span class="os-badge os-aberta">Padrão novo</span>'}
+                    <p><strong>Área:</strong> ${escaparHTMLGMAN(os.area || '-')} | <strong>Tipo:</strong> ${escaparHTMLGMAN(os.tipoManutencao || '-')}</p>
+                    <p><strong>Sistema:</strong> ${escaparHTMLGMAN(os.sistema || '-')} | <strong>Equipe:</strong> ${escaparHTMLGMAN(os.equipeResponsavel || '-')}</p>
+                    <p><strong>Responsável:</strong> ${escaparHTMLGMAN(os.responsavel || '-')}</p>
+                    <p><strong>Problema:</strong> ${escaparHTMLGMAN(os.descricaoProblema || '-')}</p>
+                    ${os.dataAbertura ? `<p><strong>Abertura:</strong> ${escaparHTMLGMAN(formatarDataApi(os.dataAbertura))} ${os.horaAbertura ? '| ' + escaparHTMLGMAN(formatarHoraApi(os.horaAbertura)) : ''}</p>` : ''}
+                    ${os.dataConclusao ? `<p><strong>Conclusão:</strong> ${escaparHTMLGMAN(formatarDataApi(os.dataConclusao))} ${os.horaConclusao ? '| ' + escaparHTMLGMAN(formatarHoraApi(os.horaConclusao)) : ''}</p>` : ''}
+                    ${os.servicoRealizado ? `<p><strong>Serviço realizado:</strong> ${escaparHTMLGMAN(os.servicoRealizado)}</p>` : ''}
+                    ${os.finalizadoPor ? `<p><strong>Finalizado por:</strong> ${escaparHTMLGMAN(os.finalizadoPor)}</p>` : ''}
+                    ${encerrada ? '<p style="color:#2f855a; font-weight:800;">✅ OS encerrada</p>' : ''}
+                    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
+                        ${podeIniciar ? `<button onclick="iniciarOS('${escaparHTMLGMAN(os.idOS)}')" style="padding:8px 10px; border:none; border-radius:8px; background:#d69e2e; color:white; cursor:pointer;">▶️ Iniciar</button>` : ''}
+                        ${podeAtualizarAndamento ? `<button onclick="abrirModalAndamentoOS('${escaparHTMLGMAN(os.idOS)}')" style="padding:8px 10px; border:none; border-radius:8px; background:#3182ce; color:white; cursor:pointer;">📝 Atualizar andamento</button>` : ''}
+                        ${podeConcluir ? `<button onclick="abrirModalConcluirOS('${escaparHTMLGMAN(os.idOS)}')" style="padding:8px 10px; border:none; border-radius:8px; background:#38a169; color:white; cursor:pointer;">✅ Concluir</button>` : ''}
+                        ${podeCancelar ? `<button onclick="cancelarOS('${escaparHTMLGMAN(os.idOS)}')" style="padding:8px 10px; border:none; border-radius:8px; background:#718096; color:white; cursor:pointer;">Cancelar</button>` : ''}
+                        ${(!encerrada && podeGerenciarOS()) ? `<button onclick="abrirModalFechamentoAssistidoOS('${escaparHTMLGMAN(os.idOS)}')" style="padding:8px 10px; border:none; border-radius:8px; background:#b7791f; color:white; cursor:pointer; font-weight:800;">🧯 Fechamento assistido</button>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderizarOSGrupoDiretoGMAN85651(dadosGrupo, idGrupo) {
+            const container = document.getElementById('osConteudo');
+            if (!container) return;
+            const ordens = Array.isArray(dadosGrupo.ordens) ? dadosGrupo.ordens : [];
+            const contagem = dadosGrupo.contagem || {};
+            const eq = equipment.find(e => gruposIguaisGMAN85633(e.id, idGrupo) || String(e.id) === String(idGrupo));
+            const semAtivas = Number(contagem.ativas || 0) === 0 && Number(contagem.total || ordens.length) > 0;
+            const podeMostrarReparo = podeGerenciarOS() && semAtivas && statusGrupoPrecisaReparoTelaGMAN85651(eq);
+
+            container.innerHTML = `
+                <div style="background:#edf2f7; border-left:5px solid #3182ce; border-radius:14px; padding:12px; margin-bottom:12px; color:#1e3a5f;">
+                    <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; align-items:center;">
+                        <strong>OS do grupo ${escaparHTMLGMAN(idGrupo)}</strong>
+                        <span style="font-size:0.82rem; font-weight:800; color:#2d3748;">Fonte: Banco Central GMAN</span>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(118px,1fr)); gap:8px; margin-top:10px;">
+                        <div class="os-count-card"><strong>${contagem.total || ordens.length}</strong><span>Total</span></div>
+                        <div class="os-count-card iniciada"><strong>${contagem.ativas || 0}</strong><span>Ativas</span></div>
+                        <div class="os-count-card concluida"><strong>${contagem.concluidas || 0}</strong><span>Concluídas</span></div>
+                        <div class="os-count-card detalhe"><strong>${contagem.canceladas || 0}</strong><span>Canceladas</span></div>
+                        <div class="os-count-card detalhe"><strong>${contagem.padraoAntigo || 0}</strong><span>Padrão antigo</span></div>
+                    </div>
+                    ${podeMostrarReparo ? `
+                        <div style="margin-top:12px; background:#fffaf0; border:1px solid #fbd38d; border-radius:14px; padding:10px; color:#744210;">
+                            <strong>⚠️ Grupo sem OS ativa, mas ainda aparece como manutenção/parado.</strong><br>
+                            Use o reparo seguro para voltar o status do grupo para Operando sem alterar nenhuma OS.
+                            <div style="margin-top:8px;">
+                                <button onclick="abrirModalReparoStatusGrupoGMAN85651('${escaparHTMLGMAN(idGrupo)}')" style="padding:10px 13px; border:none; border-radius:10px; background:#b7791f; color:white; cursor:pointer; font-weight:900;">🛠️ Reparar status do grupo</button>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+                ${ordens.length ? ordens.map(os => cardOSGrupoDiretoGMAN85651(os, idGrupo)).join('') : `<p style="color:#4a5568; background:#f7fafc; padding:14px; border-radius:12px;">Nenhuma OS encontrada para este grupo. Confira se o ID do grupo está igual na planilha.</p>`}
+            `;
+        }
+
+        async function verOSDoGrupoGMAN(idGrupo) {
+            try {
+                const dadosGrupo = await listarOSGrupoCompatOnlineGMAN85651(idGrupo);
+                modoPainelOSAtual = 'grupo:' + idGrupo;
+                const existingModal = document.getElementById('osModal');
+                if (existingModal) existingModal.remove();
+
+                const modal = document.createElement('div');
+                modal.id = 'osModal';
+                modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.82); display: flex; align-items: center; justify-content: center; z-index: 1100; padding: 18px;';
+                modal.innerHTML = `
+                    <div style="background:linear-gradient(180deg,#ffffff,#f7fafc); border-radius:24px; padding:22px; width:96%; max-width:920px; max-height:90vh; overflow-y:auto; box-shadow:0 18px 44px rgba(0,0,0,0.22);">
+                        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
+                            <div>
+                                <h2 style="color:#1e3a5f; margin:0; font-size:1.22rem;">📋 OS do grupo ${escaparHTMLGMAN(idGrupo)}</h2>
+                                <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Compatível com OS antigas e novas. Mostra concluídas, canceladas e abertas.</p>
+                            </div>
+                            <button onclick="document.getElementById('osModal').remove();" style="padding:10px 14px; border:none; border-radius:12px; background:#718096; color:white; cursor:pointer;">Fechar</button>
+                        </div>
+                        <div id="osConteudo">Carregando OS do grupo...</div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                ordensServicoCache = Array.isArray(dadosGrupo.ordens) ? dadosGrupo.ordens : ordensServicoCache;
+                renderizarOSGrupoDiretoGMAN85651(dadosGrupo, idGrupo);
+            } catch (erro) {
+                console.error(erro);
+                alert('Erro ao abrir OS do grupo: ' + (erro.message || erro));
+            }
+        }
+
+        async function abrirModalReparoStatusGrupoGMAN85651(idGrupo) {
+            if (!podeGerenciarOS()) return alert('Reparo de status disponível somente para gestão.');
+            try {
+                const diag = await apiGet({ acao: 'diagnosticoReparoStatusGrupo', idGrupo: idGrupo, versaoIndex: VERSAO_FRONTEND_GMAN });
+                const existing = document.getElementById('reparoStatusGrupoModal');
+                if (existing) existing.remove();
+                const modal = document.createElement('div');
+                modal.id = 'reparoStatusGrupoModal';
+                modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.76); display:flex; align-items:center; justify-content:center; z-index:1900; padding:16px;';
+                modal.innerHTML = `
+                    <div style="background:white; border-radius:22px; width:96%; max-width:640px; max-height:90vh; overflow:auto; box-shadow:0 20px 60px rgba(0,0,0,0.28);">
+                        <div style="background:linear-gradient(135deg,#b7791f,#744210); color:white; padding:18px 20px; border-radius:22px 22px 0 0;">
+                            <div style="font-size:0.78rem; opacity:0.9;">Reparo seguro de status</div>
+                            <h2 style="margin:4px 0 0; font-size:1.2rem;">🛠️ ${escaparHTMLGMAN(idGrupo)}</h2>
+                        </div>
+                        <div style="padding:18px; color:#1a202c;">
+                            <div style="background:${diag.podeReparar ? '#fffaf0' : '#f7fafc'}; border-left:5px solid ${diag.podeReparar ? '#d69e2e' : '#718096'}; border-radius:14px; padding:12px; margin-bottom:12px;">
+                                <strong>Status atual:</strong> ${escaparHTMLGMAN(diag.statusAtual || '-')}<br>
+                                <strong>OS do grupo:</strong> ${diag.totalOSGrupo || 0}<br>
+                                <strong>Ativas:</strong> ${diag.totalOSAtivas || 0}<br>
+                                <strong>Concluídas:</strong> ${diag.totalOSConcluidas || 0}<br>
+                                <strong>Canceladas:</strong> ${diag.totalOSCanceladas || 0}<br>
+                                <strong>OS em padrão antigo:</strong> ${diag.totalOSPadraoAntigo || 0}<br>
+                                <strong>Resultado:</strong> ${escaparHTMLGMAN(diag.motivo || '-')}
+                            </div>
+                            <label class="form-label">Justificativa do reparo</label>
+                            <textarea id="justificativaReparoStatusGrupo" class="form-field" rows="4" placeholder="Ex.: Grupo possui 5 OS, 4 concluídas e 1 cancelada. Não há OS ativa bloqueando o retorno para Operando."></textarea>
+                            <div style="background:#edf2f7; border-radius:12px; padding:10px; color:#2d3748; font-size:0.82rem; margin:10px 0;">
+                                Para executar, digite exatamente:<br>
+                                <strong>${CONFIRMACAO_REPARO_GRUPO_GMAN_85651}</strong>
+                            </div>
+                            <input id="confirmacaoReparoStatusGrupo" class="form-field" placeholder="Digite a confirmação forte">
+                            <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end; margin-top:14px;">
+                                <button onclick="document.getElementById('reparoStatusGrupoModal').remove();" style="padding:11px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Cancelar</button>
+                                <button ${diag.podeReparar ? '' : 'disabled'} onclick="executarReparoStatusGrupoGMAN85651('${escaparHTMLGMAN(idGrupo)}')" style="padding:11px 14px; border:none; border-radius:10px; background:${diag.podeReparar ? '#b7791f' : '#cbd5e0'}; color:white; cursor:${diag.podeReparar ? 'pointer' : 'not-allowed'}; font-weight:900;">🛠️ Reparar para Operando</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            } catch (erro) {
+                console.error(erro);
+                alert('Erro ao abrir reparo de status: ' + (erro.message || erro));
+            }
+        }
+
+        async function executarReparoStatusGrupoGMAN85651(idGrupo) {
+            const justificativa = (document.getElementById('justificativaReparoStatusGrupo') || {}).value || '';
+            const confirmacao = (document.getElementById('confirmacaoReparoStatusGrupo') || {}).value || '';
+            if (!justificativa.trim()) return alert('Informe a justificativa do reparo.');
+            if (confirmacao.trim() !== CONFIRMACAO_REPARO_GRUPO_GMAN_85651) return alert('Confirmação incorreta. O reparo não foi executado.');
+            try {
+                const retorno = await apiPost({
+                    acao: 'repararStatusGrupoConcluido',
+                    usuario: usuarioLogado ? usuarioLogado.nome : '',
+                    funcao: usuarioLogado ? usuarioLogado.funcao : '',
+                    idGrupo: idGrupo,
+                    justificativa: justificativa.trim(),
+                    confirmacao: confirmacao.trim()
+                });
+                alert(retorno.mensagem || 'Reparo concluído.');
+                const modal = document.getElementById('reparoStatusGrupoModal');
+                if (modal) modal.remove();
+                await atualizarAgora();
+                try { await verOSDoGrupoGMAN(idGrupo); } catch (e) {}
+            } catch (erro) {
+                console.error(erro);
+                alert('Erro ao executar reparo: ' + (erro.message || erro));
+            }
         }
 
         iniciarSistema();
