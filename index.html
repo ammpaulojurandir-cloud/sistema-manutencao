@@ -5333,7 +5333,7 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
 
 <script>
 /* =========================================================
-   GMAN 8.5.7.2 — CORREÇÃO CIRÚRGICA AUDITADA DO INDEX CLÁSSICO
+   GMAN 8.5.7.3 — CORREÇÃO CIRÚRGICA DO ESCOPO GLOBAL DO INDEX CLÁSSICO
    Escopo: manter layout clássico; corrigir API 8.5.6.44, login, botões, equipamentos/status e OS.
    Não altera planilha. Não altera Apps Script. Não usa imagens. Não usa API antiga.
    ========================================================= */
@@ -5341,7 +5341,7 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
   'use strict';
 
   const GMAN_API_OFICIAL_8572 = 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec';
-  const GMAN_VERSAO_INDEX_8572 = 'GMAN 8.5.7.2 — Index clássico real auditado com API 8.5.6.44';
+  const GMAN_VERSAO_INDEX_8572 = 'GMAN 8.5.7.3 — Index clássico real corrigido: escopo global, API 8.5.6.44 e botões';
   const GMAN_GESTAO_FORTE_8572 = ['ADMINISTRADOR','GERENTE','SUPERVISOR','COORDENADOR'];
 
   function canon8572(valor){
@@ -5398,7 +5398,7 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
     const dados = Object.assign({}, payload || {});
     if (dados.acao && !dados.action) dados.action = dados.acao;
     if (dados.idOS && !dados.idOs) dados.idOs = dados.idOS;
-    if (window.usuarioLogado && window.usuarioLogado.nome && !dados.usuario) dados.usuario = window.usuarioLogado.nome;
+    if (usuarioLogado && usuarioLogado.nome && !dados.usuario) dados.usuario = usuarioLogado.nome;
 
     let resposta;
     if (metodo === 'POST') {
@@ -5430,9 +5430,9 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
   };
 
   window.podeGerenciarOS = function(){
-    if (!window.usuarioLogado) return false;
-    if (window.usuarioLogado.gestao === true) return true;
-    return GMAN_GESTAO_FORTE_8572.includes(canon8572(window.usuarioLogado.funcao || window.usuarioLogado.perfil));
+    if (!usuarioLogado) return false;
+    if (usuarioLogado.gestao === true) return true;
+    return GMAN_GESTAO_FORTE_8572.includes(canon8572(usuarioLogado.funcao || usuarioLogado.perfil));
   };
 
   window.aplicarBotoesPermissao = function(){
@@ -5462,7 +5462,7 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
   window.mostrarUsuarioLogado = function(){
     const existente = document.getElementById('userInfo');
     if (existente) existente.remove();
-    if (!window.usuarioLogado) return;
+    if (!usuarioLogado) return;
 
     const header = document.querySelector('h1');
     if (!header || !header.parentNode) return;
@@ -5470,7 +5470,7 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
     info.id = 'userInfo';
     info.style.cssText = 'text-align:center;color:#e6f4ff;font-size:0.88rem;margin:6px auto 15px;font-weight:700;background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.20);border-radius:14px;padding:9px 12px;max-width:720px;';
     const tipo = window.podeGerenciarOS() ? 'GESTÃO' : 'OPERACIONAL';
-    info.innerHTML = '👤 ' + escaparHTML8572(window.usuarioLogado.nome || '-') + ' | ' + escaparHTML8572(String(window.usuarioLogado.funcao || '').toUpperCase()) + ' | ' + tipo +
+    info.innerHTML = '👤 ' + escaparHTML8572(usuarioLogado.nome || '-') + ' | ' + escaparHTML8572(String(usuarioLogado.funcao || '').toUpperCase()) + ' | ' + tipo +
       '<button onclick="fazerLogout()" style="margin-left:10px;padding:5px 11px;background:rgba(255,255,255,0.12);color:white;border:1px solid rgba(255,255,255,0.35);border-radius:8px;cursor:pointer;font-size:0.76rem;">Sair</button>';
     header.parentNode.insertBefore(info, header.nextSibling);
   };
@@ -5493,21 +5493,21 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
     try {
       const retorno = await window.apiPost({ action: 'login', login: user.trim(), senha: pass });
       const usuarioApi = retorno.usuario || retorno.USUARIO || {};
-      window.usuarioLogado = usuarioForte8572(Object.assign({}, usuarioApi, { gestao: retorno.gestao || usuarioApi.gestao }));
+      usuarioLogado = usuarioForte8572(Object.assign({}, usuarioApi, { gestao: retorno.gestao || usuarioApi.gestao }));
     } catch (erroApi) {
       // Fallback local apenas para não travar em campo; prioriza perfil de gestão quando houver duplicidade.
       console.warn('Login pela API falhou; tentando fallback local apenas para recuperação de tela:', erroApi);
-      const listaLocal = Array.isArray(window.usuarios) ? window.usuarios : [];
+      const listaLocal = Array.isArray(usuarios) ? usuarios : [];
       const candidatos = listaLocal.filter(u => canon8572(u.nome) === canon8572(user) && String(u.senha || '') === String(pass));
       const encontrado = candidatos.sort((a,b) => (GMAN_GESTAO_FORTE_8572.includes(canon8572(b.funcao))?1:0) - (GMAN_GESTAO_FORTE_8572.includes(canon8572(a.funcao))?1:0))[0];
       if (!encontrado) {
         if (erro) { erro.textContent = 'Usuário ou senha incorretos na API oficial GMAN.'; erro.style.display = 'block'; }
         return;
       }
-      window.usuarioLogado = usuarioForte8572(encontrado);
+      usuarioLogado = usuarioForte8572(encontrado);
     }
 
-    try { sessionStorage.setItem('manutencao_usuario_logado', JSON.stringify(window.usuarioLogado)); } catch(e) {}
+    try { sessionStorage.setItem('manutencao_usuario_logado', JSON.stringify(usuarioLogado)); } catch(e) {}
     try { localStorage.removeItem('manutencao_usuario_logado'); } catch(e) {}
 
     const loginScreen = document.getElementById('loginScreen');
@@ -5522,7 +5522,7 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
     try {
       const raw = sessionStorage.getItem('manutencao_usuario_logado') || localStorage.getItem('manutencao_usuario_logado');
       if (!raw) return false;
-      window.usuarioLogado = usuarioForte8572(JSON.parse(raw));
+      usuarioLogado = usuarioForte8572(JSON.parse(raw));
       const loginScreen = document.getElementById('loginScreen');
       if (loginScreen) loginScreen.style.display = 'none';
       window.mostrarUsuarioLogado();
@@ -5537,7 +5537,7 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
 
   window.fazerLogout = function(){
     try { sessionStorage.removeItem('manutencao_usuario_logado'); localStorage.removeItem('manutencao_usuario_logado'); } catch(e) {}
-    window.usuarioLogado = null;
+    usuarioLogado = null;
     const loginScreen = document.getElementById('loginScreen');
     if (loginScreen) loginScreen.style.display = 'flex';
     const info = document.getElementById('userInfo');
@@ -5612,21 +5612,21 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
 
       const oficiais = lista.map(equipamentoDeStatus8572).filter(e => e.id);
       if (oficiais.length) {
-        window.equipment.splice(0, window.equipment.length, ...oficiais);
+        equipment.splice(0, equipment.length, ...oficiais);
       }
 
       try {
-        window.ordensServicoCache = await window.listarOSOnline();
-        if (typeof window.atualizarTotalizadoresOS === 'function') window.atualizarTotalizadoresOS(window.ordensServicoCache);
+        ordensServicoCache = await window.listarOSOnline();
+        if (typeof window.atualizarTotalizadoresOS === 'function') window.atualizarTotalizadoresOS(ordensServicoCache);
       } catch(erroOS) { console.warn('Status carregado, OS não carregaram nesta etapa:', erroOS); }
 
-      window.apiOnline = true;
+      apiOnline = true;
       if (typeof window.applyFilters === 'function') window.applyFilters();
       if (typeof window.atualizarIndicadorConexao === 'function') window.atualizarIndicadorConexao('✅ Online: API oficial GMAN conectada', 'online');
       window.aplicarBotoesPermissao();
       return true;
     } catch(erro) {
-      window.apiOnline = false;
+      apiOnline = false;
       console.error('Erro ao carregar status oficial:', erro);
       if (typeof window.applyFilters === 'function') window.applyFilters();
       if (typeof window.atualizarIndicadorConexao === 'function') window.atualizarIndicadorConexao('⚠️ Falha ao carregar API oficial: ' + erro.message, 'offline');
@@ -5645,10 +5645,10 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
   window.atualizarAgora = async function(){
     await window.carregarStatusOnline();
     try {
-      window.ordensServicoCache = await window.listarOSOnline();
-      if (typeof window.atualizarTotalizadoresOS === 'function') window.atualizarTotalizadoresOS(window.ordensServicoCache);
+      ordensServicoCache = await window.listarOSOnline();
+      if (typeof window.atualizarTotalizadoresOS === 'function') window.atualizarTotalizadoresOS(ordensServicoCache);
       if (typeof window.applyFilters === 'function') window.applyFilters();
-      if (document.getElementById('osModal') && typeof window.renderizarOS === 'function') window.renderizarOS(window.ordensServicoCache);
+      if (document.getElementById('osModal') && typeof window.renderizarOS === 'function') window.renderizarOS(ordensServicoCache);
       window.aplicarBotoesPermissao();
     } catch(erro) {
       console.error('Erro ao atualizar OS:', erro);
@@ -5662,13 +5662,13 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
       localStorage.removeItem('ordensServicoCache');
       // Não limpar sessionStorage para não deslogar.
     } catch(e) {}
-    window.ordensServicoCache = [];
+    ordensServicoCache = [];
     alert('Cache operacional limpo sem deslogar. Clique em Atualizar agora.');
   };
 
   const filtroOriginal8572 = window.filterSystem;
   window.filterSystem = function(system){
-    window.currentSystem = system;
+    currentSystem = system;
     document.querySelectorAll('.system-btn').forEach(btn => btn.classList.remove('active'));
     if (event && event.target) event.target.classList.add('active');
     if (typeof window.applyFilters === 'function') window.applyFilters();
@@ -5687,14 +5687,14 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
   function renderFallback8572(){
     const list = document.getElementById('equipmentList');
     if (!list) return;
-    const sistema = window.currentSystem || 'all';
+    const sistema = currentSystem || 'all';
     const busca = canon8572((document.getElementById('searchInput') || {}).value || '');
-    let dados = Array.isArray(window.equipment) ? window.equipment.slice() : [];
+    let dados = Array.isArray(equipment) ? equipment.slice() : [];
     if (sistema && sistema !== 'all') {
       if (sistema === 'brutas') dados = dados.filter(e => e.filtroBrutas || ['101','201','301','401','601','701'].includes(String(e.id||'').substring(0,3)));
       else dados = dados.filter(e => canon8572(e.system) === canon8572(sistema) || canon8572(e.systemCode) === canon8572(sistema));
     }
-    if (window.currentStatusFilter) dados = dados.filter(e => e.status === window.currentStatusFilter);
+    if (currentStatusFilter) dados = dados.filter(e => e.status === currentStatusFilter);
     if (busca) dados = dados.filter(e => canon8572([e.id,e.name,e.system,e.systemCode,e.localEstacao].join(' ')).includes(busca));
 
     list.innerHTML = dados.map(e => {
@@ -5709,10 +5709,10 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
         '<span class="status-badge ' + badge + '">' + label + '</span></div>';
     }).join('');
 
-    const total = Array.isArray(window.equipment) ? window.equipment.length : 0;
-    const ok = window.equipment.filter(e => e.status === 'ok').length;
-    const alert = window.equipment.filter(e => e.status === 'alert').length;
-    const down = window.equipment.filter(e => e.status === 'down').length;
+    const total = Array.isArray(equipment) ? equipment.length : 0;
+    const ok = equipment.filter(e => e.status === 'ok').length;
+    const alert = equipment.filter(e => e.status === 'alert').length;
+    const down = equipment.filter(e => e.status === 'down').length;
     const setText = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
     setText('operationalCount', ok); setText('maintenanceCount', alert); setText('downCount', down);
     setText('operationalPercent', total ? Math.round(ok*1000/total)/10 + '%' : '0%');
@@ -5727,7 +5727,7 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
 
   window.criarOSPeloModal = async function(){
     const idEquipamento = (document.getElementById('osEquipamento') || {}).value || '';
-    const eq = (window.equipment || []).find(e => String(e.id) === String(idEquipamento)) || {};
+    const eq = (equipment || []).find(e => String(e.id) === String(idEquipamento)) || {};
     const componentesSolicitados = typeof window.coletarComponentesSolicitadosModalGMAN === 'function' ? window.coletarComponentesSolicitadosModalGMAN() : [];
     const area = (document.getElementById('osArea') || {}).value || '';
     const tipoManutencao = (document.getElementById('osTipo') || {}).value || '';
@@ -5736,7 +5736,7 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
     const descricaoProblema = ((document.getElementById('osDescricao') || {}).value || '').trim();
 
     const faltantes=[];
-    if (!window.usuarioLogado || !window.usuarioLogado.nome) faltantes.push('usuário logado');
+    if (!usuarioLogado || !usuarioLogado.nome) faltantes.push('usuário logado');
     if (!idEquipamento) faltantes.push('equipamento');
     if (!componentesSolicitados.length) faltantes.push('equipamento solicitado dentro do grupo');
     if (!area) faltantes.push('área/setor');
@@ -5749,8 +5749,8 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
     try {
       await window.apiPost({
         action: 'criarOS',
-        login: window.usuarioLogado.login || window.usuarioLogado.nome,
-        usuario: window.usuarioLogado.nome,
+        login: usuarioLogado.login || usuarioLogado.nome,
+        usuario: usuarioLogado.nome,
         sistema: eq.systemCode || eq.sistema || '',
         tipoLocal: eq.tipoLocal || 'Grupo Motobomba',
         localEstacao: eq.localEstacao || eq.name || idEquipamento,
@@ -5775,7 +5775,7 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
     const justificativa = prompt('Justificativa obrigatória para iniciar a OS:', 'Início de atendimento técnico.');
     if (!justificativa) return alert('Justificativa obrigatória.');
     try {
-      await window.apiPost({ action:'iniciarOS', idOs:idOS, usuario:window.usuarioLogado.nome, login:window.usuarioLogado.login || window.usuarioLogado.nome, condicaoOperacional, justificativa });
+      await window.apiPost({ action:'iniciarOS', idOs:idOS, usuario:usuarioLogado.nome, login:usuarioLogado.login || usuarioLogado.nome, condicaoOperacional, justificativa });
       alert('OS iniciada com sucesso.');
       await window.atualizarAgora();
       if (document.getElementById('osModal')) await window.recarregarPainelOS();
@@ -5788,7 +5788,7 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
     const observacao = ((document.getElementById('andamentoObs') || {}).value || '').trim();
     if (!observacao) return alert('Informe uma justificativa/observação antes de atualizar.');
     try {
-      await window.apiPost({ action:'atualizarAndamentoOS', idOs:idOS, usuario:window.usuarioLogado.nome, login:window.usuarioLogado.login || window.usuarioLogado.nome, condicaoOperacional, justificativa: observacao, observacao });
+      await window.apiPost({ action:'atualizarAndamentoOS', idOs:idOS, usuario:usuarioLogado.nome, login:usuarioLogado.login || usuarioLogado.nome, condicaoOperacional, justificativa: observacao, observacao });
       const modal = document.getElementById('andamentoOSModal'); if (modal) modal.remove();
       alert('Andamento atualizado.');
       await window.atualizarAgora();
@@ -5800,7 +5800,7 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
   window.addEventListener('load', function(){
     try { window.recuperarLoginSalvo(); } catch(e) {}
     try { window.aplicarBotoesPermissao(); } catch(e) {}
-    setTimeout(function(){ try { if (window.usuarioLogado) window.atualizarAgora(); } catch(e) {} }, 400);
+    setTimeout(function(){ try { if (usuarioLogado) window.atualizarAgora(); } catch(e) {} }, 400);
   });
 
   console.log(GMAN_VERSAO_INDEX_8572 + ' carregado.');
