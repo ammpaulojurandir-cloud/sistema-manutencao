@@ -31,6 +31,71 @@
     table{width:100%;border-collapse:separate;border-spacing:0 8px} th{font-size:12px;color:var(--muted);text-align:left;padding:0 8px} td{background:#fff;border-top:1px solid var(--borda);border-bottom:1px solid var(--borda);padding:10px 8px;font-size:13px} td:first-child{border-left:1px solid var(--borda);border-radius:12px 0 0 12px} td:last-child{border-right:1px solid var(--borda);border-radius:0 12px 12px 0}.table-wrap{overflow:auto}.empty{padding:24px;text-align:center;color:var(--muted);border:1px dashed var(--borda);border-radius:16px;background:rgba(255,255,255,.72)}
     .modal{position:fixed;inset:0;display:none;align-items:flex-end;justify-content:center;background:rgba(5,20,32,.45);z-index:100}.modal.open{display:flex}.modal-card{width:min(980px,100%);max-height:92vh;overflow:auto;background:#f8fcfe;border-radius:24px 24px 0 0;padding:16px;border:1px solid var(--borda);box-shadow:0 -12px 36px rgba(0,0,0,.18)}@media(min-width:980px){.modal{align-items:center}.modal-card{border-radius:24px;max-height:88vh}}.modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.modal-head h2{margin:0;font-size:18px}.close{background:#fff;color:var(--azul);border:1px solid var(--borda);box-shadow:none}
     .toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:#102330;color:#fff;padding:12px 14px;border-radius:14px;box-shadow:0 14px 30px rgba(0,0,0,.18);z-index:200;display:none;max-width:92%;font-size:13px}.toast.show{display:block}.offline{display:none;position:fixed;top:0;left:0;right:0;background:var(--laranja);color:#fff;text-align:center;padding:8px;font-weight:800;z-index:300}.offline.show{display:block}.version{position:fixed;right:8px;bottom:8px;font-size:10px;color:var(--muted);background:rgba(255,255,255,.85);border:1px solid var(--borda);border-radius:999px;padding:6px 8px;z-index:70}.bottomnav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.94);border-top:1px solid var(--borda);display:flex;gap:4px;justify-content:space-around;padding:8px;z-index:60}.navbtn{background:transparent;color:var(--muted);box-shadow:none;font-size:11px;padding:6px 8px}.navbtn.active{color:var(--azul);font-weight:900}.login-screen{min-height:100vh;display:grid;place-items:center;padding:18px}.login-card{width:min(460px,100%);background:rgba(255,255,255,.92);border:1px solid var(--borda);border-radius:28px;box-shadow:var(--shadow);padding:24px}.login-card h1{margin:12px 0 5px}.login-card p{color:var(--muted)}.badge-line{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.required::after{content:" *";color:var(--vermelho);font-weight:900}.hint{font-size:12px;color:var(--muted);margin-top:4px}.hidden{display:none!important}.actions-row{display:flex;gap:8px;flex-wrap:wrap}.audio-box{border:1px dashed var(--borda);border-radius:16px;padding:12px;background:#fff}.timer{font-size:34px;font-weight:900;color:var(--azul)}.progress{height:8px;background:#e5eef5;border-radius:999px;overflow:hidden}.progress span{display:block;height:100%;background:var(--azul);width:0%}.lock-note{font-size:12px;color:var(--muted);background:#fff;border:1px solid var(--borda);border-radius:14px;padding:10px}.small{font-size:12px;color:var(--muted)}
+
+    /* GMAN 8.5.6.43 — ajuste institucional sem imagens */
+    body::before{background:
+      linear-gradient(135deg,rgba(6,58,92,.12),rgba(17,132,91,.08)),
+      repeating-linear-gradient(0deg,rgba(11,95,148,.045) 0 1px,transparent 1px 34px),
+      repeating-linear-gradient(90deg,rgba(11,95,148,.045) 0 1px,transparent 1px 34px),#f3f8fb}
+    .login-screen{align-items:center;background:radial-gradient(circle at 10% 10%,rgba(11,95,148,.11),transparent 30%),radial-gradient(circle at 90% 80%,rgba(242,140,40,.10),transparent 28%)}
+    .login-card{width:min(500px,100%);padding:26px;border-radius:26px;border:1px solid rgba(11,95,148,.16);box-shadow:0 20px 50px rgba(6,58,92,.18);background:linear-gradient(180deg,rgba(255,255,255,.97),rgba(247,252,255,.96))}
+    .login-card .brandmark{margin-bottom:8px}.login-card h1{font-size:28px;letter-spacing:-.8px;color:var(--azul2)}
+    .login-panel-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.login-panel-title span{font-size:12px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+    .dmae-wordmark{font-weight:900;color:var(--azul);font-size:18px;letter-spacing:-.4px}.dmae-wordmark small{display:block;color:var(--muted);font-size:10px;letter-spacing:.02em;font-weight:700}
+    .login-fields{display:grid;gap:12px;margin-top:16px}.password-wrap{position:relative}.password-wrap input{padding-right:86px}.show-pass{position:absolute;right:7px;top:7px;background:#eef6fb;color:var(--azul);box-shadow:none;border:1px solid var(--borda);padding:7px 9px;border-radius:11px;font-size:12px}
+    .actions-row.login-actions{display:grid;grid-template-columns:1fr auto;align-items:center}.actions-row.login-actions button:first-child{padding:13px 16px;border-radius:15px;background:linear-gradient(135deg,var(--azul),#0879b7)}
+    .topbar{border-bottom:1px solid rgba(11,95,148,.12);box-shadow:0 8px 22px rgba(8,63,99,.06)}.card{box-shadow:0 8px 24px rgba(8,63,99,.08);border-color:rgba(11,95,148,.12)}
+    .brandmark{background:linear-gradient(145deg,#0b5f94,#0d7fb9 55%,#23a455);font-size:15px}.tab.active,.filter-btn.active{background:linear-gradient(135deg,var(--azul),#0879b7)}
+    .version{opacity:.72}.version:hover{opacity:1}
+
+
+
+    /* GMAN 8.5.6.43 — VISUAL REFORÇADO SEM PRÉVIA DE IMAGEM NO CHAT, SOMENTE CSS/HTML */
+    :root{
+      --azul-profundo:#053452;
+      --azul-vivo:#0a7db8;
+      --verde-vivo:#22b35e;
+      --laranja-vivo:#ff9a2d;
+      --vidro:rgba(255,255,255,.82);
+      --shadow-strong:0 18px 46px rgba(5,52,82,.18);
+      --shadow-soft:0 8px 22px rgba(5,52,82,.10);
+    }
+    html,body{background:#eef7fb;}
+    body::before{background:
+      radial-gradient(circle at 12% 8%, rgba(10,125,184,.20), transparent 28%),
+      radial-gradient(circle at 92% 18%, rgba(34,179,94,.14), transparent 25%),
+      radial-gradient(circle at 52% 90%, rgba(255,154,45,.13), transparent 32%),
+      linear-gradient(135deg,#edf8fd 0%,#f8fbfd 46%,#eef8f2 100%);
+    }
+    body::after{inset:0;height:auto;background:
+      repeating-linear-gradient(0deg, rgba(5,52,82,.035) 0 1px, transparent 1px 34px),
+      repeating-linear-gradient(90deg, rgba(5,52,82,.035) 0 1px, transparent 1px 34px),
+      linear-gradient(120deg, transparent 0 48%, rgba(10,125,184,.045) 48% 49%, transparent 49% 100%);opacity:1;}
+    .login-screen{background:
+      radial-gradient(circle at 20% 10%,rgba(10,125,184,.20),transparent 30%),
+      radial-gradient(circle at 82% 84%,rgba(255,154,45,.16),transparent 28%),
+      linear-gradient(160deg,rgba(5,52,82,.06),rgba(34,179,94,.07));}
+    .login-card{position:relative;overflow:hidden;border:1px solid rgba(10,125,184,.25);box-shadow:0 26px 70px rgba(5,52,82,.24);background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(241,250,255,.95));}
+    .login-card::before{content:"";position:absolute;left:0;top:0;right:0;height:8px;background:linear-gradient(90deg,var(--azul-vivo),var(--verde-vivo),var(--laranja-vivo));}
+    .login-card::after{content:"GMAN";position:absolute;right:-16px;bottom:-12px;font-size:74px;font-weight:1000;letter-spacing:-5px;color:rgba(10,125,184,.055);pointer-events:none;}
+    .brandmark{width:52px;height:52px;border-radius:18px;background:linear-gradient(145deg,#053452 0%,#0a7db8 54%,#22b35e 100%);box-shadow:inset 0 2px 4px rgba(255,255,255,.35),inset 0 -8px 14px rgba(0,0,0,.16),0 14px 26px rgba(5,52,82,.22);transform:translateZ(0);}
+    .login-card .brandmark{width:62px;height:62px;font-size:18px;border-radius:22px;}
+    .dmae-wordmark{font-size:21px;color:var(--azul-profundo)}.dmae-wordmark small{color:#597182;}
+    .login-card h1{font-size:34px;line-height:1;margin-top:14px;background:linear-gradient(90deg,var(--azul-profundo),var(--azul-vivo));-webkit-background-clip:text;background-clip:text;color:transparent;}
+    .login-card p{font-size:14px;}
+    input,select,textarea{border-color:rgba(10,125,184,.20);background:rgba(255,255,255,.96);box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 3px 10px rgba(5,52,82,.04);}
+    input:focus,select:focus,textarea:focus{outline:3px solid rgba(10,125,184,.16);border-color:rgba(10,125,184,.55);}
+    button{background:linear-gradient(135deg,#075c8e,#0a7db8);box-shadow:0 10px 22px rgba(10,125,184,.24),inset 0 1px 0 rgba(255,255,255,.24);transition:transform .15s ease,box-shadow .15s ease,filter .15s ease;}
+    button:hover{transform:translateY(-1px);filter:saturate(1.05);box-shadow:0 14px 26px rgba(10,125,184,.28),inset 0 1px 0 rgba(255,255,255,.24);}button:active{transform:translateY(0);}
+    button.secondary{background:linear-gradient(180deg,#fff,#eef8fd);box-shadow:0 5px 14px rgba(5,52,82,.08);}button.good{background:linear-gradient(135deg,#168546,#22b35e)}button.warn{background:linear-gradient(135deg,#dd7419,#ff9a2d)}button.danger{background:linear-gradient(135deg,#a92622,#d94a43)}
+    .topbar{background:rgba(245,251,254,.84);border-bottom:1px solid rgba(10,125,184,.16);box-shadow:0 12px 32px rgba(5,52,82,.10);}.brand h1{font-size:20px;color:var(--azul-profundo);letter-spacing:-.5px;}.brand p{color:#5e7384;}.tabs{padding-top:11px;}
+    .tab,.filter-btn{border-color:rgba(10,125,184,.18);background:rgba(255,255,255,.86);box-shadow:0 6px 16px rgba(5,52,82,.06);}.tab.active,.filter-btn.active{background:linear-gradient(135deg,#053452,#0a7db8);box-shadow:0 12px 28px rgba(10,125,184,.24);}
+    .card{position:relative;overflow:hidden;background:var(--vidro);border:1px solid rgba(10,125,184,.18);box-shadow:var(--shadow-soft);backdrop-filter:blur(12px);}.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,var(--azul-vivo),var(--verde-vivo));opacity:.95;}.card h2,.card h3{color:var(--azul-profundo);}.section-title h2{font-size:20px;letter-spacing:-.4px;}
+    .kpi{position:relative;overflow:hidden;border-color:rgba(10,125,184,.18);box-shadow:0 10px 24px rgba(5,52,82,.10);background:linear-gradient(180deg,#fff,#f4fbff);}.kpi::after{content:"";position:absolute;right:-26px;top:-26px;width:82px;height:82px;border-radius:50%;background:rgba(10,125,184,.07);}.kpi .value{font-size:30px;letter-spacing:-1px;}
+    .pill{background:rgba(255,255,255,.86);box-shadow:0 4px 12px rgba(5,52,82,.05);}.pill.good{background:rgba(34,179,94,.10);}.pill.warn{background:rgba(255,154,45,.12);}.pill.danger{background:rgba(217,74,67,.10);}
+    .equip{transition:transform .16s ease,box-shadow .16s ease;border-color:rgba(10,125,184,.16);}.equip:hover{transform:translateY(-2px);box-shadow:var(--shadow-strong);}.equip::before{height:7px;}.equip-title{font-size:17px;color:var(--azul-profundo);}
+    .bottomnav{background:rgba(255,255,255,.92);box-shadow:0 -12px 28px rgba(5,52,82,.11);backdrop-filter:blur(12px);}.navbtn.active{background:rgba(10,125,184,.10);border-radius:14px;}.version{background:rgba(255,255,255,.92);box-shadow:0 6px 14px rgba(5,52,82,.08);}.modal-card{background:linear-gradient(180deg,#f8fcfe,#eef8fd);box-shadow:0 28px 80px rgba(5,52,82,.26);}table th{text-transform:uppercase;letter-spacing:.045em;}table td{box-shadow:0 4px 12px rgba(5,52,82,.045);}
+
   </style>
 </head>
 <body>
@@ -39,14 +104,28 @@
 
   <main id="loginScreen" class="login-screen">
     <section class="login-card">
-      <div class="brandmark">GM</div>
+      <div class="login-panel-title">
+        <div class="brandmark">GM</div>
+        <div class="dmae-wordmark">dmae<small>departamento municipal de águas e esgotos</small></div>
+      </div>
       <h1>GMAN DMAE</h1>
       <p>Gestão de Manutenção de Bombeamento e Reservação</p>
-      <div class="badge-line"><span class="pill good">API 8.5.6.42</span><span class="pill">Blueprint institucional</span><span class="pill">Sem imagens externas</span></div>
-      <label class="required">Login do usuário</label>
-      <input id="loginInput" autocomplete="username" placeholder="Digite seu login, nome ou ID" />
-      <div class="hint">Use o usuário cadastrado na aba USUARIOS.</div>
-      <div class="actions-row" style="margin-top:14px"><button id="btnLogin">Entrar no GMAN</button><button class="secondary" id="btnPingLogin">Testar API</button></div>
+      <div class="badge-line"><span class="pill good">GMAN 8.5.6.43</span><span class="pill warn">Visual reforçado</span><span class="pill">Acesso protegido</span><span class="pill">Sem imagens na tela do chat</span></div>
+      <div class="login-fields">
+        <div>
+          <label class="required">Login do usuário</label>
+          <input id="loginInput" autocomplete="username" placeholder="Digite seu login, nome ou ID" />
+        </div>
+        <div>
+          <label class="required">Senha</label>
+          <div class="password-wrap">
+            <input id="senhaInput" type="password" autocomplete="current-password" placeholder="Digite sua senha" />
+            <button type="button" class="show-pass" data-no-busy="1" id="btnMostrarSenha">Mostrar</button>
+          </div>
+          <div class="hint">Senha inicial temporária oficial: gman2026. A gestão pode trocar na aba USUARIOS, coluna SENHA_ACESSO.</div>
+        </div>
+      </div>
+      <div class="actions-row login-actions" style="margin-top:16px"><button id="btnLogin">Entrar no GMAN</button><button class="secondary" id="btnPingLogin">Testar API</button></div>
     </section>
   </main>
 
@@ -67,18 +146,18 @@
   </main>
 
   <nav id="bottomNav" class="bottomnav hidden"></nav>
-  <div class="version"><span id="versionText">GMAN 8.5.6.42</span> · <span id="syncText">sinc. pendente</span> · <button class="ghost mini" id="btnRefresh">Atualizar</button> <button class="ghost mini" id="btnClearCache">Limpar cache</button></div>
+  <div class="version"><span id="versionText">GMAN 8.5.6.43</span> · <span id="syncText">sinc. pendente</span> · <button class="ghost mini" id="btnRefresh">Atualizar</button> <button class="ghost mini" id="btnClearCache">Limpar cache</button></div>
 
   <div id="modal" class="modal"><div class="modal-card"><div class="modal-head"><h2 id="modalTitle">Modal</h2><button class="close" id="modalClose">Fechar</button></div><div id="modalBody"></div></div></div>
 
   <script>
     'use strict';
     const GMAN = {
-      VERSAO: 'GMAN 8.5.6.42',
+      VERSAO: 'GMAN 8.5.6.43',
       API_URL: 'https://script.google.com/macros/s/AKfycbwxKICR1c-ZVuHrkECfvGawQr4_o_jq636JnrI6YTrFqLbnvZANz_U0k5z3MapJHHsv3g/exec',
       SYNC_MS: 120000,
-      STORAGE_USER: 'GMAN_8_5_6_42_USUARIO_LOGADO',
-      STORAGE_DRAFT: 'GMAN_8_5_6_42_RASCUNHOS',
+      STORAGE_USER: 'GMAN_8_5_6_43_USUARIO_LOGADO',
+      STORAGE_DRAFT: 'GMAN_8_5_6_43_RASCUNHOS',
       STATUS_OPERACIONAL: ['Operando','Em manutenção, operando','Em manutenção, parado','Em teste','Parado'],
       STATUS_OS: ['Aberta','Iniciada','Em execução','Pendente','Concluída','Cancelada','Cancelamento solicitado','Redistribuição solicitada'],
       SETORES: ['Mecânica','Elétrica','Automação','Usinagem','Caldeiraria','Instalações Mecânicas'],
@@ -127,8 +206,16 @@
     function clearDraft(key){ const all=JSON.parse(localStorage.getItem(GMAN.STORAGE_DRAFT)||'{}'); delete all[key]; localStorage.setItem(GMAN.STORAGE_DRAFT, JSON.stringify(all)); }
 
     async function login(){
-      const login = $('loginInput').value.trim(); if(!login) return toast('Informe o login para acessar o GMAN.');
-      setBusy(true); try{ const r=await api('login',{login}); state.usuario=r.usuario; state.gestao=!!r.gestao; saveUser(state.usuario,state.gestao); enterApp(); toast('Login validado.'); }catch(e){ toast(e.message); } finally{ setBusy(false); }
+      const login = $('loginInput').value.trim();
+      const senha = $('senhaInput').value.trim();
+      if(!login) return toast('Informe o login para acessar o GMAN.');
+      if(!senha) return toast('Informe a senha para acessar o GMAN.');
+      setBusy(true);
+      try{
+        const r=await api('login',{login, senha});
+        state.usuario=r.usuario; state.gestao=!!r.gestao; saveUser(state.usuario,state.gestao); enterApp();
+        toast(r.trocarSenha ? 'Login validado. Senha temporária: solicite troca individual na gestão.' : 'Login validado com senha.');
+      }catch(e){ toast(e.message); } finally{ setBusy(false); }
     }
     async function ping(){ setBusy(true); try{ const r=await api('ping',{},'GET'); toast(r.mensagem+' '+r.versao); }catch(e){ toast(e.message); } finally{ setBusy(false); } }
     function logout(){ localStorage.removeItem(GMAN.STORAGE_USER); location.reload(); }
@@ -256,6 +343,7 @@
     async function openHistorico(idEq){ setBusy(true); try{ const r=await api('historicoEquipamento',{idEquipamento:idEq,limite:isGestao()?5000:3}); openModal('Histórico técnico do equipamento', `<div class="lock-note">Equipe vê apenas as 3 últimas intervenções. Gestão vê histórico completo.</div>${simpleTable(r.historico||[],['DATA_HORA_BRASIL','NUMERO_OS','ACAO','STATUS_NOVO','JUSTIFICATIVA','OBSERVACAO'])}`); }catch(e){toast(e.message)}finally{setBusy(false)} }
 
     $('btnLogin').onclick=login; $('btnPingLogin').onclick=ping; $('btnLogout').onclick=logout; $('modalClose').onclick=closeModal; $('btnRefresh').onclick=()=>syncAll(true); $('btnClearCache').onclick=()=>{ localStorage.removeItem(GMAN.STORAGE_DRAFT); caches&&caches.keys&&caches.keys().then(keys=>keys.forEach(k=>caches.delete(k))); toast('Cache local limpo. Recarregue a página se necessário.'); };
+    $('btnMostrarSenha').onclick=()=>{ const i=$('senhaInput'); const aberto=i.type==='text'; i.type=aberto?'password':'text'; $('btnMostrarSenha').textContent=aberto?'Mostrar':'Ocultar'; i.focus(); };
     document.addEventListener('keydown',e=>{ if(e.key==='Enter' && !$('loginScreen').classList.contains('hidden')) login(); if(e.key==='Escape' && state.modalOpen) closeModal(); });
     $('versionText').textContent = GMAN.VERSAO;
     if(loadUser()) enterApp(); else $('loginInput').focus();
