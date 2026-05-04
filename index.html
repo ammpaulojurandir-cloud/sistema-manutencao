@@ -98,6 +98,49 @@
     .os-badge { display:inline-block; padding:4px 8px; border-radius:999px; color:white; font-size:.68rem; font-weight:900; margin:2px 4px 2px 0; }
     .os-aberta { background:#3182ce; } .os-iniciada { background:#ed8936; } .os-execucao { background:#d69e2e; } .os-pendente { background:#c53030; } .os-concluida { background:#38a169; } .os-cancelada { background:#718096; }
     .empty-box { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18); border-radius:15px; padding:16px; text-align:center; color:#bee3f8; font-weight:700; }
+
+    /* GMAN 8.5.7.6 — blindagem visual dos textos dos botões */
+    .system-btn,
+    .system-btn *,
+    .action-btn,
+    .action-btn *,
+    .close-btn,
+    .close-btn *,
+    .login-card button,
+    .login-card button * {
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      font-family: 'Segoe UI', Arial, sans-serif !important;
+      text-shadow: 0 1px 2px rgba(0,0,0,.35);
+    }
+    .system-btn {
+      background: rgba(15,39,66,.46) !important;
+      border-color: rgba(255,255,255,.42) !important;
+      min-height: 38px;
+    }
+    .system-btn.active,
+    .system-btn:hover {
+      background: linear-gradient(135deg,#38a169,#3182ce) !important;
+      border-color: rgba(255,255,255,.72) !important;
+    }
+    .action-btn {
+      background: rgba(30,58,95,.72) !important;
+      border-color: rgba(255,255,255,.38) !important;
+      min-height: 42px;
+      line-height: 1.25;
+      white-space: normal;
+    }
+    .action-btn.primary {
+      background: #2563a9 !important;
+      border-color: #63b3ed !important;
+    }
+    .action-btn.success {
+      background: #2f855a !important;
+      border-color: #68d391 !important;
+    }
+
     .grid-2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
     .hidden { display:none !important; }
   </style>
@@ -124,7 +167,7 @@
   </div>
 
   <div id="userInfo" class="hidden"></div>
-  <div id="apiStatus" class="status-line">GMAN 8.5.7.5 — aguardando login</div>
+  <div id="apiStatus" class="status-line">GMAN 8.5.7.6 — aguardando login</div>
 
   <div class="systems-filter" id="systemsFilter">
     <button class="system-btn active" data-system="all">TODAS</button>
@@ -163,7 +206,7 @@
     'use strict';
 
     const GMAN = {
-      versaoIndex: 'GMAN 8.5.7.5 — Index clássico limpo sem Núcleo e sem ações antigas',
+      versaoIndex: 'GMAN 8.5.7.6 — Index clássico limpo com botões legíveis',
       apiUrl: 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec',
       storageUser: 'GMAN_USUARIO_LOGADO_OFICIAL_8575',
       syncMs: 120000
@@ -369,7 +412,7 @@
       $('loginPass').value = '';
       mostrarUsuarioLogado();
       aplicarPermissoes();
-      setStatus('GMAN 8.5.7.5 — sessão encerrada', '');
+      setStatus('GMAN 8.5.7.6 — sessão encerrada', '');
     }
 
     function aplicarPermissoes(){
