@@ -424,7 +424,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.48 — Index clássico estabilizado sem deslogar';
+        var API_OFICIAL_GMAN_85647 = API_URL; // GMAN 8.5.6.49: inicialização antecipada para evitar erro TDZ ao abrir OS do grupo
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.49 — Index clássico sem erro de inicialização da API';
         const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.44';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
@@ -4992,8 +4993,8 @@ function openEquipment(id) {
    para a API oficial GMAN 8.5.6.44 e remove chamadas antigas de Núcleo.
    ============================================================ */
 
-const API_OFICIAL_GMAN_85647 = 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec';
-const VERSAO_INDEX_COMPAT_GMAN_85647 = 'GMAN 8.5.6.48 — Index clássico estabilizado sem deslogar';
+API_OFICIAL_GMAN_85647 = 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec';
+const VERSAO_INDEX_COMPAT_GMAN_85647 = 'GMAN 8.5.6.49 — Index clássico sem erro de inicialização da API';
 const SISTEMA_NOME_GMAN85647 = {
     '100': 'moinhos de vento',
     '200': 'são joao',
@@ -5330,7 +5331,7 @@ function exibirMarcadorVersaoGMAN85645() {
 
 
 /* ============================================================
-   GMAN 8.5.6.48 — estabilização cirúrgica do Index clássico
+   GMAN 8.5.6.49 — estabilização cirúrgica do Index clássico
    Correções aplicadas sem alterar a aparência aprovada:
    1) Atualizar agora não desloga.
    2) Limpar cache preserva sessão do usuário.
@@ -5430,7 +5431,7 @@ async function carregarNucleoProtegidoGMAN85649() {
     if (container && String(container.innerHTML || '').includes('Erro ao carregar Núcleo GMAN')) {
         container.innerHTML = '<div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:14px; padding:12px; color:#1e3a5f; font-weight:800;">Núcleo técnico antigo desativado nesta versão clássica estabilizada. Use o teste de saúde da API quando necessário. Os fluxos operacionais seguem preservados.</div>';
     }
-    return { sucesso: true, desativado: true, mensagem: 'Núcleo técnico antigo desativado no Index clássico 8.5.6.48.' };
+    return { sucesso: true, desativado: true, mensagem: 'Núcleo técnico antigo desativado no Index clássico 8.5.6.49.' };
 }
 
 // Garante que botão/ícone antigo do núcleo não reapareça após renderizações.
