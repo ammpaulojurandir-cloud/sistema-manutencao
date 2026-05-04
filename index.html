@@ -99,7 +99,7 @@
         .form-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e0; border-radius: 9px; color: #1a202c; font-size: 0.9rem; }
         .form-label { display: block; color: #2d3748; font-size: 0.78rem; font-weight: 700; margin: 8px 0 5px; text-align: left; }
      
-        /* GMAN 8.5.6.46 — evolução visual controlada 20% */
+        /* GMAN 8.5.6.41 — evolução visual controlada 20% */
         body::before {
             content: "";
             position: fixed;
@@ -156,7 +156,7 @@
         }
 
 
-        /* GMAN 8.5.6.46 — visual 30% e ícones com leve 3D controlado */
+        /* GMAN 8.5.6.41 — visual 30% e ícones com leve 3D controlado */
         .icon-3d-gman, .status-icon, .action-btn, .system-btn {
             transform-style: preserve-3d;
         }
@@ -218,7 +218,7 @@
         }
 
 
-        /* GMAN 8.5.6.46 — contador real de OS por grupo */
+        /* GMAN 8.5.6.41 — contador real de OS por grupo */
         .mini-os-counter {
             display: inline-block;
             padding: 3px 7px;
@@ -292,9 +292,9 @@
         ">
             <img src="./logo.png" alt="Logo" style="width: 80px; height: 80px; margin-bottom: 20px; object-fit: contain;">
             <h2 style="color: #1e3a5f; margin-bottom: 5px;">Sistema de Manutenção</h2>
-            <p style="color: #718096; margin-bottom: 30px; font-size: 0.9rem;">GMAN DMAE — Gestão de Manutenção de Bombeamento e Reservação</p>
+            <p style="color: #718096; margin-bottom: 30px; font-size: 0.9rem;">Água Potável - Grupos Motobombas</p>
             
-            <form id="loginFormGMAN" onsubmit="event.preventDefault(); fazerLogin(); return false;" style="width: 100%;">
+            <form onsubmit="event.preventDefault(); fazerLogin();" style="width: 100%;">
                 <input type="text" id="loginUser" placeholder="Usuário (nome completo)" style="
                     width: 100%;
                     padding: 12px;
@@ -342,7 +342,7 @@
             margin-bottom: 10px;
         ">
         <h1>Sistema de Manutenção</h1>
-        <p class="subtitle">GMAN DMAE — Gestão de Manutenção de Bombeamento e Reservação</p>
+        <p class="subtitle">Água Potável - Grupos Motobombas</p>
      </div>
 
      <div class="systems-filter">
@@ -383,7 +383,7 @@
         <button class="action-btn" id="btnOrdensEncerradasHome" onclick="abrirPainelOS('encerradas')" style="display:none;">✅ Ordens Encerradas <span id="totalOrdensEncerradasHome">(0)</span></button>
         <button class="action-btn" id="btnPainelKPI" onclick="abrirPainelGerencial()" style="display:none;">📊 Painel Gerencial</button>
         <button class="action-btn" onclick="atualizarAgora()">🔄 Atualizar agora</button>
-        <button class="action-btn" onclick="limparCacheOperacionalGMAN85645()">🧹 Limpar cache</button>
+        <button class="action-btn" onclick="limparCacheOperacionalGMAN85641()">🧹 Limpar cache</button>
       </div>
 
       <div class="equipment-list" id="equipmentList"></div>
@@ -423,8 +423,8 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.46 — Correção de sessão, Enter no login e cache sem deslogar';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.46 — Correção de sessão, Enter no login e cache sem deslogar';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.41 — Rankings, horário e cache';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.41 — Rankings, horário e cache';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -790,7 +790,7 @@
             atualizarIndicadorConexao('🔄 Sincronizando com o Banco Central...', 'neutro');
 
             try {
-                const resposta = await fetch(`${API_URL}?acao=listarStatus&v=85645&t=${Date.now()}`, { cache: 'no-store' });
+                const resposta = await fetch(`${API_URL}?acao=listarStatus&v=85641&t=${Date.now()}`, { cache: 'no-store' });
                 if (!resposta.ok) throw new Error('Falha ao consultar a API.');
 
                 const statusOnline = await resposta.json();
@@ -818,7 +818,7 @@
                 saveData();
                 applyFilters();
                 atualizarIndicadorConexao('✅ Online: conectado ao Banco Central GMAN', 'online');
-                atualizarMarcadorConexaoGMAN85645('Banco Central: conectado', true);
+                atualizarMarcadorConexaoGMAN85641('Banco Central: conectado', true);
                 return true;
 
             } catch (erro) {
@@ -826,7 +826,7 @@
                 loadData();
                 applyFilters();
                 atualizarIndicadorConexao('⚠️ Modo local: não foi possível sincronizar com o Banco Central', 'offline');
-                atualizarMarcadorConexaoGMAN85645('Banco Central: falha de conexão', false);
+                atualizarMarcadorConexaoGMAN85641('Banco Central: falha de conexão', false);
                 console.error('Erro ao carregar status online:', erro);
                 return false;
             }
@@ -1478,7 +1478,7 @@ function montarLinhasPatrimonioGrupoGMAN(patrimonios = {}, opcoes = {}) {
         }
 
         
-        function limparCacheOperacionalGMAN85645() {
+        function limparCacheOperacionalGMAN85641() {
             try {
                 localStorage.removeItem('gman_kpi_cache');
                 localStorage.removeItem('gman_rankings_cache');
@@ -1509,7 +1509,7 @@ async function atualizarAgora() {
         }
 
         async function listarOSOnline() {
-            const resposta = await fetch(`${API_URL}?acao=listarOS&v=85645&t=${Date.now()}`, { cache: 'no-store' });
+            const resposta = await fetch(`${API_URL}?acao=listarOS&v=85641&t=${Date.now()}`, { cache: 'no-store' });
             if (!resposta.ok) throw new Error('Falha ao consultar Ordens de Serviço.');
             const lista = await resposta.json();
             if (!Array.isArray(lista)) throw new Error('Resposta de OS não veio em formato de lista.');
@@ -2753,47 +2753,20 @@ function normalizarKPI(valor) {
                 os.equipeResponsavel,
                 os.responsavel,
                 os.criadoPor,
-                os.finalizadoPor,
-                os.area,
-                os.sistema
+                os.finalizadoPor
             ].map(v => normalizarKPI(v)).join(' | ');
 
             return (
                 campos.includes('teste') ||
-                campos.includes('setor teste') ||
-                campos.includes('area teste') ||
-                campos.includes('local compartilhado teste') ||
-                campos.includes('mesmo local permitido') ||
+                campos.includes('gman 8.5') ||
                 campos.includes('equipamento teste') ||
                 campos.includes('bomba teste') ||
                 campos.includes('testeciclo') ||
-                campos.includes('teste_') ||
-                campos.includes('eq teste')
+                campos.includes('teste_')
             );
         }
 
         
-
-        function ehEquipamentoTesteGMAN85645(eq) {
-            const campos = [
-                eq && eq.id,
-                eq && eq.name,
-                eq && eq.nome,
-                eq && eq.system,
-                eq && eq.systemCode,
-                eq && eq.status,
-                eq && eq.observacaoStatus
-            ].map(v => normalizarKPI(v)).join(' | ');
-
-            return (
-                campos.includes('teste') ||
-                campos.includes('eq teste') ||
-                campos.includes('eqteste') ||
-                campos.includes('equipamento teste') ||
-                campos.includes('testeciclo')
-            );
-        }
-
         function chaveReincidenciaKPI85637(os) {
             const id = os.idEquipamento || os.equipamento || '';
             const chaveGrupo = chaveGrupoGMAN85633(id);
@@ -2811,57 +2784,9 @@ function normalizarKPI(valor) {
                    combinarDataHoraKPI(os.dataAbertura, os.horaAbertura);
         }
 
-        function baseNumeroOSReincidenciaGMAN85645(os) {
-            const numero = String((os && (os.numeroOS || os.idOS)) || '').trim();
-            if (!numero) return '';
-
-            const novo = numero.match(/^(\d{4})\.\d{2}\/(\d{2})$/);
-            if (novo) return `${novo[1]}/${novo[2]}`;
-
-            return numero
-                .replace(/\s*\(\d{1,3}\)\s*$/, '')
-                .replace(/-\d{3}$/, '')
-                .trim();
-        }
-
-const NOMES_OFICIAIS_LIDERES_GMAN85645 = {
-            'paulo jurandir': 'Paulo Jurandir',
-            'rafael spies': 'Rafael Spies',
-            'jeferson machado': 'Jeferson Machado',
-            'valtemir olmos': 'Valtemir Olmos',
-            'mauricio do carmo': 'Mauricio do Carmo',
-            'rogerio alves': 'Rogério Alves',
-            'rodrigo fortes': 'Rodrigo Fortes',
-            'luciano cruz': 'Luciano Cruz',
-            'ronaldo lemos': 'Ronaldo Lemos',
-            'valneir oliveira': 'Valneir Oliveira',
-            'antonio carlos leal': 'Antonio Carlos Leal',
-            'ricardo mathiola': 'Ricardo Mathiola',
-            'carlos alberto': 'Carlos Alberto',
-            'andre marques': 'Andre Marques',
-            'roque becker': 'Roque Becker',
-            'saulo lockman': 'Saulo Lockman',
-            'sidnei rocha': 'Sidnei Rocha',
-            'gabriel stumm': 'Gabriel Stumm'
-        };
-
-        function chavePessoaRankingGMAN85645(valor) {
-            return normalizarTextoGMAN(valor).replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
-        }
-
-        function formatarNomePessoaRankingGMAN85645(valor) {
-            const limpo = String(valor || '').replace(/\s+/g, ' ').trim();
-            if (!limpo) return '';
-
-            const chave = chavePessoaRankingGMAN85645(limpo);
-            if (NOMES_OFICIAIS_LIDERES_GMAN85645[chave]) return NOMES_OFICIAIS_LIDERES_GMAN85645[chave];
-
-            return limpo.toLowerCase().replace(/(^|[\s\-'])([a-zà-ú])/g, (m, sep, letra) => sep + letra.toUpperCase());
-        }
-
-        function nomeLiderKPI(os) {
+function nomeLiderKPI(os) {
             const nome = String(os.finalizadoPor || os.usuarioInicio || os.responsavel || '').trim();
-            return formatarNomePessoaRankingGMAN85645(nome);
+            return nome || '';
         }
 
         function nomeEquipamentoKPI(os) {
@@ -2869,7 +2794,7 @@ const NOMES_OFICIAIS_LIDERES_GMAN85645 = {
         }
 
         function contarPorLiderKPI(lista) {
-            return (Array.isArray(lista) ? lista : []).reduce((acc, os) => {
+            return lista.reduce((acc, os) => {
                 const lider = nomeLiderKPI(os);
                 if (!lider) return acc;
                 acc[lider] = (acc[lider] || 0) + 1;
@@ -3168,44 +3093,6 @@ const NOMES_OFICIAIS_LIDERES_GMAN85645 = {
             return 'linear-gradient(135deg,#c53030,#fc8181)';
         }
 
-
-        function montarDiagnosticoUltimasOSPainelGMAN85645(diagnostico) {
-            if (!diagnostico || diagnostico.sucesso === false) {
-                return `
-                    <div style="margin-top:14px; background:#fffaf0; border-left:5px solid #d69e2e; border-radius:18px; padding:13px; color:#744210; font-size:0.82rem;">
-                        <strong>🩺 Diagnóstico das últimas OS lidas</strong><br>
-                        Não foi possível carregar o diagnóstico agora. Recalcule o painel após publicar a API 8.5.6.46.
-                    </div>
-                `;
-            }
-
-            const ultimas = Array.isArray(diagnostico.ultimasOS) ? diagnostico.ultimasOS : [];
-            return `
-                <div style="margin-top:14px; background:linear-gradient(135deg,#ebf8ff,#ffffff); border-left:5px solid #3182ce; border-radius:20px; padding:14px; color:#1e3a5f; font-size:0.82rem; border:1px solid #bee3f8;">
-                    <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:8px;">
-                        <strong>🩺 Diagnóstico das últimas OS lidas no painel</strong>
-                        <span style="font-weight:900; color:#2c5282;">${escaparHTMLGMAN(diagnostico.atualizadoEm || '')}</span>
-                    </div>
-                    <div style="color:#2d3748; margin-bottom:8px;">
-                        Total bruto: <strong>${diagnostico.totalOSBrutas || 0}</strong> ·
-                        Válidas sem TESTE: <strong>${diagnostico.totalOSValidasSemTeste || 0}</strong> ·
-                        TESTE ignoradas: <strong>${diagnostico.osTesteIgnoradas || 0}</strong>
-                    </div>
-                    ${ultimas.length ? `
-                        <div style="display:grid; gap:7px;">
-                            ${ultimas.map(os => `
-                                <div style="background:#f7fafc; border:1px solid #e2e8f0; border-radius:12px; padding:9px; color:#2d3748;">
-                                    <strong>${escaparHTMLGMAN(os.numeroOS || os.idOS || '-')}</strong> — ${escaparHTMLGMAN(os.equipamento || os.idEquipamento || '-')}<br>
-                                    <span>Status: ${escaparHTMLGMAN(os.statusOS || '-')} · Responsável: ${escaparHTMLGMAN(os.responsavel || '-')}</span><br>
-                                    <span>Última movimentação: ${escaparHTMLGMAN(os.ultimaMovimentacaoDataHora || os.dataConclusao || os.dataInicio || os.dataAbertura || '-')}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : '<div style="background:#fffaf0; border-radius:12px; padding:9px; color:#744210;">Nenhuma OS válida encontrada no diagnóstico.</div>'}
-                </div>
-            `;
-        }
-
 function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊') {
             const brilho = `linear-gradient(135deg, ${cor}18, #ffffff 55%, #f7fafc)`;
             const gradienteResultado = gradienteNumeroKPI(chave, valor);
@@ -3294,7 +3181,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
                             <h2 style="color:#1e3a5f; margin:0; font-size:1.25rem;">Painel Gerencial — KPIs</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Visível somente para gestão. Dados calculados pelo Banco Central GMAN. <strong>Versão 8.5.6.46</strong></p>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Visível somente para gestão. Dados calculados pelo Banco Central GMAN. <strong>Versão 8.5.6.41</strong></p>
                         </div>
                         <button onclick="document.getElementById('kpiModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
@@ -3317,19 +3204,10 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                 const listaOS = await listarOSOnline();
                 const osValidas = listaOS.filter(os => !ehOSTesteKPI(os));
 
-                let diagnosticoUltimasOS = null;
-                try {
-                    diagnosticoUltimasOS = await apiGet({ acao: 'diagnosticoUltimasOSLidas', limite: 8 });
-                } catch (erroDiag) {
-                    console.warn('Diagnóstico de últimas OS indisponível:', erroDiag);
-                }
-
-                const equipamentosValidos = equipment.filter(e => !ehEquipamentoTesteGMAN85645(e));
-                const equipamentosTesteIgnorados = equipment.length - equipamentosValidos.length;
-                const totalEquipamentos = equipamentosValidos.length;
-                const operando = equipamentosValidos.filter(e => e.status === 'ok').length;
-                const indisponiveis = equipamentosValidos.filter(e => e.status === 'alert' || e.status === 'down').length;
-                const parados = equipamentosValidos.filter(e => e.status === 'down').length;
+                const totalEquipamentos = equipment.length;
+                const operando = equipment.filter(e => e.status === 'ok').length;
+                const indisponiveis = equipment.filter(e => e.status === 'alert' || e.status === 'down').length;
+                const parados = equipment.filter(e => e.status === 'down').length;
 
                 const disponibilidadeInstantanea = totalEquipamentos ? arredondarPercentualKPI((operando / totalEquipamentos) * 100) : 0;
 
@@ -3360,7 +3238,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                     : 0;
 
                 const produtividadePorLider = contarPorLiderKPI(osConcluidasLista);
-                const rankingOcorrenciasArea = calcularRankingOcorrenciasAreaGMAN85645(osValidas);
+                const rankingOcorrenciasArea = calcularRankingOcorrenciasAreaGMAN85641(osValidas);
 
                 const agora = new Date();
                 const trintaDiasAtras = new Date(agora.getTime() - (30 * 24 * 60 * 60 * 1000));
@@ -3377,22 +3255,12 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
 
                 const reincidenciaPorEquip = {};
                 const reincidenciaRotulos = {};
-                const reincidenciaBasesPorEquip = {};
-                let reincidenciaDuplicadasMesmaBase = 0;
 
                 corretivas30.forEach(os => {
                     const chave = chaveReincidenciaKPI85637(os);
                     const rotulo = rotuloReincidenciaKPI85637(os);
-                    const baseOS = baseNumeroOSReincidenciaGMAN85645(os) || String(os.idOS || os.numeroOS || '').trim();
 
                     if (!chave || normalizarKPI(chave) === 'nao informado') return;
-
-                    reincidenciaBasesPorEquip[chave] = reincidenciaBasesPorEquip[chave] || new Set();
-                    if (baseOS && reincidenciaBasesPorEquip[chave].has(baseOS)) {
-                        reincidenciaDuplicadasMesmaBase++;
-                        return;
-                    }
-                    if (baseOS) reincidenciaBasesPorEquip[chave].add(baseOS);
 
                     reincidenciaPorEquip[chave] = (reincidenciaPorEquip[chave] || 0) + 1;
                     reincidenciaRotulos[chave] = reincidenciaRotulos[chave] || rotulo;
@@ -3501,12 +3369,12 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                         </div>
                         <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:18px; padding:13px; color:#2c5282; font-size:0.82rem; box-shadow:0 8px 18px rgba(49,130,206,0.08);">
                             <strong>🧪 Testes ignorados</strong><br>
-                            ${osTesteIgnoradas} OS de teste e ${equipamentosTesteIgnorados} equipamento(s) TESTE fora dos KPIs.
+                            ${osTesteIgnoradas} OS de teste fora dos KPIs.
                         </div>
                         <div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:18px; padding:13px; color:#742a2a; font-size:0.82rem; box-shadow:0 8px 18px rgba(229,62,62,0.08);">
                             <strong>⚠️ Base da reincidência</strong><br>
-                            ${corretivas30.length} corretivas concluídas nos últimos 30 dias antes da deduplicação. ${reincidenciaDuplicadasMesmaBase} atendimento(s) da mesma OS base foram ignorados no ranking.<br>
-                            <small>Versão do cálculo: 8.5.6.46 com reincidência técnica oficial.</small>
+                            ${corretivas30.length} corretivas concluídas nos últimos 30 dias. Ranking principal mostra grupos com 2+ OS; 3+ é crítico.<br>
+                            <small>Versão do cálculo: 8.5.6.41 sem cache.</small>
                         </div>
                         <div style="background:#fff5f5; border-left:5px solid #dd6b20; border-radius:18px; padding:13px; color:#7b341e; font-size:0.82rem; box-shadow:0 8px 18px rgba(221,107,32,0.08);">
                             <strong>⚙️ OEE adaptado</strong><br>
@@ -3514,13 +3382,11 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                         </div>
                     </div>
 
-                    ${montarDiagnosticoUltimasOSPainelGMAN85645(diagnosticoUltimasOS)}
-
                     <div style="margin-top:14px; background:linear-gradient(135deg,#edf2f7,#ffffff); border-radius:20px; padding:14px; color:#2d3748; font-size:0.82rem; border:1px solid #e2e8f0;">
-                        <strong>📌 Regra aplicada:</strong> disponibilidade histórica usa MTBF ÷ (MTBF + MTTR) e não se mistura com a disponibilidade instantânea. MTBF é estimado pelo intervalo médio entre corretivas do mesmo equipamento. Produtividade por líder prioriza FINALIZADO_POR, depois USUARIO_INICIO e RESPONSAVEL, unificando maiúsculas/minúsculas e espaços. Reincidência usa corretivas concluídas válidas dos últimos 30 dias por grupo/equipamento, ignora OS de teste e não duplica atendimentos da mesma OS base. O ranking principal mostra apenas grupos com 2+ OS; 3+ é crítico. OEE é gerencial e adaptado ao GMAN. OS de teste não entram nos KPIs. Ranking por área mostra apenas áreas oficiais.
+                        <strong>📌 Regra aplicada:</strong> disponibilidade histórica usa MTBF ÷ (MTBF + MTTR) e não se mistura com a disponibilidade instantânea. MTBF é estimado pelo intervalo médio entre corretivas do mesmo equipamento. Produtividade por líder usa o campo RESPONSAVEL das OS concluídas válidas. Reincidência usa corretivas concluídas dos últimos 30 dias por grupo/equipamento. O ranking principal mostra apenas grupos com 2+ OS recorrentes; 3+ é crítico. OEE é gerencial e adaptado ao GMAN. OS de teste não entram nos KPIs.
                         <br>
                         <strong>Situação atual:</strong> ${operando} operando, ${indisponiveis} em manutenção/alerta, ${parados} parados e ${osBacklog} OS no backlog.<br>
-                        <strong>Versão ativa do painel:</strong> GMAN 8.5.6.46 — histórico recente sincronizado, KPIs sem TESTE e limpeza segura da base.
+                        <strong>Versão ativa do painel:</strong> GMAN 8.5.6.41 — rankings sem cache, líder por finalização e horário Brasil.
                     </div>
                 `;
 
@@ -3924,12 +3790,12 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
             `;
             }).join('');
             
-            let activeList = equipment.filter(e => !ehEquipamentoTesteGMAN85645(e));
+            let activeList = equipment;
 
             if (currentSystemFilter === 'brutas') {
-                activeList = activeList.filter(e => isEquipamentoBrutaGMAN(e));
+                activeList = equipment.filter(e => isEquipamentoBrutaGMAN(e));
             } else if (currentSystemFilter !== 'all') {
-                activeList = activeList.filter(e => e.system === currentSystemFilter);
+                activeList = equipment.filter(e => e.system === currentSystemFilter);
             }
             
             const totalEquipamentos = activeList.length;
@@ -4229,41 +4095,6 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
             }
         }
 
-
-        function historicoRecenteGrupoGMAN85645(idGrupo, limite = 3) {
-            return (Array.isArray(ordensServicoCache) ? ordensServicoCache : [])
-                .filter(os => gruposIguaisGMAN85633(os.idEquipamento || os.equipamento, idGrupo))
-                .filter(os => !ehOSTesteKPI(os))
-                .sort(ordenarOSMaisRecenteGMAN)
-                .slice(0, limite);
-        }
-
-        function montarHistoricoRecenteGrupoHTMLGMAN85645(idGrupo) {
-            const ultimas = historicoRecenteGrupoGMAN85645(idGrupo, 3);
-
-            if (!ultimas.length) {
-                return `
-                    <div onclick="abrirHistoricoDetalhadoGrupo('${idGrupo}')" title="Clique para tentar abrir o histórico detalhado" style="margin: 15px 0; text-align: left; background: #fffaf0; padding: 11px; border-radius: 12px; cursor:pointer; border-left:4px solid #d69e2e;">
-                        <p style="color:#744210; font-size:0.78rem; margin:0;"><strong>Histórico recente sincronizado:</strong><br>Nenhuma OS válida carregada para este grupo no cache atual. Clique em Atualizar agora ou abra os detalhes.</p>
-                    </div>
-                `;
-            }
-
-            return `
-                <div onclick="abrirHistoricoDetalhadoGrupo('${idGrupo}')" title="Clique para ver os detalhes completos das OS" style="margin: 15px 0; max-height: 152px; overflow-y: auto; text-align: left; background: #f7fafc; padding: 11px; border-radius: 12px; cursor:pointer; border:1px solid #e2e8f0; border-left:4px solid #3182ce;">
-                    <p style="color:#1e3a5f; font-size:0.78rem; margin:0 0 7px;"><strong>Histórico recente sincronizado — últimas 3 OS reais:</strong><br><span style="color:#3182ce; font-weight:800;">Clique para abrir detalhes completos</span></p>
-                    ${ultimas.map(os => `
-                        <div style="font-size:0.72rem; color:#2d3748; padding:6px 0; border-bottom:1px solid #e2e8f0;">
-                            <strong>${escaparHTMLGMAN(os.numeroOS || os.idOS || '-')}</strong> — ${escaparHTMLGMAN(os.statusOS || '-')}<br>
-                            <span>${escaparHTMLGMAN(os.ultimaMovimentacaoDataHora || os.dataConclusao || os.dataInicio || os.dataAbertura || '-')}</span>
-                            ${os.responsavel ? `<br><span>Responsável: ${escaparHTMLGMAN(os.responsavel)}</span>` : ''}
-                            ${os.ultimaMovimentacaoAcao ? `<br><span>Ação: ${escaparHTMLGMAN(os.ultimaMovimentacaoAcao)}</span>` : ''}
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
 function openEquipment(id) {
             const eq = equipment.find(e => e.id === id);
             
@@ -4314,7 +4145,16 @@ function openEquipment(id) {
                     </div>
                     ` : ''}
                     
-                    ${montarHistoricoRecenteGrupoHTMLGMAN85645(eq.id)}
+                    ${eq.historico && eq.historico.length > 0 ? `
+                    <div onclick="abrirHistoricoDetalhadoGrupo('${eq.id}')" title="Clique para ver os detalhes completos das OS" style="margin: 15px 0; max-height: 120px; overflow-y: auto; text-align: left; background: #f9f9f9; padding: 10px; border-radius: 8px; cursor:pointer; border:1px solid #e2e8f0;">
+                        <p style="color: #666; font-size: 0.75rem; margin-bottom: 5px;"><strong>Histórico recente — últimas 3 intervenções:</strong><br><span style="color:#3182ce; font-weight:700;">Clique para abrir detalhes completos</span></p>
+                        ${eq.historico.slice(-3).map(h => `
+                            <div style="font-size: 0.7rem; color: #666; padding: 3px 0; border-bottom: 1px solid #eee;">
+                                ${h.data} - <strong>${h.tecnico}</strong>: <em>${statusLabels[h.statusAnterior]} → ${statusLabels[h.statusNovo]}</em>
+                            </div>
+                        `).join('')}
+                    </div>
+                    ` : ''}
                     
                     <div style="margin: 15px 0; padding: 12px; background: #fffaf0; border-left: 4px solid #d69e2e; border-radius: 10px; text-align: left;">
                         <p style="color: #744210; font-size: 0.8rem; margin: 0;">
@@ -4345,11 +4185,11 @@ function openEquipment(id) {
         }
 
 
-        function exibirMarcadorVersaoGMAN85645() {
-            let marcador = document.getElementById('versaoGMAN85645');
+        function exibirMarcadorVersaoGMAN85641() {
+            let marcador = document.getElementById('versaoGMAN85641');
             if (!marcador) {
                 marcador = document.createElement('div');
-                marcador.id = 'versaoGMAN85645';
+                marcador.id = 'versaoGMAN85641';
                 marcador.style.cssText = 'text-align:center; margin:0 auto 10px auto; padding:8px 12px; border-radius:14px; max-width:520px; font-size:0.78rem; font-weight:900; background:rgba(255,255,255,0.16); border:1px solid rgba(255,255,255,0.28); color:#e6fffa; box-shadow:0 8px 18px rgba(0,0,0,0.12);';
                 const subtitulo = document.querySelector('.subtitle');
                 if (subtitulo && subtitulo.parentNode) {
@@ -4361,7 +4201,7 @@ function openEquipment(id) {
             marcador.textContent = VERSAO_FRONTEND_GMAN + ' | Banco Central: aguardando sincronização';
         }
 
-        async function gmanFetchJSON85645(url, opcoes = {}) {
+        async function gmanFetchJSON85641(url, opcoes = {}) {
             const resposta = await fetch(url, Object.assign({ cache: 'no-store' }, opcoes));
             const texto = await resposta.text();
 
@@ -4388,7 +4228,7 @@ function openEquipment(id) {
         }
 
         async function apiPost(payload) {
-            const retorno = await gmanFetchJSON85645(API_URL, {
+            const retorno = await gmanFetchJSON85641(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(payload || {})
@@ -4397,8 +4237,8 @@ function openEquipment(id) {
         }
 
         async function apiGet(params) {
-            const query = new URLSearchParams(Object.assign({}, params || {}, { v: '85645', t: Date.now() })).toString();
-            const retorno = await gmanFetchJSON85645(`${API_URL}?${query}`);
+            const query = new URLSearchParams(Object.assign({}, params || {}, { v: '85641', t: Date.now() })).toString();
+            const retorno = await gmanFetchJSON85641(`${API_URL}?${query}`);
             return retorno && retorno.payload ? retorno.payload : retorno;
         }
 
@@ -4411,46 +4251,37 @@ function openEquipment(id) {
             throw new Error('Falha ao consultar Ordens de Serviço. A API respondeu, mas não enviou uma lista de OS.');
         }
 
-        const AREAS_OFICIAIS_RANKING_GMAN85645 = ['Automação', 'Elétrica', 'Mecânica', 'Usinagem', 'Caldeiraria', 'Instalações Mecânicas'];
-
-        function classificarAreaOcorrenciaGMAN85645(valor) {
+        function classificarAreaOcorrenciaGMAN85641(valor) {
             const texto = normalizarTextoGMAN(valor);
-            if (!texto) return '';
+            if (!texto) return 'Não informado';
             if (texto.includes('automacao')) return 'Automação';
             if (texto.includes('eletrica')) return 'Elétrica';
-            if (texto.includes('instalacoes mecanicas') || (texto.includes('instalacoes') && texto.includes('mecanica'))) return 'Instalações Mecânicas';
+            if (texto.includes('instalacoes mecanicas')) return 'Instalações Mecânicas';
             if (texto.includes('usinagem')) return 'Usinagem';
             if (texto.includes('caldeiraria')) return 'Caldeiraria';
             if (texto.includes('mecanica')) return 'Mecânica';
-            return '';
+            return String(valor || 'Não informado').trim();
         }
 
-        function calcularRankingOcorrenciasAreaGMAN85645(listaOS) {
+        function calcularRankingOcorrenciasAreaGMAN85641(listaOS) {
             const mapa = {};
-            AREAS_OFICIAIS_RANKING_GMAN85645.forEach(area => mapa[area] = 0);
-
             (Array.isArray(listaOS) ? listaOS : []).forEach(os => {
-                const area = classificarAreaOcorrenciaGMAN85645(os.area || os.equipeResponsavel || os.equipe || os.setor || '');
-                if (!area) return;
+                const area = classificarAreaOcorrenciaGMAN85641(os.area || os.equipeResponsavel || os.equipe || os.setor || '');
+                if (normalizarTextoGMAN(area) === 'nao informado') return;
                 mapa[area] = (mapa[area] || 0) + 1;
             });
-
-            Object.keys(mapa).forEach(area => {
-                if (!mapa[area]) delete mapa[area];
-            });
-
             return mapa;
         }
 
-        function atualizarMarcadorConexaoGMAN85645(texto, online = false) {
-            const marcador = document.getElementById('versaoGMAN85645');
+        function atualizarMarcadorConexaoGMAN85641(texto, online = false) {
+            const marcador = document.getElementById('versaoGMAN85641');
             if (marcador) {
                 marcador.textContent = `${VERSAO_FRONTEND_GMAN} | ${texto}`;
                 marcador.style.color = online ? '#c6f6d5' : '#fed7d7';
             }
         }
 
-        function limparCacheOperacionalGMAN85645() {
+        function limparCacheOperacionalGMAN85641() {
             try {
                 localStorage.removeItem('gman_kpi_cache');
                 localStorage.removeItem('gman_rankings_cache');
@@ -4465,13 +4296,13 @@ function openEquipment(id) {
             }
 
             ordensServicoCache = [];
-            alert('Cache operacional limpo. A tela será recarregada para buscar a GMAN 8.5.6.46 no Banco Central.');
+            alert('Cache operacional limpo. A tela será recarregada para buscar a GMAN 8.5.6.41 no Banco Central.');
             const base = window.location.origin + window.location.pathname;
             window.location.href = base + '?nocache=' + Date.now();
         }
 
         async function iniciarSistema() {
-            exibirMarcadorVersaoGMAN85645();
+            exibirMarcadorVersaoGMAN85641();
             loadData();
             renderEquipment();
             recuperarLoginSalvo();
@@ -4496,403 +4327,6 @@ function openEquipment(id) {
                 } catch (erro) {
                     console.error('Erro ao atualizar totalizadores de OS:', erro);
                 }
-            }, 120000);
-        }
-
-
-        /* ============================================================
-           GMAN 8.5.6.46 — FONTE ÚNICA NO BANCO CENTRAL
-           Estas funções sobrescrevem as versões antigas do Index.
-           O Index passa a exibir o pacote oficial do Apps Script.
-           ============================================================ */
-
-        let painelConsolidadoCacheGMAN85645 = null;
-        let ultimaSincronizacaoPainelGMAN85645 = 0;
-
-        function saveData() {
-            // GMAN 8.5.6.46: status/equipamentos não são mais fonte oficial no localStorage.
-            return true;
-        }
-
-        function loadData() {
-            // GMAN 8.5.6.46: evita reaproveitar status antigo do navegador.
-            return true;
-        }
-
-        function normalizarEquipamentoPainelGMAN85645(item) {
-            const id = String(item.id || item.idEquipamento || item.codigo || item.grupo || '').trim();
-            const sistema = item.system || normalizarTextoGMAN(item.sistema || '');
-            const codigo = item.systemCode || (id.match(/^(\d{3})/) || ['', ''])[1] || '';
-            return {
-                id: id,
-                name: item.name || item.nome || item.equipamento || id,
-                system: sistema,
-                systemCode: codigo,
-                status: item.status || normalizarStatusApp(item.statusAtual, item.observacaoStatus || item.observacao),
-                ultimoTecnico: item.ultimoTecnico || item.usuarioUltimaAlteracao || '',
-                ultimaAlteracao: formatarDataApi(item.ultimaAlteracao || item.dataUltimaAlteracao || ''),
-                observacaoStatus: item.observacaoStatus || item.observacao || '',
-                fonte: 'Banco Central'
-            };
-        }
-
-        async function carregarPainelConsolidadoGMAN85645(forcar = false) {
-            const agora = Date.now();
-            if (!forcar && painelConsolidadoCacheGMAN85645 && (agora - ultimaSincronizacaoPainelGMAN85645) < 15000) {
-                return painelConsolidadoCacheGMAN85645;
-            }
-
-            const painel = await apiGet({ acao: 'painelConsolidado', limiteUltimas: 8, limiteLimpeza: 25 });
-            if (!painel || painel.sucesso === false) {
-                throw new Error((painel && (painel.erro || painel.mensagem)) || 'Painel consolidado não retornou dados válidos.');
-            }
-
-            painelConsolidadoCacheGMAN85645 = painel;
-            ultimaSincronizacaoPainelGMAN85645 = Date.now();
-            return painel;
-        }
-
-        function aplicarPainelConsolidadoNaTelaGMAN85645(painel) {
-            if (!painel) return;
-
-            if (Array.isArray(painel.equipamentosOficiais) && painel.equipamentosOficiais.length) {
-                const lista = painel.equipamentosOficiais.map(normalizarEquipamentoPainelGMAN85645).filter(e => e.id);
-                equipment.splice(0, equipment.length, ...lista);
-            }
-
-            if (Array.isArray(painel.ordensServicoValidas)) {
-                ordensServicoCache = painel.ordensServicoValidas;
-            }
-
-            atualizarTotalizadoresOS(ordensServicoCache);
-            applyFilters();
-        }
-
-        async function carregarStatusOnline() {
-            atualizarIndicadorConexao('🔄 Sincronizando pacote oficial com o Banco Central...', 'neutro');
-            try {
-                const painel = await carregarPainelConsolidadoGMAN85645(true);
-                aplicarPainelConsolidadoNaTelaGMAN85645(painel);
-                apiOnline = true;
-                atualizarIndicadorConexao('✅ Online: fonte única conectada ao Banco Central GMAN', 'online');
-                atualizarMarcadorConexaoGMAN85645('Banco Central: painel consolidado conectado', true);
-                return true;
-            } catch (erro) {
-                apiOnline = false;
-                applyFilters();
-                atualizarIndicadorConexao('⚠️ Falha ao buscar painel consolidado. A tela pode exibir dados estáticos até nova sincronização.', 'offline');
-                atualizarMarcadorConexaoGMAN85645('Banco Central: falha no painel consolidado', false);
-                console.error('Erro ao carregar painel consolidado:', erro);
-                return false;
-            }
-        }
-
-        async function listarOSOnline() {
-            const painel = await carregarPainelConsolidadoGMAN85645(false);
-            if (painel && Array.isArray(painel.ordensServicoValidas)) return painel.ordensServicoValidas;
-            const retorno = await apiGet({ acao: 'listarOS' });
-            if (Array.isArray(retorno)) return retorno.filter(os => !ehOSTesteKPI(os));
-            if (retorno && Array.isArray(retorno.ordensServicoValidas)) return retorno.ordensServicoValidas;
-            throw new Error('Falha ao consultar OS válidas do Banco Central.');
-        }
-
-        function historicoRecenteGrupoGMAN85645(idGrupo, limite = 3) {
-            const painel = painelConsolidadoCacheGMAN85645 || {};
-            const mapa = painel.historicoRecentePorGrupo || {};
-            const chave = chaveGrupoGMAN85633(idGrupo);
-            const direto = mapa[idGrupo] || mapa[chave] || [];
-            if (Array.isArray(direto) && direto.length) return direto.slice(0, limite);
-
-            return (Array.isArray(ordensServicoCache) ? ordensServicoCache : [])
-                .filter(os => gruposIguaisGMAN85633(os.idEquipamento || os.equipamento, idGrupo))
-                .filter(os => !ehOSTesteKPI(os))
-                .sort(ordenarOSMaisRecenteGMAN)
-                .slice(0, limite);
-        }
-
-        function montarHistoricoRecenteGrupoHTMLGMAN85645(idGrupo) {
-            const ultimas = historicoRecenteGrupoGMAN85645(idGrupo, 3);
-            if (!ultimas.length) {
-                return `
-                    <div onclick="abrirHistoricoDetalhadoGrupo('${idGrupo}')" title="Clique para tentar abrir o histórico detalhado" style="margin: 15px 0; text-align: left; background: #fffaf0; padding: 11px; border-radius: 12px; cursor:pointer; border-left:4px solid #d69e2e;">
-                        <p style="color:#744210; font-size:0.78rem; margin:0;"><strong>Histórico recente oficial:</strong><br>Nenhuma OS válida retornada pelo Banco Central para este grupo. Clique em Atualizar agora.</p>
-                    </div>
-                `;
-            }
-            return `
-                <div onclick="abrirHistoricoDetalhadoGrupo('${idGrupo}')" title="Clique para ver os detalhes completos das OS" style="margin: 15px 0; max-height: 152px; overflow-y: auto; text-align: left; background: #f7fafc; padding: 11px; border-radius: 12px; cursor:pointer; border:1px solid #e2e8f0; border-left:4px solid #3182ce;">
-                    <p style="color:#1e3a5f; font-size:0.78rem; margin:0 0 7px;"><strong>Histórico recente oficial — últimas 3 OS reais:</strong><br><span style="color:#3182ce; font-weight:800;">Fonte: Banco Central GMAN</span></p>
-                    ${ultimas.map(os => `
-                        <div style="font-size:0.72rem; color:#2d3748; padding:6px 0; border-bottom:1px solid #e2e8f0;">
-                            <strong>${escaparHTMLGMAN(os.numeroOS || os.idOS || '-')}</strong> — ${escaparHTMLGMAN(os.statusOS || '-')}<br>
-                            <span>${escaparHTMLGMAN(os.ultimaMovimentacaoDataHora || os.dataConclusao || os.dataInicio || os.dataAbertura || '-')}</span>
-                            ${os.responsavel ? `<br><span>Responsável: ${escaparHTMLGMAN(os.responsavel)}</span>` : ''}
-                            ${os.ultimaMovimentacaoAcao ? `<br><span>Ação: ${escaparHTMLGMAN(os.ultimaMovimentacaoAcao)}</span>` : ''}
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        async function fazerLogin() {
-            const user = document.getElementById('loginUser').value.trim();
-            const pass = document.getElementById('loginPass').value;
-            const erro = document.getElementById('loginErro');
-            erro.style.display = 'none';
-
-            try {
-                const retorno = await apiPost({ acao: 'autenticarUsuario', usuario: user, senha: pass });
-                if (!retorno || retorno.autenticado === false || retorno.sucesso === false) {
-                    throw new Error((retorno && retorno.mensagem) || 'Usuário ou senha incorretos.');
-                }
-                const u = retorno.usuario || {};
-                usuarioLogado = {
-                    nome: u.nome || user,
-                    senha: '',
-                    funcao: normalizarTextoGMAN(u.funcao || u.perfilAcesso || 'lider'),
-                    area: normalizarTextoGMAN(u.area || u.equipe || 'todos') || 'todos',
-                    equipe: u.equipe || ''
-                };
-            } catch (erroApi) {
-                console.warn('Autenticação pelo Banco Central falhou; usando fallback local temporário:', erroApi);
-                const encontrado = usuarios.find(u => u.nome.toLowerCase() === user.toLowerCase() && u.senha === pass);
-                if (!encontrado) {
-                    erro.textContent = 'Usuário ou senha incorretos no Banco Central GMAN.';
-                    erro.style.display = 'block';
-                    return;
-                }
-                usuarioLogado = encontrado;
-            }
-
-            sessionStorage.setItem('manutencao_usuario_logado', JSON.stringify({
-                nome: usuarioLogado.nome,
-                funcao: usuarioLogado.funcao,
-                area: usuarioLogado.area,
-                equipe: usuarioLogado.equipe || ''
-            }));
-            try { localStorage.removeItem('manutencao_usuario_logado'); } catch (e) {}
-            document.getElementById('loginScreen').style.display = 'none';
-            mostrarUsuarioLogado();
-            aplicarPermissoes();
-            aplicarBotoesPermissao();
-        }
-
-        function recuperarLoginSalvo() {
-            const usuarioSalvo = sessionStorage.getItem('manutencao_usuario_logado');
-            if (!usuarioSalvo) return false;
-            try {
-                const dados = JSON.parse(usuarioSalvo);
-                if (!dados || !dados.nome) return false;
-                usuarioLogado = dados;
-                document.getElementById('loginScreen').style.display = 'none';
-                mostrarUsuarioLogado();
-                aplicarPermissoes();
-                aplicarBotoesPermissao();
-                return true;
-            } catch (e) {
-                sessionStorage.removeItem('manutencao_usuario_logado');
-                return false;
-            }
-        }
-
-        function fazerLogout() {
-            try {
-                sessionStorage.removeItem('manutencao_usuario_logado');
-                localStorage.removeItem('manutencao_usuario_logado');
-            } catch (e) {}
-            usuarioLogado = null;
-            document.getElementById('loginScreen').style.display = 'flex';
-            document.getElementById('loginUser').value = '';
-            document.getElementById('loginPass').value = '';
-            document.getElementById('loginErro').style.display = 'none';
-            const info = document.getElementById('userInfo');
-            if (info) info.remove();
-            aplicarBotoesPermissao();
-        }
-
-        async function carregarPainelGerencial() {
-            const container = document.getElementById('kpiConteudo');
-            if (!container) return;
-            container.innerHTML = '<p style="color:#4a5568;">🔄 Carregando painel consolidado oficial...</p>';
-            try {
-                const painel = await carregarPainelConsolidadoGMAN85645(true);
-                aplicarPainelConsolidadoNaTelaGMAN85645(painel);
-                const k = painel.kpisOficiais || {};
-                const rankArea = (painel.rankingOcorrenciasArea && painel.rankingOcorrenciasArea.ranking) || [];
-                const rankReinc = (painel.rankingReincidenciaOficial && painel.rankingReincidenciaOficial.ranking) || [];
-                const diag = painel.diagnosticoUltimasOSLidas || {};
-                const limpeza = painel.diagnosticoLimpezaBase || {};
-
-                container.innerHTML = `
-                    <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:14px; padding:12px; margin-bottom:14px; color:#1e3a5f;">
-                        <strong>Fonte única oficial:</strong> Banco Central GMAN<br>
-                        <span style="font-size:0.82rem;">Versão backend: ${escaparHTMLGMAN(painel.versao || '-')} | Atualizado em: ${escaparHTMLGMAN(painel.horarioServidorBrasil || '-')}</span><br>
-                        <span style="font-size:0.78rem; color:#2d3748;">O Index não recalcula os indicadores oficiais nesta versão.</span>
-                    </div>
-
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:14px;">
-                        ${cardKPIOficialGMAN85645('Equipamentos oficiais', k.totalEquipamentos || 0, 'Ignora TESTE')}
-                        ${cardKPIOficialGMAN85645('Disponibilidade', (k.disponibilidadePercentual || 0) + '%', 'Meta mínima: 95%')}
-                        ${cardKPIOficialGMAN85645('Operando', k.operando || 0, 'Status oficial')}
-                        ${cardKPIOficialGMAN85645('Indisponíveis', k.indisponiveis || 0, 'Manutenção/Parado')}
-                        ${cardKPIOficialGMAN85645('Backlog OS', k.backlogOS || 0, 'Ativas')}
-                        ${cardKPIOficialGMAN85645('OS concluídas', k.osConcluidas || 0, 'Sem TESTE')}
-                    </div>
-
-                    <div style="background:#f7fafc; border-radius:14px; padding:12px; margin-bottom:14px; color:#1a202c;">
-                        <h3 style="color:#1e3a5f; margin:0 0 8px;">Diagnóstico das últimas OS lidas</h3>
-                        <p style="font-size:0.82rem; color:#4a5568; margin:0 0 8px;">
-                            OS brutas: <strong>${diag.totalOSBrutas || painel.totalOSBrutas || 0}</strong> | 
-                            OS válidas sem TESTE: <strong>${diag.totalOSValidasSemTeste || painel.totalOSValidasSemTeste || 0}</strong> | 
-                            TESTE ignoradas: <strong>${diag.osTesteIgnoradas || painel.osTesteIgnoradas || 0}</strong>
-                        </p>
-                        ${((diag.ultimasOS || []).slice(0, 8)).map(os => `
-                            <div style="font-size:0.78rem; padding:7px 0; border-bottom:1px solid #e2e8f0;">
-                                <strong>${escaparHTMLGMAN(os.numeroOS || os.idOS || '-')}</strong> — ${escaparHTMLGMAN(os.idEquipamento || '-')} — ${escaparHTMLGMAN(os.statusOS || '-')}
-                                <br><span style="color:#718096;">${escaparHTMLGMAN(os.ultimaMovimentacaoDataHora || os.dataConclusao || os.dataInicio || os.dataAbertura || '-')}</span>
-                            </div>
-                        `).join('') || '<p style="color:#718096;">Sem OS recentes no diagnóstico.</p>'}
-                    </div>
-
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; margin-bottom:14px;">
-                        <div style="background:#f7fafc; border-radius:14px; padding:12px; color:#1a202c;">
-                            <h3 style="color:#1e3a5f; margin:0 0 8px;">Ranking por área/equipe</h3>
-                            ${rankArea.map((item, i) => `<p style="margin:5px 0;"><strong>${i + 1}. ${escaparHTMLGMAN(item.nome)}</strong>: ${item.total} OS</p>`).join('') || '<p style="color:#718096;">Sem ranking oficial disponível.</p>'}
-                        </div>
-                        <div style="background:#f7fafc; border-radius:14px; padding:12px; color:#1a202c;">
-                            <h3 style="color:#1e3a5f; margin:0 0 8px;">OS grupos de maior reincidência</h3>
-                            ${rankReinc.map((item, i) => `<p style="margin:5px 0;"><strong>${i + 1}. ${escaparHTMLGMAN(item.nome)}</strong>: ${item.total} OS recorrentes</p>`).join('') || '<p style="color:#718096;">Nenhum grupo com 2+ OS recorrentes no período.</p>'}
-                        </div>
-                    </div>
-
-                    <div style="background:#fffaf0; border-left:5px solid #dd6b20; border-radius:14px; padding:12px; color:#744210;">
-                        <h3 style="margin:0 0 8px;">Limpeza segura da base</h3>
-                        <p style="font-size:0.82rem; margin:0;">
-                            Candidatos TESTE: <strong>${limpeza.candidatosTeste || 0}</strong> | 
-                            Status incomum: <strong>${limpeza.statusIncomum || 0}</strong> | 
-                            Aba sugerida: <strong>${escaparHTMLGMAN(limpeza.abaQuarentenaSugerida || 'QUARENTENA_TESTES_GMAN')}</strong>
-                        </p>
-                        <p style="font-size:0.78rem; margin:8px 0 0;">Nada é apagado automaticamente. A limpeza deve ser auditável.</p>
-                    </div>
-                `;
-            } catch (erro) {
-                console.error(erro);
-                container.innerHTML = '<p style="color:#e53e3e; font-weight:bold;">Erro ao carregar painel consolidado oficial: ' + escaparHTMLGMAN(erro.message) + '</p>';
-            }
-        }
-
-        function cardKPIOficialGMAN85645(titulo, valor, legenda) {
-            return `
-                <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:14px; color:#1a202c; box-shadow:0 8px 18px rgba(30,58,95,0.08);">
-                    <div style="font-size:0.72rem; color:#718096; font-weight:900; text-transform:uppercase;">${escaparHTMLGMAN(titulo)}</div>
-                    <div style="font-size:1.7rem; color:#1e3a5f; font-weight:1000; margin:4px 0;">${escaparHTMLGMAN(valor)}</div>
-                    <div style="font-size:0.75rem; color:#4a5568;">${escaparHTMLGMAN(legenda || '')}</div>
-                </div>
-            `;
-        }
-
-        function garantirSessaoVisualGMAN85646() {
-            if (usuarioLogado && usuarioLogado.nome) {
-                const login = document.getElementById('loginScreen');
-                if (login) login.style.display = 'none';
-                mostrarUsuarioLogado();
-                aplicarPermissoes();
-                aplicarBotoesPermissao();
-                return true;
-            }
-            return false;
-        }
-
-        function configurarEnterLoginGMAN85646() {
-            const form = document.getElementById('loginFormGMAN') || document.querySelector('#loginScreen form');
-            const user = document.getElementById('loginUser');
-            const pass = document.getElementById('loginPass');
-
-            if (form && !form.dataset.gmanEnterConfigurado) {
-                form.dataset.gmanEnterConfigurado = 'sim';
-                form.addEventListener('submit', function(evento) {
-                    evento.preventDefault();
-                    fazerLogin();
-                    return false;
-                });
-            }
-
-            [user, pass].forEach(campo => {
-                if (!campo || campo.dataset.gmanEnterConfigurado) return;
-                campo.dataset.gmanEnterConfigurado = 'sim';
-                campo.addEventListener('keydown', function(evento) {
-                    if (evento.key === 'Enter') {
-                        evento.preventDefault();
-                        fazerLogin();
-                    }
-                });
-            });
-        }
-
-        async function atualizarAgora() {
-            const usuarioAntes = usuarioLogado ? Object.assign({}, usuarioLogado) : null;
-
-            try {
-                await carregarPainelConsolidadoGMAN85645(true);
-                await carregarStatusOnline();
-                if (document.getElementById('osModal')) renderizarOS(ordensServicoCache);
-                if (document.getElementById('kpiModal')) await carregarPainelGerencial();
-
-                if (!usuarioLogado && usuarioAntes) usuarioLogado = usuarioAntes;
-                garantirSessaoVisualGMAN85646();
-                alert('Sistema atualizado com o painel consolidado oficial do Banco Central GMAN.');
-            } catch (erro) {
-                if (!usuarioLogado && usuarioAntes) usuarioLogado = usuarioAntes;
-                garantirSessaoVisualGMAN85646();
-                console.error('Erro ao atualizar agora:', erro);
-                alert('Não foi possível atualizar agora: ' + (erro && erro.message ? erro.message : erro));
-            }
-        }
-
-        function limparCacheOperacionalGMAN85645() {
-            const usuarioAntes = usuarioLogado ? Object.assign({}, usuarioLogado) : null;
-            const sessaoAntes = sessionStorage.getItem('manutencao_usuario_logado');
-
-            try {
-                localStorage.removeItem('gman_kpi_cache');
-                localStorage.removeItem('gman_rankings_cache');
-                localStorage.removeItem('ordensServicoCache');
-                localStorage.removeItem('equipmentData');
-                localStorage.removeItem('manutencao_equipment');
-
-                // Não apagar login nem limpar sessionStorage inteiro.
-                // A limpeza aqui é apenas operacional, para não derrubar o usuário em campo.
-                painelConsolidadoCacheGMAN85645 = null;
-                ultimaSincronizacaoPainelGMAN85645 = 0;
-                ordensServicoCache = [];
-
-                if (usuarioAntes && usuarioAntes.nome) {
-                    usuarioLogado = usuarioAntes;
-                    sessionStorage.setItem('manutencao_usuario_logado', JSON.stringify(usuarioAntes));
-                } else if (sessaoAntes) {
-                    sessionStorage.setItem('manutencao_usuario_logado', sessaoAntes);
-                }
-            } catch (erro) {
-                console.warn('Não foi possível limpar todos os caches operacionais:', erro);
-            }
-
-            garantirSessaoVisualGMAN85646();
-            alert('Cache operacional limpo sem sair do login. Agora clique em Atualizar agora para buscar o painel consolidado.');
-        }
-
-        async function iniciarSistema() {
-            exibirMarcadorVersaoGMAN85645();
-            configurarEnterLoginGMAN85646();
-            loadData();
-            renderEquipment();
-            recuperarLoginSalvo();
-            aplicarBotoesPermissao();
-            await carregarStatusOnline();
-            garantirSessaoVisualGMAN85646();
-
-            setInterval(async () => {
-                await carregarStatusOnline();
-                garantirSessaoVisualGMAN85646();
             }, 120000);
         }
 
