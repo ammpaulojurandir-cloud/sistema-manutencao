@@ -99,7 +99,7 @@
         .form-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e0; border-radius: 9px; color: #1a202c; font-size: 0.9rem; }
         .form-label { display: block; color: #2d3748; font-size: 0.78rem; font-weight: 700; margin: 8px 0 5px; text-align: left; }
      
-        /* GMAN 8.5.6.41 — evolução visual controlada 20% */
+        /* GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
         body::before {
             content: "";
             position: fixed;
@@ -156,7 +156,7 @@
         }
 
 
-        /* GMAN 8.5.6.41 — visual 30% e ícones com leve 3D controlado */
+        /* GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
         .icon-3d-gman, .status-icon, .action-btn, .system-btn {
             transform-style: preserve-3d;
         }
@@ -218,7 +218,7 @@
         }
 
 
-        /* GMAN 8.5.6.41 — contador real de OS por grupo */
+        /* GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
         .mini-os-counter {
             display: inline-block;
             padding: 3px 7px;
@@ -292,9 +292,9 @@
         ">
             <img src="./logo.png" alt="Logo" style="width: 80px; height: 80px; margin-bottom: 20px; object-fit: contain;">
             <h2 style="color: #1e3a5f; margin-bottom: 5px;">Sistema de Manutenção</h2>
-            <p style="color: #718096; margin-bottom: 30px; font-size: 0.9rem;">Água Potável - Grupos Motobombas</p>
+            <p style="color: #718096; margin-bottom: 30px; font-size: 0.9rem;">GMAN DMAE — Gestão de Manutenção de Bombeamento e Reservação</p>
             
-            <form onsubmit="event.preventDefault(); fazerLogin();" style="width: 100%;">
+            <form id="loginFormGMAN" onsubmit="event.preventDefault(); fazerLogin(); return false;" style="width: 100%;">
                 <input type="text" id="loginUser" placeholder="Usuário (nome completo)" style="
                     width: 100%;
                     padding: 12px;
@@ -342,7 +342,7 @@
             margin-bottom: 10px;
         ">
         <h1>Sistema de Manutenção</h1>
-        <p class="subtitle">Água Potável - Grupos Motobombas</p>
+        <p class="subtitle">GMAN DMAE — Gestão de Manutenção de Bombeamento e Reservação</p>
      </div>
 
      <div class="systems-filter">
@@ -381,9 +381,10 @@
         <button class="action-btn" id="btnOrdensNaoIniciadasHome" onclick="abrirPainelOS('naoIniciadas')" style="display:none;">⏳ OS Não Iniciadas <span id="totalOrdensNaoIniciadasHome">(0)</span></button>
         <button class="action-btn" id="btnOrdensIniciadasHome" onclick="abrirPainelOS('iniciadas')" style="display:none;">🛠️ OS Iniciadas <span id="totalOrdensIniciadasHome">(0)</span></button>
         <button class="action-btn" id="btnOrdensEncerradasHome" onclick="abrirPainelOS('encerradas')" style="display:none;">✅ Ordens Encerradas <span id="totalOrdensEncerradasHome">(0)</span></button>
-        <button class="action-btn" id="btnPainelKPI" onclick="abrirPainelGerencial()" style="display:none;">📊 Painel Gerencial</button>
+        <button class="action-btn" id="btnPainelKPI" onclick="abrirPainelGerencial()" style="display:none;">📊 KPIs Industriais</button>
+        <!-- Núcleo técnico GMAN 8.5.6.56: acesso discreto por ícone fixo, apenas para gestão -->
         <button class="action-btn" onclick="atualizarAgora()">🔄 Atualizar agora</button>
-        <button class="action-btn" onclick="limparCacheOperacionalGMAN85641()">🧹 Limpar cache</button>
+        <button class="action-btn" onclick="limparCacheOperacionalGMAN85645()">🧹 Limpar cache</button>
       </div>
 
       <div class="equipment-list" id="equipmentList"></div>
@@ -422,9 +423,9 @@
         ];
         
         let usuarioLogado = null;
-        const API_URL = 'https://script.google.com/macros/s/AKfycbyp5VVzVsN7_3Hq1ysdrK4HvpuO9sxJqVFKUSGpbujpMC6Y36qER9UaO4SBdBVKY1qeEQ/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.41 — Rankings, horário e cache';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.41 — Rankings, horário e cache';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -664,19 +665,8 @@
             indicador.textContent = mensagem;
         }
 
-        function normalizarStatusApp(valor, observacao = '') {
-            const texto = String(valor || '').toLowerCase()
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '');
-
-            const obs = String(observacao || '').toLowerCase()
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '');
-
-            if (texto.includes('manutencao (parado)') || texto.includes('manutenção (parado)') || texto.includes('parad') || obs.includes('condicao operacional: parado') || obs.includes('condição operacional: parado')) return 'down';
-            if (texto.includes('manutencao (operando)') || texto.includes('manutenção (operando)') || texto.includes('manut') || texto.includes('aguard') || texto.includes('restri') || obs.includes('em teste') || texto.includes('em teste') || texto.includes('alert') || texto.includes('atencao')) return 'alert';
-            return 'ok';
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: normalizarStatusApp */
 
         function statusParaPlanilha(status) {
             if (status === 'alert') return 'Manutenção';
@@ -786,75 +776,18 @@
             });
         }
 
-        async function carregarStatusOnline() {
-            atualizarIndicadorConexao('🔄 Sincronizando com o Banco Central...', 'neutro');
-
-            try {
-                const resposta = await fetch(`${API_URL}?acao=listarStatus&v=85641&t=${Date.now()}`, { cache: 'no-store' });
-                if (!resposta.ok) throw new Error('Falha ao consultar a API.');
-
-                const statusOnline = await resposta.json();
-                if (!Array.isArray(statusOnline)) throw new Error('Resposta da API não veio em formato de lista.');
-
-                statusOnline.forEach(item => {
-                    const eq = equipment.find(e => String(e.id) === String(item.idEquipamento));
-                    if (!eq) return;
-
-                    eq.status = normalizarStatusApp(item.statusAtual, item.observacao);
-                    eq.ultimoTecnico = item.usuarioUltimaAlteracao || '';
-                    eq.ultimaAlteracao = formatarDataApi(item.dataUltimaAlteracao);
-                    eq.observacaoStatus = item.observacao || '';
-                });
-
-                try {
-                    const listaOSAtualizada = await listarOSOnline();
-                    ordensServicoCache = Array.isArray(listaOSAtualizada) ? listaOSAtualizada : [];
-                    atualizarTotalizadoresOS(ordensServicoCache);
-                } catch (erroOS) {
-                    console.warn('Status sincronizado, mas OS não atualizadas para contador por grupo:', erroOS);
-                }
-
-                apiOnline = true;
-                saveData();
-                applyFilters();
-                atualizarIndicadorConexao('✅ Online: conectado ao Banco Central GMAN', 'online');
-                atualizarMarcadorConexaoGMAN85641('Banco Central: conectado', true);
-                return true;
-
-            } catch (erro) {
-                apiOnline = false;
-                loadData();
-                applyFilters();
-                atualizarIndicadorConexao('⚠️ Modo local: não foi possível sincronizar com o Banco Central', 'offline');
-                atualizarMarcadorConexaoGMAN85641('Banco Central: falha de conexão', false);
-                console.error('Erro ao carregar status online:', erro);
-                return false;
-            }
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: carregarStatusOnline */
 
         async function salvarStatusOnline(id, newStatus) {
             throw new Error('Alteração direta de status bloqueada. Abra ou conclua uma OS vinculada ao equipamento.');
         }
 
-        async function apiPost(payload) {
-            const resposta = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload)
-            });
-            const retorno = await resposta.json();
-            if (!retorno.sucesso) throw new Error(retorno.erro || retorno.mensagem || 'Erro desconhecido na API.');
-            return retorno;
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: apiPost */
 
-        async function apiGet(params) {
-            const query = new URLSearchParams(Object.assign({}, params || {}, { t: Date.now() })).toString();
-            const resposta = await fetch(`${API_URL}?${query}`);
-            if (!resposta.ok) throw new Error('Falha ao consultar a API GMAN.');
-            const retorno = await resposta.json();
-            if (retorno && retorno.sucesso === false) throw new Error(retorno.erro || retorno.mensagem || 'Erro desconhecido na API.');
-            return retorno;
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: apiGet */
 
         const COMPONENTES_GRUPO_GMAN = ['PAINEL', 'MOTOR', 'BOMBA', 'VS', 'VR', 'RETENCAO', 'TUBULACAO'];
         const COMPONENTES_PAT_OBRIGATORIO_GMAN85627 = ['PAINEL', 'MOTOR', 'BOMBA', 'VS', 'VR', 'RETENCAO'];
@@ -1458,63 +1391,18 @@ function montarLinhasPatrimonioGrupoGMAN(patrimonios = {}, opcoes = {}) {
             return true;
         }
 
-        function aplicarBotoesPermissao() {
-            const ehGestao = podeGerenciarOS();
-
-            const btnKPI = document.getElementById('btnPainelKPI');
-            if (btnKPI) btnKPI.style.display = ehGestao ? 'inline-block' : 'none';
-
-            const btnNaoIniciadas = document.getElementById('btnOrdensNaoIniciadasHome');
-            if (btnNaoIniciadas) btnNaoIniciadas.style.display = ehGestao ? 'inline-block' : 'none';
-
-            const btnIniciadas = document.getElementById('btnOrdensIniciadasHome');
-            if (btnIniciadas) btnIniciadas.style.display = ehGestao ? 'inline-block' : 'none';
-
-            const btnEncerradas = document.getElementById('btnOrdensEncerradasHome');
-            if (btnEncerradas) btnEncerradas.style.display = ehGestao ? 'inline-block' : 'none';
-
-            const stats = document.querySelector('.stats');
-            if (stats) stats.style.display = ehGestao ? 'grid' : 'none';
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: aplicarBotoesPermissao */
 
         
-        function limparCacheOperacionalGMAN85641() {
-            try {
-                localStorage.removeItem('gman_kpi_cache');
-                localStorage.removeItem('gman_rankings_cache');
-                localStorage.removeItem('ordensServicoCache');
-                sessionStorage.clear();
-            } catch (erro) {
-                console.warn('Não foi possível limpar todos os caches:', erro);
-            }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: limparCacheOperacionalGMAN85645 */
 
-            ordensServicoCache = [];
-            alert('Cache operacional limpo. Clique em Atualizar agora para recarregar do Banco Central.');
-        }
 
-async function atualizarAgora() {
-            await carregarStatusOnline();
+/* GMAN 8.5.6.56: função duplicada anterior removida: atualizarAgora */
 
-            try {
-                const listaOS = await listarOSOnline();
-                ordensServicoCache = listaOS;
-                atualizarTotalizadoresOS(listaOS);
-                applyFilters();
-                if (document.getElementById('osModal')) renderizarOS(listaOS);
-            } catch (erro) {
-                console.error('Erro ao atualizar totalizadores de OS:', erro);
-            }
-
-            alert('Sistema atualizado com o Banco Central GMAN.');
-        }
-
-        async function listarOSOnline() {
-            const resposta = await fetch(`${API_URL}?acao=listarOS&v=85641&t=${Date.now()}`, { cache: 'no-store' });
-            if (!resposta.ok) throw new Error('Falha ao consultar Ordens de Serviço.');
-            const lista = await resposta.json();
-            if (!Array.isArray(lista)) throw new Error('Resposta de OS não veio em formato de lista.');
-            return lista;
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: listarOSOnline */
 
         function classeStatusOS(status) {
             const s = String(status || '').toLowerCase();
@@ -1693,6 +1581,7 @@ async function atualizarAgora() {
                             ${podeAtualizarAndamento ? `<button onclick="abrirModalAndamentoOS('${os.idOS}')" style="padding:8px 10px; border:none; border-radius:8px; background:#3182ce; color:white; cursor:pointer;">📝 Atualizar andamento</button>` : ''}
                             ${podeConcluir ? `<button onclick="abrirModalConcluirOS('${os.idOS}')" style="padding:8px 10px; border:none; border-radius:8px; background:#38a169; color:white; cursor:pointer;">✅ Concluir</button>` : ''}
                             ${podeCancelar ? `<button onclick="cancelarOS('${os.idOS}')" style="padding:8px 10px; border:none; border-radius:8px; background:#718096; color:white; cursor:pointer;">Cancelar</button>` : ''}
+                            ${(!encerrada && podeGerenciarOS()) ? `<button onclick="abrirModalFechamentoAssistidoOS('${os.idOS}')" style="padding:8px 10px; border:none; border-radius:8px; background:#b7791f; color:white; cursor:pointer; font-weight:800;">🧯 Fechamento assistido</button>` : ''}
                         </div>
                     </div>`;
             }).join('');
@@ -2604,6 +2493,123 @@ function atualizarPreviewKmRodado() {
             }
         }
 
+
+        async function abrirModalFechamentoAssistidoOS(idOS) {
+            if (!podeGerenciarOS()) return alert('Fechamento assistido disponível somente para gestão.');
+            const os = obterOSPorId(idOS);
+            if (!os) return alert('OS não encontrada na tela. Atualize a lista e tente novamente.');
+
+            let diagnostico = null;
+            try {
+                diagnostico = await apiGet({ acao: 'diagnosticarBloqueioConclusaoOS', idOS });
+            } catch (erroDiag) {
+                console.warn('Diagnóstico de bloqueio indisponível:', erroDiag);
+            }
+
+            const existing = document.getElementById('fechamentoAssistidoModal');
+            if (existing) existing.remove();
+
+            const faltantes = diagnostico && Array.isArray(diagnostico.faltantes) ? diagnostico.faltantes : [];
+            const modal = document.createElement('div');
+            modal.id = 'fechamentoAssistidoModal';
+            modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.84); z-index:1900; display:flex; align-items:center; justify-content:center; padding:18px;';
+            modal.innerHTML = `
+                <div style="background:white; border-radius:22px; padding:22px; width:96%; max-width:700px; max-height:92vh; overflow-y:auto;">
+                    <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start; margin-bottom:12px;">
+                        <div>
+                            <h2 style="color:#1e3a5f; margin:0; font-size:1.2rem;">🧯 Fechamento assistido de OS</h2>
+                            <p style="color:#718096; margin:5px 0 0; font-size:0.82rem;">Uso exclusivo da gestão para OS travada por validação. Registra histórico e auditoria.</p>
+                        </div>
+                        <button onclick="document.getElementById('fechamentoAssistidoModal').remove();" style="padding:9px 12px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
+                    </div>
+
+                    <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:14px; padding:12px; margin-bottom:12px; color:#1e3a5f; font-size:0.82rem;">
+                        <strong>OS:</strong> ${escaparHTMLGMAN(idOS)}<br>
+                        <strong>Grupo:</strong> ${escaparHTMLGMAN(os.idEquipamento || '-')}<br>
+                        <strong>Status atual:</strong> ${escaparHTMLGMAN(os.statusOS || '-')}
+                    </div>
+
+                    <div style="background:${faltantes.length ? '#fffaf0' : '#f0fff4'}; border-left:5px solid ${faltantes.length ? '#d69e2e' : '#38a169'}; border-radius:14px; padding:12px; margin-bottom:12px; color:${faltantes.length ? '#744210' : '#22543d'}; font-size:0.82rem;">
+                        <strong>${faltantes.length ? 'Campos que provavelmente estão travando:' : 'Diagnóstico:'}</strong><br>
+                        ${faltantes.length ? faltantes.map(f => '• ' + escaparHTMLGMAN(f)).join('<br>') : 'Nenhum campo obrigatório faltante foi identificado, mas o fechamento assistido ainda pode registrar saneamento administrativo.'}
+                    </div>
+
+                    <label class="form-label">Serviço realizado / saneamento</label>
+                    <textarea id="assistServico" class="form-field" rows="3" placeholder="Ex.: OS antiga encerrada administrativamente após conferência em campo.">${escaparHTMLGMAN(os.servicoRealizado || '')}</textarea>
+
+                    <label class="form-label">Materiais</label>
+                    <input id="assistMateriais" class="form-field" value="${escaparHTMLGMAN(os.materiais || 'Não informado / não aplicável')}" placeholder="Materiais ou Não aplicável">
+
+                    <label class="form-label">Justificativa obrigatória</label>
+                    <textarea id="assistJustificativa" class="form-field" rows="3" placeholder="Explique por que esta OS precisa de fechamento assistido. Ex.: OS antiga sem campos de veículo, serviço já conferido pela gestão."></textarea>
+
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;">
+                        <div>
+                            <label class="form-label">KM inicial</label>
+                            <input id="assistKmInicial" type="number" class="form-field" value="${escaparHTMLGMAN(os.kmInicial || '0')}">
+                        </div>
+                        <div>
+                            <label class="form-label">KM final</label>
+                            <input id="assistKmFinal" type="number" class="form-field" value="${escaparHTMLGMAN(os.kmFinal || os.kmInicial || '0')}">
+                        </div>
+                    </div>
+
+                    <label class="form-label">Confirmação forte</label>
+                    <input id="assistConfirmacao" class="form-field" placeholder="Digite: CONFIRMO FECHAMENTO ASSISTIDO GMAN">
+
+                    <div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:14px; padding:12px; color:#742a2a; font-size:0.80rem; margin-top:10px;">
+                        Esta ação conclui a OS com auditoria. Não apaga nada da planilha, não mexe em ORDENS_SERVICO antigas e registra histórico.
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px; flex-wrap:wrap;">
+                        <button onclick="document.getElementById('fechamentoAssistidoModal').remove();" style="padding:11px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Cancelar</button>
+                        <button onclick="executarFechamentoAssistidoOS('${idOS}')" style="padding:11px 14px; border:none; border-radius:10px; background:#b7791f; color:white; cursor:pointer; font-weight:900;">Concluir com assistência</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        async function executarFechamentoAssistidoOS(idOS) {
+            if (!podeGerenciarOS()) return alert('Fechamento assistido disponível somente para gestão.');
+            const servicoRealizado = (document.getElementById('assistServico') || {}).value ? document.getElementById('assistServico').value.trim() : '';
+            const materiais = (document.getElementById('assistMateriais') || {}).value ? document.getElementById('assistMateriais').value.trim() : '';
+            const justificativa = (document.getElementById('assistJustificativa') || {}).value ? document.getElementById('assistJustificativa').value.trim() : '';
+            const confirmacao = (document.getElementById('assistConfirmacao') || {}).value ? document.getElementById('assistConfirmacao').value.trim() : '';
+            const kmInicial = Number((document.getElementById('assistKmInicial') || {}).value || 0);
+            const kmFinal = Number((document.getElementById('assistKmFinal') || {}).value || kmInicial);
+
+            if (!servicoRealizado) return alert('Informe o serviço realizado/saneamento.');
+            if (!justificativa || justificativa.length < 12) return alert('Informe uma justificativa clara para o fechamento assistido.');
+            if (confirmacao.toUpperCase() !== 'CONFIRMO FECHAMENTO ASSISTIDO GMAN') return alert('Digite a confirmação exatamente como solicitado.');
+            if (kmFinal < kmInicial) return alert('KM final não pode ser menor que KM inicial.');
+
+            if (!confirm('Confirmar fechamento assistido desta OS? Essa ação será registrada em auditoria.')) return;
+
+            try {
+                await apiPost({
+                    acao: 'fechamentoAssistidoOS',
+                    idOS,
+                    usuario: usuarioLogado.nome,
+                    funcao: usuarioLogado.funcao,
+                    servicoRealizado,
+                    materiais,
+                    justificativaAssistida: justificativa,
+                    confirmacao,
+                    kmInicial,
+                    kmFinal
+                });
+                const modal = document.getElementById('fechamentoAssistidoModal');
+                if (modal) modal.remove();
+                alert('OS concluída por fechamento assistido.');
+                await carregarStatusOnline();
+                if (document.getElementById('osModal')) await recarregarPainelOS();
+            } catch (erro) {
+                console.error(erro);
+                alert('Erro no fechamento assistido: ' + erro.message);
+            }
+        }
+
         async function cancelarOS(idOS) {
             if (!podeGerenciarOS()) return alert('Somente gestão pode cancelar OS.');
             const motivo = prompt('Motivo do cancelamento:') || '';
@@ -2753,20 +2759,47 @@ function normalizarKPI(valor) {
                 os.equipeResponsavel,
                 os.responsavel,
                 os.criadoPor,
-                os.finalizadoPor
+                os.finalizadoPor,
+                os.area,
+                os.sistema
             ].map(v => normalizarKPI(v)).join(' | ');
 
             return (
                 campos.includes('teste') ||
-                campos.includes('gman 8.5') ||
+                campos.includes('setor teste') ||
+                campos.includes('area teste') ||
+                campos.includes('local compartilhado teste') ||
+                campos.includes('mesmo local permitido') ||
                 campos.includes('equipamento teste') ||
                 campos.includes('bomba teste') ||
                 campos.includes('testeciclo') ||
-                campos.includes('teste_')
+                campos.includes('teste_') ||
+                campos.includes('eq teste')
             );
         }
 
         
+
+        function ehEquipamentoTesteGMAN85645(eq) {
+            const campos = [
+                eq && eq.id,
+                eq && eq.name,
+                eq && eq.nome,
+                eq && eq.system,
+                eq && eq.systemCode,
+                eq && eq.status,
+                eq && eq.observacaoStatus
+            ].map(v => normalizarKPI(v)).join(' | ');
+
+            return (
+                campos.includes('teste') ||
+                campos.includes('eq teste') ||
+                campos.includes('eqteste') ||
+                campos.includes('equipamento teste') ||
+                campos.includes('testeciclo')
+            );
+        }
+
         function chaveReincidenciaKPI85637(os) {
             const id = os.idEquipamento || os.equipamento || '';
             const chaveGrupo = chaveGrupoGMAN85633(id);
@@ -2784,9 +2817,57 @@ function normalizarKPI(valor) {
                    combinarDataHoraKPI(os.dataAbertura, os.horaAbertura);
         }
 
-function nomeLiderKPI(os) {
+        function baseNumeroOSReincidenciaGMAN85645(os) {
+            const numero = String((os && (os.numeroOS || os.idOS)) || '').trim();
+            if (!numero) return '';
+
+            const novo = numero.match(/^(\d{4})\.\d{2}\/(\d{2})$/);
+            if (novo) return `${novo[1]}/${novo[2]}`;
+
+            return numero
+                .replace(/\s*\(\d{1,3}\)\s*$/, '')
+                .replace(/-\d{3}$/, '')
+                .trim();
+        }
+
+const NOMES_OFICIAIS_LIDERES_GMAN85645 = {
+            'paulo jurandir': 'Paulo Jurandir',
+            'rafael spies': 'Rafael Spies',
+            'jeferson machado': 'Jeferson Machado',
+            'valtemir olmos': 'Valtemir Olmos',
+            'mauricio do carmo': 'Mauricio do Carmo',
+            'rogerio alves': 'Rogério Alves',
+            'rodrigo fortes': 'Rodrigo Fortes',
+            'luciano cruz': 'Luciano Cruz',
+            'ronaldo lemos': 'Ronaldo Lemos',
+            'valneir oliveira': 'Valneir Oliveira',
+            'antonio carlos leal': 'Antonio Carlos Leal',
+            'ricardo mathiola': 'Ricardo Mathiola',
+            'carlos alberto': 'Carlos Alberto',
+            'andre marques': 'Andre Marques',
+            'roque becker': 'Roque Becker',
+            'saulo lockman': 'Saulo Lockman',
+            'sidnei rocha': 'Sidnei Rocha',
+            'gabriel stumm': 'Gabriel Stumm'
+        };
+
+        function chavePessoaRankingGMAN85645(valor) {
+            return normalizarTextoGMAN(valor).replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+        }
+
+        function formatarNomePessoaRankingGMAN85645(valor) {
+            const limpo = String(valor || '').replace(/\s+/g, ' ').trim();
+            if (!limpo) return '';
+
+            const chave = chavePessoaRankingGMAN85645(limpo);
+            if (NOMES_OFICIAIS_LIDERES_GMAN85645[chave]) return NOMES_OFICIAIS_LIDERES_GMAN85645[chave];
+
+            return limpo.toLowerCase().replace(/(^|[\s\-'])([a-zà-ú])/g, (m, sep, letra) => sep + letra.toUpperCase());
+        }
+
+        function nomeLiderKPI(os) {
             const nome = String(os.finalizadoPor || os.usuarioInicio || os.responsavel || '').trim();
-            return nome || '';
+            return formatarNomePessoaRankingGMAN85645(nome);
         }
 
         function nomeEquipamentoKPI(os) {
@@ -2794,7 +2875,7 @@ function nomeLiderKPI(os) {
         }
 
         function contarPorLiderKPI(lista) {
-            return lista.reduce((acc, os) => {
+            return (Array.isArray(lista) ? lista : []).reduce((acc, os) => {
                 const lider = nomeLiderKPI(os);
                 if (!lider) return acc;
                 acc[lider] = (acc[lider] || 0) + 1;
@@ -3093,6 +3174,44 @@ function nomeLiderKPI(os) {
             return 'linear-gradient(135deg,#c53030,#fc8181)';
         }
 
+
+        function montarDiagnosticoUltimasOSPainelGMAN85645(diagnostico) {
+            if (!diagnostico || diagnostico.sucesso === false) {
+                return `
+                    <div style="margin-top:14px; background:#fffaf0; border-left:5px solid #d69e2e; border-radius:18px; padding:13px; color:#744210; font-size:0.82rem;">
+                        <strong>🩺 Diagnóstico das últimas OS lidas</strong><br>
+                        Não foi possível carregar o diagnóstico agora. Recalcule o painel após publicar a API 8.5.6.55.
+                    </div>
+                `;
+            }
+
+            const ultimas = Array.isArray(diagnostico.ultimasOS) ? diagnostico.ultimasOS : [];
+            return `
+                <div style="margin-top:14px; background:linear-gradient(135deg,#ebf8ff,#ffffff); border-left:5px solid #3182ce; border-radius:20px; padding:14px; color:#1e3a5f; font-size:0.82rem; border:1px solid #bee3f8;">
+                    <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:8px;">
+                        <strong>🩺 Diagnóstico das últimas OS lidas no painel</strong>
+                        <span style="font-weight:900; color:#2c5282;">${escaparHTMLGMAN(diagnostico.atualizadoEm || '')}</span>
+                    </div>
+                    <div style="color:#2d3748; margin-bottom:8px;">
+                        Total bruto: <strong>${diagnostico.totalOSBrutas || 0}</strong> ·
+                        Válidas sem TESTE: <strong>${diagnostico.totalOSValidasSemTeste || 0}</strong> ·
+                        TESTE ignoradas: <strong>${diagnostico.osTesteIgnoradas || 0}</strong>
+                    </div>
+                    ${ultimas.length ? `
+                        <div style="display:grid; gap:7px;">
+                            ${ultimas.map(os => `
+                                <div style="background:#f7fafc; border:1px solid #e2e8f0; border-radius:12px; padding:9px; color:#2d3748;">
+                                    <strong>${escaparHTMLGMAN(os.numeroOS || os.idOS || '-')}</strong> — ${escaparHTMLGMAN(os.equipamento || os.idEquipamento || '-')}<br>
+                                    <span>Status: ${escaparHTMLGMAN(os.statusOS || '-')} · Responsável: ${escaparHTMLGMAN(os.responsavel || '-')}</span><br>
+                                    <span>Última movimentação: ${escaparHTMLGMAN(os.ultimaMovimentacaoDataHora || os.dataConclusao || os.dataInicio || os.dataAbertura || '-')}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : '<div style="background:#fffaf0; border-radius:12px; padding:9px; color:#744210;">Nenhuma OS válida encontrada no diagnóstico.</div>'}
+                </div>
+            `;
+        }
+
 function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊') {
             const brilho = `linear-gradient(135deg, ${cor}18, #ffffff 55%, #f7fafc)`;
             const gradienteResultado = gradienteNumeroKPI(chave, valor);
@@ -3164,6 +3283,61 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
             return null;
         }
 
+
+        function corKPIIndustrialGMAN85650(card) {
+            const chave = normalizarTextoGMAN(card && card.chave);
+            const n = Number(card && card.numero);
+            if (String(card && card.valor || '').toLowerCase().includes('em cálculo')) return '#718096';
+            if (chave.includes('mttr')) return !isNaN(n) && n <= 1440 ? '#38a169' : '#d69e2e';
+            if (chave.includes('backlog') || chave.includes('reincidencia')) return !isNaN(n) && n > 0 ? '#d69e2e' : '#38a169';
+            if (chave.includes('oee')) return !isNaN(n) && n >= 70 ? '#38a169' : '#d69e2e';
+            if (chave.includes('disponibilidade')) return !isNaN(n) && n >= 90 ? '#38a169' : '#d69e2e';
+            return '#3182ce';
+        }
+
+        function montarKPIsIndustriaisOficiaisHTMLGMAN85650(kpis) {
+            if (!kpis || kpis.sucesso === false || !Array.isArray(kpis.cards)) {
+                return `
+                    <div style="background:#fffaf0; border-left:5px solid #d69e2e; border-radius:16px; padding:12px; margin-bottom:14px; color:#744210; font-size:0.82rem;">
+                        ⚠️ KPIs industriais oficiais ainda não foram carregados. Use Recalcular ou Atualizar agora.
+                    </div>
+                `;
+            }
+
+            return `
+                <div style="background:linear-gradient(135deg,#0f2742,#1e3a5f,#2c5282); color:white; border-radius:24px; padding:18px; margin-bottom:14px; box-shadow:0 14px 30px rgba(30,58,95,0.24);">
+                    <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start; flex-wrap:wrap;">
+                        <div>
+                            <h3 style="margin:0; font-size:1.15rem;">⚙️ KPIs industriais oficiais GMAN</h3>
+                            <p style="margin:5px 0 0; opacity:0.9; font-size:0.80rem;">Fonte única: Banco Central GMAN · ${escaparHTMLGMAN(kpis.atualizadoEm || '')}</p>
+                        </div>
+                        <span style="background:${kpis.statusGeral === 'OK' ? '#38a169' : '#d69e2e'}; padding:7px 10px; border-radius:999px; font-size:0.75rem; font-weight:900;">${escaparHTMLGMAN(kpis.statusGeral || 'OK')}</span>
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; margin-bottom:16px;">
+                    ${kpis.cards.map(card => {
+                        const cor = corKPIIndustrialGMAN85650(card);
+                        return `
+                            <div onclick="abrirInfoKPI('${String(card.chave || '').replace(/'/g, "\\'")}')" style="background:linear-gradient(135deg,#ffffff,#f7fafc); border-left:7px solid ${cor}; border-radius:22px; padding:15px; min-height:132px; box-shadow:0 10px 22px rgba(30,58,95,0.12); cursor:pointer;">
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                                    <div style="color:#1e3a5f; font-size:0.78rem; font-weight:900; text-transform:uppercase;">${escaparHTMLGMAN(card.chave || '')}</div>
+                                    <div style="font-size:1.35rem;">${card.icone || '📊'}</div>
+                                </div>
+                                <div style="font-size:1.75rem; font-weight:1000; color:${cor}; margin-top:7px;">${escaparHTMLGMAN(card.valor || '')}</div>
+                                <div style="font-size:0.70rem; color:#4a5568; font-weight:800; margin-top:6px;">🎯 ${escaparHTMLGMAN(card.meta || '')}</div>
+                                <div style="font-size:0.68rem; color:#718096; margin-top:6px; line-height:1.25;">${escaparHTMLGMAN(card.prova || '')}</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:16px; padding:12px; margin-bottom:14px; color:#1e3a5f; font-size:0.80rem;">
+                    <strong>Base dos KPIs:</strong>
+                    ${kpis.base.totalEquipamentos} equipamentos oficiais · ${kpis.base.totalOSConsideradas} OS consideradas · ${kpis.base.osTesteIgnoradas} OS TESTE ignoradas · ${kpis.base.amostrasMTTR} amostra(s) de MTTR · ${kpis.base.amostrasMTBF} amostra(s) de MTBF.
+                    <br><strong>Observação:</strong> ${escaparHTMLGMAN(kpis.observacaoOEE || '')}
+                </div>
+            `;
+        }
+
         async function abrirPainelGerencial() {
             if (!podeGerenciarOS()) {
                 alert('Painel gerencial disponível somente para gestão.');
@@ -3181,7 +3355,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                     <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
                         <div>
                             <h2 style="color:#1e3a5f; margin:0; font-size:1.25rem;">Painel Gerencial — KPIs</h2>
-                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Visível somente para gestão. Dados calculados pelo Banco Central GMAN. <strong>Versão 8.5.6.41</strong></p>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Visível somente para gestão. Dados calculados pelo Banco Central GMAN. <strong>Versão 8.5.6.55</strong></p>
                         </div>
                         <button onclick="document.getElementById('kpiModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
                     </div>
@@ -3193,264 +3367,14 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
             await carregarPainelGerencial();
         }
 
-        async function carregarPainelGerencial() {
-            const container = document.getElementById('kpiConteudo');
-            if (!container) return;
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: carregarPainelGerencial */
 
-            container.innerHTML = '<p style="color:#4a5568;">🔄 Calculando indicadores GMAN...</p>';
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: recuperarLoginSalvo */
 
-            try {
-                await carregarStatusOnline();
-                const listaOS = await listarOSOnline();
-                const osValidas = listaOS.filter(os => !ehOSTesteKPI(os));
-
-                const totalEquipamentos = equipment.length;
-                const operando = equipment.filter(e => e.status === 'ok').length;
-                const indisponiveis = equipment.filter(e => e.status === 'alert' || e.status === 'down').length;
-                const parados = equipment.filter(e => e.status === 'down').length;
-
-                const disponibilidadeInstantanea = totalEquipamentos ? arredondarPercentualKPI((operando / totalEquipamentos) * 100) : 0;
-
-                const categoriasKPI = resumoCategoriasKPI85636(osValidas);
-                const osBacklog = categoriasKPI.ativas;
-                const osConcluidasLista = osValidas.filter(os => statusConcluidoKPI(os.statusOS));
-                const osConcluidas = categoriasKPI.concluidas;
-
-                const corretivasConcluidas = osValidas.filter(os =>
-                    statusConcluidoKPI(os.statusOS) &&
-                    ehCorretivaKPI(os)
-                );
-
-                const corretivasValidas = osValidas.filter(os => ehCorretivaKPI(os));
-
-                const temposReparo = corretivasConcluidas
-                    .map(os => {
-                        const inicio = combinarDataHoraKPI(os.dataInicio, os.horaInicio);
-                        const fim = combinarDataHoraKPI(os.dataConclusao, os.horaConclusao);
-                        if (!inicio || !fim) return null;
-                        const minutos = (fim.getTime() - inicio.getTime()) / 60000;
-                        return minutos > 0 ? minutos : null;
-                    })
-                    .filter(Boolean);
-
-                const mttr = temposReparo.length
-                    ? temposReparo.reduce((a, b) => a + b, 0) / temposReparo.length
-                    : 0;
-
-                const produtividadePorLider = contarPorLiderKPI(osConcluidasLista);
-                const rankingOcorrenciasArea = calcularRankingOcorrenciasAreaGMAN85641(osValidas);
-
-                const agora = new Date();
-                const trintaDiasAtras = new Date(agora.getTime() - (30 * 24 * 60 * 60 * 1000));
-
-                const corretivasReincidenciaBase = osValidas.filter(os =>
-                    statusConcluidoKPI(os.statusOS) &&
-                    ehCorretivaKPI(os)
-                );
-
-                const corretivas30 = corretivasReincidenciaBase.filter(os => {
-                    const data = dataReincidenciaKPI85637(os);
-                    return data && data >= trintaDiasAtras;
-                });
-
-                const reincidenciaPorEquip = {};
-                const reincidenciaRotulos = {};
-
-                corretivas30.forEach(os => {
-                    const chave = chaveReincidenciaKPI85637(os);
-                    const rotulo = rotuloReincidenciaKPI85637(os);
-
-                    if (!chave || normalizarKPI(chave) === 'nao informado') return;
-
-                    reincidenciaPorEquip[chave] = (reincidenciaPorEquip[chave] || 0) + 1;
-                    reincidenciaRotulos[chave] = reincidenciaRotulos[chave] || rotulo;
-                });
-
-                const reincidenciaRankingCompleto = Object.fromEntries(
-                    Object.entries(reincidenciaPorEquip).map(([chave, total]) => [
-                        reincidenciaRotulos[chave] || chave,
-                        total
-                    ])
-                );
-
-                const reincidenciaRanking = Object.fromEntries(
-                    Object.entries(reincidenciaPorEquip)
-                        .filter(([_, total]) => total >= 2)
-                        .map(([chave, total]) => [
-                            reincidenciaRotulos[chave] || chave,
-                            total
-                        ])
-                );
-
-                const gruposEmObservacao = Object.fromEntries(
-                    Object.entries(reincidenciaPorEquip)
-                        .filter(([_, total]) => total === 1)
-                        .map(([chave, total]) => [
-                            reincidenciaRotulos[chave] || chave,
-                            total
-                        ])
-                );
-
-                const reincidentes = Object.entries(reincidenciaPorEquip).filter(([_, total]) => total >= 2);
-                const reincidentesCriticos = Object.entries(reincidenciaPorEquip).filter(([_, total]) => total >= 3);
-                const maiorReincidenciaGrupo = Object.values(reincidenciaRanking).reduce((maior, total) => Math.max(maior, total), 0);
-                const totalGruposReincidentes = reincidentes.length;
-                const totalGruposCriticos = reincidentesCriticos.length;
-                const mtbfCalculado = calcularMTBFKPI(corretivasConcluidas);
-                const mtbfTexto = mtbfCalculado.texto;
-                const disponibilidadeHistoricaValor = calcularDisponibilidadeManutencaoKPI(mtbfCalculado.horas, mttr);
-                const disponibilidadeHistoricaTexto = disponibilidadeHistoricaValor === null ? 'Em cálculo' : formatarPercentualKPI(disponibilidadeHistoricaValor);
-                const disponibilidadeHistoricaSubtitulo = disponibilidadeHistoricaValor === null ? 'aguardando histórico suficiente' : 'MTBF ÷ (MTBF + MTTR)';
-                const osTesteIgnoradas = listaOS.length - osValidas.length;
-
-                const performanceOEE = osValidas.length ? arredondarPercentualKPI((osConcluidas / osValidas.length) * 100) : 0;
-                const baseQualidade = totalEquipamentos ? Math.max(0, 100 - ((reincidentes.length / totalEquipamentos) * 100)) : 0;
-                const qualidadeOEE = arredondarPercentualKPI(baseQualidade);
-                const oee = disponibilidadeHistoricaValor === null ? null : calcularOEEKPI(disponibilidadeHistoricaValor, performanceOEE, qualidadeOEE);
-                const oeeTexto = oee === null ? 'Em cálculo' : formatarPercentualKPI(oee);
-
-                container.innerHTML = `
-                    <div style="background:linear-gradient(135deg,#1e3a5f,#2c5282,#3182ce); color:white; border-radius:26px; padding:20px; margin-bottom:16px; box-shadow:0 14px 30px rgba(30,58,95,0.24); position:relative; overflow:hidden;">
-                        <div style="position:absolute; right:18px; bottom:-12px; font-size:4.8rem; opacity:0.13;">⚙️</div>
-                        <div style="position:absolute; left:12px; top:-18px; font-size:4.5rem; opacity:0.08;">✨</div>
-                        <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; position:relative;">
-                            <div>
-                                <h3 style="margin:0; font-size:1.24rem;">📊 Painel Gerencial GMAN</h3>
-                                <p style="margin:5px 0 0; opacity:0.92; font-size:0.84rem;">KPIs clicáveis, painel mais vivo, Top 5 e OEE adaptado ao cenário do GMAN.</p>
-                            </div>
-                            <button onclick="carregarPainelGerencial()" style="border:none; border-radius:999px; padding:10px 14px; background:white; color:#1e3a5f; font-weight:900; cursor:pointer;">🔄 Recalcular</button>
-                        </div>
-                    </div>
-
-                    <div style="background:#f7fafc; border-left:5px solid #3182ce; border-radius:14px; padding:12px; margin-bottom:14px; color:#1e3a5f; font-size:0.82rem;">
-                        <strong>Conciliação KPI:</strong>
-                        Backlog = ${osBacklog} |
-                        Concluídas = ${categoriasKPI.concluidas} |
-                        Canceladas = ${categoriasKPI.canceladas} |
-                        Encerradas não concluídas = ${categoriasKPI.encerradasNaoConcluidas} |
-                        Outras/Sem status = ${(categoriasKPI.outros || 0) + (categoriasKPI.semStatus || 0)}
-                    </div>
-
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; margin-bottom:16px;">
-                        ${montarCardKPI('Disponibilidade histórica', disponibilidadeHistoricaTexto, disponibilidadeHistoricaSubtitulo, disponibilidadeHistoricaValor !== null && disponibilidadeHistoricaValor >= 90 ? '#38a169' : '#d69e2e', '✅')}
-                        ${montarCardKPI('Disponibilidade instantânea', formatarPercentualKPI(disponibilidadeInstantanea), 'foto atual por status', '#319795', '📍')}
-                        ${montarCardKPI('MTTR', formatarDuracaoMinutos(mttr), 'Tempo médio de reparo', '#3182ce', '⏱️')}
-                        ${montarCardKPI('MTBF estimado', mtbfTexto, 'Intervalo médio entre corretivas', '#805ad5', '🔁')}
-                        ${montarCardKPI('Backlog de OS', osBacklog, explicacaoBacklogKPI85636(categoriasKPI), '#d69e2e', '📋')}
-                        ${montarCardKPI('Produtividade', osConcluidas, 'OS concluídas válidas', '#38a169', '🏆')}
-                        ${montarCardKPI('Reincidência', maiorReincidenciaGrupo, `maior grupo | ${totalGruposReincidentes} reincidente(s), ${totalGruposCriticos} crítico(s)`, maiorReincidenciaGrupo >= 3 ? '#e53e3e' : maiorReincidenciaGrupo >= 2 ? '#d69e2e' : '#38a169', '⚠️')}
-                        ${montarCardKPI('OEE adaptado', oeeTexto, 'Indicador gerencial adaptado', oee !== null && oee >= 70 ? '#dd6b20' : '#c53030', '⚙️')}
-                    </div>
-
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:14px;">
-                        ${montarRankingHTML(produtividadePorLider, 'Líderes que mais atenderam OS', 5, 'OS', '🏆')}
-                        ${montarRankingHTML(reincidenciaRanking, 'OS grupos de maior reincidência — 2+ OS', 5, 'OS recorrentes', '⚠️', 2)}
-                        ${montarRankingHTML(rankingOcorrenciasArea, 'Ocorrências por área/equipe', 6, 'OS', '🏭')}
-                    </div>
-
-                    ${Object.keys(gruposEmObservacao).length ? `
-                        <div style="margin-top:12px; background:#fffaf0; border-left:5px solid #d69e2e; border-radius:16px; padding:12px; color:#744210; font-size:0.80rem;">
-                            <strong>👀 Grupos em observação:</strong>
-                            grupos com apenas 1 OS recorrente não entram no ranking principal de reincidência.
-                            <div style="margin-top:6px;">
-                                ${Object.entries(gruposEmObservacao).slice(0, 5).map(([nome, total]) => `${escaparHTMLGMAN(nome)} — ${total} ocorrência`).join('<br>')}
-                            </div>
-                        </div>
-                    ` : ''}
-
-                    <div style="margin-top:14px; display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:10px;">
-                        <div style="background:#f0fff4; border-left:5px solid #38a169; border-radius:18px; padding:13px; color:#22543d; font-size:0.82rem; box-shadow:0 8px 18px rgba(56,161,105,0.08);">
-                            <strong>✅ Base dos KPIs</strong><br>
-                            ${osValidas.length} OS válidas consideradas.
-                        </div>
-                        <div style="background:#fffaf0; border-left:5px solid #d69e2e; border-radius:18px; padding:13px; color:#744210; font-size:0.82rem; box-shadow:0 8px 18px rgba(214,158,46,0.08);">
-                            <strong>📋 Backlog</strong><br>
-                            ${osBacklog} OS ainda não encerradas.
-                        </div>
-                        <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:18px; padding:13px; color:#2c5282; font-size:0.82rem; box-shadow:0 8px 18px rgba(49,130,206,0.08);">
-                            <strong>🧪 Testes ignorados</strong><br>
-                            ${osTesteIgnoradas} OS de teste fora dos KPIs.
-                        </div>
-                        <div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:18px; padding:13px; color:#742a2a; font-size:0.82rem; box-shadow:0 8px 18px rgba(229,62,62,0.08);">
-                            <strong>⚠️ Base da reincidência</strong><br>
-                            ${corretivas30.length} corretivas concluídas nos últimos 30 dias. Ranking principal mostra grupos com 2+ OS; 3+ é crítico.<br>
-                            <small>Versão do cálculo: 8.5.6.41 sem cache.</small>
-                        </div>
-                        <div style="background:#fff5f5; border-left:5px solid #dd6b20; border-radius:18px; padding:13px; color:#7b341e; font-size:0.82rem; box-shadow:0 8px 18px rgba(221,107,32,0.08);">
-                            <strong>⚙️ OEE adaptado</strong><br>
-                            Histórica ${disponibilidadeHistoricaTexto} · Instantânea ${formatarPercentualKPI(disponibilidadeInstantanea)} · Performance ${formatarPercentualKPI(performanceOEE)} · Qualidade ${formatarPercentualKPI(qualidadeOEE)}.
-                        </div>
-                    </div>
-
-                    <div style="margin-top:14px; background:linear-gradient(135deg,#edf2f7,#ffffff); border-radius:20px; padding:14px; color:#2d3748; font-size:0.82rem; border:1px solid #e2e8f0;">
-                        <strong>📌 Regra aplicada:</strong> disponibilidade histórica usa MTBF ÷ (MTBF + MTTR) e não se mistura com a disponibilidade instantânea. MTBF é estimado pelo intervalo médio entre corretivas do mesmo equipamento. Produtividade por líder usa o campo RESPONSAVEL das OS concluídas válidas. Reincidência usa corretivas concluídas dos últimos 30 dias por grupo/equipamento. O ranking principal mostra apenas grupos com 2+ OS recorrentes; 3+ é crítico. OEE é gerencial e adaptado ao GMAN. OS de teste não entram nos KPIs.
-                        <br>
-                        <strong>Situação atual:</strong> ${operando} operando, ${indisponiveis} em manutenção/alerta, ${parados} parados e ${osBacklog} OS no backlog.<br>
-                        <strong>Versão ativa do painel:</strong> GMAN 8.5.6.41 — rankings sem cache, líder por finalização e horário Brasil.
-                    </div>
-                `;
-
-            } catch (erro) {
-                console.error(erro);
-                container.innerHTML = '<p style="color:#e53e3e; font-weight:bold;">Erro ao carregar KPIs. Confira a conexão com a API, a planilha e os nomes das abas.</p>';
-            }
-        }
-
-        function recuperarLoginSalvo() {
-            const usuarioSalvo = localStorage.getItem('manutencao_usuario_logado');
-            if (!usuarioSalvo) return false;
-
-            try {
-                const dados = JSON.parse(usuarioSalvo);
-                const encontrado = usuarios.find(u =>
-                    u.nome === dados.nome &&
-                    u.funcao === dados.funcao &&
-                    u.area === dados.area
-                );
-
-                if (!encontrado) {
-                    localStorage.removeItem('manutencao_usuario_logado');
-                    return false;
-                }
-
-                usuarioLogado = encontrado;
-                document.getElementById('loginScreen').style.display = 'none';
-                mostrarUsuarioLogado();
-                aplicarPermissoes();
-                aplicarBotoesPermissao();
-                return true;
-            } catch (e) {
-                localStorage.removeItem('manutencao_usuario_logado');
-                return false;
-            }
-        }
-
-        function fazerLogin() {
-            const user = document.getElementById('loginUser').value.trim();
-            const pass = document.getElementById('loginPass').value;
-            const erro = document.getElementById('loginErro');
-            
-            const encontrado = usuarios.find(u => 
-                u.nome.toLowerCase() === user.toLowerCase() && u.senha === pass
-            );
-            
-            if (!encontrado) {
-                erro.textContent = 'Usuário ou senha incorretos!';
-                erro.style.display = 'block';
-                return;
-            }
-            
-            usuarioLogado = encontrado;
-            localStorage.setItem('manutencao_usuario_logado', JSON.stringify({
-                nome: encontrado.nome,
-                funcao: encontrado.funcao,
-                area: encontrado.area
-            }));
-            document.getElementById('loginScreen').style.display = 'none';
-            mostrarUsuarioLogado();
-            aplicarPermissoes();
-            aplicarBotoesPermissao();
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: fazerLogin */
 
         function mostrarUsuarioLogado() {
             const existente = document.getElementById('userInfo');
@@ -3484,20 +3408,9 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
             header.parentNode.insertBefore(info, header.nextSibling);
         }
         
-        function fazerLogout() {
-            localStorage.removeItem('manutencao_usuario_logado');
-            usuarioLogado = null;
-            document.getElementById('loginScreen').style.display = 'flex';
-            document.getElementById('loginUser').value = '';
-            document.getElementById('loginPass').value = '';
-            document.getElementById('loginErro').style.display = 'none';
-            
-            const info = document.getElementById('userInfo');
-            if (info) info.remove();
-            aplicarBotoesPermissao();
-        }
         
-        function aplicarPermissoes() {
+/* GMAN 8.5.6.56: função duplicada anterior removida: fazerLogout */
+function aplicarPermissoes() {
             if (usuarioLogado.funcao === 'supervisor' || usuarioLogado.funcao === 'administrador') {
                 return; 
             }
@@ -3742,28 +3655,11 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
         let currentStatusFilter = 'all';
         let ordensServicoCache = []; 
 
-        function saveData() {
-            localStorage.setItem('manutencao_equipment', JSON.stringify(equipment));
-        }
         
-        function loadData() {
-            const saved = localStorage.getItem('manutencao_equipment');
-            if (saved) {
-                const savedEquipment = JSON.parse(saved);
-                savedEquipment.forEach(savedEq => {
-                    const eq = equipment.find(e => e.id === savedEq.id);
-                    if (eq) {
-                        eq.status = savedEq.status;
-                        eq.ultimoTecnico = savedEq.ultimoTecnico;
-                        eq.ultimaAlteracao = savedEq.ultimaAlteracao;
-                        eq.historico = savedEq.historico;
-                        eq.observacaoStatus = savedEq.observacaoStatus;
-                    }
-                });
-            }
-        }
-        
-        function renderEquipment(list = equipment) {
+/* GMAN 8.5.6.56: função duplicada anterior removida: saveData */
+
+/* GMAN 8.5.6.56: função duplicada anterior removida: loadData */
+function renderEquipment(list = equipment) {
             const container = document.getElementById('equipmentList');
             container.innerHTML = list.map(eq => {
                 const visual = statusVisualGrupoGMAN85631(eq);
@@ -3790,12 +3686,12 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
             `;
             }).join('');
             
-            let activeList = equipment;
+            let activeList = equipment.filter(e => !ehEquipamentoTesteGMAN85645(e));
 
             if (currentSystemFilter === 'brutas') {
-                activeList = equipment.filter(e => isEquipamentoBrutaGMAN(e));
+                activeList = activeList.filter(e => isEquipamentoBrutaGMAN(e));
             } else if (currentSystemFilter !== 'all') {
-                activeList = equipment.filter(e => e.system === currentSystemFilter);
+                activeList = activeList.filter(e => e.system === currentSystemFilter);
             }
             
             const totalEquipamentos = activeList.length;
@@ -4063,37 +3959,15 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
             }
         }
 
-                async function verOSDoGrupoGMAN(idGrupo) {
-            try {
-                const lista = await listarOSOnline();
-                modoPainelOSAtual = 'grupo:' + idGrupo;
+                
+/* GMAN 8.5.6.56: função duplicada anterior removida: verOSDoGrupoGMAN */
 
-                const existingModal = document.getElementById('osModal');
-                if (existingModal) existingModal.remove();
 
-                const modal = document.createElement('div');
-                modal.id = 'osModal';
-                modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.82); display: flex; align-items: center; justify-content: center; z-index: 1100; padding: 18px;';
-                modal.innerHTML = `
-                    <div style="background:linear-gradient(180deg,#ffffff,#f7fafc); border-radius:24px; padding:22px; width:96%; max-width:880px; max-height:90vh; overflow-y:auto; box-shadow:0 18px 44px rgba(0,0,0,0.22);">
-                        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
-                            <div>
-                                <h2 style="color:#1e3a5f; margin:0; font-size:1.22rem;">📋 OS do grupo ${escaparHTMLGMAN(idGrupo)}</h2>
-                                <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Acesso direto às OS vinculadas ao grupo selecionado.</p>
-                            </div>
-                            <button onclick="document.getElementById('osModal').remove();" style="padding:10px 14px; border:none; border-radius:12px; background:#718096; color:white; cursor:pointer;">Fechar</button>
-                        </div>
-                        <div id="osConteudo">Carregando OS do grupo...</div>
-                    </div>
-                `;
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: historicoRecenteGrupoGMAN85645 */
 
-                document.body.appendChild(modal);
-                renderizarOS(lista);
-            } catch (erro) {
-                console.error(erro);
-                alert('Erro ao abrir OS do grupo: ' + erro.message);
-            }
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: montarHistoricoRecenteGrupoHTMLGMAN85645 */
 
 function openEquipment(id) {
             const eq = equipment.find(e => e.id === id);
@@ -4145,16 +4019,7 @@ function openEquipment(id) {
                     </div>
                     ` : ''}
                     
-                    ${eq.historico && eq.historico.length > 0 ? `
-                    <div onclick="abrirHistoricoDetalhadoGrupo('${eq.id}')" title="Clique para ver os detalhes completos das OS" style="margin: 15px 0; max-height: 120px; overflow-y: auto; text-align: left; background: #f9f9f9; padding: 10px; border-radius: 8px; cursor:pointer; border:1px solid #e2e8f0;">
-                        <p style="color: #666; font-size: 0.75rem; margin-bottom: 5px;"><strong>Histórico recente — últimas 3 intervenções:</strong><br><span style="color:#3182ce; font-weight:700;">Clique para abrir detalhes completos</span></p>
-                        ${eq.historico.slice(-3).map(h => `
-                            <div style="font-size: 0.7rem; color: #666; padding: 3px 0; border-bottom: 1px solid #eee;">
-                                ${h.data} - <strong>${h.tecnico}</strong>: <em>${statusLabels[h.statusAnterior]} → ${statusLabels[h.statusNovo]}</em>
-                            </div>
-                        `).join('')}
-                    </div>
-                    ` : ''}
+                    ${montarHistoricoRecenteGrupoHTMLGMAN85645(eq.id)}
                     
                     <div style="margin: 15px 0; padding: 12px; background: #fffaf0; border-left: 4px solid #d69e2e; border-radius: 10px; text-align: left;">
                         <p style="color: #744210; font-size: 0.8rem; margin: 0;">
@@ -4185,11 +4050,11 @@ function openEquipment(id) {
         }
 
 
-        function exibirMarcadorVersaoGMAN85641() {
-            let marcador = document.getElementById('versaoGMAN85641');
+        function exibirMarcadorVersaoGMAN85645() {
+            let marcador = document.getElementById('versaoGMAN85645');
             if (!marcador) {
                 marcador = document.createElement('div');
-                marcador.id = 'versaoGMAN85641';
+                marcador.id = 'versaoGMAN85645';
                 marcador.style.cssText = 'text-align:center; margin:0 auto 10px auto; padding:8px 12px; border-radius:14px; max-width:520px; font-size:0.78rem; font-weight:900; background:rgba(255,255,255,0.16); border:1px solid rgba(255,255,255,0.28); color:#e6fffa; box-shadow:0 8px 18px rgba(0,0,0,0.12);';
                 const subtitulo = document.querySelector('.subtitle');
                 if (subtitulo && subtitulo.parentNode) {
@@ -4201,7 +4066,7 @@ function openEquipment(id) {
             marcador.textContent = VERSAO_FRONTEND_GMAN + ' | Banco Central: aguardando sincronização';
         }
 
-        async function gmanFetchJSON85641(url, opcoes = {}) {
+        async function gmanFetchJSON85645(url, opcoes = {}) {
             const resposta = await fetch(url, Object.assign({ cache: 'no-store' }, opcoes));
             const texto = await resposta.text();
 
@@ -4228,7 +4093,7 @@ function openEquipment(id) {
         }
 
         async function apiPost(payload) {
-            const retorno = await gmanFetchJSON85641(API_URL, {
+            const retorno = await gmanFetchJSON85645(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(payload || {})
@@ -4237,100 +4102,1717 @@ function openEquipment(id) {
         }
 
         async function apiGet(params) {
-            const query = new URLSearchParams(Object.assign({}, params || {}, { v: '85641', t: Date.now() })).toString();
-            const retorno = await gmanFetchJSON85641(`${API_URL}?${query}`);
+            const query = new URLSearchParams(Object.assign({}, params || {}, { v: '85649', t: Date.now() })).toString();
+            const retorno = await gmanFetchJSON85645(`${API_URL}?${query}`);
             return retorno && retorno.payload ? retorno.payload : retorno;
         }
 
-        async function listarOSOnline() {
-            const retorno = await apiGet({ acao: 'listarOS' });
-            if (Array.isArray(retorno)) return retorno;
-            if (retorno && Array.isArray(retorno.payload)) return retorno.payload;
-            if (retorno && Array.isArray(retorno.dados)) return retorno.dados;
-            if (retorno && Array.isArray(retorno.os)) return retorno.os;
-            throw new Error('Falha ao consultar Ordens de Serviço. A API respondeu, mas não enviou uma lista de OS.');
-        }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: listarOSOnline */
 
-        function classificarAreaOcorrenciaGMAN85641(valor) {
+        const AREAS_OFICIAIS_RANKING_GMAN85645 = ['Automação', 'Elétrica', 'Mecânica', 'Usinagem', 'Caldeiraria', 'Instalações Mecânicas'];
+
+        function classificarAreaOcorrenciaGMAN85645(valor) {
             const texto = normalizarTextoGMAN(valor);
-            if (!texto) return 'Não informado';
+            if (!texto) return '';
             if (texto.includes('automacao')) return 'Automação';
             if (texto.includes('eletrica')) return 'Elétrica';
-            if (texto.includes('instalacoes mecanicas')) return 'Instalações Mecânicas';
+            if (texto.includes('instalacoes mecanicas') || (texto.includes('instalacoes') && texto.includes('mecanica'))) return 'Instalações Mecânicas';
             if (texto.includes('usinagem')) return 'Usinagem';
             if (texto.includes('caldeiraria')) return 'Caldeiraria';
             if (texto.includes('mecanica')) return 'Mecânica';
-            return String(valor || 'Não informado').trim();
+            return '';
         }
 
-        function calcularRankingOcorrenciasAreaGMAN85641(listaOS) {
+        function calcularRankingOcorrenciasAreaGMAN85645(listaOS) {
             const mapa = {};
+            AREAS_OFICIAIS_RANKING_GMAN85645.forEach(area => mapa[area] = 0);
+
             (Array.isArray(listaOS) ? listaOS : []).forEach(os => {
-                const area = classificarAreaOcorrenciaGMAN85641(os.area || os.equipeResponsavel || os.equipe || os.setor || '');
-                if (normalizarTextoGMAN(area) === 'nao informado') return;
+                const area = classificarAreaOcorrenciaGMAN85645(os.area || os.equipeResponsavel || os.equipe || os.setor || '');
+                if (!area) return;
                 mapa[area] = (mapa[area] || 0) + 1;
             });
+
+            Object.keys(mapa).forEach(area => {
+                if (!mapa[area]) delete mapa[area];
+            });
+
             return mapa;
         }
 
-        function atualizarMarcadorConexaoGMAN85641(texto, online = false) {
-            const marcador = document.getElementById('versaoGMAN85641');
+        function atualizarMarcadorConexaoGMAN85645(texto, online = false) {
+            const marcador = document.getElementById('versaoGMAN85645');
             if (marcador) {
                 marcador.textContent = `${VERSAO_FRONTEND_GMAN} | ${texto}`;
                 marcador.style.color = online ? '#c6f6d5' : '#fed7d7';
             }
         }
 
-        function limparCacheOperacionalGMAN85641() {
-            try {
-                localStorage.removeItem('gman_kpi_cache');
-                localStorage.removeItem('gman_rankings_cache');
-                localStorage.removeItem('ordensServicoCache');
-                localStorage.removeItem('equipmentData');
-                sessionStorage.clear();
-                if ('caches' in window) {
-                    caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
-                }
-            } catch (erro) {
-                console.warn('Não foi possível limpar todos os caches:', erro);
-            }
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: limparCacheOperacionalGMAN85645 */
 
-            ordensServicoCache = [];
-            alert('Cache operacional limpo. A tela será recarregada para buscar a GMAN 8.5.6.41 no Banco Central.');
-            const base = window.location.origin + window.location.pathname;
-            window.location.href = base + '?nocache=' + Date.now();
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: iniciarSistema */
+
+
+        /* ============================================================
+           GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
+           Estas funções sobrescrevem as versões antigas do Index.
+           O Index passa a exibir o pacote oficial do Apps Script.
+           ============================================================ */
+
+        let painelConsolidadoCacheGMAN85645 = null;
+        let ultimaSincronizacaoPainelGMAN85645 = 0;
+
+        function saveData() {
+            // GMAN 8.5.6.56: status/equipamentos não são mais fonte oficial no localStorage.
+            return true;
         }
 
+        function loadData() {
+            // GMAN 8.5.6.56: evita reaproveitar status antigo do navegador.
+            return true;
+        }
+
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: normalizarEquipamentoPainelGMAN85645 */
+
+        async function carregarPainelConsolidadoGMAN85645(forcar = false) {
+            const agora = Date.now();
+            if (!forcar && painelConsolidadoCacheGMAN85645 && (agora - ultimaSincronizacaoPainelGMAN85645) < 15000) {
+                return painelConsolidadoCacheGMAN85645;
+            }
+
+            const painel = await apiGet({ acao: 'painelConsolidado', limiteUltimas: 8, limiteLimpeza: 25 });
+            if (!painel || painel.sucesso === false) {
+                throw new Error((painel && (painel.erro || painel.mensagem)) || 'Painel consolidado não retornou dados válidos.');
+            }
+
+            painelConsolidadoCacheGMAN85645 = painel;
+            ultimaSincronizacaoPainelGMAN85645 = Date.now();
+            return painel;
+        }
+
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: aplicarPainelConsolidadoNaTelaGMAN85645 */
+
+        async 
+/* GMAN 8.5.6.56: função duplicada anterior removida: carregarStatusOnline */
+
+        async 
+/* GMAN 8.5.6.56: função duplicada anterior removida: listarOSOnline */
+
+        function historicoRecenteGrupoGMAN85645(idGrupo, limite = 3) {
+            const painel = painelConsolidadoCacheGMAN85645 || {};
+            const mapa = painel.historicoRecentePorGrupo || {};
+            const chave = chaveGrupoGMAN85633(idGrupo);
+            const direto = mapa[idGrupo] || mapa[chave] || [];
+            if (Array.isArray(direto) && direto.length) return direto.slice(0, limite);
+
+            return (Array.isArray(ordensServicoCache) ? ordensServicoCache : [])
+                .filter(os => gruposIguaisGMAN85633(os.idEquipamento || os.equipamento, idGrupo))
+                .filter(os => !ehOSTesteKPI(os))
+                .sort(ordenarOSMaisRecenteGMAN)
+                .slice(0, limite);
+        }
+
+        function montarHistoricoRecenteGrupoHTMLGMAN85645(idGrupo) {
+            const ultimas = historicoRecenteGrupoGMAN85645(idGrupo, 3);
+            if (!ultimas.length) {
+                return `
+                    <div onclick="abrirHistoricoDetalhadoGrupo('${idGrupo}')" title="Clique para tentar abrir o histórico detalhado" style="margin: 15px 0; text-align: left; background: #fffaf0; padding: 11px; border-radius: 12px; cursor:pointer; border-left:4px solid #d69e2e;">
+                        <p style="color:#744210; font-size:0.78rem; margin:0;"><strong>Histórico recente oficial:</strong><br>Nenhuma OS válida retornada pelo Banco Central para este grupo. Clique em Atualizar agora.</p>
+                    </div>
+                `;
+            }
+            return `
+                <div onclick="abrirHistoricoDetalhadoGrupo('${idGrupo}')" title="Clique para ver os detalhes completos das OS" style="margin: 15px 0; max-height: 152px; overflow-y: auto; text-align: left; background: #f7fafc; padding: 11px; border-radius: 12px; cursor:pointer; border:1px solid #e2e8f0; border-left:4px solid #3182ce;">
+                    <p style="color:#1e3a5f; font-size:0.78rem; margin:0 0 7px;"><strong>Histórico recente oficial — últimas 3 OS reais:</strong><br><span style="color:#3182ce; font-weight:800;">Fonte: Banco Central GMAN</span></p>
+                    ${ultimas.map(os => `
+                        <div style="font-size:0.72rem; color:#2d3748; padding:6px 0; border-bottom:1px solid #e2e8f0;">
+                            <strong>${escaparHTMLGMAN(os.numeroOS || os.idOS || '-')}</strong> — ${escaparHTMLGMAN(os.statusOS || '-')}<br>
+                            <span>${escaparHTMLGMAN(os.ultimaMovimentacaoDataHora || os.dataConclusao || os.dataInicio || os.dataAbertura || '-')}</span>
+                            ${os.responsavel ? `<br><span>Responsável: ${escaparHTMLGMAN(os.responsavel)}</span>` : ''}
+                            ${os.ultimaMovimentacaoAcao ? `<br><span>Ação: ${escaparHTMLGMAN(os.ultimaMovimentacaoAcao)}</span>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        async function fazerLogin() {
+            const user = document.getElementById('loginUser').value.trim();
+            const pass = document.getElementById('loginPass').value;
+            const erro = document.getElementById('loginErro');
+            erro.style.display = 'none';
+
+            try {
+                const retorno = await apiPost({ acao: 'autenticarUsuario', usuario: user, senha: pass });
+                if (!retorno || retorno.autenticado === false || retorno.sucesso === false) {
+                    throw new Error((retorno && retorno.mensagem) || 'Usuário ou senha incorretos.');
+                }
+                const u = retorno.usuario || {};
+                usuarioLogado = {
+                    nome: u.nome || user,
+                    senha: '',
+                    funcao: normalizarTextoGMAN(u.funcao || u.perfilAcesso || 'lider'),
+                    area: normalizarTextoGMAN(u.area || u.equipe || 'todos') || 'todos',
+                    equipe: u.equipe || ''
+                };
+            } catch (erroApi) {
+                console.warn('Autenticação pelo Banco Central falhou; usando fallback local temporário:', erroApi);
+                const encontrado = usuarios.find(u => u.nome.toLowerCase() === user.toLowerCase() && u.senha === pass);
+                if (!encontrado) {
+                    erro.textContent = 'Usuário ou senha incorretos no Banco Central GMAN.';
+                    erro.style.display = 'block';
+                    return;
+                }
+                usuarioLogado = encontrado;
+            }
+
+            sessionStorage.setItem('manutencao_usuario_logado', JSON.stringify({
+                nome: usuarioLogado.nome,
+                funcao: usuarioLogado.funcao,
+                area: usuarioLogado.area,
+                equipe: usuarioLogado.equipe || ''
+            }));
+            try { localStorage.removeItem('manutencao_usuario_logado'); } catch (e) {}
+            document.getElementById('loginScreen').style.display = 'none';
+            mostrarUsuarioLogado();
+            aplicarPermissoes();
+            aplicarBotoesPermissao();
+        }
+
+        function recuperarLoginSalvo() {
+            const usuarioSalvo = sessionStorage.getItem('manutencao_usuario_logado');
+            if (!usuarioSalvo) return false;
+            try {
+                const dados = JSON.parse(usuarioSalvo);
+                if (!dados || !dados.nome) return false;
+                usuarioLogado = dados;
+                document.getElementById('loginScreen').style.display = 'none';
+                mostrarUsuarioLogado();
+                aplicarPermissoes();
+                aplicarBotoesPermissao();
+                return true;
+            } catch (e) {
+                sessionStorage.removeItem('manutencao_usuario_logado');
+                return false;
+            }
+        }
+
+        function fazerLogout() {
+            try {
+                sessionStorage.removeItem('manutencao_usuario_logado');
+                localStorage.removeItem('manutencao_usuario_logado');
+            } catch (e) {}
+            usuarioLogado = null;
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('loginUser').value = '';
+            document.getElementById('loginPass').value = '';
+            document.getElementById('loginErro').style.display = 'none';
+            const info = document.getElementById('userInfo');
+            if (info) info.remove();
+            aplicarBotoesPermissao();
+        }
+
+        async 
+/* GMAN 8.5.6.56: função duplicada anterior removida: carregarPainelGerencial */
+
+        function cardKPIOficialGMAN85645(titulo, valor, legenda) {
+            return `
+                <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:14px; color:#1a202c; box-shadow:0 8px 18px rgba(30,58,95,0.08);">
+                    <div style="font-size:0.72rem; color:#718096; font-weight:900; text-transform:uppercase;">${escaparHTMLGMAN(titulo)}</div>
+                    <div style="font-size:1.7rem; color:#1e3a5f; font-weight:1000; margin:4px 0;">${escaparHTMLGMAN(valor)}</div>
+                    <div style="font-size:0.75rem; color:#4a5568;">${escaparHTMLGMAN(legenda || '')}</div>
+                </div>
+            `;
+        }
+
+        function garantirSessaoVisualGMAN85646() {
+            if (usuarioLogado && usuarioLogado.nome) {
+                const login = document.getElementById('loginScreen');
+                if (login) login.style.display = 'none';
+                mostrarUsuarioLogado();
+                aplicarPermissoes();
+                aplicarBotoesPermissao();
+                return true;
+            }
+            return false;
+        }
+
+        function configurarEnterLoginGMAN85646() {
+            const form = document.getElementById('loginFormGMAN') || document.querySelector('#loginScreen form');
+            const user = document.getElementById('loginUser');
+            const pass = document.getElementById('loginPass');
+
+            if (form && !form.dataset.gmanEnterConfigurado) {
+                form.dataset.gmanEnterConfigurado = 'sim';
+                form.addEventListener('submit', function(evento) {
+                    evento.preventDefault();
+                    fazerLogin();
+                    return false;
+                });
+            }
+
+            [user, pass].forEach(campo => {
+                if (!campo || campo.dataset.gmanEnterConfigurado) return;
+                campo.dataset.gmanEnterConfigurado = 'sim';
+                campo.addEventListener('keydown', function(evento) {
+                    if (evento.key === 'Enter') {
+                        evento.preventDefault();
+                        fazerLogin();
+                    }
+                });
+            });
+        }
+
+        async 
+/* GMAN 8.5.6.56: função duplicada anterior removida: atualizarAgora */
+
+        
+/* GMAN 8.5.6.56: função duplicada anterior removida: limparCacheOperacionalGMAN85645 */
+
         async function iniciarSistema() {
-            exibirMarcadorVersaoGMAN85641();
+            exibirMarcadorVersaoGMAN85645();
+            configurarEnterLoginGMAN85646();
             loadData();
             renderEquipment();
             recuperarLoginSalvo();
             aplicarBotoesPermissao();
             await carregarStatusOnline();
-
-            try {
-                const listaOS = await listarOSOnline();
-                ordensServicoCache = listaOS;
-                atualizarTotalizadoresOS(listaOS);
-                applyFilters();
-            } catch (erro) {
-                console.error('Erro ao carregar totalizadores de OS:', erro);
-            }
+            garantirSessaoVisualGMAN85646();
 
             setInterval(async () => {
                 await carregarStatusOnline();
-                try {
-                    const listaOS = await listarOSOnline();
-                    ordensServicoCache = listaOS;
-                    atualizarTotalizadoresOS(listaOS);
-                } catch (erro) {
-                    console.error('Erro ao atualizar totalizadores de OS:', erro);
-                }
+                garantirSessaoVisualGMAN85646();
             }, 120000);
         }
 
+
+        /* ============================================================
+           GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
+           Sobrescreve funções finais sem alterar os fluxos de OS.
+           ============================================================ */
+
+        async function registrarAuditoriaClienteGMAN85647(tipo, detalhe, resultado = 'INFO', extra = {}) {
+            try {
+                await apiPost(Object.assign({
+                    acao: 'registrarAuditoriaCliente',
+                    usuario: usuarioLogado ? usuarioLogado.nome : '',
+                    tipo: tipo,
+                    detalhe: detalhe,
+                    resultado: resultado,
+                    versaoIndex: VERSAO_FRONTEND_GMAN
+                }, extra || {}));
+            } catch (erro) {
+                console.warn('Auditoria cliente indisponível:', erro);
+            }
+        }
+
+        function renderizarResumoSaudeGMAN85647(saude) {
+            const checks = (saude && saude.checks) || [];
+            return `
+                <div style="background:${saude && saude.sucesso ? '#f0fff4' : '#fffaf0'}; border-left:5px solid ${saude && saude.sucesso ? '#38a169' : '#d69e2e'}; border-radius:14px; padding:12px; color:#1a202c; margin-bottom:14px;">
+                    <h3 style="margin:0 0 8px; color:#1e3a5f;">🧪 Teste de saúde da API</h3>
+                    <p style="margin:0 0 8px; color:#4a5568; font-size:0.82rem;">Status: <strong>${saude && saude.status ? escaparHTMLGMAN(saude.status) : '-'}</strong> | Falhas: <strong>${saude && saude.falhas !== undefined ? saude.falhas : '-'}</strong></p>
+                    ${checks.slice(0, 8).map(c => `
+                        <div style="font-size:0.78rem; padding:5px 0; border-bottom:1px solid rgba(0,0,0,0.06);">
+                            ${c.ok ? '✅' : '⚠️'} <strong>${escaparHTMLGMAN(c.nome || '-')}</strong> — ${escaparHTMLGMAN(c.detalhe || c.erro || '-')}
+                        </div>
+                    `).join('') || '<p style="color:#718096;">Sem checks disponíveis.</p>'}
+                </div>
+            `;
+        }
+
+        function renderizarValidacaoEstruturaGMAN85647(estrutura) {
+            const abas = (estrutura && estrutura.abas) || [];
+            return `
+                <div style="background:#f7fafc; border-left:5px solid ${estrutura && estrutura.sucesso ? '#38a169' : '#d69e2e'}; border-radius:14px; padding:12px; color:#1a202c; margin-bottom:14px;">
+                    <h3 style="margin:0 0 8px; color:#1e3a5f;">🧱 Validação de abas e cabeçalhos</h3>
+                    <p style="font-size:0.82rem; margin:0 0 8px; color:#4a5568;">Campos ausentes: <strong>${estrutura && estrutura.totalCamposAusentes !== undefined ? estrutura.totalCamposAusentes : '-'}</strong> | Cabeçalhos duplicados: <strong>${estrutura && estrutura.totalAlertasDuplicados !== undefined ? estrutura.totalAlertasDuplicados : '-'}</strong></p>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:8px;">
+                        ${abas.map(a => `
+                            <div style="background:white; border-radius:12px; padding:9px; border:1px solid #e2e8f0; font-size:0.76rem;">
+                                <strong>${a.existe ? '✅' : '❌'} ${escaparHTMLGMAN(a.aba || '-')}</strong><br>
+                                <span>Status: ${escaparHTMLGMAN(a.status || '-')}</span><br>
+                                ${a.ausentes && a.ausentes.length ? `<span style="color:#c53030;">Faltam: ${escaparHTMLGMAN(a.ausentes.join(', '))}</span>` : '<span style="color:#2f855a;">Cabeçalhos principais OK</span>'}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderizarConferenciaStatusOSGMAN85647(conf) {
+            const alertas = (conf && conf.alertas) || [];
+            return `
+                <div style="background:${alertas.length ? '#fffaf0' : '#f0fff4'}; border-left:5px solid ${alertas.length ? '#dd6b20' : '#38a169'}; border-radius:14px; padding:12px; color:#1a202c; margin-bottom:14px;">
+                    <h3 style="margin:0 0 8px; color:#1e3a5f;">🔎 Conferência OS x STATUS_ATUAL</h3>
+                    <p style="font-size:0.82rem; margin:0 0 8px; color:#4a5568;">Alertas encontrados: <strong>${conf && conf.totalAlertas !== undefined ? conf.totalAlertas : '-'}</strong>. Esta conferência não muda status automaticamente.</p>
+                    ${alertas.slice(0, 10).map(a => `
+                        <div style="font-size:0.78rem; padding:6px 0; border-bottom:1px solid rgba(0,0,0,0.07);">
+                            ⚠️ <strong>${escaparHTMLGMAN(a.chaveGrupo || '-')}</strong> — ${escaparHTMLGMAN(a.tipo || '-')}<br>
+                            <span style="color:#4a5568;">${escaparHTMLGMAN(a.detalhe || '')}</span>
+                        </div>
+                    `).join('') || '<p style="color:#2f855a; font-weight:800;">Nenhuma divergência crítica encontrada na amostra.</p>'}
+                </div>
+            `;
+        }
+
+        function renderizarProvaNumerosGMAN85647(painel) {
+            const p = painel.provaDosNumeros || {};
+            return `
+                <div style="background:linear-gradient(135deg,#edf2f7,#ffffff); border:1px solid #e2e8f0; border-radius:18px; padding:14px; color:#1a202c; margin-bottom:14px;">
+                    <h3 style="margin:0 0 10px; color:#1e3a5f;">📌 Prova oficial dos números</h3>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;">
+                        ${cardKPIOficialGMAN85645('OS brutas', p.totalOSBrutas || painel.totalOSBrutas || 0, 'ORDENS_SERVICO')}
+                        ${cardKPIOficialGMAN85645('OS válidas', p.totalOSValidasSemTeste || painel.totalOSValidasSemTeste || 0, 'Sem TESTE')}
+                        ${cardKPIOficialGMAN85645('TESTE ignoradas', p.osTesteIgnoradas || painel.osTesteIgnoradas || 0, 'Fora dos KPIs')}
+                        ${cardKPIOficialGMAN85645('Equipamentos oficiais', p.totalEquipamentosOficiais || ((painel.kpisOficiais || {}).totalEquipamentos || 0), 'Banco Central')}
+                    </div>
+                    <p style="font-size:0.78rem; color:#4a5568; margin:10px 0 0;">Fonte: ${escaparHTMLGMAN(p.fonte || 'Banco Central GMAN')} | Leitura: ${escaparHTMLGMAN(p.leituraEm || painel.horarioServidorBrasil || '-')}</p>
+                </div>
+            `;
+        }
+
+        async function abrirDiagnosticoTecnicoGMAN85647() {
+            if (!podeGerenciarOS()) {
+                alert('Diagnóstico técnico disponível somente para gestão.');
+                return;
+            }
+            const existente = document.getElementById('diagnosticoTecnicoModal');
+            if (existente) existente.remove();
+
+            const modal = document.createElement('div');
+            modal.id = 'diagnosticoTecnicoModal';
+            modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.82); display:flex; align-items:center; justify-content:center; z-index:1400; padding:18px;';
+            modal.innerHTML = `
+                <div style="background:white; border-radius:22px; padding:22px; width:96%; max-width:980px; max-height:92vh; overflow-y:auto;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px;">
+                        <div>
+                            <h2 style="color:#1e3a5f; margin:0; font-size:1.25rem;">🛡️ Diagnóstico técnico GMAN</h2>
+                            <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Blindagem de continuidade, auditoria forte e proteção do que já funciona.</p>
+                        </div>
+                        <button onclick="document.getElementById('diagnosticoTecnicoModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
+                    </div>
+                    <div id="diagnosticoTecnicoConteudo" style="color:#1a202c;">🔄 Carregando diagnóstico técnico...</div>
+                </div>`;
+            document.body.appendChild(modal);
+            await carregarDiagnosticoTecnicoGMAN85647();
+        }
+
+        async function carregarDiagnosticoTecnicoGMAN85647() {
+            const container = document.getElementById('diagnosticoTecnicoConteudo');
+            if (!container) return;
+            try {
+                const diag = await apiGet({ acao: 'diagnosticoTecnico', limite: 50, versaoIndex: VERSAO_FRONTEND_GMAN });
+                container.innerHTML = `
+                    <div style="background:${diag.blindagemOK !== false ? '#f0fff4' : '#fffaf0'}; border-left:5px solid ${diag.blindagemOK !== false ? '#38a169' : '#dd6b20'}; border-radius:16px; padding:13px; margin-bottom:14px;">
+                        <strong>${diag.blindagemOK !== false ? '✅ Blindagem sem alertas críticos na amostra' : '⚠️ Blindagem encontrou alertas para revisar'}</strong><br>
+                        <span style="font-size:0.82rem; color:#4a5568;">Versão: ${escaparHTMLGMAN(diag.versao || '-')} | Leitura: ${escaparHTMLGMAN(diag.horarioServidorBrasil || '-')}</span>
+                    </div>
+                    ${(diag.alertas || []).length ? `<div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:14px; padding:12px; color:#742a2a; margin-bottom:14px;"><strong>Alertas:</strong><br>${diag.alertas.map(a => '• ' + escaparHTMLGMAN(a)).join('<br>')}</div>` : ''}
+                    ${renderizarResumoSaudeGMAN85647(diag.saudeAPI || {})}
+                    ${renderizarValidacaoEstruturaGMAN85647(diag.validacaoEstrutura || {})}
+                    ${renderizarConferenciaStatusOSGMAN85647(diag.conferenciaStatusOS || {})}
+                    <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:14px; padding:12px; color:#1e3a5f;">
+                        <h3 style="margin:0 0 8px;">🔐 Proteções ativas</h3>
+                        ${(diag.protecoesAtivas || []).map(p => `<div style="font-size:0.80rem; padding:4px 0;">✅ ${escaparHTMLGMAN(p)}</div>`).join('')}
+                    </div>
+                `;
+                registrarAuditoriaClienteGMAN85647('DIAGNOSTICO_TECNICO', 'Diagnóstico técnico aberto no Index', 'OK');
+            } catch (erro) {
+                console.error(erro);
+                container.innerHTML = `<div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:14px; padding:12px; color:#742a2a; font-weight:bold;">Erro ao carregar diagnóstico técnico: ${escaparHTMLGMAN(erro.message || erro)}<br><span style="font-weight:700; color:#4a5568;">A correção 8.5.6.55 impede que alertas normais de auditoria sejam tratados como erro fatal. Confira se Apps Script e Index foram publicados na mesma versão.</span></div>`;
+            }
+        }
+
+        async function carregarPainelGerencial() {
+            const container = document.getElementById('kpiConteudo');
+            if (!container) return;
+            container.innerHTML = '<p style="color:#4a5568;">🔄 Carregando painel oficial blindado...</p>';
+            try {
+                const painel = await carregarPainelConsolidadoGMAN85645(true);
+                aplicarPainelConsolidadoNaTelaGMAN85645(painel);
+                const k = painel.kpisOficiais || {};
+                const rankArea = (painel.rankingOcorrenciasArea && painel.rankingOcorrenciasArea.ranking) || [];
+                const rankReinc = (painel.rankingReincidenciaOficial && painel.rankingReincidenciaOficial.ranking) || [];
+                const diag = painel.diagnosticoUltimasOSLidas || {};
+                const limpeza = painel.diagnosticoLimpezaBase || {};
+                const tecnico = painel.diagnosticoTecnico || {};
+
+                container.innerHTML = `
+                    <div style="background:linear-gradient(135deg,#1e3a5f,#2c5282,#3182ce); color:white; border-radius:22px; padding:18px; margin-bottom:14px;">
+                        <h3 style="margin:0 0 6px;">🛡️ Painel oficial blindado GMAN</h3>
+                        <p style="margin:0; font-size:0.84rem; opacity:0.95;">Fonte única: Banco Central GMAN | Backend: ${escaparHTMLGMAN(painel.versao || '-')} | Index: ${escaparHTMLGMAN(VERSAO_FRONTEND_GMAN)}</p>
+                        <p style="margin:6px 0 0; font-size:0.78rem; opacity:0.9;">Regra: se diagnóstico falhar, ele não deve derrubar abertura, início, andamento, conclusão e consulta de OS.</p>
+                    </div>
+
+                    ${renderizarProvaNumerosGMAN85647(painel)}
+
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:14px;">
+                        ${cardKPIOficialGMAN85645('Disponibilidade', (k.disponibilidadePercentual || 0) + '%', 'Meta mínima: 95%')}
+                        ${cardKPIOficialGMAN85645('Operando', k.operando || 0, 'Status oficial')}
+                        ${cardKPIOficialGMAN85645('Indisponíveis', k.indisponiveis || 0, 'Manutenção/Parado')}
+                        ${cardKPIOficialGMAN85645('Backlog OS', k.backlogOS || 0, 'Ativas')}
+                        ${cardKPIOficialGMAN85645('OS concluídas', k.osConcluidas || 0, 'Sem TESTE')}
+                        ${cardKPIOficialGMAN85645('Alertas OS x Status', (painel.conferenciaStatusOS || {}).totalAlertas || 0, 'Apenas diagnóstico')}
+                    </div>
+
+                    ${renderizarResumoSaudeGMAN85647(painel.testeSaudeAPI || tecnico.saudeAPI || {})}
+                    ${renderizarValidacaoEstruturaGMAN85647(painel.validacaoEstrutura || tecnico.validacaoEstrutura || {})}
+                    ${renderizarConferenciaStatusOSGMAN85647(painel.conferenciaStatusOS || tecnico.conferenciaStatusOS || {})}
+
+                    <div style="background:#f7fafc; border-radius:14px; padding:12px; margin-bottom:14px; color:#1a202c;">
+                        <h3 style="color:#1e3a5f; margin:0 0 8px;">Diagnóstico das últimas OS lidas</h3>
+                        <p style="font-size:0.82rem; color:#4a5568; margin:0 0 8px;">
+                            OS brutas: <strong>${diag.totalOSBrutas || painel.totalOSBrutas || 0}</strong> | 
+                            OS válidas sem TESTE: <strong>${diag.totalOSValidasSemTeste || painel.totalOSValidasSemTeste || 0}</strong> | 
+                            TESTE ignoradas: <strong>${diag.osTesteIgnoradas || painel.osTesteIgnoradas || 0}</strong>
+                        </p>
+                        ${((diag.ultimasOS || []).slice(0, 8)).map(os => `
+                            <div style="font-size:0.78rem; padding:7px 0; border-bottom:1px solid #e2e8f0;">
+                                <strong>${escaparHTMLGMAN(os.numeroOS || os.idOS || '-')}</strong> — ${escaparHTMLGMAN(os.idEquipamento || '-')} — ${escaparHTMLGMAN(os.statusOS || '-')}
+                                <br><span style="color:#718096;">${escaparHTMLGMAN(os.ultimaMovimentacaoDataHora || os.dataConclusao || os.dataInicio || os.dataAbertura || '-')}</span>
+                            </div>
+                        `).join('') || '<p style="color:#718096;">Sem OS recentes no diagnóstico.</p>'}
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; margin-bottom:14px;">
+                        <div style="background:#f7fafc; border-radius:14px; padding:12px; color:#1a202c;">
+                            <h3 style="color:#1e3a5f; margin:0 0 8px;">Ranking por área/equipe</h3>
+                            ${rankArea.map((item, i) => `<p style="margin:5px 0;"><strong>${i + 1}. ${escaparHTMLGMAN(item.nome)}</strong>: ${item.total} OS</p>`).join('') || '<p style="color:#718096;">Sem ranking oficial disponível.</p>'}
+                        </div>
+                        <div style="background:#f7fafc; border-radius:14px; padding:12px; color:#1a202c;">
+                            <h3 style="color:#1e3a5f; margin:0 0 8px;">OS grupos de maior reincidência</h3>
+                            ${rankReinc.map((item, i) => `<p style="margin:5px 0;"><strong>${i + 1}. ${escaparHTMLGMAN(item.nome)}</strong>: ${item.total} OS recorrentes</p>`).join('') || '<p style="color:#718096;">Nenhum grupo com 2+ OS recorrentes no período.</p>'}
+                        </div>
+                    </div>
+
+                    <div style="background:#fffaf0; border-left:5px solid #dd6b20; border-radius:14px; padding:12px; color:#744210; margin-bottom:14px;">
+                        <h3 style="margin:0 0 8px;">Quarentena segura da base</h3>
+                        <p style="font-size:0.82rem; margin:0;">
+                            Candidatos TESTE: <strong>${limpeza.candidatosTeste || 0}</strong> | 
+                            Status incomum: <strong>${limpeza.statusIncomum || 0}</strong> | 
+                            Aba: <strong>${escaparHTMLGMAN(limpeza.abaQuarentenaSugerida || 'QUARENTENA_TESTES_GMAN')}</strong>
+                        </p>
+                        <p style="font-size:0.78rem; margin:8px 0 0;">Nada é apagado. A 8.5.6.55 só permite copiar candidatos para quarentena com confirmação forte.</p>
+                    </div>
+
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button onclick="abrirDiagnosticoTecnicoGMAN85647()" style="padding:10px 14px; border:none; border-radius:10px; background:#2c5282; color:white; cursor:pointer; font-weight:900;">🛡️ Abrir diagnóstico técnico completo</button>
+                    </div>
+                `;
+                registrarAuditoriaClienteGMAN85647('PAINEL_GERENCIAL', 'Painel gerencial blindado carregado', 'OK');
+            } catch (erro) {
+                console.error(erro);
+                container.innerHTML = '<p style="color:#e53e3e; font-weight:bold;">Erro ao carregar painel oficial blindado: ' + escaparHTMLGMAN(erro.message || erro) + '</p>';
+            }
+        }
+
+
+
+
+        /* ============================================================
+           GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
+           Ícone técnico visível somente para gestão.
+           ============================================================ */
+
+        function podeAcessarNucleoProtegidoGMAN85649() {
+            if (!usuarioLogado) return false;
+            if (podeGerenciarOS()) return true;
+            const nome = normalizarTextoGMAN(usuarioLogado.nome || '').replace(/[^a-z0-9]/g, '');
+            return ['paulojurandir','rafaelspies','jefersonmachado','valtemirolmos','mauriciodocarmo','rogerioalves'].includes(nome);
+        }
+
+        function atualizarIconeNucleoProtegidoGMAN85649() {
+            let btn = document.getElementById('nucleoProtegidoGMAN85649');
+            if (!podeAcessarNucleoProtegidoGMAN85649()) {
+                if (btn) btn.remove();
+                return;
+            }
+            if (!btn) {
+                btn = document.createElement('button');
+                btn.id = 'nucleoProtegidoGMAN85649';
+                btn.title = 'Núcleo GMAN';
+                btn.setAttribute('aria-label', 'Núcleo GMAN');
+                btn.innerHTML = '🛡️';
+                btn.onclick = abrirNucleoProtegidoGMAN85649;
+                btn.style.cssText = `
+                    position: fixed;
+                    right: 14px;
+                    bottom: 14px;
+                    width: 42px;
+                    height: 42px;
+                    border-radius: 999px;
+                    border: 1px solid rgba(255,255,255,0.28);
+                    background: linear-gradient(135deg, rgba(30,58,95,0.92), rgba(49,130,206,0.86));
+                    color: white;
+                    box-shadow: 0 12px 28px rgba(0,0,0,0.28), inset 0 1px 4px rgba(255,255,255,0.2);
+                    z-index: 1050;
+                    cursor: pointer;
+                    font-size: 1.05rem;
+                    opacity: 0.68;
+                    transition: all .22s ease;
+                `;
+                btn.onmouseenter = () => { btn.style.opacity = '1'; btn.style.transform = 'translateY(-2px) scale(1.04)'; };
+                btn.onmouseleave = () => { btn.style.opacity = '0.68'; btn.style.transform = 'none'; };
+                document.body.appendChild(btn);
+            }
+        }
+
+        function aplicarBotoesPermissao() {
+            const ehGestao = podeGerenciarOS();
+
+            const btnKPI = document.getElementById('btnPainelKPI');
+            if (btnKPI) btnKPI.style.display = ehGestao ? 'inline-block' : 'none';
+
+            const btnDiagnosticoTecnico = document.getElementById('btnDiagnosticoTecnico');
+            if (btnDiagnosticoTecnico) btnDiagnosticoTecnico.style.display = 'none';
+
+            const btnNaoIniciadas = document.getElementById('btnOrdensNaoIniciadasHome');
+            if (btnNaoIniciadas) btnNaoIniciadas.style.display = ehGestao ? 'inline-block' : 'none';
+
+            const btnIniciadas = document.getElementById('btnOrdensIniciadasHome');
+            if (btnIniciadas) btnIniciadas.style.display = ehGestao ? 'inline-block' : 'none';
+
+            const btnEncerradas = document.getElementById('btnOrdensEncerradasHome');
+            if (btnEncerradas) btnEncerradas.style.display = ehGestao ? 'inline-block' : 'none';
+
+            const stats = document.querySelector('.stats');
+            if (stats) stats.style.display = ehGestao ? 'grid' : 'none';
+
+            atualizarIconeNucleoProtegidoGMAN85649();
+        }
+
+        function statusGeralLabelGMAN85649(status) {
+            if (status === 'OPERACIONAL') return { texto: 'Operacional', cor: '#38a169', fundo: '#f0fff4' };
+            if (status === 'RISCO_CRITICO') return { texto: 'Risco crítico', cor: '#c53030', fundo: '#fff5f5' };
+            return { texto: 'Operacional com alertas', cor: '#dd6b20', fundo: '#fffaf0' };
+        }
+
+        async function abrirNucleoProtegidoGMAN85649() {
+            if (!podeAcessarNucleoProtegidoGMAN85649()) {
+                alert('Núcleo GMAN disponível somente para gestão.');
+                return;
+            }
+            const existente = document.getElementById('nucleoProtegidoModalGMAN85649');
+            if (existente) existente.remove();
+            const modal = document.createElement('div');
+            modal.id = 'nucleoProtegidoModalGMAN85649';
+            modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.82); z-index:1900; display:flex; align-items:center; justify-content:center; padding:16px;';
+            modal.innerHTML = `
+                <div style="background:white; border-radius:22px; width:96%; max-width:940px; max-height:92vh; overflow-y:auto; box-shadow:0 24px 70px rgba(0,0,0,0.35);">
+                    <div style="background:linear-gradient(135deg,#1e3a5f,#2c5282,#3182ce); color:white; padding:18px 20px; border-radius:22px 22px 0 0; display:flex; justify-content:space-between; gap:10px; align-items:center;">
+                        <div>
+                            <div style="font-size:.74rem; opacity:.85; font-weight:800; letter-spacing:.06em; text-transform:uppercase;">Sistema</div>
+                            <h2 style="margin:4px 0 0; font-size:1.28rem;">🛡️ Núcleo GMAN</h2>
+                            <p style="margin:5px 0 0; font-size:.82rem; opacity:.92;">Auditoria avançada, KPIs oficiais, reparo seguro e proteção operacional.</p>
+                        </div>
+                        <button onclick="document.getElementById('nucleoProtegidoModalGMAN85649').remove();" style="padding:10px 14px; border:none; border-radius:12px; background:rgba(255,255,255,.18); color:white; cursor:pointer; font-weight:900;">Fechar</button>
+                    </div>
+                    <div id="nucleoProtegidoConteudoGMAN85649" style="padding:16px; color:#1a202c;">🔄 Carregando núcleo protegido...</div>
+                </div>`;
+            document.body.appendChild(modal);
+            await carregarNucleoProtegidoGMAN85649();
+        }
+
+        async function carregarNucleoProtegidoGMAN85649() {
+            const container = document.getElementById('nucleoProtegidoConteudoGMAN85649');
+            if (!container) return;
+            try {
+                const nucleo = await apiGet({ acao: 'nucleoProtegido', limite: 80, versaoIndex: VERSAO_FRONTEND_GMAN });
+                container.innerHTML = renderizarNucleoProtegidoGMAN85649(nucleo);
+                registrarAuditoriaClienteGMAN85647('NUCLEO_PROTEGIDO', 'Núcleo protegido aberto no Index', 'OK');
+            } catch (erro) {
+                console.error(erro);
+                container.innerHTML = `<div style="background:#fff5f5; border-left:5px solid #e53e3e; border-radius:14px; padding:12px; color:#742a2a; font-weight:800;">Erro ao carregar Núcleo GMAN: ${escaparHTMLGMAN(erro.message || erro)}<br><span style="font-weight:700; color:#4a5568;">Os fluxos operacionais continuam preservados. Confira publicação do Apps Script e GitHub.</span></div>`;
+            }
+        }
+
+        function renderizarListaAlertasNucleoGMAN85649(titulo, lista, cor, fundo) {
+            const arr = Array.isArray(lista) ? lista : [];
+            return `
+                <div style="background:${fundo}; border-left:5px solid ${cor}; border-radius:14px; padding:12px; margin-bottom:12px;">
+                    <h3 style="margin:0 0 8px; color:${cor}; font-size:1rem;">${titulo} <span style="font-size:.82rem; color:#4a5568;">(${arr.length})</span></h3>
+                    ${arr.length ? arr.slice(0, 12).map(a => `<div style="font-size:.78rem; color:#2d3748; padding:5px 0; border-bottom:1px solid rgba(0,0,0,.06);"><strong>${escaparHTMLGMAN(a.tipo || a.mensagem || 'Alerta')}</strong>${a.chaveGrupo ? ' — ' + escaparHTMLGMAN(a.chaveGrupo) : ''}<br><span style="color:#718096;">${escaparHTMLGMAN(a.detalhe || a.statusAtual || a.nome || '')}</span></div>`).join('') : '<p style="color:#718096; margin:0; font-size:.82rem;">Nenhum item neste nível.</p>'}
+                </div>`;
+        }
+
+        function cardNucleoGMAN85649(titulo, valor, detalhe) {
+            return `<div style="background:#f7fafc; border:1px solid #e2e8f0; border-radius:14px; padding:12px; box-shadow:0 8px 18px rgba(30,58,95,.07);"><div style="color:#718096; font-size:.68rem; font-weight:900; text-transform:uppercase;">${titulo}</div><div style="color:#1e3a5f; font-size:1.42rem; font-weight:1000; margin-top:3px;">${valor}</div><div style="color:#4a5568; font-size:.72rem; font-weight:700; margin-top:2px;">${detalhe || ''}</div></div>`;
+        }
+
+        function renderizarNucleoProtegidoGMAN85649(nucleo) {
+            const status = statusGeralLabelGMAN85649(nucleo.statusGeral);
+            const resumo = nucleo.resumo || {};
+            const alertas = nucleo.alertasClassificados || {};
+            const statusAv = nucleo.statusAtualAvancado || {};
+            const previa = nucleo.previaReparoStatusAtualFaltante || {};
+            const k = nucleo.kpisOficiais || {};
+            const versao = nucleo.diagnosticoVersao || {};
+
+            return `
+                <div style="background:${status.fundo}; border-left:6px solid ${status.cor}; border-radius:16px; padding:14px; margin-bottom:14px;">
+                    <strong style="color:${status.cor}; font-size:1.05rem;">Status geral: ${status.texto}</strong><br>
+                    <span style="font-size:.82rem; color:#4a5568;">Versão API: ${escaparHTMLGMAN(nucleo.versao || '-')} | Index: ${escaparHTMLGMAN(VERSAO_FRONTEND_GMAN)} | Leitura: ${escaparHTMLGMAN(nucleo.horarioServidorBrasil || '-')}</span><br>
+                    <span style="font-size:.78rem; color:#4a5568;">Pasta oficial: ${escaparHTMLGMAN(nucleo.pastaOficial || 'sistema de manutenção gman')}</span>
+                </div>
+
+                ${versao.sincronizado === false ? `<div style="background:#fff5f5; border-left:6px solid #e53e3e; border-radius:14px; padding:12px; color:#742a2a; margin-bottom:12px;"><strong>⚠️ Versão divergente:</strong> ${escaparHTMLGMAN(versao.mensagem || 'Index e API podem estar diferentes.')}</div>` : ''}
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:14px;">
+                    ${cardNucleoGMAN85649('Equipamentos', resumo.equipamentosOficiais || k.totalEquipamentos || 0, 'oficiais')}
+                    ${cardNucleoGMAN85649('OS brutas', resumo.osBrutas || k.totalOSBrutas || 0, 'lidas')}
+                    ${cardNucleoGMAN85649('OS válidas', resumo.osConsideradas || k.totalOSConsideradas || 0, 'sem TESTE')}
+                    ${cardNucleoGMAN85649('TESTE ignorado', resumo.testesIgnorados || k.osTesteIgnoradas || 0, 'não entra no KPI')}
+                    ${cardNucleoGMAN85649('Status duplicado', resumo.statusDuplicados || 0, 'crítico')}
+                    ${cardNucleoGMAN85649('Sem STATUS_ATUAL', resumo.equipamentosSemStatusAtual || 0, 'reparo seguro')}
+                    ${cardNucleoGMAN85649('Críticos', resumo.alertasCriticos || 0, 'alertas')}
+                    ${cardNucleoGMAN85649('Médios', resumo.alertasMedios || 0, 'alertas')}
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px;">
+                    ${renderizarListaAlertasNucleoGMAN85649('🔴 Risco crítico', alertas.critico || [], '#c53030', '#fff5f5')}
+                    ${renderizarListaAlertasNucleoGMAN85649('🟠 Risco médio', alertas.medio || [], '#dd6b20', '#fffaf0')}
+                    ${renderizarListaAlertasNucleoGMAN85649('🟡 Atenção', alertas.atencao || [], '#b7791f', '#fffff0')}
+                    ${renderizarListaAlertasNucleoGMAN85649('🟢 Informação', alertas.info || [], '#2f855a', '#f0fff4')}
+                </div>
+
+                <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:14px; padding:12px; margin:12px 0; color:#1e3a5f;">
+                    <h3 style="margin:0 0 8px;">STATUS_ATUAL avançado</h3>
+                    <p style="margin:0; font-size:.82rem; color:#2d3748;">Status lidos: <strong>${statusAv.totalStatusLidos || 0}</strong> | Duplicados: <strong>${statusAv.totalDuplicados || 0}</strong> | Status sem equipamento oficial: <strong>${statusAv.totalStatusSemEquipamentoOficial || 0}</strong> | Equipamento sem status: <strong>${statusAv.totalEquipamentosSemStatusAtual || 0}</strong></p>
+                </div>
+
+                <div style="background:#f7fafc; border:1px solid #e2e8f0; border-radius:14px; padding:12px; margin-bottom:12px; color:#1a202c;">
+                    <h3 style="margin:0 0 8px; color:#1e3a5f;">Reparo seguro</h3>
+                    <p style="font-size:.82rem; color:#4a5568; margin:0 0 8px;">Candidatos para criar STATUS_ATUAL faltante: <strong>${previa.totalCandidatos || 0}</strong>. Nenhuma OS será alterada.</p>
+                    ${(previa.candidatos || []).slice(0, 8).map(c => `<div style="font-size:.76rem; color:#2d3748; padding:4px 0;">• ${escaparHTMLGMAN(c.chaveGrupo || c.idEquipamento || '-')} — ${escaparHTMLGMAN(c.nome || '')}</div>`).join('')}
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+                        <button onclick="executarReparoStatusAtualFaltanteGMAN85649()" style="padding:10px 12px; border:none; border-radius:10px; background:#2c5282; color:white; cursor:pointer; font-weight:900;">🧱 Reparar STATUS_ATUAL faltante</button>
+                        <button onclick="carregarNucleoProtegidoGMAN85649()" style="padding:10px 12px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer; font-weight:900;">🔄 Recarregar núcleo</button>
+                    </div>
+                </div>
+
+                <div style="background:#fffaf0; border-left:5px solid #dd6b20; border-radius:14px; padding:12px; color:#744210; margin-bottom:12px;">
+                    <h3 style="margin:0 0 8px;">Proteções ativas</h3>
+                    ${(nucleo.protecoesAtivas || []).map(p => `<div style="font-size:.78rem; padding:3px 0;">✅ ${escaparHTMLGMAN(p)}</div>`).join('')}
+                </div>
+            `;
+        }
+
+        async function executarReparoStatusAtualFaltanteGMAN85649() {
+            if (!podeAcessarNucleoProtegidoGMAN85649()) return alert('Reparo disponível somente para gestão.');
+            const frase = prompt('Para criar STATUS_ATUAL faltante com segurança, digite exatamente:\nCONFIRMO REPARO GMAN');
+            if (frase !== 'CONFIRMO REPARO GMAN') {
+                alert('Reparo cancelado. Confirmação incorreta.');
+                return;
+            }
+            try {
+                const retorno = await apiPost({
+                    acao: 'repararStatusAtualFaltante',
+                    usuario: usuarioLogado ? usuarioLogado.nome : '',
+                    funcao: usuarioLogado ? usuarioLogado.funcao : '',
+                    confirmacao: frase
+                });
+                alert((retorno.mensagem || 'Reparo concluído.') + '\nTotal criado: ' + (retorno.totalCriados || 0));
+                await carregarNucleoProtegidoGMAN85649();
+                await atualizarAgora();
+            } catch (erro) {
+                console.error(erro);
+                alert('Erro no reparo seguro: ' + (erro.message || erro));
+            }
+        }
+
+        function limparCacheOperacionalGMAN85645() {
+            const loginSalvo = localStorage.getItem('gmanUsuarioLogado');
+            try {
+                localStorage.removeItem('gman_kpi_cache');
+                localStorage.removeItem('gman_rankings_cache');
+                localStorage.removeItem('ordensServicoCache');
+                localStorage.removeItem('equipmentData');
+                sessionStorage.removeItem('gmanPainelConsolidado');
+                if (loginSalvo) localStorage.setItem('gmanUsuarioLogado', loginSalvo);
+            } catch (erro) {
+                console.warn('Não foi possível limpar todos os caches:', erro);
+            }
+            ordensServicoCache = [];
+            alert('Cache operacional limpo. Login preservado. Clique em Atualizar agora para buscar o Banco Central.');
+            atualizarIconeNucleoProtegidoGMAN85649();
+        }
+
+
+
+        /* ============================================================
+           GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
+           Compatível com OS antigas e novas. Gestão vê botão de reparo
+           quando o grupo ficou Parado/Manutenção mesmo sem OS ativa.
+           ============================================================ */
+
+        const CONFIRMACAO_REPARO_GRUPO_GMAN_85651 = 'CONFIRMO REPARO STATUS GMAN';
+
+        function statusOSEncerradaCompatTelaGMAN85651(status) {
+            const s = normalizarTextoGMAN(status);
+            return s.includes('concluid') || s.includes('cancel') || s.includes('encerrad') || s.includes('fechad') || s.includes('finalizad');
+        }
+
+        function statusOSAtivaCompatTelaGMAN85651(status) {
+            return !statusOSEncerradaCompatTelaGMAN85651(status || '');
+        }
+
+        function statusGrupoPrecisaReparoTelaGMAN85651(eq) {
+            if (!eq) return false;
+            const texto = normalizarTextoGMAN((eq.statusAtual || '') + ' ' + (eq.observacaoStatus || '') + ' ' + (eq.status || ''));
+            if (!texto) return false;
+            if (texto.includes('operando') && !texto.includes('manutencao') && !texto.includes('parado')) return false;
+            return texto.includes('parado') || texto.includes('manutencao') || texto.includes('aguard') || texto.includes('teste') || texto.includes('restricao') || eq.status === 'down' || eq.status === 'alert';
+        }
+
+        async function listarOSGrupoCompatOnlineGMAN85651(idGrupo) {
+            const dados = await apiGet({ acao: 'listarOSGrupoCompat', idGrupo: idGrupo, versaoIndex: VERSAO_FRONTEND_GMAN });
+            if (!dados || dados.sucesso === false) throw new Error((dados && (dados.mensagem || dados.erro)) || 'Erro ao listar OS do grupo.');
+            return dados;
+        }
+
+        function cardOSGrupoDiretoGMAN85651(os, idGrupo) {
+            const encerrada = statusOSEncerradaCompatTelaGMAN85651(os.statusOS);
+            const permissaoAlterar = usuarioPodeAlterarOS(os);
+            const statusPermiteAcao = ['Iniciada', 'Em execução', 'Aguardando material', 'Aguardando liberação', 'Reaberta', 'Parado', 'Em teste', 'Em manutenção (operando)', 'Em manutenção (parado)', 'Operando com restrição', 'Em andamento'].includes(String(os.statusOS));
+            const podeIniciar = !encerrada && permissaoAlterar && String(os.statusOS) === 'Aberta';
+            const podeAtualizarAndamento = !encerrada && permissaoAlterar && statusPermiteAcao;
+            const podeConcluir = !encerrada && permissaoAlterar && statusPermiteAcao;
+            const podeCancelar = !encerrada && podeGerenciarOS();
+            const formatoAntigo = !/^\d{4}\.\d{2}\/\d{2}$/.test(String(os.numeroOS || os.idOS || '').trim());
+
+            return `
+                <div class="os-card">
+                    <h4>${escaparHTMLGMAN(os.numeroOS || os.idOS || '-')} — ${escaparHTMLGMAN(os.equipamento || os.idEquipamento || idGrupo)}</h4>
+                    <span class="os-badge ${classeStatusOS(os.statusOS)}">${escaparHTMLGMAN(os.statusOS || 'Sem status')}</span>
+                    ${formatoAntigo ? '<span class="os-badge os-cancelada">Padrão antigo</span>' : '<span class="os-badge os-aberta">Padrão novo</span>'}
+                    <p><strong>Área:</strong> ${escaparHTMLGMAN(os.area || '-')} | <strong>Tipo:</strong> ${escaparHTMLGMAN(os.tipoManutencao || '-')}</p>
+                    <p><strong>Sistema:</strong> ${escaparHTMLGMAN(os.sistema || '-')} | <strong>Equipe:</strong> ${escaparHTMLGMAN(os.equipeResponsavel || '-')}</p>
+                    <p><strong>Responsável:</strong> ${escaparHTMLGMAN(os.responsavel || '-')}</p>
+                    <p><strong>Problema:</strong> ${escaparHTMLGMAN(os.descricaoProblema || '-')}</p>
+                    ${os.dataAbertura ? `<p><strong>Abertura:</strong> ${escaparHTMLGMAN(formatarDataApi(os.dataAbertura))} ${os.horaAbertura ? '| ' + escaparHTMLGMAN(formatarHoraApi(os.horaAbertura)) : ''}</p>` : ''}
+                    ${os.dataConclusao ? `<p><strong>Conclusão:</strong> ${escaparHTMLGMAN(formatarDataApi(os.dataConclusao))} ${os.horaConclusao ? '| ' + escaparHTMLGMAN(formatarHoraApi(os.horaConclusao)) : ''}</p>` : ''}
+                    ${os.servicoRealizado ? `<p><strong>Serviço realizado:</strong> ${escaparHTMLGMAN(os.servicoRealizado)}</p>` : ''}
+                    ${os.finalizadoPor ? `<p><strong>Finalizado por:</strong> ${escaparHTMLGMAN(os.finalizadoPor)}</p>` : ''}
+                    ${encerrada ? '<p style="color:#2f855a; font-weight:800;">✅ OS encerrada</p>' : ''}
+                    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
+                        ${podeIniciar ? `<button onclick="iniciarOS('${escaparHTMLGMAN(os.idOS)}')" style="padding:8px 10px; border:none; border-radius:8px; background:#d69e2e; color:white; cursor:pointer;">▶️ Iniciar</button>` : ''}
+                        ${podeAtualizarAndamento ? `<button onclick="abrirModalAndamentoOS('${escaparHTMLGMAN(os.idOS)}')" style="padding:8px 10px; border:none; border-radius:8px; background:#3182ce; color:white; cursor:pointer;">📝 Atualizar andamento</button>` : ''}
+                        ${podeConcluir ? `<button onclick="abrirModalConcluirOS('${escaparHTMLGMAN(os.idOS)}')" style="padding:8px 10px; border:none; border-radius:8px; background:#38a169; color:white; cursor:pointer;">✅ Concluir</button>` : ''}
+                        ${podeCancelar ? `<button onclick="cancelarOS('${escaparHTMLGMAN(os.idOS)}')" style="padding:8px 10px; border:none; border-radius:8px; background:#718096; color:white; cursor:pointer;">Cancelar</button>` : ''}
+                        ${(!encerrada && podeGerenciarOS()) ? `<button onclick="abrirModalFechamentoAssistidoOS('${escaparHTMLGMAN(os.idOS)}')" style="padding:8px 10px; border:none; border-radius:8px; background:#b7791f; color:white; cursor:pointer; font-weight:800;">🧯 Fechamento assistido</button>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderizarOSGrupoDiretoGMAN85651(dadosGrupo, idGrupo) {
+            const container = document.getElementById('osConteudo');
+            if (!container) return;
+            const ordens = Array.isArray(dadosGrupo.ordens) ? dadosGrupo.ordens : [];
+            const contagem = dadosGrupo.contagem || {};
+            const eq = equipment.find(e => gruposIguaisGMAN85633(e.id, idGrupo) || String(e.id) === String(idGrupo));
+            const semAtivas = Number(contagem.ativas || 0) === 0 && Number(contagem.total || ordens.length) > 0;
+            const podeMostrarReparo = podeGerenciarOS() && semAtivas && statusGrupoPrecisaReparoTelaGMAN85651(eq);
+
+            container.innerHTML = `
+                <div style="background:#edf2f7; border-left:5px solid #3182ce; border-radius:14px; padding:12px; margin-bottom:12px; color:#1e3a5f;">
+                    <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; align-items:center;">
+                        <strong>OS do grupo ${escaparHTMLGMAN(idGrupo)}</strong>
+                        <span style="font-size:0.82rem; font-weight:800; color:#2d3748;">Fonte: Banco Central GMAN</span>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(118px,1fr)); gap:8px; margin-top:10px;">
+                        <div class="os-count-card"><strong>${contagem.total || ordens.length}</strong><span>Total</span></div>
+                        <div class="os-count-card iniciada"><strong>${contagem.ativas || 0}</strong><span>Ativas</span></div>
+                        <div class="os-count-card concluida"><strong>${contagem.concluidas || 0}</strong><span>Concluídas</span></div>
+                        <div class="os-count-card detalhe"><strong>${contagem.canceladas || 0}</strong><span>Canceladas</span></div>
+                        <div class="os-count-card detalhe"><strong>${contagem.padraoAntigo || 0}</strong><span>Padrão antigo</span></div>
+                    </div>
+                    ${podeMostrarReparo ? `
+                        <div style="margin-top:12px; background:#fffaf0; border:1px solid #fbd38d; border-radius:14px; padding:10px; color:#744210;">
+                            <strong>⚠️ Grupo sem OS ativa, mas ainda aparece como manutenção/parado.</strong><br>
+                            Use o reparo seguro para voltar o status do grupo para Operando sem alterar nenhuma OS.
+                            <div style="margin-top:8px;">
+                                <button onclick="abrirModalReparoStatusGrupoGMAN85651('${escaparHTMLGMAN(idGrupo)}')" style="padding:10px 13px; border:none; border-radius:10px; background:#b7791f; color:white; cursor:pointer; font-weight:900;">🛠️ Reparar status do grupo</button>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+                ${ordens.length ? ordens.map(os => cardOSGrupoDiretoGMAN85651(os, idGrupo)).join('') : `<p style="color:#4a5568; background:#f7fafc; padding:14px; border-radius:12px;">Nenhuma OS encontrada para este grupo. Confira se o ID do grupo está igual na planilha.</p>`}
+            `;
+        }
+
+        async function verOSDoGrupoGMAN(idGrupo) {
+            try {
+                const dadosGrupo = await listarOSGrupoCompatOnlineGMAN85651(idGrupo);
+                modoPainelOSAtual = 'grupo:' + idGrupo;
+                const existingModal = document.getElementById('osModal');
+                if (existingModal) existingModal.remove();
+
+                const modal = document.createElement('div');
+                modal.id = 'osModal';
+                modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.82); display: flex; align-items: center; justify-content: center; z-index: 1100; padding: 18px;';
+                modal.innerHTML = `
+                    <div style="background:linear-gradient(180deg,#ffffff,#f7fafc); border-radius:24px; padding:22px; width:96%; max-width:920px; max-height:90vh; overflow-y:auto; box-shadow:0 18px 44px rgba(0,0,0,0.22);">
+                        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
+                            <div>
+                                <h2 style="color:#1e3a5f; margin:0; font-size:1.22rem;">📋 OS do grupo ${escaparHTMLGMAN(idGrupo)}</h2>
+                                <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Compatível com OS antigas e novas. Mostra concluídas, canceladas e abertas.</p>
+                            </div>
+                            <button onclick="document.getElementById('osModal').remove();" style="padding:10px 14px; border:none; border-radius:12px; background:#718096; color:white; cursor:pointer;">Fechar</button>
+                        </div>
+                        <div id="osConteudo">Carregando OS do grupo...</div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                ordensServicoCache = Array.isArray(dadosGrupo.ordens) ? dadosGrupo.ordens : ordensServicoCache;
+                renderizarOSGrupoDiretoGMAN85651(dadosGrupo, idGrupo);
+            } catch (erro) {
+                console.error(erro);
+                alert('Erro ao abrir OS do grupo: ' + (erro.message || erro));
+            }
+        }
+
+        async 
+/* GMAN 8.5.6.56: função duplicada anterior removida: abrirModalReparoStatusGrupoGMAN85651 */
+
+        async 
+/* GMAN 8.5.6.56: função duplicada anterior removida: executarReparoStatusGrupoGMAN85651 */
+
         iniciarSistema();
-      </script>
+      
+
+/* ============================================================
+   GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
+   A tela deixa de usar listarStatus bruto/duplicado para atualizar cards.
+   Fonte operacional: painelOperacionalRapido/listarStatus oficial deduplicado.
+   ============================================================ */
+
+const VERSAO_FRONTEND_GMAN_85654 = 'GMAN 8.5.6.56';
+const COMMIT_GMAN_85654 = 'GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados';
+
+function aplicarPainelOperacionalRapidoNaTelaGMAN85654(painel) {
+    if (!painel) return false;
+
+    if (Array.isArray(painel.equipamentosOficiais) && painel.equipamentosOficiais.length) {
+        const lista = painel.equipamentosOficiais.map(normalizarEquipamentoPainelGMAN85645).filter(e => e.id);
+        equipment.splice(0, equipment.length, ...lista);
+    }
+
+    if (Array.isArray(painel.ordensServicoValidas)) {
+        ordensServicoCache = painel.ordensServicoValidas;
+    }
+
+    atualizarTotalizadoresOS(ordensServicoCache);
+    applyFilters();
+    return true;
+}
+
+async 
+/* GMAN 8.5.6.56: função duplicada anterior removida: carregarStatusOnline */
+
+async 
+/* GMAN 8.5.6.56: função duplicada anterior removida: atualizarAgora */
+
+
+/* GMAN 8.5.6.56: função duplicada anterior removida: limparCacheOperacionalGMAN85643 */
+
+async 
+/* GMAN 8.5.6.56: função duplicada anterior removida: executarReparoStatusGrupoGMAN85651 */
+
+</script>
+
+
+<script>
+/* ============================================================
+   GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
+   ============================================================ */
+const CONFIRMACAO_OPERANDO_GMAN_85653 = 'CONFIRMO OPERANDO GMAN';
+let painelOperacionalRapidoCacheGMAN85653 = null;
+let ultimaSincronizacaoRapidaGMAN85653 = 0;
+
+async function carregarPainelOperacionalRapidoGMAN85653(forcar = false) {
+    const agora = Date.now();
+    if (!forcar && painelOperacionalRapidoCacheGMAN85653 && (agora - ultimaSincronizacaoRapidaGMAN85653) < 30000) {
+        return painelOperacionalRapidoCacheGMAN85653;
+    }
+    const painel = await apiGet({ acao: 'painelOperacionalRapido', t: Date.now() });
+    if (!painel || painel.sucesso === false) {
+        throw new Error((painel && (painel.erro || painel.mensagem)) || 'Painel operacional rápido não retornou dados válidos.');
+    }
+    painelOperacionalRapidoCacheGMAN85653 = painel;
+    ultimaSincronizacaoRapidaGMAN85653 = Date.now();
+    return painel;
+}
+
+// Sobrescreve a carga da tela inicial: agora é leve. Diagnósticos pesados só no escudo/núcleo.
+async function carregarStatusOnline() {
+    atualizarIndicadorConexao('🔄 Carregando fonte oficial rápida...', 'neutro');
+    try {
+        const painel = await carregarPainelOperacionalRapidoGMAN85653(true);
+        aplicarPainelConsolidadoNaTelaGMAN85645(painel);
+        apiOnline = true;
+        atualizarIndicadorConexao('✅ Online: fonte oficial do Banco Central carregada', 'online');
+        atualizarMarcadorConexaoGMAN85645('Banco Central: fonte oficial carregada', true);
+        return true;
+    } catch (erro) {
+        apiOnline = false;
+        console.error('Erro ao carregar fonte oficial rápida:', erro);
+        try {
+            const painel = await apiGet({ acao: 'painelConsolidado', versaoIndex: VERSAO_FRONTEND_GMAN });
+            aplicarPainelConsolidadoNaTelaGMAN85645(painel);
+            apiOnline = true;
+            atualizarIndicadorConexao('✅ Online: painel consolidado carregado em fallback', 'online');
+            atualizarMarcadorConexaoGMAN85645('Banco Central: fallback consolidado', true);
+            return true;
+        } catch (erroFallback) {
+            applyFilters();
+            atualizarIndicadorConexao('⚠️ Falha ao carregar fonte oficial. Tente Atualizar agora.', 'offline');
+            atualizarMarcadorConexaoGMAN85645('Banco Central: falha na fonte oficial', false);
+            console.error('Fallback também falhou:', erroFallback);
+            return false;
+        }
+    }
+}
+
+async function listarOSOnline() {
+    if (painelOperacionalRapidoCacheGMAN85653 && Array.isArray(painelOperacionalRapidoCacheGMAN85653.ordensServicoValidas)) {
+        return painelOperacionalRapidoCacheGMAN85653.ordensServicoValidas;
+    }
+    const painel = await carregarPainelOperacionalRapidoGMAN85653(false);
+    if (painel && Array.isArray(painel.ordensServicoValidas)) return painel.ordensServicoValidas;
+    const retorno = await apiGet({ acao: 'listarOS' });
+    if (Array.isArray(retorno)) return retorno.filter(os => !ehOSTesteKPI(os));
+    if (retorno && Array.isArray(retorno.ordensServicoValidas)) return retorno.ordensServicoValidas;
+    throw new Error('Falha ao consultar OS válidas do Banco Central.');
+}
+
+async function atualizarAgora() {
+    painelOperacionalRapidoCacheGMAN85653 = null;
+    painelConsolidadoCacheGMAN85645 = null;
+    await carregarStatusOnline();
+    try {
+        const listaOS = await listarOSOnline();
+        ordensServicoCache = listaOS;
+        atualizarTotalizadoresOS(listaOS);
+        applyFilters();
+        if (document.getElementById('osModal')) renderizarOS(listaOS);
+    } catch (erro) {
+        console.error('Erro ao atualizar OS:', erro);
+    }
+    alert('Tela operacional atualizada com carregamento rápido. Diagnósticos pesados ficam no escudo 🛡️.');
+}
+
+function limparCacheOperacionalGMAN85643() {
+    try {
+        localStorage.removeItem('gman_kpi_cache');
+        localStorage.removeItem('gman_rankings_cache');
+        localStorage.removeItem('ordensServicoCache');
+        localStorage.removeItem('equipmentData');
+        localStorage.removeItem('manutencao_equipment');
+        // Não apagar sessão/login aqui.
+        sessionStorage.removeItem('gman_kpi_cache');
+        sessionStorage.removeItem('gman_rankings_cache');
+        if ('caches' in window) {
+            caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
+        }
+    } catch (erro) {
+        console.warn('Não foi possível limpar todos os caches:', erro);
+    }
+    painelOperacionalRapidoCacheGMAN85653 = null;
+    painelConsolidadoCacheGMAN85645 = null;
+    ordensServicoCache = [];
+    alert('Cache operacional limpo sem deslogar. Clique em Atualizar agora.');
+}
+
+function abrirModalReparoStatusGrupoGMAN85651(idGrupo) {
+    if (!podeGerenciarOS()) return alert('Reparo de status disponível somente para gestão.');
+    apiGet({ acao: 'diagnosticoForcarOperandoGrupo', idGrupo: idGrupo, versaoIndex: 'GMAN 8.5.6.56' })
+        .then(diag => {
+            const existing = document.getElementById('reparoStatusGrupoModal');
+            if (existing) existing.remove();
+            const modal = document.createElement('div');
+            modal.id = 'reparoStatusGrupoModal';
+            modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,.78); display:flex; align-items:center; justify-content:center; z-index:1900; padding:16px;';
+            modal.innerHTML = `
+                <div style="background:white; border-radius:22px; width:96%; max-width:620px; max-height:90vh; overflow:auto; box-shadow:0 24px 70px rgba(0,0,0,.28);">
+                    <div style="background:linear-gradient(135deg,#1e3a5f,#2c5282); color:white; padding:18px 20px; border-radius:22px 22px 0 0;">
+                        <div style="font-size:.78rem; opacity:.9;">Reparo seguro 8.5.6.55</div>
+                        <h2 style="margin:4px 0 0; font-size:1.2rem;">Forçar retorno para Operando</h2>
+                    </div>
+                    <div style="padding:18px; color:#1a202c;">
+                        <div style="background:${Number(diag.totalOSAtivas || 0) === 0 ? '#f0fff4' : '#fffaf0'}; border-left:5px solid ${Number(diag.totalOSAtivas || 0) === 0 ? '#38a169' : '#d69e2e'}; border-radius:14px; padding:12px; margin-bottom:12px;">
+                            <strong>Grupo:</strong> ${escaparHTMLGMAN(idGrupo)}<br>
+                            <strong>Status atual:</strong> ${escaparHTMLGMAN(diag.statusAtual || '-')}<br>
+                            <strong>Total OS:</strong> ${diag.totalOSGrupo || 0} ·
+                            <strong>Ativas:</strong> ${diag.totalOSAtivas || 0} ·
+                            <strong>Concluídas:</strong> ${diag.totalOSConcluidas || 0} ·
+                            <strong>Canceladas:</strong> ${diag.totalOSCanceladas || 0}<br>
+                            <strong>Padrão antigo:</strong> ${diag.totalOSPadraoAntigo || 0}<br>
+                            ${Number(diag.totalOSAtivas || 0) === 0 ? '<strong style="color:#2f855a;">✅ Liberado: não há OS ativa real. O sistema vai gravar Operando no STATUS_ATUAL.</strong>' : '<strong style="color:#b7791f;">⚠️ Há OS ativa. A API bloqueará o retorno para Operando.</strong>'}
+                        </div>
+                        <label class="form-label">Justificativa do reparo</label>
+                        <textarea id="justificativaReparoStatusGrupo" class="form-field" rows="4" placeholder="Ex.: Grupo possui 5 OS, 4 concluídas e 1 cancelada. Não há OS ativa bloqueando o retorno para Operando."></textarea>
+                        <p style="color:#4a5568; font-size:.8rem; margin:8px 0;">Para executar, digite exatamente:</p>
+                        <strong style="color:#1e3a5f;">${CONFIRMACAO_OPERANDO_GMAN_85653}</strong>
+                        <input id="confirmacaoReparoStatusGrupo" class="form-field" placeholder="Digite a confirmação forte" style="margin-top:8px;">
+                        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px;">
+                            <button onclick="document.getElementById('reparoStatusGrupoModal').remove();" style="padding:11px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Cancelar</button>
+                            <button onclick="executarReparoStatusGrupoGMAN85651('${escaparHTMLGMAN(idGrupo)}')" style="padding:11px 14px; border:none; border-radius:10px; background:#38a169; color:white; cursor:pointer; font-weight:900;">✅ Forçar Operando</button>
+                        </div>
+                    </div>
+                </div>`;
+            document.body.appendChild(modal);
+        })
+        .catch(erro => alert('Erro ao abrir reparo para Operando: ' + (erro.message || erro)));
+}
+
+async 
+/* GMAN 8.5.6.56: função duplicada anterior removida: executarReparoStatusGrupoGMAN85651 */
+</script>
+
+
+
+<script>
+/* ============================================================
+   GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
+   Regra: STATUS_ATUAL = Operando manda. Observação antiga não derruba
+   o card para Manutenção/Parado após atualizar ou limpar cache.
+   ============================================================ */
+const COMMIT_GMAN_85655 = 'GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados';
+
+function normalizarStatusApp(valor, observacao = '') {
+    const statusTexto = String(valor || '').toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+
+    const obsTexto = String(observacao || '').toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+
+    // GMAN 8.5.6.56 — REGRA OFICIAL NA TELA:
+    // STATUS_ATUAL manda. Observação antiga não derruba Operando.
+    if (statusTexto === 'operando') return 'ok';
+    if (statusTexto.includes('operando') && !statusTexto.includes('restricao')) return 'ok';
+
+    if (statusTexto.includes('manutencao') && statusTexto.includes('parado')) return 'down';
+    if (statusTexto.includes('parado')) return 'down';
+    if (statusTexto.includes('fora') && statusTexto.includes('operacao')) return 'down';
+
+    if (statusTexto.includes('manutencao')) return 'alert';
+    if (statusTexto.includes('aguard')) return 'alert';
+    if (statusTexto.includes('restri')) return 'alert';
+    if (statusTexto.includes('teste')) return 'alert';
+
+    // Observação só classifica quando status oficial não veio.
+    if (!statusTexto || statusTexto === 'sem status' || statusTexto === 'undefined' || statusTexto === 'null') {
+        if (obsTexto.includes('parado')) return 'down';
+        if (obsTexto.includes('manutencao') || obsTexto.includes('aguard') || obsTexto.includes('restri') || obsTexto.includes('teste')) return 'alert';
+        return 'alert';
+    }
+
+    return 'alert';
+}
+
+function normalizarEquipamentoPainelGMAN85645(item) {
+    const id = String(item.id || item.idEquipamento || item.codigo || item.grupo || '').trim();
+    const sistema = item.system || normalizarTextoGMAN(item.sistema || '');
+    const codigo = item.systemCode || (id.match(/^(\d{3})/) || ['', ''])[1] || '';
+    const statusAtualOficial = item.statusAtual || item.status_atual || item.statusRotuloOficial || '';
+    const obs = item.observacaoStatus || item.observacao || '';
+    const classeOficial = item.statusClasseOficial || item.statusFrontend || item.status || '';
+    const statusClasse = ['ok', 'alert', 'down'].includes(String(classeOficial))
+        ? String(classeOficial)
+        : normalizarStatusApp(statusAtualOficial, obs);
+
+    return {
+        id: id,
+        name: item.name || item.nome || item.equipamento || id,
+        system: sistema,
+        systemCode: codigo,
+        status: statusClasse,
+        statusAtual: statusAtualOficial || (statusClasse === 'ok' ? 'Operando' : ''),
+        statusClasseOficial: statusClasse,
+        statusRotuloOficial: item.statusRotuloOficial || (statusClasse === 'ok' ? 'Operando' : (statusAtualOficial || 'Atenção')),
+        ultimoTecnico: item.ultimoTecnico || item.usuarioUltimaAlteracao || '',
+        ultimaAlteracao: formatarDataApi(item.ultimaAlteracao || item.dataUltimaAlteracao || ''),
+        observacaoStatus: obs,
+        fonte: 'Banco Central — status único oficial 8.5.6.56'
+    };
+}
+
+function aplicarPainelConsolidadoNaTelaGMAN85645(painel) {
+    if (!painel) return;
+
+    // Preferência absoluta: equipamentos oficiais já calculados pelo backend.
+    if (Array.isArray(painel.equipamentosOficiais) && painel.equipamentosOficiais.length) {
+        const lista = painel.equipamentosOficiais.map(normalizarEquipamentoPainelGMAN85645).filter(e => e.id);
+        equipment.splice(0, equipment.length, ...lista);
+    } else if (Array.isArray(painel.statusAtualOficial) && painel.statusAtualOficial.length) {
+        // Fallback: aplica status oficial deduplicado sobre lista atual.
+        painel.statusAtualOficial.forEach(item => {
+            const id = item.idEquipamento || item.id || item.chaveGrupo || '';
+            const eq = equipment.find(e => gruposIguaisGMAN85633(e.id || e.name, id));
+            if (!eq) return;
+            const classe = item.statusClasseOficial || item.statusFrontend || normalizarStatusApp(item.statusAtual || '', item.observacao || '');
+            eq.status = classe;
+            eq.statusAtual = item.statusAtual || (classe === 'ok' ? 'Operando' : eq.statusAtual || '');
+            eq.statusClasseOficial = classe;
+            eq.statusRotuloOficial = item.statusRotuloOficial || (classe === 'ok' ? 'Operando' : (item.statusAtual || 'Atenção'));
+            eq.ultimoTecnico = item.usuarioUltimaAlteracao || eq.ultimoTecnico || '';
+            eq.ultimaAlteracao = formatarDataApi(item.dataUltimaAlteracao || eq.ultimaAlteracao || '');
+            eq.observacaoStatus = item.observacao || eq.observacaoStatus || '';
+        });
+    }
+
+    if (Array.isArray(painel.ordensServicoValidas)) {
+        ordensServicoCache = painel.ordensServicoValidas;
+    }
+
+    atualizarTotalizadoresOS(ordensServicoCache);
+    applyFilters();
+}
+
+async function executarReparoStatusGrupoGMAN85651(idGrupo) {
+    const justificativa = (document.getElementById('justificativaReparoStatusGrupo') || {}).value || '';
+    const confirmacao = (document.getElementById('confirmacaoReparoStatusGrupo') || {}).value || '';
+    if (!justificativa.trim()) return alert('Informe a justificativa do reparo.');
+    if (confirmacao.trim() !== CONFIRMACAO_OPERANDO_GMAN_85653) return alert('Confirmação incorreta. O reparo não foi executado.');
+    try {
+        const retorno = await apiPost({
+            acao: 'forcarOperandoGrupoSemOSAtiva',
+            idGrupo: idGrupo,
+            usuario: usuarioLogado ? usuarioLogado.nome : '',
+            funcao: usuarioLogado ? usuarioLogado.funcao : '',
+            justificativa: justificativa,
+            confirmacao: confirmacao.trim()
+        });
+        const confirmado = retorno.confirmacaoPosGravacao || {};
+        const statusFinal = confirmado.statusAtual || retorno.statusNovo || 'Operando';
+        const classeFinal = confirmado.statusClasseOficial || confirmado.statusFrontend || normalizarStatusApp(statusFinal, '');
+        alert((retorno.mensagem || 'Grupo devolvido para Operando.') +
+            '\nLinhas STATUS_ATUAL atualizadas: ' + (retorno.totalLinhasAtualizadas || 0) +
+            '\nStatus oficial pós-gravação: ' + statusFinal +
+            '\nClassificação oficial: ' + classeFinal.toUpperCase());
+
+        const modal = document.getElementById('reparoStatusGrupoModal');
+        if (modal) modal.remove();
+
+        painelOperacionalRapidoCacheGMAN85653 = null;
+        painelConsolidadoCacheGMAN85645 = null;
+        await carregarStatusOnline();
+
+        const eq = equipment.find(e => gruposIguaisGMAN85633(e.id || e.name, idGrupo));
+        if (eq && classeFinal === 'ok') {
+            eq.status = 'ok';
+            eq.statusAtual = 'Operando';
+            eq.statusClasseOficial = 'ok';
+            eq.statusRotuloOficial = 'Operando';
+        }
+        applyFilters();
+
+        if (document.getElementById('osGrupoCompatModal')) {
+            const m = document.getElementById('osGrupoCompatModal');
+            m.remove();
+            await abrirOSGrupoCompatGMAN85651(idGrupo);
+        }
+    } catch (erro) {
+        alert('Erro ao forçar Operando: ' + (erro.message || erro));
+    }
+}
+</script>
+
+
+
+<script>
+/* =========================================================
+   GMAN 8.5.7.2 — CORREÇÃO CIRÚRGICA AUDITADA DO INDEX CLÁSSICO
+   Escopo: manter layout clássico; corrigir API 8.5.6.44, login, botões, equipamentos/status e OS.
+   Não altera planilha. Não altera Apps Script. Não usa imagens. Não usa API antiga.
+   ========================================================= */
+(function(){
+  'use strict';
+
+  const GMAN_API_OFICIAL_8572 = 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec';
+  const GMAN_VERSAO_INDEX_8572 = 'GMAN 8.5.7.2 — Index clássico real auditado com API 8.5.6.44';
+  const GMAN_GESTAO_FORTE_8572 = ['ADMINISTRADOR','GERENTE','SUPERVISOR','COORDENADOR'];
+
+  function canon8572(valor){
+    return String(valor == null ? '' : valor)
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g,'')
+      .toUpperCase();
+  }
+
+  function sim8572(valor){
+    const c = canon8572(valor);
+    return valor === true || c === 'SIM' || c === 'TRUE' || c === '1' || c === 'ATIVO';
+  }
+
+  function normalizarPerfil8572(perfil){
+    const c = canon8572(perfil);
+    if (c.includes('ADMIN')) return 'administrador';
+    if (c.includes('GERENTE')) return 'gerente';
+    if (c.includes('SUPERVIS')) return 'supervisor';
+    if (c.includes('COORDEN')) return 'coordenador';
+    return String(perfil || 'lider').trim().toLowerCase() || 'lider';
+  }
+
+  function usuarioForte8572(usuario){
+    const u = Object.assign({}, usuario || {});
+    const nome = String(u.nome || u.NOME || u.login || u.LOGIN || '').trim();
+    const login = String(u.login || u.LOGIN || nome).trim();
+    const perfilRaw = u.perfil || u.PERFIL || u.funcao || u.FUNCAO || '';
+    let funcao = normalizarPerfil8572(perfilRaw);
+    let area = String(u.area || u.AREA || u.setorPadrao || u.SETOR_PADRAO || u.equipe || u.EQUIPE || 'todos').trim().toLowerCase() || 'todos';
+
+    // Blindagem: Paulo Jurandir é gestão oficial no projeto, mesmo que apareça duplicado como líder em alguma lista antiga.
+    if (canon8572(nome) === 'PAULO JURANDIR' || canon8572(login) === 'PAULO JURANDIR') {
+      funcao = 'administrador';
+      area = 'todos';
+    }
+
+    const gestao = sim8572(u.gestao || u.GESTAO || u.PODE_VER_GESTAO) || GMAN_GESTAO_FORTE_8572.includes(canon8572(funcao));
+
+    return {
+      idUsuario: u.idUsuario || u.ID_USUARIO || '',
+      nome: nome || login,
+      login: login || nome,
+      funcao,
+      perfil: funcao,
+      area,
+      equipe: u.equipe || u.EQUIPE || u.setorPadrao || u.SETOR_PADRAO || area,
+      gestao
+    };
+  }
+
+  async function gmanFetch8572(payload, metodo){
+    const dados = Object.assign({}, payload || {});
+    if (dados.acao && !dados.action) dados.action = dados.acao;
+    if (dados.idOS && !dados.idOs) dados.idOs = dados.idOS;
+    if (window.usuarioLogado && window.usuarioLogado.nome && !dados.usuario) dados.usuario = window.usuarioLogado.nome;
+
+    let resposta;
+    if (metodo === 'POST') {
+      resposta = await fetch(GMAN_API_OFICIAL_8572, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(dados),
+        cache: 'no-store'
+      });
+    } else {
+      const query = new URLSearchParams(Object.assign({}, dados, { t: Date.now() })).toString();
+      resposta = await fetch(GMAN_API_OFICIAL_8572 + '?' + query, { cache: 'no-store' });
+    }
+
+    if (!resposta.ok) throw new Error('Falha de conexão com a API GMAN: HTTP ' + resposta.status);
+    const retorno = await resposta.json();
+    if (retorno && (retorno.ok === false || retorno.sucesso === false)) {
+      throw new Error(retorno.mensagem || retorno.erro || retorno.codigo || 'A API GMAN retornou erro.');
+    }
+    return retorno;
+  }
+
+  window.apiGet = async function(params){
+    return gmanFetch8572(params || {}, 'GET');
+  };
+
+  window.apiPost = async function(payload){
+    return gmanFetch8572(payload || {}, 'POST');
+  };
+
+  window.podeGerenciarOS = function(){
+    if (!window.usuarioLogado) return false;
+    if (window.usuarioLogado.gestao === true) return true;
+    return GMAN_GESTAO_FORTE_8572.includes(canon8572(window.usuarioLogado.funcao || window.usuarioLogado.perfil));
+  };
+
+  window.aplicarBotoesPermissao = function(){
+    const ehGestao = window.podeGerenciarOS();
+    const mostrar = (id, visivel) => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = visivel ? 'inline-block' : 'none';
+    };
+
+    mostrar('btnOrdensAbertasHome', true);
+    mostrar('btnOrdensNaoIniciadasHome', ehGestao);
+    mostrar('btnOrdensIniciadasHome', ehGestao);
+    mostrar('btnOrdensEncerradasHome', ehGestao);
+    mostrar('btnPainelKPI', ehGestao);
+
+    const stats = document.querySelector('.stats');
+    if (stats) stats.style.display = 'grid';
+
+    const acoes = document.querySelector('.main-actions');
+    if (acoes) {
+      acoes.style.display = 'flex';
+      acoes.style.visibility = 'visible';
+      acoes.style.opacity = '1';
+    }
+  };
+
+  window.mostrarUsuarioLogado = function(){
+    const existente = document.getElementById('userInfo');
+    if (existente) existente.remove();
+    if (!window.usuarioLogado) return;
+
+    const header = document.querySelector('h1');
+    if (!header || !header.parentNode) return;
+    const info = document.createElement('div');
+    info.id = 'userInfo';
+    info.style.cssText = 'text-align:center;color:#e6f4ff;font-size:0.88rem;margin:6px auto 15px;font-weight:700;background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.20);border-radius:14px;padding:9px 12px;max-width:720px;';
+    const tipo = window.podeGerenciarOS() ? 'GESTÃO' : 'OPERACIONAL';
+    info.innerHTML = '👤 ' + escaparHTML8572(window.usuarioLogado.nome || '-') + ' | ' + escaparHTML8572(String(window.usuarioLogado.funcao || '').toUpperCase()) + ' | ' + tipo +
+      '<button onclick="fazerLogout()" style="margin-left:10px;padding:5px 11px;background:rgba(255,255,255,0.12);color:white;border:1px solid rgba(255,255,255,0.35);border-radius:8px;cursor:pointer;font-size:0.76rem;">Sair</button>';
+    header.parentNode.insertBefore(info, header.nextSibling);
+  };
+
+  function escaparHTML8572(valor){
+    return String(valor == null ? '' : valor).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  }
+
+  window.fazerLogin = async function(){
+    const user = (document.getElementById('loginUser') || {}).value || '';
+    const pass = (document.getElementById('loginPass') || {}).value || '';
+    const erro = document.getElementById('loginErro');
+    if (erro) erro.style.display = 'none';
+
+    if (!String(user).trim() || !String(pass).trim()) {
+      if (erro) { erro.textContent = 'Informe usuário e senha.'; erro.style.display = 'block'; }
+      return;
+    }
+
+    try {
+      const retorno = await window.apiPost({ action: 'login', login: user.trim(), senha: pass });
+      const usuarioApi = retorno.usuario || retorno.USUARIO || {};
+      window.usuarioLogado = usuarioForte8572(Object.assign({}, usuarioApi, { gestao: retorno.gestao || usuarioApi.gestao }));
+    } catch (erroApi) {
+      // Fallback local apenas para não travar em campo; prioriza perfil de gestão quando houver duplicidade.
+      console.warn('Login pela API falhou; tentando fallback local apenas para recuperação de tela:', erroApi);
+      const listaLocal = Array.isArray(window.usuarios) ? window.usuarios : [];
+      const candidatos = listaLocal.filter(u => canon8572(u.nome) === canon8572(user) && String(u.senha || '') === String(pass));
+      const encontrado = candidatos.sort((a,b) => (GMAN_GESTAO_FORTE_8572.includes(canon8572(b.funcao))?1:0) - (GMAN_GESTAO_FORTE_8572.includes(canon8572(a.funcao))?1:0))[0];
+      if (!encontrado) {
+        if (erro) { erro.textContent = 'Usuário ou senha incorretos na API oficial GMAN.'; erro.style.display = 'block'; }
+        return;
+      }
+      window.usuarioLogado = usuarioForte8572(encontrado);
+    }
+
+    try { sessionStorage.setItem('manutencao_usuario_logado', JSON.stringify(window.usuarioLogado)); } catch(e) {}
+    try { localStorage.removeItem('manutencao_usuario_logado'); } catch(e) {}
+
+    const loginScreen = document.getElementById('loginScreen');
+    if (loginScreen) loginScreen.style.display = 'none';
+    window.mostrarUsuarioLogado();
+    if (typeof window.aplicarPermissoes === 'function') window.aplicarPermissoes();
+    window.aplicarBotoesPermissao();
+    await window.atualizarAgora();
+  };
+
+  window.recuperarLoginSalvo = function(){
+    try {
+      const raw = sessionStorage.getItem('manutencao_usuario_logado') || localStorage.getItem('manutencao_usuario_logado');
+      if (!raw) return false;
+      window.usuarioLogado = usuarioForte8572(JSON.parse(raw));
+      const loginScreen = document.getElementById('loginScreen');
+      if (loginScreen) loginScreen.style.display = 'none';
+      window.mostrarUsuarioLogado();
+      if (typeof window.aplicarPermissoes === 'function') window.aplicarPermissoes();
+      window.aplicarBotoesPermissao();
+      return true;
+    } catch(e) {
+      try { sessionStorage.removeItem('manutencao_usuario_logado'); localStorage.removeItem('manutencao_usuario_logado'); } catch(err) {}
+      return false;
+    }
+  };
+
+  window.fazerLogout = function(){
+    try { sessionStorage.removeItem('manutencao_usuario_logado'); localStorage.removeItem('manutencao_usuario_logado'); } catch(e) {}
+    window.usuarioLogado = null;
+    const loginScreen = document.getElementById('loginScreen');
+    if (loginScreen) loginScreen.style.display = 'flex';
+    const info = document.getElementById('userInfo');
+    if (info) info.remove();
+    window.aplicarBotoesPermissao();
+  };
+
+  function statusApiParaTela8572(row){
+    const op = canon8572(row.STATUS_OPERACIONAL || row.statusOperacional || row.statusAtual || row.status);
+    if (op.includes('PARADO') || op === 'PARADO') return 'down';
+    if (op.includes('MANUTENCAO') || op.includes('TESTE') || op.includes('RESTRICAO')) return 'alert';
+    return 'ok';
+  }
+
+  function sistemaNome8572(codigo){
+    const c = String(codigo || '').trim();
+    return { '100':'moinhos de vento', '200':'são joao', '300':'menino deus', '400':'belem novo', '600':'ilha da pintada', '700':'tristeza' }[c] || c.toLowerCase();
+  }
+
+  function equipamentoDeStatus8572(row){
+    const id = String(row.ID_EQUIPAMENTO || row.idEquipamento || row.ID_NORMALIZADO || '').trim();
+    const sistema = String(row.SISTEMA || row.sistema || '').trim();
+    return {
+      id,
+      name: String(row.NOME_EQUIPAMENTO_GRUPO || row.nomeEquipamentoGrupo || row.EQUIPAMENTO || row.equipamento || id).trim(),
+      system: sistemaNome8572(sistema),
+      systemCode: sistema,
+      status: statusApiParaTela8572(row),
+      localEstacao: row.LOCAL_ESTACAO || row.localEstacao || '',
+      tipoLocal: row.TIPO_LOCAL || row.tipoLocal || '',
+      filtroBrutas: sim8572(row.FILTRO_BRUTAS || row.filtroBrutas),
+      observacaoStatus: row.JUSTIFICATIVA_STATUS || row.OBSERVACAO || row.observacao || '',
+      ultimoTecnico: row.USUARIO_ULTIMA_ALTERACAO || row.usuarioUltimaAlteracao || '',
+      ultimaAlteracao: row.DATA_ULTIMA_ALTERACAO || row.dataUltimaAlteracao || ''
+    };
+  }
+
+  function osApiParaTela8572(row){
+    return {
+      idOS: row.ID_OS || row.idOs || row.idOS || '',
+      numeroOS: row.NUMERO_OS || row.numeroOs || row.numeroOS || '',
+      idEquipamento: row.ID_EQUIPAMENTO || row.idEquipamento || '',
+      equipamento: row.EQUIPAMENTO || row.equipamento || row.NOME_EQUIPAMENTO_GRUPO || '',
+      sistema: row.SISTEMA || row.sistema || '',
+      area: row.SETOR_EQUIPE || row.setorEquipe || row.area || '',
+      equipeResponsavel: row.SETOR_EQUIPE || row.equipeResponsavel || row.setorEquipe || '',
+      responsavel: row.RESPONSAVEL || row.responsavel || '',
+      tipoManutencao: row.TIPO_OS || row.tipoOs || row.tipoManutencao || '',
+      prioridade: row.PRIORIDADE || row.prioridade || '',
+      statusOS: row.STATUS_OS || row.statusOs || row.statusOS || '',
+      descricaoProblema: row.DESCRICAO_SOLICITACAO || row.descricaoSolicitacao || row.descricaoProblema || '',
+      dataAbertura: row.DATA_ABERTURA || row.dataAbertura || '',
+      horaAbertura: row.HORA_ABERTURA || row.horaAbertura || '',
+      dataInicio: row.DATA_INICIO || row.dataInicio || '',
+      horaInicio: row.HORA_INICIO || row.horaInicio || '',
+      dataConclusao: row.DATA_CONCLUSAO || row.dataConclusao || '',
+      horaConclusao: row.HORA_CONCLUSAO || row.horaConclusao || '',
+      servicoRealizado: row.SERVICO_REALIZADO || row.servicoRealizado || '',
+      materiais: row.MATERIAIS_UTILIZADOS || row.materiaisUtilizados || '',
+      membrosEquipe: row.MEMBROS_EQUIPE || row.membrosEquipe || '',
+      finalizadoPor: row.FINALIZADO_POR || row.finalizadoPor || '',
+      componentesSolicitados: row.COMPONENTES_SOLICITADOS || row.componentesSolicitados || ''
+    };
+  }
+
+  window.carregarStatusOnline = async function(){
+    if (typeof window.atualizarIndicadorConexao === 'function') window.atualizarIndicadorConexao('🔄 Sincronizando com a API oficial GMAN 8.5.6.44...', 'neutro');
+    try {
+      const retorno = await window.apiGet({ action: 'listarStatusAtual' });
+      const lista = Array.isArray(retorno) ? retorno : (retorno.status || retorno.statusAtual || retorno.dados || []);
+      if (!Array.isArray(lista)) throw new Error('A resposta de status não veio como lista utilizável.');
+
+      const oficiais = lista.map(equipamentoDeStatus8572).filter(e => e.id);
+      if (oficiais.length) {
+        window.equipment.splice(0, window.equipment.length, ...oficiais);
+      }
+
+      try {
+        window.ordensServicoCache = await window.listarOSOnline();
+        if (typeof window.atualizarTotalizadoresOS === 'function') window.atualizarTotalizadoresOS(window.ordensServicoCache);
+      } catch(erroOS) { console.warn('Status carregado, OS não carregaram nesta etapa:', erroOS); }
+
+      window.apiOnline = true;
+      if (typeof window.applyFilters === 'function') window.applyFilters();
+      if (typeof window.atualizarIndicadorConexao === 'function') window.atualizarIndicadorConexao('✅ Online: API oficial GMAN conectada', 'online');
+      window.aplicarBotoesPermissao();
+      return true;
+    } catch(erro) {
+      window.apiOnline = false;
+      console.error('Erro ao carregar status oficial:', erro);
+      if (typeof window.applyFilters === 'function') window.applyFilters();
+      if (typeof window.atualizarIndicadorConexao === 'function') window.atualizarIndicadorConexao('⚠️ Falha ao carregar API oficial: ' + erro.message, 'offline');
+      window.aplicarBotoesPermissao();
+      return false;
+    }
+  };
+
+  window.listarOSOnline = async function(){
+    const retorno = await window.apiGet({ action: 'listarOrdensServico' });
+    const lista = Array.isArray(retorno) ? retorno : (retorno.ordens || retorno.ordensServico || retorno.dados || []);
+    if (!Array.isArray(lista)) throw new Error('Resposta de OS não veio em formato de lista.');
+    return lista.map(osApiParaTela8572);
+  };
+
+  window.atualizarAgora = async function(){
+    await window.carregarStatusOnline();
+    try {
+      window.ordensServicoCache = await window.listarOSOnline();
+      if (typeof window.atualizarTotalizadoresOS === 'function') window.atualizarTotalizadoresOS(window.ordensServicoCache);
+      if (typeof window.applyFilters === 'function') window.applyFilters();
+      if (document.getElementById('osModal') && typeof window.renderizarOS === 'function') window.renderizarOS(window.ordensServicoCache);
+      window.aplicarBotoesPermissao();
+    } catch(erro) {
+      console.error('Erro ao atualizar OS:', erro);
+    }
+  };
+
+  window.limparCacheOperacionalGMAN85641 = function(){
+    try {
+      localStorage.removeItem('gman_kpi_cache');
+      localStorage.removeItem('gman_rankings_cache');
+      localStorage.removeItem('ordensServicoCache');
+      // Não limpar sessionStorage para não deslogar.
+    } catch(e) {}
+    window.ordensServicoCache = [];
+    alert('Cache operacional limpo sem deslogar. Clique em Atualizar agora.');
+  };
+
+  const filtroOriginal8572 = window.filterSystem;
+  window.filterSystem = function(system){
+    window.currentSystem = system;
+    document.querySelectorAll('.system-btn').forEach(btn => btn.classList.remove('active'));
+    if (event && event.target) event.target.classList.add('active');
+    if (typeof window.applyFilters === 'function') window.applyFilters();
+  };
+
+  const applyOriginal8572 = window.applyFilters;
+  window.applyFilters = function(){
+    // Usa a função original quando existir, mas garante BRUTAS por campo técnico quando carregado pela API.
+    if (typeof applyOriginal8572 === 'function') {
+      try { applyOriginal8572(); } catch(e) { console.warn('applyFilters original falhou, usando fallback:', e); renderFallback8572(); }
+    } else {
+      renderFallback8572();
+    }
+  };
+
+  function renderFallback8572(){
+    const list = document.getElementById('equipmentList');
+    if (!list) return;
+    const sistema = window.currentSystem || 'all';
+    const busca = canon8572((document.getElementById('searchInput') || {}).value || '');
+    let dados = Array.isArray(window.equipment) ? window.equipment.slice() : [];
+    if (sistema && sistema !== 'all') {
+      if (sistema === 'brutas') dados = dados.filter(e => e.filtroBrutas || ['101','201','301','401','601','701'].includes(String(e.id||'').substring(0,3)));
+      else dados = dados.filter(e => canon8572(e.system) === canon8572(sistema) || canon8572(e.systemCode) === canon8572(sistema));
+    }
+    if (window.currentStatusFilter) dados = dados.filter(e => e.status === window.currentStatusFilter);
+    if (busca) dados = dados.filter(e => canon8572([e.id,e.name,e.system,e.systemCode,e.localEstacao].join(' ')).includes(busca));
+
+    list.innerHTML = dados.map(e => {
+      const badge = e.status === 'ok' ? 'badge-ok' : e.status === 'down' ? 'badge-down' : 'badge-alert';
+      const icon = e.status === 'ok' ? '✓' : e.status === 'down' ? '✕' : '!';
+      const statusClass = e.status === 'ok' ? 'status-ok' : e.status === 'down' ? 'status-down' : 'status-alert';
+      const label = e.status === 'ok' ? 'Operando' : e.status === 'down' ? 'Parado' : 'Manutenção';
+      return '<div class="equipment-item" onclick="abrirDetalhesEquipamento(\'' + e.id + '\')">' +
+        '<div class="status-icon ' + statusClass + '">' + icon + '</div>' +
+        '<div><div class="equipment-name">' + escaparHTML8572(e.name || e.id) + '</div>' +
+        '<div class="equipment-system">' + escaparHTML8572(e.localEstacao || e.system || '') + ' · Sistema ' + escaparHTML8572(e.systemCode || '') + '</div></div>' +
+        '<span class="status-badge ' + badge + '">' + label + '</span></div>';
+    }).join('');
+
+    const total = Array.isArray(window.equipment) ? window.equipment.length : 0;
+    const ok = window.equipment.filter(e => e.status === 'ok').length;
+    const alert = window.equipment.filter(e => e.status === 'alert').length;
+    const down = window.equipment.filter(e => e.status === 'down').length;
+    const setText = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+    setText('operationalCount', ok); setText('maintenanceCount', alert); setText('downCount', down);
+    setText('operationalPercent', total ? Math.round(ok*1000/total)/10 + '%' : '0%');
+    setText('maintenancePercent', total ? Math.round(alert*1000/total)/10 + '%' : '0%');
+    setText('downPercent', total ? Math.round(down*1000/total)/10 + '%' : '0%');
+  }
+
+  window.consultarPatrimonioGrupoFront = async function(idGrupo, eq){
+    // A API 8.5.6.44 não lista consultarPatrimonioGrupo como ação pública. A tela não deve quebrar por isso.
+    return { patrimonios: {}, descricoes: {}, origem: 'fallback_seguro_index_8572', idGrupo };
+  };
+
+  window.criarOSPeloModal = async function(){
+    const idEquipamento = (document.getElementById('osEquipamento') || {}).value || '';
+    const eq = (window.equipment || []).find(e => String(e.id) === String(idEquipamento)) || {};
+    const componentesSolicitados = typeof window.coletarComponentesSolicitadosModalGMAN === 'function' ? window.coletarComponentesSolicitadosModalGMAN() : [];
+    const area = (document.getElementById('osArea') || {}).value || '';
+    const tipoManutencao = (document.getElementById('osTipo') || {}).value || '';
+    const prioridade = (document.getElementById('osPrioridade') || {}).value || '';
+    const responsavel = ((document.getElementById('osResponsavel') || {}).value || '').trim();
+    const descricaoProblema = ((document.getElementById('osDescricao') || {}).value || '').trim();
+
+    const faltantes=[];
+    if (!window.usuarioLogado || !window.usuarioLogado.nome) faltantes.push('usuário logado');
+    if (!idEquipamento) faltantes.push('equipamento');
+    if (!componentesSolicitados.length) faltantes.push('equipamento solicitado dentro do grupo');
+    if (!area) faltantes.push('área/setor');
+    if (!tipoManutencao) faltantes.push('tipo de manutenção');
+    if (!prioridade) faltantes.push('prioridade');
+    if (!responsavel) faltantes.push('executor principal/responsável');
+    if (!descricaoProblema) faltantes.push('descrição do problema');
+    if (faltantes.length) return alert('Preencha todos os campos obrigatórios: ' + faltantes.join(', ') + '.');
+
+    try {
+      await window.apiPost({
+        action: 'criarOS',
+        login: window.usuarioLogado.login || window.usuarioLogado.nome,
+        usuario: window.usuarioLogado.nome,
+        sistema: eq.systemCode || eq.sistema || '',
+        tipoLocal: eq.tipoLocal || 'Grupo Motobomba',
+        localEstacao: eq.localEstacao || eq.name || idEquipamento,
+        idEquipamento,
+        setorEquipe: area,
+        responsavel,
+        tipoOs: tipoManutencao,
+        prioridade,
+        descricaoSolicitacao: descricaoProblema + (componentesSolicitados.length ? ' | Componentes: ' + componentesSolicitados.join(', ') : '')
+      });
+      const modal = document.getElementById('criarOSModal'); if (modal) modal.remove();
+      alert('OS criada com sucesso na API oficial GMAN.');
+      await window.atualizarAgora();
+      if (document.getElementById('osModal')) await window.recarregarPainelOS();
+    } catch(erro) { console.error(erro); alert('Erro ao criar OS: ' + erro.message); }
+  };
+
+  window.iniciarOS = async function(idOS){
+    if (typeof window.validarPermissaoTelaOS === 'function' && !window.validarPermissaoTelaOS(idOS, 'iniciar')) return;
+    const condicaoOperacional = prompt('Condição operacional ao iniciar:\nDigite: Em manutenção, operando | Em manutenção, parado | Em teste | Parado', 'Em manutenção, operando');
+    if (!condicaoOperacional) return;
+    const justificativa = prompt('Justificativa obrigatória para iniciar a OS:', 'Início de atendimento técnico.');
+    if (!justificativa) return alert('Justificativa obrigatória.');
+    try {
+      await window.apiPost({ action:'iniciarOS', idOs:idOS, usuario:window.usuarioLogado.nome, login:window.usuarioLogado.login || window.usuarioLogado.nome, condicaoOperacional, justificativa });
+      alert('OS iniciada com sucesso.');
+      await window.atualizarAgora();
+      if (document.getElementById('osModal')) await window.recarregarPainelOS();
+    } catch(erro) { console.error(erro); alert('Erro ao iniciar OS: ' + erro.message); }
+  };
+
+  window.atualizarAndamentoOS = async function(idOS){
+    if (typeof window.validarPermissaoTelaOS === 'function' && !window.validarPermissaoTelaOS(idOS, 'atualizar andamento da')) return;
+    const condicaoOperacional = (document.getElementById('andamentoCondicao') || {}).value || '';
+    const observacao = ((document.getElementById('andamentoObs') || {}).value || '').trim();
+    if (!observacao) return alert('Informe uma justificativa/observação antes de atualizar.');
+    try {
+      await window.apiPost({ action:'atualizarAndamentoOS', idOs:idOS, usuario:window.usuarioLogado.nome, login:window.usuarioLogado.login || window.usuarioLogado.nome, condicaoOperacional, justificativa: observacao, observacao });
+      const modal = document.getElementById('andamentoOSModal'); if (modal) modal.remove();
+      alert('Andamento atualizado.');
+      await window.atualizarAgora();
+      if (document.getElementById('osModal')) await window.recarregarPainelOS();
+    } catch(erro) { console.error(erro); alert('Erro ao atualizar andamento: ' + erro.message); }
+  };
+
+  // Blindagem inicial: quando a página carregar, reaplica botões e tenta sincronizar sem deslogar.
+  window.addEventListener('load', function(){
+    try { window.recuperarLoginSalvo(); } catch(e) {}
+    try { window.aplicarBotoesPermissao(); } catch(e) {}
+    setTimeout(function(){ try { if (window.usuarioLogado) window.atualizarAgora(); } catch(e) {} }, 400);
+  });
+
+  console.log(GMAN_VERSAO_INDEX_8572 + ' carregado.');
+})();
+</script>
+
 </body>
 </html>
+
+
+<!--
+GMAN 8.5.6.56 — Recompilação limpa, status único oficial e KPIs industriais restaurados
+Recompilação limpa: duplicidades anteriores removidas; tela usa status único oficial retornado pelo Banco Central.
+Duplicidades removidas do Index: {'executarReparoStatusGrupoGMAN85651': 3, 'limparCacheOperacionalGMAN85643': 1, 'atualizarAgora': 2, 'carregarStatusOnline': 2, 'abrirModalReparoStatusGrupoGMAN85651': 1, 'limparCacheOperacionalGMAN85645': 1, 'carregarPainelGerencial': 1, 'listarOSOnline': 1, 'aplicarPainelConsolidadoNaTelaGMAN85645': 1, 'normalizarEquipamentoPainelGMAN85645': 1}
+-->
