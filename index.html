@@ -99,7 +99,7 @@
     .os-aberta { background:#3182ce; } .os-iniciada { background:#ed8936; } .os-execucao { background:#d69e2e; } .os-pendente { background:#c53030; } .os-concluida { background:#38a169; } .os-cancelada { background:#718096; }
     .empty-box { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18); border-radius:15px; padding:16px; text-align:center; color:#bee3f8; font-weight:700; }
 
-    /* GMAN 8.5.7.6 — blindagem visual dos textos dos botões */
+    /* GMAN 8.5.7.10 — blindagem visual dos textos dos botões */
     .system-btn,
     .system-btn *,
     .action-btn,
@@ -141,6 +141,23 @@
       border-color: #68d391 !important;
     }
 
+
+    .rule-box { background:#ebf8ff; border-left:5px solid #3182ce; border-radius:14px; padding:12px; color:#1e3a5f; margin-bottom:12px; font-size:.82rem; text-align:left; }
+    .warn-box { background:#fffaf0; border-left:5px solid #d69e2e; border-radius:14px; padding:12px; color:#744210; margin-bottom:12px; font-size:.82rem; text-align:left; }
+    .danger-box { background:#fff5f5; border-left:5px solid #e53e3e; border-radius:14px; padding:12px; color:#742a2a; margin-bottom:12px; font-size:.82rem; text-align:left; }
+    .ok-box { background:#f0fff4; border-left:5px solid #38a169; border-radius:14px; padding:12px; color:#22543d; margin-bottom:12px; font-size:.82rem; text-align:left; }
+    .pat-grid { display:grid; gap:10px; margin:10px 0; }
+    .pat-row { background:linear-gradient(135deg,#ffffff,#f8fbff); border:1px solid #e2e8f0; border-radius:16px; padding:10px; display:grid; gap:8px; color:#2d3748; }
+    .pat-row-title { display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; align-items:center; color:#1e3a5f; font-weight:900; }
+    .mini-chip { display:inline-block; padding:3px 8px; border-radius:999px; background:#edf2f7; color:#2d3748; font-size:.68rem; font-weight:900; }
+    .mini-chip.required { background:#fffaf0; color:#744210; border:1px solid #fbd38d; }
+    .mini-chip.optional { background:#f0fff4; color:#22543d; border:1px solid #9ae6b4; }
+    .ficha-preview { white-space:pre-wrap; background:#f7fafc; border:1px solid #e2e8f0; border-radius:10px; padding:9px; min-height:38px; color:#2d3748; font-size:.74rem; overflow:auto; max-height:110px; }
+    .btn-small { padding:8px 10px; border:none; border-radius:9px; background:#3182ce; color:#fff !important; -webkit-text-fill-color:#fff !important; font-weight:900; cursor:pointer; }
+    .btn-small.green { background:#38a169; }
+    .btn-small.gray { background:#718096; }
+    .btn-small.orange { background:#d69e2e; }
+
     .grid-2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
     .hidden { display:none !important; }
   </style>
@@ -167,7 +184,7 @@
   </div>
 
   <div id="userInfo" class="hidden"></div>
-  <div id="apiStatus" class="status-line">GMAN 8.5.7.6 — aguardando login</div>
+  <div id="apiStatus" class="status-line">GMAN 8.5.7.10 — aguardando login</div>
 
   <div class="systems-filter" id="systemsFilter">
     <button class="system-btn active" data-system="all">TODAS</button>
@@ -206,9 +223,9 @@
     'use strict';
 
     const GMAN = {
-      versaoIndex: 'GMAN 8.5.7.6 — Index clássico limpo com botões legíveis',
+      versaoIndex: 'GMAN 8.5.7.10 — Index clássico limpo com regras operacionais blindadas',
       apiUrl: 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec',
-      storageUser: 'GMAN_USUARIO_LOGADO_OFICIAL_8575',
+      storageUser: 'GMAN_USUARIO_LOGADO_OFICIAL_85710',
       syncMs: 120000
     };
 
@@ -412,7 +429,7 @@
       $('loginPass').value = '';
       mostrarUsuarioLogado();
       aplicarPermissoes();
-      setStatus('GMAN 8.5.7.6 — sessão encerrada', '');
+      setStatus('GMAN 8.5.7.10 — sessão encerrada', '');
     }
 
     function aplicarPermissoes(){
@@ -426,32 +443,7 @@
       state.equipamentos = lista.map(equipamentoDeStatus).filter(e => e.id);
       if (!state.equipamentos.length) throw new Error('A API não retornou equipamentos/status oficiais.');
     }
-
-    async function carregarOrdens(){
-      const ret = await apiGet('listarOrdensServico');
-      const lista = extrairLista(ret, ['ordens','ordensServico','os']);
-      state.ordens = lista.map(osApiParaTela).filter(o => o.idOS || o.numeroOS);
-    }
-
-    async function atualizarAgora(){
-      if (state.sincronizando) return;
-      state.sincronizando = true;
-      setStatus('🔄 Sincronizando com API oficial GMAN 8.5.6.44...', '');
-      try {
-        await carregarStatus();
-        try { await carregarOrdens(); } catch(e){ console.warn('OS não carregadas:', e); state.ordens = []; }
-        atualizarTotalizadores();
-        renderEquipamentos();
-        aplicarPermissoes();
-        setStatus(`✅ Online: API oficial GMAN conectada | ${GMAN.versaoIndex} | ${agora()}`, 'online');
-      } catch(e){
-        console.error(e);
-        renderEquipamentos();
-        setStatus('⚠️ Falha ao carregar API oficial: ' + (e.message || e), 'offline');
-      } finally { state.sincronizando = false; }
-    }
-
-    function atualizarTotalizadores(){
+function atualizarTotalizadores(){
       const total = state.equipamentos.length;
       const ok = state.equipamentos.filter(e => e.status === 'ok').length;
       const alert = state.equipamentos.filter(e => e.status === 'alert').length;
@@ -502,30 +494,7 @@
         </div>`).join('');
       box.querySelectorAll('.equipment-item').forEach(item => item.addEventListener('click', () => abrirGrupo(item.dataset.eq)));
     }
-
-    function abrirGrupo(id){
-      const e = state.equipamentos.find(x => x.id === id);
-      if (!e) return;
-      const ordensGrupo = state.ordens.filter(o => canon(o.idEquipamento) === canon(id) || canon(o.equipamento).includes(canon(id)));
-      const ativa = ordensGrupo.filter(osAtiva).length;
-      abrirModal(`Grupo ${esc(e.id)}`, `
-        <div style="background:#ebf8ff;border-left:5px solid #3182ce;border-radius:14px;padding:12px;margin-bottom:12px;">
-          <strong>${esc(e.id)} — ${esc(e.name)}</strong><br>
-          Local: ${esc(e.local || '-')}<br>
-          Sistema: ${esc(e.systemCode)} — ${esc(e.system)}<br>
-          Status: <strong>${esc(labelStatus(e))}</strong>${e.filtroBrutas ? '<br><strong>Filtro BRUTAS:</strong> SIM' : ''}
-        </div>
-        <div class="grid-2" style="margin-bottom:12px;">
-          <button class="action-btn primary" id="modalOSGrupo">📋 Ver OS do grupo (${ordensGrupo.length})</button>
-          ${ehGestao(state.usuario) ? '<button class="action-btn success" id="modalCriarOS">➕ Abrir OS neste grupo</button>' : ''}
-        </div>
-        <div style="color:#4a5568;font-size:.86rem;">OS ativas no grupo: <strong>${ativa}</strong></div>
-      `);
-      $('modalOSGrupo').addEventListener('click', () => abrirPainelOS('grupo:' + id));
-      const criar = $('modalCriarOS'); if (criar) criar.addEventListener('click', () => abrirModalCriarOS(id));
-    }
-
-    function abrirModal(titulo, corpo){
+function abrirModal(titulo, corpo){
       fecharModal();
       const modal = document.createElement('div');
       modal.className = 'modal'; modal.id = 'modalGMAN';
@@ -547,140 +516,13 @@
       else lista = lista.filter(osAtiva);
       return lista.reverse();
     }
-
-    function abrirPainelOS(modo){
-      if (modo === 'encerradas' && !ehGestao(state.usuario)) { alert('Ordens encerradas são visíveis apenas para gestão.'); return; }
-      const lista = filtrarOS(modo);
-      const titulo = modo === 'encerradas' ? 'Ordens Encerradas' : modo === 'naoIniciadas' ? 'OS Não Iniciadas' : modo === 'iniciadas' ? 'OS Iniciadas' : modo === 'minhas' ? 'Minhas OS' : String(modo).startsWith('grupo:') ? 'OS do grupo' : 'OS Abertas';
-      const html = `
-        <div class="grid-2" style="margin-bottom:12px;">
-          <button class="action-btn primary" data-modo-os="abertas">📋 OS Abertas</button>
-          <button class="action-btn" data-modo-os="minhas">👤 Minhas OS</button>
-          ${ehGestao(state.usuario) ? '<button class="action-btn" data-modo-os="naoIniciadas">⏳ Não Iniciadas</button><button class="action-btn" data-modo-os="iniciadas">🛠️ Iniciadas</button><button class="action-btn" data-modo-os="encerradas">✅ Encerradas</button>' : ''}
-        </div>
-        ${lista.length ? lista.map(cardOS).join('') : '<div style="background:#f7fafc;border-radius:12px;padding:14px;color:#4a5568;">Nenhuma OS encontrada neste filtro.</div>'}
-      `;
-      abrirModal(titulo, html);
-      document.querySelectorAll('[data-modo-os]').forEach(b => b.addEventListener('click', () => abrirPainelOS(b.dataset.modoOs)));
-      document.querySelectorAll('[data-iniciar-os]').forEach(b => b.addEventListener('click', () => iniciarOS(b.dataset.iniciarOs)));
-      document.querySelectorAll('[data-andamento-os]').forEach(b => b.addEventListener('click', () => abrirModalAndamentoOS(b.dataset.andamentoOs)));
-      document.querySelectorAll('[data-concluir-os]').forEach(b => b.addEventListener('click', () => abrirModalConcluirOS(b.dataset.concluirOs)));
-    }
-
-    function cardOS(os){
-      const encerrada = osEncerrada(os), pendente = osPendente(os), perm = podeAlterarOS(os);
-      const iniciar = !encerrada && !pendente && perm && osAberta(os);
-      const andamento = !encerrada && !pendente && perm;
-      const concluir = !encerrada && !pendente && perm && !osAberta(os);
-      return `<div class="os-card">
-        <h4>${esc(os.numeroOS || os.idOS)} — ${esc(os.equipamento || os.idEquipamento)}</h4>
-        <span class="os-badge ${classeOS(os.statusOS)}">${esc(os.statusOS || 'Sem status')}</span><span class="os-badge os-aberta">${esc(os.prioridade || 'Normal')}</span>
-        <p><strong>Sistema:</strong> ${esc(os.sistema || '-')} | <strong>Setor:</strong> ${esc(os.setorEquipe || '-')} | <strong>Tipo:</strong> ${esc(os.tipoOs || '-')}</p>
-        <p><strong>Responsável:</strong> ${esc(os.responsavel || '-')}</p>
-        <p><strong>Solicitação:</strong> ${esc(os.descricao || '-')}</p>
-        ${os.dataAbertura ? `<p><strong>Abertura:</strong> ${esc(formatarData(os.dataAbertura))}</p>` : ''}
-        ${!encerrada && !perm ? '<p style="color:#744210;background:#fffaf0;border-left:4px solid #d69e2e;border-radius:10px;padding:8px;font-weight:800;">🔒 Somente o responsável ou a gestão pode alterar esta OS.</p>' : ''}
-        ${pendente ? '<p style="color:#742a2a;background:#fff5f5;border-left:4px solid #e53e3e;border-radius:10px;padding:8px;font-weight:800;">⚠️ OS pendente não pode ser concluída diretamente.</p>' : ''}
-        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
-          ${iniciar ? `<button class="action-btn" data-iniciar-os="${esc(os.idOS)}">▶️ Iniciar</button>` : ''}
-          ${andamento ? `<button class="action-btn" data-andamento-os="${esc(os.idOS)}">📝 Atualizar andamento</button>` : ''}
-          ${concluir ? `<button class="action-btn success" data-concluir-os="${esc(os.idOS)}">✅ Concluir</button>` : ''}
-        </div>
-      </div>`;
-    }
-
-    function formatarData(v){
+function formatarData(v){
       if (!v) return '';
       const d = new Date(v);
       if (!isNaN(d.getTime())) return d.toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'});
       return String(v);
     }
-
-    function abrirModalCriarOS(idEquipamento){
-      const eq = state.equipamentos.find(e => e.id === idEquipamento);
-      if (!eq) return alert('Grupo não localizado. Atualize a tela.');
-      abrirModal('Abrir Ordem de Serviço', `
-        <div style="background:#ebf8ff;border-left:5px solid #3182ce;border-radius:14px;padding:12px;margin-bottom:14px;"><strong>Grupo selecionado:</strong><br>${esc(eq.id)} — ${esc(eq.name)}<br>${esc(eq.local || '')}</div>
-        <label class="form-label">Setor/equipe</label><select id="osSetor" class="form-field"><option value="">Selecione</option><option>Mecânica</option><option>Elétrica</option><option>Automação</option><option>Usinagem</option><option>Caldeiraria</option><option>Instalações Mecânicas</option></select>
-        <label class="form-label">Tipo da OS</label><select id="osTipo" class="form-field"><option value="">Selecione</option><option>Corretiva</option><option>Preventiva</option><option>Preditiva</option><option>Melhoria</option></select>
-        <label class="form-label">Prioridade</label><select id="osPrioridade" class="form-field"><option>Normal</option><option>Alta</option><option>Crítica</option></select>
-        <label class="form-label">Responsável/executor principal</label><input id="osResponsavel" class="form-field" placeholder="Nome do responsável">
-        <label class="form-label">Descrição da solicitação</label><textarea id="osDescricao" class="form-field" rows="4" placeholder="Descreva o problema ou serviço solicitado"></textarea>
-        <div style="display:flex;gap:10px;justify-content:flex-end;"><button class="close-btn" id="cancelCriarOS">Cancelar</button><button class="action-btn success" id="confirmCriarOS">Criar OS</button></div>
-      `);
-      $('cancelCriarOS').addEventListener('click', fecharModal);
-      $('confirmCriarOS').addEventListener('click', async () => {
-        const setorEquipe = $('osSetor').value, tipoOs = $('osTipo').value, prioridade = $('osPrioridade').value, responsavel = $('osResponsavel').value.trim(), descricaoSolicitacao = $('osDescricao').value.trim();
-        const faltam = [];
-        if(!setorEquipe) faltam.push('setor/equipe'); if(!tipoOs) faltam.push('tipo da OS'); if(!responsavel) faltam.push('responsável'); if(!descricaoSolicitacao) faltam.push('descrição');
-        if(faltam.length) return alert('Preencha: ' + faltam.join(', ') + '.');
-        try{
-          await apiPost('criarOS', {
-            usuario: state.usuario.nome, login: state.usuario.login || state.usuario.nome,
-            idEquipamento: eq.id, equipamento: eq.name, sistema: eq.systemCode, tipoLocal: eq.tipoLocal, localEstacao: eq.local,
-            setorEquipe, area: setorEquipe, responsavel, tipoOs, tipoManutencao: tipoOs, prioridade, descricaoSolicitacao, descricaoProblema: descricaoSolicitacao
-          });
-          alert('OS criada com sucesso.'); fecharModal(); await atualizarAgora(); abrirPainelOS('abertas');
-        } catch(e){ alert('Erro ao criar OS: ' + e.message); }
-      });
-    }
-
-    async function iniciarOS(idOS){
-      const justificativa = prompt('Justificativa para iniciar a OS:');
-      if (!justificativa) return alert('Justificativa obrigatória.');
-      const condicaoOperacional = prompt('Condição operacional ao iniciar (Operando, Em manutenção, operando, Em manutenção, parado, Em teste ou Parado):', 'Operando');
-      if (!condicaoOperacional) return;
-      try { await apiPost('iniciarOS', { idOs:idOS, idOS, usuario:state.usuario.nome, login:state.usuario.login || state.usuario.nome, condicaoOperacional, justificativa }); alert('OS iniciada.'); await atualizarAgora(); abrirPainelOS('abertas'); }
-      catch(e){ alert('Erro ao iniciar OS: ' + e.message); }
-    }
-
-    function abrirModalAndamentoOS(idOS){
-      abrirModal('Atualizar andamento da OS', `
-        <label class="form-label">Condição operacional</label><select id="andCond" class="form-field"><option>Em manutenção, parado</option><option>Em manutenção, operando</option><option>Em teste</option><option>Parado</option><option>Operando</option><option>Pendente</option></select>
-        <label class="form-label">Justificativa/observação</label><textarea id="andJust" class="form-field" rows="4"></textarea>
-        <div style="display:flex;gap:10px;justify-content:flex-end;"><button class="close-btn" id="andCancel">Cancelar</button><button class="action-btn success" id="andSave">Salvar</button></div>`);
-      $('andCancel').addEventListener('click', fecharModal);
-      $('andSave').addEventListener('click', async () => {
-        const condicaoOperacional = $('andCond').value, justificativa = $('andJust').value.trim();
-        if (!justificativa) return alert('Justificativa obrigatória.');
-        try { await apiPost('atualizarAndamentoOS', { idOs:idOS, idOS, usuario:state.usuario.nome, login:state.usuario.login || state.usuario.nome, condicaoOperacional, justificativa, observacao:justificativa }); alert('Andamento atualizado.'); fecharModal(); await atualizarAgora(); abrirPainelOS('abertas'); }
-        catch(e){ alert('Erro ao atualizar andamento: ' + e.message); }
-      });
-    }
-
-    function abrirModalConcluirOS(idOS){
-      abrirModal('Concluir OS', `
-        <label class="form-label">Serviço realizado</label><textarea id="concServico" class="form-field" rows="3"></textarea>
-        <label class="form-label">Materiais utilizados</label><textarea id="concMateriais" class="form-field" rows="2" placeholder="Informe materiais ou Não utilizado"></textarea>
-        <label style="display:flex;align-items:center;gap:8px;color:#2d3748;font-weight:800;margin:8px 0;"><input type="checkbox" id="concSemVeiculo" checked> Sem uso de veículo</label>
-        <div class="grid-2" id="veiculoCampos">
-          <div><label class="form-label">Motorista</label><input id="concMotorista" class="form-field"></div>
-          <div><label class="form-label">Prefixo do veículo</label><input id="concPrefixo" class="form-field"></div>
-          <div><label class="form-label">KM inicial</label><input id="concKmIni" type="number" class="form-field"></div>
-          <div><label class="form-label">KM final</label><input id="concKmFim" type="number" class="form-field"></div>
-        </div>
-        <label class="form-label">Condição operacional final</label><select id="concCond" class="form-field"><option>Operando</option></select>
-        <label class="form-label">Justificativa da condição final</label><textarea id="concJust" class="form-field" rows="2" placeholder="Explique a condição final"></textarea>
-        <label class="form-label">Observação final</label><textarea id="concObs" class="form-field" rows="2"></textarea>
-        <label class="form-label">Membros da equipe</label><textarea id="concMembros" class="form-field" rows="2"></textarea>
-        <div style="display:flex;gap:10px;justify-content:flex-end;"><button class="close-btn" id="concCancel">Cancelar</button><button class="action-btn success" id="concSave">Concluir OS</button></div>`);
-      const chk = $('concSemVeiculo'), veic = $('veiculoCampos');
-      function syncVeic(){ veic.classList.toggle('hidden', chk.checked); }
-      chk.addEventListener('change', syncVeic); syncVeic();
-      $('concCancel').addEventListener('click', fecharModal);
-      $('concSave').addEventListener('click', async () => {
-        const servicoRealizado = $('concServico').value.trim(), materiaisUtilizados = $('concMateriais').value.trim(), semUsoVeiculo = chk.checked;
-        const condicaoOperacionalFinal = $('concCond').value, justificativaCondicaoFinal = $('concJust').value.trim(), observacaoFinal = $('concObs').value.trim(), membrosEquipe = $('concMembros').value.trim();
-        const motorista = $('concMotorista').value.trim(), prefixoVeiculo = $('concPrefixo').value.trim(), kmInicial = $('concKmIni').value, kmFinal = $('concKmFim').value;
-        const faltam=[]; if(!servicoRealizado) faltam.push('serviço realizado'); if(!materiaisUtilizados) faltam.push('materiais utilizados'); if(!justificativaCondicaoFinal) faltam.push('justificativa final'); if(!observacaoFinal) faltam.push('observação final'); if(!membrosEquipe) faltam.push('membros da equipe');
-        if(!semUsoVeiculo){ if(!motorista) faltam.push('motorista'); if(!prefixoVeiculo) faltam.push('prefixo'); if(kmInicial==='') faltam.push('KM inicial'); if(kmFinal==='') faltam.push('KM final'); if(Number(kmFinal) < Number(kmInicial)) faltam.push('KM final maior ou igual ao inicial'); }
-        if(faltam.length) return alert('Preencha: ' + faltam.join(', ') + '.');
-        try { await apiPost('concluirOS', { idOs:idOS, idOS, usuario:state.usuario.nome, login:state.usuario.login || state.usuario.nome, servicoRealizado, materiaisUtilizados, materiais:materiaisUtilizados, semUsoVeiculo, motorista, prefixoVeiculo, kmInicial, kmFinal, condicaoOperacionalFinal, statusFinalEquipamento:condicaoOperacionalFinal, justificativaCondicaoFinal, observacaoFinal, membrosEquipe }); alert('OS concluída.'); fecharModal(); await atualizarAgora(); abrirPainelOS('encerradas'); }
-        catch(e){ alert('Erro ao concluir OS: ' + e.message); }
-      });
-    }
-
-    async function abrirPainelKPI(){
+async function abrirPainelKPI(){
       if(!ehGestao(state.usuario)) return alert('KPIs disponíveis somente para gestão.');
       abrirModal('KPIs Industriais', '<div id="kpiBox">🔄 Calculando KPIs...</div>');
       try {
@@ -731,6 +573,478 @@
         if (ac === 'limpar-cache') limparCache();
       });
     }
+
+
+    /* =====================================================
+     * GMAN 8.5.7.10 — regras operacionais restauradas e blindadas no Index
+     * - Permissões fortes por perfil
+     * - Patrimônio obrigatório por componente
+     * - Ficha técnica por componente
+     * - Sem uso de veículo
+     * - Evidências: foto/áudio, sem vídeo
+     * - OS pendente bloqueada para conclusão direta
+     * ===================================================== */
+
+    const COMPONENTES_GMAN8577 = [
+      { chave:'PAINEL', rotulo:'Painel', patObrigatorio:true, campos:['Localização','Tipo de partida','A máxima','Situação da instalação','Condição visual'] },
+      { chave:'MOTOR', rotulo:'Motor', patObrigatorio:true, campos:['Marca','Modelo','Potência','Tensão','Corrente nominal','Corrente de trabalho','Rolamentos','Condição visual'] },
+      { chave:'BOMBA', rotulo:'Bomba', patObrigatorio:true, campos:['Modelo','Tipo','Diâmetro da sucção','Diâmetro do recalque','Rolamentos','Retentores','Selo','Gaxeta','Acoplamento','Diâmetro do rotor','Tipo de óleo'] },
+      { chave:'VS', rotulo:'Válvula de Sucção', patObrigatorio:true, campos:['Tipo','Diâmetro','Acionamento','Flanges'] },
+      { chave:'VR', rotulo:'Válvula de Recalque', patObrigatorio:true, campos:['Tipo','Diâmetro','Acionamento','Flanges'] },
+      { chave:'RETENCAO', rotulo:'Válvula de Retenção', patObrigatorio:true, campos:['Tipo','Diâmetro','Acionamento','Flanges'] },
+      { chave:'TUBULACAO', rotulo:'Tubulação', patObrigatorio:false, campos:['Diâmetro','Material','Situação visual'] }
+    ];
+
+    const SETORES_PATRIMONIO_OPCIONAL_GMAN8577 = ['usinagem','caldeiraria','instalacoes mecanicas'];
+    const STATUS_ANDAMENTO_GMAN8577 = ['Em manutenção, operando','Em manutenção, parado','Em teste','Parado','Operando com restrição','Aguardando material','Aguardando liberação','Em andamento'];
+    let audioRecorder8577 = null;
+    let audioChunks8577 = [];
+    let audioBlob8577 = null;
+    let audioInicio8577 = 0;
+    let audioDuracao8577 = 0;
+
+    function payloadUsuario8577(extra){
+      return Object.assign({
+        usuario: state.usuario ? state.usuario.nome : '',
+        login: state.usuario ? (state.usuario.login || state.usuario.nome) : '',
+        perfil: state.usuario ? (state.usuario.perfil || state.usuario.funcao || '') : ''
+      }, extra || {});
+    }
+
+    function setorPatrimonioOpcional8577(valor){
+      const c = canon(valor);
+      return SETORES_PATRIMONIO_OPCIONAL_GMAN8577.some(s => c.includes(s));
+    }
+
+    function comp8577(chave){ return COMPONENTES_GMAN8577.find(c => c.chave === chave); }
+    function idSafe8577(v){ return String(v || '').replace(/[^A-Za-z0-9_\-]/g,'_'); }
+
+    async function carregarUsuarios(){
+      try{
+        const ret = await apiGet('listarUsuarios', payloadUsuario8577());
+        const lista = extrairLista(ret, ['usuarios','users']);
+        state.usuarios = lista.map(u => ({
+          nome: u.NOME || u.nome || u.LOGIN || u.login || '',
+          perfil: u.PERFIL || u.perfil || '',
+          setor: u.SETOR_PADRAO || u.setorPadrao || u.AREA || u.area || '',
+          ativo: u.ATIVO || u.ativo || 'SIM'
+        })).filter(u => u.nome);
+      } catch(e){ console.warn('Não foi possível carregar usuários para seletores:', e); state.usuarios = state.usuarios || []; }
+    }
+
+    async function carregarOrdens(){
+      const filtros = ehGestao(state.usuario) ? payloadUsuario8577({ minhas:false }) : payloadUsuario8577({});
+      const ret = await apiGet('listarOrdensServico', filtros);
+      const lista = extrairLista(ret, ['ordens','ordensServico','os']);
+      state.ordens = lista.map(osApiParaTela).filter(o => o.idOS || o.numeroOS);
+    }
+
+    async function atualizarAgora(){
+      if (state.sincronizando) return;
+      state.sincronizando = true;
+      setStatus('🔄 Sincronizando com API oficial GMAN 8.5.7.10...', '');
+      try {
+        await carregarStatus();
+        await carregarUsuarios();
+        try { await carregarOrdens(); } catch(e){ console.warn('OS não carregadas:', e); state.ordens = []; }
+        atualizarTotalizadores();
+        renderEquipamentos();
+        aplicarPermissoes();
+        setStatus(`✅ Online: API oficial conectada | ${GMAN.versaoIndex} | ${agora()}`, 'online');
+      } catch(e){
+        console.error(e);
+        renderEquipamentos();
+        setStatus('⚠️ Falha ao carregar API oficial: ' + (e.message || e), 'offline');
+      } finally { state.sincronizando = false; }
+    }
+
+    async function consultarPatrimonioGrupo8577(idEquipamento){
+      try{
+        const ret = await apiGet('consultarPatrimonioGrupo', payloadUsuario8577({ idEquipamento }));
+        return ret || { patrimonios:{}, fichas:{} };
+      } catch(e){
+        console.warn('Consulta patrimonial indisponível. Modal abrirá em modo manual:', e);
+        return { patrimonios:{}, fichas:{}, aviso:'Consulta patrimonial indisponível: ' + (e.message || e) };
+      }
+    }
+
+    function montarOptionsResponsaveis8577(){
+      const vistos = new Set();
+      const base = (state.usuarios || [])
+        .filter(u => canon(u.ativo) !== 'nao')
+        .filter(u => u.nome)
+        .filter(u => {
+          const p = canon(u.perfil);
+          return p.includes('lider') || p.includes('administrador') || p.includes('supervisor') || p.includes('coordenador') || p.includes('gerente');
+        })
+        .filter(u => { const k=canon(u.nome); if(vistos.has(k)) return false; vistos.add(k); return true; })
+        .sort((a,b) => a.nome.localeCompare(b.nome,'pt-BR'));
+      const opts = ['<option value="">Selecione o responsável</option>'].concat(base.map(u => `<option value="${esc(u.nome)}">${esc(u.nome)}${u.perfil ? ' — ' + esc(String(u.perfil).toUpperCase()) : ''}${u.setor ? ' / ' + esc(String(u.setor).toUpperCase()) : ''}</option>`));
+      return opts.join('');
+    }
+
+    function renderComponentesAbertura8577(){
+      return `<div class="rule-box"><strong>Equipamento/componente solicitado dentro do grupo</strong><br>Marque o que motivou a OS. Membros da equipe não entram na abertura, somente no encerramento.</div>` +
+        COMPONENTES_GMAN8577.map(c => `<label style="display:flex;align-items:center;gap:8px;color:#2d3748;font-weight:800;background:#f7fafc;border:1px solid #e2e8f0;border-radius:10px;padding:9px;margin-bottom:6px;"><input type="checkbox" class="compSolicitado8577" value="${c.chave}"> ${esc(c.rotulo)} <span class="mini-chip ${c.patObrigatorio ? 'required':'optional'}">${c.patObrigatorio ? 'PAT obrigatório no encerramento':'PAT opcional'}</span></label>`).join('');
+    }
+
+    function coletarComponentesSolicitados8577(){
+      return Array.from(document.querySelectorAll('.compSolicitado8577:checked')).map(x => x.value);
+    }
+
+    function abrirGrupo(id){
+      const e = state.equipamentos.find(x => x.id === id);
+      if (!e) return;
+      const ordensGrupo = state.ordens.filter(o => canon(o.idEquipamento) === canon(id) || canon(o.equipamento).includes(canon(id)));
+      const ativa = ordensGrupo.filter(osAtiva).length;
+      const ultimas = ordensGrupo.slice(0, ehGestao(state.usuario) ? 20 : 3);
+      abrirModal(`Grupo ${esc(e.id)}`, `
+        <div class="rule-box">
+          <strong>${esc(e.id)} — ${esc(e.name)}</strong><br>
+          Local: ${esc(e.local || '-')}<br>
+          Sistema: ${esc(e.systemCode)} — ${esc(e.system)}<br>
+          Status: <strong>${esc(labelStatus(e))}</strong>${e.filtroBrutas ? '<br><strong>Filtro BRUTAS:</strong> SIM' : ''}<br>
+          ${e.justificativa ? '<strong>Justificativa visível:</strong> ' + esc(e.justificativa) : 'Justificativa visível: -'}
+        </div>
+        <div class="grid-2" style="margin-bottom:12px;">
+          <button class="action-btn primary" id="modalOSGrupo">📋 Ver OS do grupo (${ordensGrupo.length})</button>
+          <button class="action-btn" id="modalPatrimonioGrupo">🏷️ Patrimônio e ficha técnica</button>
+          ${ehGestao(state.usuario) ? '<button class="action-btn success" id="modalCriarOS">➕ Abrir OS neste grupo</button>' : ''}
+        </div>
+        <div class="warn-box">OS ativas no grupo: <strong>${ativa}</strong>. O equipamento só volta para Operando quando não houver OS ativa vinculada bloqueando o retorno.</div>
+        <div class="ok-box"><strong>Histórico recente ${ehGestao(state.usuario) ? '(gestão: ampliado)' : '(operação: últimas 3)'}</strong><br>${ultimas.length ? ultimas.map(o => `${esc(o.numeroOS || o.idOS)} — ${esc(o.statusOS || '-')} — ${esc(o.responsavel || '-')}`).join('<br>') : 'Sem OS registradas para este grupo.'}</div>
+      `);
+      $('modalOSGrupo').addEventListener('click', () => abrirPainelOS('grupo:' + id));
+      $('modalPatrimonioGrupo').addEventListener('click', () => abrirModalPatrimonioFichaGrupo8577(id));
+      const criar = $('modalCriarOS'); if (criar) criar.addEventListener('click', () => abrirModalCriarOS(id));
+    }
+
+    function cardOS(os){
+      const encerrada = osEncerrada(os), pendente = osPendente(os), perm = podeAlterarOS(os);
+      const iniciar = !encerrada && !pendente && perm && osAberta(os);
+      const andamento = !encerrada && perm;
+      const concluir = !encerrada && !pendente && perm && !osAberta(os);
+      return `<div class="os-card">
+        <h4>${esc(os.numeroOS || os.idOS)} — ${esc(os.equipamento || os.idEquipamento)}</h4>
+        <span class="os-badge ${classeOS(os.statusOS)}">${esc(os.statusOS || 'Sem status')}</span><span class="os-badge os-aberta">${esc(os.prioridade || 'Normal')}</span>
+        <p><strong>Sistema:</strong> ${esc(os.sistema || '-')} | <strong>Setor:</strong> ${esc(os.setorEquipe || '-')} | <strong>Tipo:</strong> ${esc(os.tipoOs || '-')}</p>
+        <p><strong>Responsável:</strong> ${esc(os.responsavel || '-')}</p>
+        <p><strong>Solicitação:</strong> ${esc(os.descricao || '-')}</p>
+        ${os.dataAbertura ? `<p><strong>Abertura:</strong> ${esc(formatarData(os.dataAbertura))}</p>` : ''}
+        ${!encerrada && !perm ? '<p style="color:#744210;background:#fffaf0;border-left:4px solid #d69e2e;border-radius:10px;padding:8px;font-weight:800;">🔒 Somente o responsável ou a gestão pode alterar esta OS.</p>' : ''}
+        ${pendente ? '<p style="color:#742a2a;background:#fff5f5;border-left:4px solid #e53e3e;border-radius:10px;padding:8px;font-weight:800;">⚠️ OS pendente não pode ser concluída diretamente. Primeiro regularize o andamento.</p>' : ''}
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
+          ${iniciar ? `<button class="action-btn" data-iniciar-os="${esc(os.idOS)}">▶️ Iniciar</button>` : ''}
+          ${andamento ? `<button class="action-btn" data-andamento-os="${esc(os.idOS)}">📝 ${pendente ? 'Regularizar pendência':'Atualizar andamento'}</button>` : ''}
+          ${(!encerrada && !pendente && perm) ? `<button class="action-btn" data-pendente-os="${esc(os.idOS)}">⏸️ Marcar pendente</button>` : ''}
+          ${(!encerrada && perm) ? `<button class="action-btn" data-evidencia-os="${esc(os.idOS)}">📎 Evidências</button>` : ''}
+          ${concluir ? `<button class="action-btn success" data-concluir-os="${esc(os.idOS)}">✅ Concluir</button>` : ''}
+        </div>
+      </div>`;
+    }
+
+    function abrirPainelOS(modo){
+      if (modo === 'encerradas' && !ehGestao(state.usuario)) { alert('Ordens encerradas são visíveis apenas para gestão.'); return; }
+      const lista = filtrarOS(modo);
+      const titulo = modo === 'encerradas' ? 'Ordens Encerradas' : modo === 'naoIniciadas' ? 'OS Não Iniciadas' : modo === 'iniciadas' ? 'OS Iniciadas' : modo === 'minhas' ? 'Minhas OS' : String(modo).startsWith('grupo:') ? 'OS do grupo' : 'OS Abertas';
+      const html = `
+        <div class="grid-2" style="margin-bottom:12px;">
+          <button class="action-btn primary" data-modo-os="abertas">📋 OS Abertas</button>
+          <button class="action-btn" data-modo-os="minhas">👤 Minhas OS</button>
+          ${ehGestao(state.usuario) ? '<button class="action-btn" data-modo-os="naoIniciadas">⏳ Não Iniciadas</button><button class="action-btn" data-modo-os="iniciadas">🛠️ Iniciadas</button><button class="action-btn" data-modo-os="encerradas">✅ Encerradas</button>' : ''}
+        </div>
+        ${lista.length ? lista.map(cardOS).join('') : '<div style="background:#f7fafc;border-radius:12px;padding:14px;color:#4a5568;">Nenhuma OS encontrada neste filtro.</div>'}
+      `;
+      abrirModal(titulo, html);
+      document.querySelectorAll('[data-modo-os]').forEach(b => b.addEventListener('click', () => abrirPainelOS(b.dataset.modoOs)));
+      document.querySelectorAll('[data-iniciar-os]').forEach(b => b.addEventListener('click', () => abrirModalIniciarOS8577(b.dataset.iniciarOs)));
+      document.querySelectorAll('[data-andamento-os]').forEach(b => b.addEventListener('click', () => abrirModalAndamentoOS(b.dataset.andamentoOs)));
+      document.querySelectorAll('[data-pendente-os]').forEach(b => b.addEventListener('click', () => abrirModalPendenteOS8577(b.dataset.pendenteOs)));
+      document.querySelectorAll('[data-evidencia-os]').forEach(b => b.addEventListener('click', () => abrirModalEvidenciasOS8577(b.dataset.evidenciaOs)));
+      document.querySelectorAll('[data-concluir-os]').forEach(b => b.addEventListener('click', () => abrirModalConcluirOS(b.dataset.concluirOs)));
+    }
+
+    function abrirModalCriarOS(idEquipamento){
+      if (!ehGestao(state.usuario)) return alert('Abertura de OS é permitida apenas para gestão.');
+      const eq = state.equipamentos.find(e => e.id === idEquipamento);
+      if (!eq) return alert('Grupo não localizado. Atualize a tela.');
+      abrirModal('Abrir Ordem de Serviço', `
+        <div class="rule-box"><strong>Grupo selecionado:</strong><br>${esc(eq.id)} — ${esc(eq.name)}<br>${esc(eq.local || '')}<br>Sistema ${esc(eq.systemCode)} — ${esc(eq.system)}</div>
+        ${renderComponentesAbertura8577()}
+        <label class="form-label">Setor/equipe</label><select id="osSetor" class="form-field"><option value="">Selecione</option><option>Mecânica</option><option>Elétrica</option><option>Automação</option><option>Usinagem</option><option>Caldeiraria</option><option>Instalações Mecânicas</option></select>
+        <label class="form-label">Tipo da OS</label><select id="osTipo" class="form-field"><option value="">Selecione</option><option>Corretiva</option><option>Preventiva</option><option>Preditiva</option><option>Melhoria</option></select>
+        <label class="form-label">Prioridade</label><select id="osPrioridade" class="form-field"><option>Normal</option><option>Alta</option><option>Crítica</option></select>
+        <label class="form-label">Responsável/executor principal</label><select id="osResponsavel" class="form-field">${montarOptionsResponsaveis8577()}</select>
+        <label class="form-label">Descrição da solicitação</label><textarea id="osDescricao" class="form-field" rows="4" placeholder="Descreva o problema ou serviço solicitado"></textarea>
+        <div class="warn-box">Não existe campo membros da equipe na abertura. Membros da equipe entram somente no encerramento.</div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;"><button class="close-btn" id="cancelCriarOS">Cancelar</button><button class="action-btn success" id="confirmCriarOS">Criar OS</button></div>
+      `);
+      $('cancelCriarOS').addEventListener('click', fecharModal);
+      $('confirmCriarOS').addEventListener('click', async () => {
+        const setorEquipe = $('osSetor').value, tipoOs = $('osTipo').value, prioridade = $('osPrioridade').value, responsavel = $('osResponsavel').value.trim(), descricaoSolicitacao = $('osDescricao').value.trim();
+        const componentes = coletarComponentesSolicitados8577();
+        const faltam = [];
+        if(!componentes.length) faltam.push('equipamento/componente solicitado'); if(!setorEquipe) faltam.push('setor/equipe'); if(!tipoOs) faltam.push('tipo da OS'); if(!responsavel) faltam.push('responsável'); if(!descricaoSolicitacao) faltam.push('descrição');
+        if(faltam.length) return alert('Preencha: ' + faltam.join(', ') + '.');
+        const duplicada = state.ordens.find(o => osAtiva(o) && canon(o.idEquipamento) === canon(eq.id) && canon(o.responsavel) === canon(responsavel));
+        if (duplicada) return alert('Bloqueado: já existe OS ativa para este equipamento e o mesmo responsável. Use responsável diferente ou regularize a OS existente.');
+        try{
+          await apiPost('criarOS', payloadUsuario8577({
+            idEquipamento: eq.id, equipamento: eq.name, sistema: eq.systemCode, tipoLocal: eq.tipoLocal, localEstacao: eq.local,
+            setorEquipe, area: setorEquipe, responsavel, tipoOs, tipoManutencao: tipoOs, prioridade,
+            descricaoSolicitacao: descricaoSolicitacao + '\nComponentes solicitados: ' + componentes.map(k => comp8577(k).rotulo).join(', '),
+            componentesSolicitados: componentes.join(', ')
+          }));
+          alert('OS criada com sucesso.'); fecharModal(); await atualizarAgora(); abrirPainelOS('abertas');
+        } catch(e){ alert('Erro ao criar OS: ' + e.message); }
+      });
+    }
+
+    function abrirModalIniciarOS8577(idOS){
+      const os = state.ordens.find(o => String(o.idOS) === String(idOS));
+      if (!os || !podeAlterarOS(os)) return alert('Sem permissão para iniciar esta OS.');
+      abrirModal('Iniciar OS', `
+        <div class="rule-box"><strong>Regra operacional:</strong> iniciar OS muda apenas o status da OS/grupo para <strong>Iniciada</strong>. O status operacional do equipamento permanece preservado. Para informar parado, teste, aguardando material ou manutenção, use <strong>Atualizar andamento</strong> depois de iniciar.</div>
+        <label class="form-label">Justificativa obrigatória do início</label><textarea id="iniJust" class="form-field" rows="3" placeholder="Ex.: equipe deslocada, serviço iniciado em campo, aguardando condição para intervenção"></textarea>
+        <div style="display:flex;gap:10px;justify-content:flex-end;"><button class="close-btn" id="iniCancel">Cancelar</button><button class="action-btn success" id="iniSave">Iniciar OS</button></div>`);
+      $('iniCancel').addEventListener('click', fecharModal);
+      $('iniSave').addEventListener('click', async () => {
+        const justificativa = $('iniJust').value.trim();
+        if (!justificativa) return alert('Justificativa obrigatória.');
+        try { await apiPost('iniciarOS', payloadUsuario8577({ idOs:idOS, idOS, justificativa })); alert('OS iniciada com sucesso. Status operacional preservado até atualização de andamento.'); fecharModal(); await atualizarAgora(); abrirPainelOS('abertas'); }
+        catch(e){ alert('Erro ao iniciar OS: ' + e.message); }
+      });
+    }
+
+    function abrirModalAndamentoOS(idOS){
+      const os = state.ordens.find(o => String(o.idOS) === String(idOS));
+      if (!os || !podeAlterarOS(os)) return alert('Sem permissão para atualizar esta OS.');
+      abrirModal(osPendente(os) ? 'Regularizar pendência / atualizar andamento' : 'Atualizar andamento da OS', `
+        <div class="warn-box">Use andamento para manter a OS aberta quando o equipamento ainda não retornou à condição final. OS pendente precisa ser regularizada antes de concluir.</div>
+        <label class="form-label">Condição operacional</label><select id="andCond" class="form-field">${STATUS_ANDAMENTO_GMAN8577.map(s => `<option>${esc(s)}</option>`).join('')}</select>
+        <label class="form-label">Justificativa da condição operacional</label><textarea id="andJust" class="form-field" rows="3"></textarea>
+        <label class="form-label">Observação do andamento</label><textarea id="andObs" class="form-field" rows="3"></textarea>
+        <div style="display:flex;gap:10px;justify-content:flex-end;"><button class="close-btn" id="andCancel">Cancelar</button><button class="action-btn success" id="andSave">Salvar andamento</button></div>`);
+      $('andCancel').addEventListener('click', fecharModal);
+      $('andSave').addEventListener('click', async () => {
+        const condicaoOperacional = $('andCond').value, justificativa = $('andJust').value.trim(), observacao = $('andObs').value.trim();
+        if (!justificativa || !observacao) return alert('Justificativa e observação são obrigatórias.');
+        try { await apiPost('atualizarAndamentoOS', payloadUsuario8577({ idOs:idOS, idOS, condicaoOperacional, justificativa, observacao })); alert('Andamento atualizado.'); fecharModal(); await atualizarAgora(); abrirPainelOS('abertas'); }
+        catch(e){ alert('Erro ao atualizar andamento: ' + e.message); }
+      });
+    }
+
+    function abrirModalPendenteOS8577(idOS){
+      const os = state.ordens.find(o => String(o.idOS) === String(idOS));
+      if (!os || !podeAlterarOS(os)) return alert('Sem permissão para marcar pendência nesta OS.');
+      abrirModal('Marcar OS como Pendente', `
+        <div class="danger-box">OS pendente fica bloqueada para conclusão direta. Ela precisa ser regularizada por andamento antes do encerramento.</div>
+        <label class="form-label">Motivo da pendência</label><input id="pendMotivo" class="form-field" placeholder="Ex.: aguardando material">
+        <label class="form-label">Observação da pendência</label><textarea id="pendObs" class="form-field" rows="3"></textarea>
+        <div style="display:flex;gap:10px;justify-content:flex-end;"><button class="close-btn" id="pendCancel">Cancelar</button><button class="action-btn success" id="pendSave">Registrar pendência</button></div>`);
+      $('pendCancel').addEventListener('click', fecharModal);
+      $('pendSave').addEventListener('click', async () => {
+        const motivoPendencia = $('pendMotivo').value.trim(), observacaoPendencia = $('pendObs').value.trim();
+        if (!motivoPendencia || !observacaoPendencia) return alert('Motivo e observação são obrigatórios.');
+        try { await apiPost('marcarPendenteOS', payloadUsuario8577({ idOs:idOS, idOS, motivoPendencia, observacaoPendencia })); alert('Pendência registrada.'); fecharModal(); await atualizarAgora(); abrirPainelOS('abertas'); }
+        catch(e){ alert('Erro ao registrar pendência: ' + e.message); }
+      });
+    }
+
+    function fichaCamposHTML8577(componente, dados){
+      const c = comp8577(componente);
+      const campos = (c && c.campos) || [];
+      return campos.map(campo => `<label class="form-label">${esc(campo)}</label><input class="form-field fichaCampo8577" data-campo="${esc(campo)}" value="${esc((dados && dados[campo]) || '')}">`).join('');
+    }
+
+    function abrirFichaTecnica8577(componente, idEquipamento, idOs){
+      const c = comp8577(componente); if(!c) return;
+      const localKey = `GMAN_FICHA_LOCAL_${idEquipamento}_${componente}`;
+      let dados = {}; try { dados = JSON.parse(localStorage.getItem(localKey) || '{}'); } catch(e){}
+      abrirModal('Ficha técnica — ' + c.rotulo, `
+        <div class="rule-box">Preencha as lacunas fixas do componente. A informação será registrada na ficha técnica e reaproveitada localmente na próxima abertura desta tela.</div>
+        ${fichaCamposHTML8577(componente, dados)}
+        <label class="form-label">Observação</label><textarea id="fichaObs8577" class="form-field" rows="2"></textarea>
+        <div style="display:flex;gap:10px;justify-content:flex-end;"><button class="close-btn" id="fichaCancel8577">Cancelar</button><button class="action-btn success" id="fichaSave8577">Salvar ficha</button></div>`);
+      $('fichaCancel8577').addEventListener('click', fecharModal);
+      $('fichaSave8577').addEventListener('click', async () => {
+        const campos = {};
+        document.querySelectorAll('.fichaCampo8577').forEach(inp => { campos[inp.dataset.campo] = inp.value.trim(); });
+        localStorage.setItem(localKey, JSON.stringify(campos));
+        try { await apiPost('registrarFichaTecnica', payloadUsuario8577({ idEquipamento, idOs: idOs || '', componente, campos, observacao: $('fichaObs8577').value.trim() })); alert('Ficha técnica registrada.'); fecharModal(); }
+        catch(e){ alert('Erro ao registrar ficha técnica: ' + e.message); }
+      });
+    }
+
+    function patrValorFromConsulta8577(consulta, componente){
+      const p = consulta && consulta.patrimonios;
+      if (!p) return '';
+      if (p[componente] && typeof p[componente] === 'object') return p[componente].patrimonio || p[componente].PATRIMONIO || '';
+      return p[componente] || p['PAT_' + componente] || '';
+    }
+
+    function fichaFromConsulta8577(consulta, componente){
+      const f = consulta && consulta.fichas;
+      if (!f) return {};
+      if (f[componente] && f[componente].campos) return f[componente].campos;
+      return f[componente] || {};
+    }
+
+    function renderPatrimonioConclusao8577(os, consulta){
+      const opcionalSetor = setorPatrimonioOpcional8577(os.setorEquipe);
+      return `
+        <div class="${opcionalSetor ? 'ok-box' : 'warn-box'}"><strong>Patrimônio e ficha técnica</strong><br>${opcionalSetor ? 'Para Usinagem, Caldeiraria e Instalações Mecânicas, patrimônio e ficha técnica são opcionais.' : 'Para este setor, patrimônio dos componentes obrigatórios e confirmação de ficha técnica são exigidos antes de concluir.'}</div>
+        <div class="pat-grid">
+        ${COMPONENTES_GMAN8577.map(c => {
+          const valor = patrValorFromConsulta8577(consulta, c.chave);
+          const ficha = fichaFromConsulta8577(consulta, c.chave);
+          const fichaTexto = Object.keys(ficha || {}).length ? Object.entries(ficha).map(([k,v]) => `${k}: ${v}`).join('\n') : 'Ficha técnica ainda não exibida/preenchida nesta tela.';
+          const obrig = c.patObrigatorio && !opcionalSetor;
+          return `<div class="pat-row" data-comp-row="${c.chave}">
+            <div class="pat-row-title"><span>${esc(c.rotulo)}</span><span class="mini-chip ${obrig ? 'required':'optional'}">${obrig ? 'Obrigatório':'Opcional'}</span></div>
+            <label class="form-label">Patrimônio</label><input class="form-field patInput8577" data-componente="${c.chave}" value="${esc(valor)}" placeholder="${c.patObrigatorio ? 'Informe ou confirme o PAT' : 'PAT opcional'}">
+            <label style="display:flex;align-items:center;gap:8px;color:#1e3a5f;font-weight:900;"><input type="checkbox" class="patConf8577" data-componente="${c.chave}" ${valor ? 'checked' : ''}> Confirmo que o patrimônio está correto</label>
+            <label style="display:flex;align-items:center;gap:8px;color:#1e3a5f;font-weight:900;"><input type="checkbox" class="fichaConf8577" data-componente="${c.chave}" ${Object.keys(ficha || {}).length ? 'checked' : ''}> Confirmo ficha técnica deste componente</label>
+            <button type="button" class="btn-small" data-ficha-comp="${c.chave}">🧾 Preencher ficha técnica</button>
+            <pre class="ficha-preview">${esc(fichaTexto)}</pre>
+          </div>`;
+        }).join('')}
+        </div>`;
+    }
+
+    async function abrirModalPatrimonioFichaGrupo8577(idEquipamento){
+      const consulta = await consultarPatrimonioGrupo8577(idEquipamento);
+      const e = state.equipamentos.find(x => x.id === idEquipamento) || { id:idEquipamento, name:idEquipamento };
+      abrirModal('Patrimônio e ficha — ' + esc(idEquipamento), `
+        <div class="rule-box"><strong>${esc(e.id)} — ${esc(e.name)}</strong><br>Consulta e registro técnico por componente.</div>
+        ${consulta.aviso ? '<div class="warn-box">' + esc(consulta.aviso) + '</div>' : ''}
+        <div class="pat-grid">
+        ${COMPONENTES_GMAN8577.map(c => {
+          const valor = patrValorFromConsulta8577(consulta, c.chave);
+          const ficha = fichaFromConsulta8577(consulta, c.chave);
+          const fichaTexto = Object.keys(ficha || {}).length ? Object.entries(ficha).map(([k,v]) => `${k}: ${v}`).join('\n') : 'Sem ficha técnica retornada pela API.';
+          return `<div class="pat-row"><div class="pat-row-title"><span>${esc(c.rotulo)}</span><span class="mini-chip ${c.patObrigatorio ? 'required':'optional'}">${c.patObrigatorio ? 'PAT obrigatório em OS comum':'PAT opcional'}</span></div><label class="form-label">Patrimônio</label><input class="form-field patConsulta8577" data-componente="${c.chave}" value="${esc(valor)}" placeholder="Patrimônio"><label class="form-label">Descrição resumida</label><input class="form-field descConsulta8577" data-componente="${c.chave}" placeholder="Descrição resumida"><button class="btn-small green" data-conf-pat-grupo="${c.chave}">Confirmar patrimônio</button><button class="btn-small" data-ficha-grupo="${c.chave}">Preencher ficha técnica</button><pre class="ficha-preview">${esc(fichaTexto)}</pre></div>`;
+        }).join('')}
+        </div>`);
+      document.querySelectorAll('[data-ficha-grupo]').forEach(btn => btn.addEventListener('click', () => abrirFichaTecnica8577(btn.dataset.fichaGrupo, idEquipamento, '')));
+      document.querySelectorAll('[data-conf-pat-grupo]').forEach(btn => btn.addEventListener('click', async () => {
+        const componente = btn.dataset.confPatGrupo;
+        const input = document.querySelector(`.patConsulta8577[data-componente="${componente}"]`);
+        const desc = document.querySelector(`.descConsulta8577[data-componente="${componente}"]`);
+        if (!input || !input.value.trim()) return alert('Informe o patrimônio antes de confirmar.');
+        try { await apiPost('confirmarPatrimonio', payloadUsuario8577({ idEquipamento, componente, patrimonio: input.value.trim(), descricaoResumida: desc ? desc.value.trim() : '', observacao:'Confirmação pela tela de patrimônio/ficha do grupo.' })); alert('Patrimônio confirmado.'); }
+        catch(e){ alert('Erro ao confirmar patrimônio: ' + e.message); }
+      }));
+    }
+
+    async function confirmarPatrimoniosEFichasAntesConclusao8577(os, consulta){
+      const opcional = setorPatrimonioOpcional8577(os.setorEquipe);
+      const faltas = [];
+      for (const c of COMPONENTES_GMAN8577) {
+        const patInput = document.querySelector(`.patInput8577[data-componente="${c.chave}"]`);
+        const patConf = document.querySelector(`.patConf8577[data-componente="${c.chave}"]`);
+        const fichaConf = document.querySelector(`.fichaConf8577[data-componente="${c.chave}"]`);
+        const pat = patInput ? patInput.value.trim() : '';
+        const obrig = c.patObrigatorio && !opcional;
+        if (obrig && !pat) faltas.push('PAT ' + c.rotulo);
+        if (obrig && patConf && !patConf.checked) faltas.push('confirmação do patrimônio ' + c.rotulo);
+        if (obrig && fichaConf && !fichaConf.checked) faltas.push('confirmação da ficha técnica ' + c.rotulo);
+      }
+      if (faltas.length) throw new Error('Pendências de patrimônio/ficha: ' + faltas.join(', ') + '.');
+      for (const c of COMPONENTES_GMAN8577) {
+        const patInput = document.querySelector(`.patInput8577[data-componente="${c.chave}"]`);
+        const pat = patInput ? patInput.value.trim() : '';
+        if (pat) {
+          await apiPost('confirmarPatrimonio', payloadUsuario8577({ idEquipamento: os.idEquipamento, idOs: os.idOS, componente: c.chave, patrimonio: pat, obrigatorioNoEncerramento: c.patObrigatorio ? 'SIM' : 'NÃO', observacao:'Confirmação no encerramento da OS.' }));
+        }
+      }
+      return { patrimonioConfirmado: opcional ? 'OPCIONAL' : 'SIM', fichaTecnicaConfirmada: opcional ? 'OPCIONAL' : 'SIM' };
+    }
+
+    async function abrirModalConcluirOS(idOS){
+      const os = state.ordens.find(o => String(o.idOS) === String(idOS));
+      if (!os || !podeAlterarOS(os)) return alert('Sem permissão para concluir esta OS.');
+      if (osPendente(os)) return alert('OS pendente não pode ser concluída diretamente. Regularize o andamento antes.');
+      const consulta = await consultarPatrimonioGrupo8577(os.idEquipamento);
+      abrirModal('Concluir OS', `
+        <div class="danger-box">A conclusão só será aceita se as regras obrigatórias forem cumpridas: serviço, materiais, condição final, justificativa, membros da equipe, veículo ou sem veículo, patrimônio/ficha quando aplicável.</div>
+        <label class="form-label">Serviço realizado</label><textarea id="concServico" class="form-field" rows="3"></textarea>
+        <label class="form-label">Materiais utilizados</label><textarea id="concMateriais" class="form-field" rows="2" placeholder="Informe materiais ou Não utilizado"></textarea>
+        <label style="display:flex;align-items:center;gap:8px;color:#2d3748;font-weight:800;margin:8px 0;"><input type="checkbox" id="concSemVeiculo" checked> Sem uso de veículo</label>
+        <div class="grid-2" id="veiculoCampos"><div><label class="form-label">Motorista</label><input id="concMotorista" class="form-field"></div><div><label class="form-label">Prefixo do veículo</label><input id="concPrefixo" class="form-field"></div><div><label class="form-label">KM inicial</label><input id="concKmIni" type="number" class="form-field"></div><div><label class="form-label">KM final</label><input id="concKmFim" type="number" class="form-field"></div></div>
+        <label class="form-label">Condição operacional final</label><select id="concCond" class="form-field"><option>Operando</option></select>
+        <label class="form-label">Justificativa da condição final</label><textarea id="concJust" class="form-field" rows="2" placeholder="Explique a condição final"></textarea>
+        <label class="form-label">Observação final</label><textarea id="concObs" class="form-field" rows="2"></textarea>
+        <label class="form-label">Membros da equipe</label><textarea id="concMembros" class="form-field" rows="2" placeholder="Informe todos que participaram"></textarea>
+        <label class="form-label">Equipamentos ou características adicionais</label><textarea id="concItensAdicionais" class="form-field" rows="2" placeholder="Itens extras além de Painel, Motor, Bomba e Válvulas"></textarea>
+        ${renderPatrimonioConclusao8577(os, consulta)}
+        <div class="warn-box">Evidências não são obrigatórias, mas se selecionar foto/áudio no painel de evidências, envie antes de concluir.</div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;"><button class="close-btn" id="concCancel">Cancelar</button><button class="action-btn success" id="concSave">Concluir OS</button></div>`);
+      const chk = $('concSemVeiculo'), veic = $('veiculoCampos');
+      function syncVeic(){ veic.classList.toggle('hidden', chk.checked); }
+      chk.addEventListener('change', syncVeic); syncVeic();
+      document.querySelectorAll('[data-ficha-comp]').forEach(btn => btn.addEventListener('click', () => abrirFichaTecnica8577(btn.dataset.fichaComp, os.idEquipamento, os.idOS)));
+      $('concCancel').addEventListener('click', fecharModal);
+      $('concSave').addEventListener('click', async () => {
+        const servicoRealizado = $('concServico').value.trim(), materiaisUtilizados = $('concMateriais').value.trim(), semUsoVeiculo = chk.checked;
+        const condicaoOperacionalFinal = $('concCond').value, justificativaCondicaoFinal = $('concJust').value.trim(), observacaoFinal = $('concObs').value.trim(), membrosEquipe = $('concMembros').value.trim();
+        const motorista = $('concMotorista').value.trim(), prefixoVeiculo = $('concPrefixo').value.trim(), kmInicial = $('concKmIni').value, kmFinal = $('concKmFim').value;
+        const itensAdicionaisObservados = $('concItensAdicionais').value.trim();
+        const faltam=[]; if(!servicoRealizado) faltam.push('serviço realizado'); if(!materiaisUtilizados) faltam.push('materiais utilizados'); if(!justificativaCondicaoFinal) faltam.push('justificativa final'); if(!observacaoFinal) faltam.push('observação final'); if(!membrosEquipe) faltam.push('membros da equipe');
+        if(!semUsoVeiculo){ if(!motorista) faltam.push('motorista'); if(!prefixoVeiculo) faltam.push('prefixo'); if(kmInicial==='') faltam.push('KM inicial'); if(kmFinal==='') faltam.push('KM final'); if(Number(kmFinal) < Number(kmInicial)) faltam.push('KM final maior ou igual ao inicial'); }
+        if(faltam.length) return alert('Preencha: ' + faltam.join(', ') + '.');
+        try {
+          const conf = await confirmarPatrimoniosEFichasAntesConclusao8577(os, consulta);
+          await apiPost('concluirOS', payloadUsuario8577({ idOs:idOS, idOS, servicoRealizado, materiaisUtilizados, materiais:materiaisUtilizados, semUsoVeiculo, motorista, prefixoVeiculo, kmInicial, kmFinal, condicaoOperacionalFinal, statusFinalEquipamento:condicaoOperacionalFinal, justificativaCondicaoFinal, observacaoFinal, membrosEquipe, itensAdicionaisObservados, patrimonioConfirmado: conf.patrimonioConfirmado, fichaTecnicaConfirmada: conf.fichaTecnicaConfirmada }));
+          alert('OS concluída com sucesso.'); fecharModal(); await atualizarAgora(); abrirPainelOS('encerradas');
+        } catch(e){ alert('Erro ao concluir OS: ' + e.message); }
+      });
+    }
+
+    function arquivoParaBase64GMAN8577(file){
+      return new Promise((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve(String(r.result || '').split(',')[1] || ''); r.onerror = reject; r.readAsDataURL(file); });
+    }
+
+    function abrirModalEvidenciasOS8577(idOS){
+      const os = state.ordens.find(o => String(o.idOS) === String(idOS));
+      if (!os || !podeAlterarOS(os)) return alert('Sem permissão para anexar evidências nesta OS.');
+      abrirModal('Evidências da OS', `
+        <div class="rule-box">Regra: até 2 fotos por usuário dentro da OS, áudio máximo de 1 minuto gravado na hora e vídeo bloqueado.</div>
+        <label class="form-label">Foto</label><input id="evFoto" type="file" accept="image/*" capture="environment" class="form-field"><label class="form-label">Observação da foto</label><input id="evFotoObs" class="form-field"><button class="action-btn success" id="evFotoEnviar">📷 Enviar foto</button>
+        <hr style="margin:14px 0;border:none;border-top:1px solid #e2e8f0;">
+        <div class="warn-box">Áudio deve ser gravado na hora. Não buscar arquivo pronto do aparelho.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;"><button class="btn-small" id="evAudioIniciar">🎙️ Iniciar gravação</button><button class="btn-small orange" id="evAudioParar" disabled>⏹️ Parar</button><button class="btn-small green" id="evAudioEnviar" disabled>📤 Enviar áudio gravado</button></div>
+        <div id="evAudioStatus" style="color:#1e3a5f;font-weight:900;margin-bottom:8px;">Nenhum áudio gravado.</div><audio id="evAudioPreview" controls style="width:100%;display:none;"></audio><label class="form-label">Observação do áudio</label><input id="evAudioObs" class="form-field">`);
+      $('evFotoEnviar').addEventListener('click', async () => {
+        const input=$('evFoto'); if(!input.files || !input.files[0]) return alert('Selecione uma foto.');
+        const file=input.files[0]; if(String(file.type||'').startsWith('video/')) return alert('Vídeo bloqueado.');
+        try { const base64=await arquivoParaBase64GMAN8577(file); await apiPost('anexarEvidencia', payloadUsuario8577({ idOs: idOS, tipoEvidencia:'FOTO', nomeArquivo:file.name, mimeType:file.type || 'image/jpeg', arquivoBase64:base64, observacao:$('evFotoObs').value.trim() })); alert('Foto enviada.'); input.value=''; }
+        catch(e){ alert('Erro ao enviar foto: ' + e.message); }
+      });
+      $('evAudioIniciar').addEventListener('click', iniciarAudio8577);
+      $('evAudioParar').addEventListener('click', pararAudio8577);
+      $('evAudioEnviar').addEventListener('click', async () => {
+        if(!audioBlob8577) return alert('Grave o áudio primeiro.');
+        if(audioDuracao8577 <=0 || audioDuracao8577 > 60) return alert('Áudio deve ter até 1 minuto.');
+        try { const file = new File([audioBlob8577], 'audio_gman_' + Date.now() + '.webm', { type: audioBlob8577.type || 'audio/webm' }); const base64=await arquivoParaBase64GMAN8577(file); await apiPost('anexarEvidencia', payloadUsuario8577({ idOs:idOS, tipoEvidencia:'AUDIO', nomeArquivo:file.name, mimeType:file.type, arquivoBase64:base64, duracaoSegundos:audioDuracao8577, origemCaptura:'GRAVADO_NA_HORA', observacao:$('evAudioObs').value.trim() })); alert('Áudio enviado.'); audioBlob8577=null; $('evAudioEnviar').disabled=true; $('evAudioStatus').textContent='Áudio enviado. Grave outro se necessário.'; }
+        catch(e){ alert('Erro ao enviar áudio: ' + e.message); }
+      });
+    }
+
+    async function iniciarAudio8577(){
+      try{
+        if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return alert('Gravador não disponível neste navegador.');
+        const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
+        audioChunks8577=[]; audioBlob8577=null; audioDuracao8577=0; audioInicio8577=Date.now();
+        audioRecorder8577 = new MediaRecorder(stream);
+        audioRecorder8577.ondataavailable = e => { if(e.data && e.data.size>0) audioChunks8577.push(e.data); };
+        audioRecorder8577.onstop = () => { stream.getTracks().forEach(t => t.stop()); audioDuracao8577=Math.max(1, Math.round((Date.now()-audioInicio8577)/1000)); audioBlob8577=new Blob(audioChunks8577,{type:audioRecorder8577.mimeType || 'audio/webm'}); const prev=$('evAudioPreview'); if(prev){prev.src=URL.createObjectURL(audioBlob8577); prev.style.display='block';} $('evAudioEnviar').disabled=false; $('evAudioParar').disabled=true; $('evAudioIniciar').disabled=false; $('evAudioStatus').textContent='Áudio gravado: ' + audioDuracao8577 + 's.'; };
+        audioRecorder8577.start(); $('evAudioIniciar').disabled=true; $('evAudioParar').disabled=false; $('evAudioEnviar').disabled=true; $('evAudioStatus').textContent='Gravando... limite de 1 minuto.'; setTimeout(() => { if(audioRecorder8577 && audioRecorder8577.state === 'recording') pararAudio8577(); }, 60000);
+      } catch(e){ alert('Não foi possível iniciar o gravador: ' + e.message); }
+    }
+
+    function pararAudio8577(){ if(audioRecorder8577 && audioRecorder8577.state === 'recording') audioRecorder8577.stop(); }
+
 
     function iniciar(){
       configurarEventos();
