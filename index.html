@@ -424,7 +424,7 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.47 — Index clássico corrigido para API oficial 8.5.6.44';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.48 — Index clássico estabilizado sem deslogar';
         const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.44';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
@@ -4993,7 +4993,7 @@ function openEquipment(id) {
    ============================================================ */
 
 const API_OFICIAL_GMAN_85647 = 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec';
-const VERSAO_INDEX_COMPAT_GMAN_85647 = 'GMAN 8.5.6.47 — Index clássico corrigido para API oficial 8.5.6.44';
+const VERSAO_INDEX_COMPAT_GMAN_85647 = 'GMAN 8.5.6.48 — Index clássico estabilizado sem deslogar';
 const SISTEMA_NOME_GMAN85647 = {
     '100': 'moinhos de vento',
     '200': 'são joao',
@@ -5326,6 +5326,117 @@ function exibirMarcadorVersaoGMAN85645() {
     }
     marcador.textContent = VERSAO_INDEX_COMPAT_GMAN_85647;
 }
+
+
+
+/* ============================================================
+   GMAN 8.5.6.48 — estabilização cirúrgica do Index clássico
+   Correções aplicadas sem alterar a aparência aprovada:
+   1) Atualizar agora não desloga.
+   2) Limpar cache preserva sessão do usuário.
+   3) Núcleo técnico antigo não tenta mais buscar ação inexistente.
+   4) Ver OS não deve disparar erro "Erro ao carregar Núcleo GMAN: Failed to fetch".
+   ============================================================ */
+
+function preservarSessaoUsuarioGMAN85648() {
+    const chaves = [
+        'manutencao_usuario_logado',
+        'gmanUsuarioLogado',
+        'GMAN_8_5_6_43_USUARIO_LOGADO',
+        'GMAN_8_5_6_44_USUARIO_LOGADO',
+        'GMAN_8_5_6_47_USUARIO_LOGADO',
+        'GMAN_8_5_6_48_USUARIO_LOGADO'
+    ];
+    const salvo = {};
+    chaves.forEach(chave => {
+        try {
+            const s = sessionStorage.getItem(chave);
+            const l = localStorage.getItem(chave);
+            if (s !== null) salvo['S:' + chave] = s;
+            if (l !== null) salvo['L:' + chave] = l;
+        } catch (e) {}
+    });
+    if (usuarioLogado && usuarioLogado.nome) {
+        salvo.usuarioLogadoObjeto = JSON.stringify(usuarioLogado);
+    }
+    return salvo;
+}
+
+function restaurarSessaoUsuarioGMAN85648(salvo) {
+    salvo = salvo || {};
+    Object.keys(salvo).forEach(chave => {
+        try {
+            if (chave.startsWith('S:')) sessionStorage.setItem(chave.slice(2), salvo[chave]);
+            if (chave.startsWith('L:')) localStorage.setItem(chave.slice(2), salvo[chave]);
+        } catch (e) {}
+    });
+    if ((!usuarioLogado || !usuarioLogado.nome) && salvo.usuarioLogadoObjeto) {
+        try { usuarioLogado = JSON.parse(salvo.usuarioLogadoObjeto); } catch (e) {}
+    }
+    recuperarLoginSalvo();
+    garantirSessaoVisualGMAN85646();
+    aplicarBotoesPermissao();
+}
+
+async function atualizarAgora() {
+    const sessao = preservarSessaoUsuarioGMAN85648();
+    try {
+        atualizarIndicadorConexao('🔄 Atualizando sem encerrar sessão...', 'neutro');
+        await carregarStatusOnline();
+        if (document.getElementById('osModal')) {
+            await recarregarPainelOS();
+        }
+        restaurarSessaoUsuarioGMAN85648(sessao);
+        atualizarIndicadorConexao('✅ Atualizado. Sessão preservada.', 'online');
+        return true;
+    } catch (erro) {
+        console.error('Erro ao atualizar sem deslogar:', erro);
+        restaurarSessaoUsuarioGMAN85648(sessao);
+        atualizarIndicadorConexao('⚠️ Falha ao atualizar: ' + (erro.message || erro), 'offline');
+        alert('Não foi possível atualizar agora. O login foi preservado.\n' + (erro.message || erro));
+        return false;
+    }
+}
+
+function limparCacheOperacionalGMAN85645() {
+    const sessao = preservarSessaoUsuarioGMAN85648();
+    try {
+        localStorage.removeItem('gman_kpi_cache');
+        localStorage.removeItem('gman_rankings_cache');
+        localStorage.removeItem('ordensServicoCache');
+        localStorage.removeItem('equipmentData');
+        sessionStorage.removeItem('gmanPainelConsolidado');
+        painelConsolidadoCacheGMAN85645 = null;
+        painelOperacionalRapidoCacheGMAN85653 = null;
+    } catch (erro) {
+        console.warn('Não foi possível limpar todos os caches:', erro);
+    }
+    restaurarSessaoUsuarioGMAN85648(sessao);
+    alert('Cache operacional limpo. Login preservado. Clique em Atualizar agora.');
+}
+
+function podeAcessarNucleoProtegidoGMAN85649() {
+    return false;
+}
+
+function atualizarIconeNucleoProtegidoGMAN85649() {
+    const btn = document.getElementById('nucleoProtegidoGMAN85649');
+    if (btn) btn.remove();
+}
+
+async function carregarNucleoProtegidoGMAN85649() {
+    atualizarIconeNucleoProtegidoGMAN85649();
+    const container = document.getElementById('nucleoProtegidoConteudoGMAN85649') || document.getElementById('osConteudo');
+    if (container && String(container.innerHTML || '').includes('Erro ao carregar Núcleo GMAN')) {
+        container.innerHTML = '<div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:14px; padding:12px; color:#1e3a5f; font-weight:800;">Núcleo técnico antigo desativado nesta versão clássica estabilizada. Use o teste de saúde da API quando necessário. Os fluxos operacionais seguem preservados.</div>';
+    }
+    return { sucesso: true, desativado: true, mensagem: 'Núcleo técnico antigo desativado no Index clássico 8.5.6.48.' };
+}
+
+// Garante que botão/ícone antigo do núcleo não reapareça após renderizações.
+setInterval(function(){
+    try { atualizarIconeNucleoProtegidoGMAN85649(); } catch(e) {}
+}, 3000);
 
 
         iniciarSistema();
