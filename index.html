@@ -1,4 +1,4 @@
-a<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -32,7 +32,7 @@ a<!DOCTYPE html>
     .modal{position:fixed;inset:0;display:none;align-items:flex-end;justify-content:center;background:rgba(5,20,32,.45);z-index:100}.modal.open{display:flex}.modal-card{width:min(980px,100%);max-height:92vh;overflow:auto;background:#f8fcfe;border-radius:24px 24px 0 0;padding:16px;border:1px solid var(--borda);box-shadow:0 -12px 36px rgba(0,0,0,.18)}@media(min-width:980px){.modal{align-items:center}.modal-card{border-radius:24px;max-height:88vh}}.modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.modal-head h2{margin:0;font-size:18px}.close{background:#fff;color:var(--azul);border:1px solid var(--borda);box-shadow:none}
     .toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:#102330;color:#fff;padding:12px 14px;border-radius:14px;box-shadow:0 14px 30px rgba(0,0,0,.18);z-index:200;display:none;max-width:92%;font-size:13px}.toast.show{display:block}.offline{display:none;position:fixed;top:0;left:0;right:0;background:var(--laranja);color:#fff;text-align:center;padding:8px;font-weight:800;z-index:300}.offline.show{display:block}.version{position:fixed;right:8px;bottom:8px;font-size:10px;color:var(--muted);background:rgba(255,255,255,.85);border:1px solid var(--borda);border-radius:999px;padding:6px 8px;z-index:70}.bottomnav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.94);border-top:1px solid var(--borda);display:flex;gap:4px;justify-content:space-around;padding:8px;z-index:60}.navbtn{background:transparent;color:var(--muted);box-shadow:none;font-size:11px;padding:6px 8px}.navbtn.active{color:var(--azul);font-weight:900}.login-screen{min-height:100vh;display:grid;place-items:center;padding:18px}.login-card{width:min(460px,100%);background:rgba(255,255,255,.92);border:1px solid var(--borda);border-radius:28px;box-shadow:var(--shadow);padding:24px}.login-card h1{margin:12px 0 5px}.login-card p{color:var(--muted)}.badge-line{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.required::after{content:" *";color:var(--vermelho);font-weight:900}.hint{font-size:12px;color:var(--muted);margin-top:4px}.hidden{display:none!important}.actions-row{display:flex;gap:8px;flex-wrap:wrap}.audio-box{border:1px dashed var(--borda);border-radius:16px;padding:12px;background:#fff}.timer{font-size:34px;font-weight:900;color:var(--azul)}.progress{height:8px;background:#e5eef5;border-radius:999px;overflow:hidden}.progress span{display:block;height:100%;background:var(--azul);width:0%}.lock-note{font-size:12px;color:var(--muted);background:#fff;border:1px solid var(--borda);border-radius:14px;padding:10px}.small{font-size:12px;color:var(--muted)}
 
-    /* GMAN 8.5.6.44 — ajuste institucional sem imagens */
+    /* GMAN 8.5.6.45 — ajuste institucional sem imagens */
     body::before{background:
       linear-gradient(135deg,rgba(6,58,92,.12),rgba(17,132,91,.08)),
       repeating-linear-gradient(0deg,rgba(11,95,148,.045) 0 1px,transparent 1px 34px),
@@ -50,7 +50,7 @@ a<!DOCTYPE html>
 
 
 
-    /* GMAN 8.5.6.44 — VISUAL REFORÇADO SEM PRÉVIA DE IMAGEM NO CHAT, SOMENTE CSS/HTML */
+    /* GMAN 8.5.6.45 — VISUAL REFORÇADO SEM PRÉVIA DE IMAGEM NO CHAT, SOMENTE CSS/HTML */
     :root{
       --azul-profundo:#053452;
       --azul-vivo:#0a7db8;
@@ -110,7 +110,7 @@ a<!DOCTYPE html>
       </div>
       <h1>GMAN DMAE</h1>
       <p>Gestão de Manutenção de Bombeamento e Reservação</p>
-      <div class="badge-line"><span class="pill good">GMAN 8.5.6.44</span><span class="pill warn">Alicerce corrigido</span><span class="pill">Acesso protegido</span><span class="pill">Sem imagens na tela do chat</span></div>
+      <div class="badge-line"><span class="pill good">GMAN 8.5.6.45</span><span class="pill warn">Alicerce corrigido</span><span class="pill">Acesso protegido</span><span class="pill">Sem imagens na tela do chat</span></div>
       <div class="login-fields">
         <div>
           <label class="required">Login do usuário</label>
@@ -146,18 +146,18 @@ a<!DOCTYPE html>
   </main>
 
   <nav id="bottomNav" class="bottomnav hidden"></nav>
-  <div class="version"><span id="versionText">GMAN 8.5.6.44</span> · <span id="syncText">sinc. pendente</span> · <button class="ghost mini" id="btnRefresh">Atualizar</button> <button class="ghost mini" id="btnClearCache">Limpar cache</button></div>
+  <div class="version"><span id="versionText">GMAN 8.5.6.45</span> · <span id="syncText">sinc. pendente</span> · <button class="ghost mini" id="btnRefresh">Atualizar</button> <button class="ghost mini" id="btnClearCache">Limpar cache</button></div>
 
   <div id="modal" class="modal"><div class="modal-card"><div class="modal-head"><h2 id="modalTitle">Modal</h2><button class="close" id="modalClose">Fechar</button></div><div id="modalBody"></div></div></div>
 
   <script>
     'use strict';
     const GMAN = {
-      VERSAO: 'GMAN 8.5.6.44',
+      VERSAO: 'GMAN 8.5.6.45',
       API_URL: 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec',
       SYNC_MS: 120000,
-      STORAGE_USER: 'GMAN_8_5_6_44_USUARIO_LOGADO',
-      STORAGE_DRAFT: 'GMAN_8_5_6_44_RASCUNHOS',
+      STORAGE_USER: 'GMAN_8_5_6_45_USUARIO_LOGADO',
+      STORAGE_DRAFT: 'GMAN_8_5_6_45_RASCUNHOS',
       STATUS_OPERACIONAL: ['Operando','Em manutenção, operando','Em manutenção, parado','Em teste','Parado'],
       STATUS_OS: ['Aberta','Iniciada','Em execução','Pendente','Concluída','Cancelada','Cancelamento solicitado','Redistribuição solicitada'],
       SETORES: ['Mecânica','Elétrica','Automação','Usinagem','Caldeiraria','Instalações Mecânicas'],
@@ -180,7 +180,10 @@ a<!DOCTYPE html>
 
     async function api(action, data={}, method='POST'){
       const payload = Object.assign({}, data, { action });
-      if(state.usuario && !payload.usuario && !payload.login) payload.usuario = state.usuario.LOGIN || state.usuario.NOME || state.usuario.ID_USUARIO;
+      if(state.usuario && !payload.usuario && !payload.login && !payload.usuarioLogado){
+        const usuarioLogado = state.usuario.LOGIN || state.usuario.login || state.usuario.NOME || state.usuario.nome || state.usuario.ID_USUARIO || state.usuario.idUsuario || '';
+        if(usuarioLogado){ payload.usuario = usuarioLogado; payload.usuarioLogado = usuarioLogado; }
+      }
       try{
         const opts = method==='GET' ? {} : { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload) };
         const url = method==='GET' ? GMAN.API_URL + '?' + new URLSearchParams(payload).toString() : GMAN.API_URL;
@@ -222,7 +225,8 @@ a<!DOCTYPE html>
 
     function enterApp(){
       $('loginScreen').classList.add('hidden'); $('app').classList.remove('hidden'); $('bottomNav').classList.remove('hidden');
-      $('userName').textContent = state.usuario.NOME || state.usuario.LOGIN || 'Usuário'; $('userPerfil').textContent = (state.usuario.PERFIL || '') + (state.gestao?' · gestão':' · equipe');
+      $('userName').textContent = state.usuario.NOME || state.usuario.nome || state.usuario.LOGIN || state.usuario.login || 'Usuário';
+      $('userPerfil').textContent = (state.usuario.PERFIL || state.usuario.perfil || '') + (state.gestao?' · gestão':' · equipe');
       renderNav(); renderViews(); syncAll(true); startAutoSync();
     }
     function renderNav(){
