@@ -1,280 +1,2309 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema de Manutenção GMAN</title>
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Segoe UI', Arial, sans-serif; background:linear-gradient(135deg,#1e3a5f 0%,#2c5282 100%); min-height:100vh; color:white; padding:20px; }
-    h1 { text-align:center; margin-bottom:5px; font-size:1.6rem; }
-    .subtitle { text-align:center; color:#a0c4e8; margin-bottom:10px; font-size:.85rem; }
-    .systems-filter { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:20px; }
-    .system-btn { padding:8px 16px; border:2px solid rgba(255,255,255,.3); background:rgba(255,255,255,.1); color:white; border-radius:20px; cursor:pointer; font-size:.8rem; transition:.25s; }
-    .system-btn:hover,.system-btn.active { background:#3182ce; border-color:#3182ce; }
-    .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(100px,1fr)); gap:10px; margin-bottom:20px; }
-    .stat-card { backdrop-filter:blur(10px); border-radius:12px; padding:15px; text-align:center; cursor:pointer; transition:.25s; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.1); }
-    .stat-card:hover { background:rgba(255,255,255,.2); }
-    .stat-number { font-size:2rem; font-weight:bold; } .stat-label { font-size:.75rem; color:#a0c4e8; margin-top:5px; font-weight:600; } .stat-percent { font-size:.82rem; color:#fff; margin-top:6px; font-weight:700; }
-    #card-ok { background:rgba(56,161,105,.15); border-color:rgba(56,161,105,.3); } #card-ok .stat-number { color:#48bb78; }
-    #card-alert { background:rgba(214,158,46,.15); border-color:rgba(214,158,46,.3); } #card-alert .stat-number { color:#ecc94b; }
-    #card-down { background:rgba(229,62,62,.15); border-color:rgba(229,62,62,.3); } #card-down .stat-number { color:#f56565; }
-    .search-box { width:100%; padding:12px; border:none; border-radius:10px; margin-bottom:15px; font-size:.95rem; background:rgba(255,255,255,.15); color:white; } .search-box::placeholder { color:#a0c4e8; }
-    .main-actions { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:0 0 18px; }
-    .action-btn { padding:10px 16px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.12); color:white; border-radius:12px; cursor:pointer; font-size:.85rem; font-weight:700; transition:.2s; }
-    .action-btn:hover { background:rgba(255,255,255,.22); transform:translateY(-1px); } .action-btn.primary { background:#3182ce; border-color:#3182ce; } .action-btn.success { background:#38a169; border-color:#38a169; } .action-btn.warn { background:#d69e2e; border-color:#d69e2e; } .action-btn.danger { background:#e53e3e; border-color:#e53e3e; }
-    .equipment-list { background:rgba(255,255,255,.05); border-radius:15px; overflow:hidden; max-height:60vh; overflow-y:auto; }
-    .equipment-item { padding:12px; border-bottom:1px solid rgba(255,255,255,.1); display:grid; grid-template-columns:45px 1fr auto; gap:12px; align-items:center; transition:.25s; cursor:pointer; } .equipment-item:hover { background:rgba(255,255,255,.1); }
-    .status-icon { width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1rem; font-weight:900; } .status-ok { background:#38a169; } .status-alert { background:#d69e2e; } .status-down { background:#e53e3e; }
-    .equipment-name { font-weight:600; font-size:.9rem; } .equipment-system { font-size:.75rem; color:#a0c4e8; margin-top:2px; } .status-badge { padding:4px 10px; border-radius:15px; font-size:.7rem; font-weight:700; text-transform:uppercase; } .badge-ok { background:#38a169; } .badge-alert { background:#d69e2e; } .badge-down { background:#e53e3e; }
-    .system-tag { display:inline-block; padding:2px 8px; border-radius:10px; font-size:.65rem; margin-top:3px; } .tag-100 { background:#e53e3e; } .tag-200 { background:#dd6b20; } .tag-300 { background:#d69e2e; } .tag-400 { background:#38a169; } .tag-600 { background:#3182ce; } .tag-700 { background:#805ad5; }
-    .modalOverlay { position:fixed; inset:0; background:rgba(0,0,0,.82); display:flex; align-items:center; justify-content:center; z-index:1200; padding:18px; } .modalCard { background:white; color:#1a202c; border-radius:20px; padding:22px; width:95%; max-width:720px; max-height:90vh; overflow-y:auto; } .modalCard h2 { color:#1e3a5f; margin-bottom:10px; }
-    .form-field { width:100%; padding:10px; margin-bottom:10px; border:1px solid #cbd5e0; border-radius:9px; color:#1a202c; font-size:.9rem; } .form-label { display:block; color:#2d3748; font-size:.78rem; font-weight:700; margin:8px 0 5px; text-align:left; }
-    .os-card { background:#f7fafc; border-radius:12px; padding:12px; margin-bottom:10px; border-left:5px solid #3182ce; color:#1a202c; text-align:left; } .os-card h4 { margin:0 0 6px; color:#1e3a5f; font-size:.95rem; } .os-card p { margin:4px 0; color:#4a5568; font-size:.78rem; } .os-badge { display:inline-block; padding:4px 8px; border-radius:999px; color:white; font-size:.68rem; font-weight:700; margin:2px 4px 2px 0; } .os-aberta { background:#3182ce; } .os-iniciada,.os-execucao { background:#d69e2e; } .os-pendente { background:#dd6b20; } .os-concluida { background:#38a169; } .os-cancelada { background:#718096; }
-    .version { position:fixed; right:8px; bottom:8px; font-size:10px; color:#718096; background:rgba(255,255,255,.9); border:1px solid #d7e2ea; border-radius:999px; padding:6px 8px; z-index:70; }
-    #loginScreen { position:fixed; inset:0; background:linear-gradient(135deg,#1e3a5f 0%,#2c5282 100%); display:flex; align-items:center; justify-content:center; z-index:9999; }
-    .loginCard { background:white; padding:40px; border-radius:20px; text-align:center; max-width:400px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,.3); color:#1a202c; }
-    .loginCard img { width:80px; height:80px; margin-bottom:20px; object-fit:contain; } .loginCard h2 { color:#1e3a5f; margin-bottom:5px; } .loginCard p { color:#718096; margin-bottom:24px; font-size:.9rem; }
-    .loginInput { width:100%; padding:12px; margin-bottom:15px; border:2px solid #e2e8f0; border-radius:10px; font-size:1rem; color:#333; }
-    .hidden { display:none !important; }
-    @media(max-width:640px){ body{padding:12px} .equipment-item{grid-template-columns:38px 1fr;} .status-badge{grid-column:2; width:max-content;} }
-  </style>
-  <link rel="icon" type="image/png" href="./logo.png">
-</head>
-<body>
-  <div id="loginScreen">
-    <div class="loginCard">
-      <img src="./logo.png" alt="Logo DMAE" onerror="this.style.display='none'">
-      <h2>Sistema de Manutenção</h2>
-      <p>GMAN DMAE — Gestão de Manutenção de Bombeamento e Reservação<br><small>departamento municipal de água e esgotos</small></p>
-      <form onsubmit="event.preventDefault(); fazerLogin(); return false;">
-        <input type="text" id="loginUser" class="loginInput" placeholder="Usuário" autocomplete="username">
-        <input type="password" id="loginPass" class="loginInput" placeholder="Senha" autocomplete="current-password">
-        <button type="submit" class="action-btn primary" style="width:100%;padding:15px;font-size:1rem;">Entrar</button>
-      </form>
-      <p id="loginErro" style="color:#e53e3e;margin-top:15px;font-size:.85rem;display:none;font-weight:bold;"></p>
-    </div>
-  </div>
+/**
+ * GMAN 8.5.6.44 — APPS SCRIPT COMPLETO
+ * Projeto: sistema de manutenção gman
+ *
+ * Entrega técnica:
+ * - Script vinculado à planilha oficial do sistema de manutenção gman.
+ * - Sem macro/VBA.
+ * - Sem imagem.
+ * - Backend protege. Frontend orienta.
+ *
+ * Fonte oficial da verdade:
+ * - Planilha oficial do sistema de manutenção gman.
+ *
+ * Regras centrais incorporadas:
+ * - OS no padrão 0001.01/26.
+ * - Status da OS separado do status operacional.
+ * - Status operacional: Operando, Em manutenção, operando, Em manutenção, parado, Em teste, Parado.
+ * - Em teste entra na disponibilidade funcional e gera alerta após 48h.
+ * - Nenhuma mudança de status operacional sem OS vinculada.
+ * - OS aberta não muda automaticamente o status operacional.
+ * - Equipe altera apenas OS sob sua responsabilidade; gestão gerencia todas.
+ * - Conclusão exige encerramento completo.
+ * - Evidências: 2 fotos por usuário dentro da OS, 1 áudio gravado na hora até 60s, sem vídeo.
+ * - Sem uso de veículo por caixa de marcação; se houver veículo, KM e motorista obrigatórios.
+ * - Apps Script valida regras críticas além da interface.
+ */
 
-  <div style="text-align:center;margin-bottom:20px;">
-    <img src="./logo.png" alt="Logo DMAE" style="width:100px;height:100px;object-fit:contain;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.3);margin-bottom:10px;" onerror="this.style.display='none'">
-    <h1>Sistema de Manutenção</h1>
-    <p class="subtitle">GMAN DMAE — Gestão de Manutenção de Bombeamento e Reservação</p>
-  </div>
+const GMAN = Object.freeze({
+  VERSAO: 'GMAN 8.5.6.44',
+  NOME_OFICIAL_PLANILHA: 'GMAN_8_5_6_44_PLANILHA_OFICIAL_COMPLETA_SISTEMA_DE_MANUTENCAO_GMAN',
+  TIMEZONE: 'America/Sao_Paulo',
+  SYNC_SEGUNDOS: 120,
+  ALERTA_EM_TESTE_HORAS: 48,
+  LIMITE_FOTO_USUARIO_OS: 2,
+  LIMITE_AUDIO_SEGUNDOS: 60,
+  EVIDENCIAS_DRIVE_FOLDER_NAME: 'GMAN_EVIDENCIAS_SISTEMA_DE_MANUTENCAO_GMAN',
+  SPREADSHEET_ID: '',
 
-  <div class="systems-filter" id="systemsFilter"></div>
+  SHEETS: {
+    LEIA_ME: 'LEIA_ME',
+    CONFIG: 'CONFIGURACOES',
+    LISTAS: 'LISTAS_VALIDACAO',
+    USUARIOS: 'USUARIOS',
+    EQUIPES: 'EQUIPES_SETORES',
+    EQUIPAMENTOS: 'EQUIPAMENTOS',
+    STATUS: 'STATUS_ATUAL',
+    OS: 'ORDENS_SERVICO',
+    PATRIMONIO: 'PATRIMONIO',
+    FICHA_MODELOS: 'FICHA_MODELOS',
+    FICHA_REGISTROS: 'FICHA_REGISTROS',
+    EVIDENCIAS: 'EVIDENCIAS',
+    VEICULOS: 'VEICULOS',
+    VEICULOS_KM: 'VEICULOS_KM',
+    HISTORICO: 'HISTORICO_OS',
+    AUDITORIA: 'AUDITORIA_LOGS',
+    QUARENTENA_OS: 'QUARENTENA_OS',
+    QUARENTENA_STATUS: 'QUARENTENA_STATUS',
+    QUARENTENA_EVID: 'QUARENTENA_EVID',
+    QUARENTENA_PATR: 'QUARENTENA_PATR',
+    QUARENTENA_HIST: 'QUARENTENA_HIST',
+    MIGRACAO: 'MIGRACAO_LEGADO',
+    KPI_DASHBOARD: 'KPI_DASHBOARD',
+    KPI_SNAPSHOTS: 'KPI_SNAPSHOTS',
+    KPI_CARGA: 'KPI_CARGA',
+    KPI_REINCIDENCIA: 'KPI_REINCIDENCIA',
+    TESTE_SAUDE: 'TESTE_SAUDE',
+    CHECKLIST: 'CHECKLIST_38',
+    AUDITORIA_REVISOES: 'AUDITORIA_3_REVISOES'
+  },
 
-  <div class="stats">
-    <div class="stat-card" id="card-ok" onclick="filterByStatus('ok')"><div class="stat-number" id="operationalCount">0</div><div class="stat-label">OPERANDO</div><div class="stat-percent" id="operationalPercent">0%</div></div>
-    <div class="stat-card" id="card-alert" onclick="filterByStatus('alert')"><div class="stat-number" id="maintenanceCount">0</div><div class="stat-label">MANUTENÇÃO</div><div class="stat-percent" id="maintenancePercent">0%</div></div>
-    <div class="stat-card" id="card-down" onclick="filterByStatus('down')"><div class="stat-number" id="downCount">0</div><div class="stat-label">PARADOS</div><div class="stat-percent" id="downPercent">0%</div></div>
-  </div>
+  STATUS_OS: {
+    ABERTA: 'Aberta',
+    INICIADA: 'Iniciada',
+    EM_EXECUCAO: 'Em execução',
+    PENDENTE: 'Pendente',
+    CONCLUIDA: 'Concluída',
+    CANCELADA: 'Cancelada',
+    CANCELAMENTO_SOLICITADO: 'Cancelamento solicitado',
+    REDISTRIBUICAO_SOLICITADA: 'Redistribuição solicitada'
+  },
 
-  <input type="text" class="search-box" id="searchInput" placeholder="🔍 Buscar por nome, código ou sistema..." onkeyup="applyFilters()">
+  STATUS_OPERACIONAL: {
+    OPERANDO: 'Operando',
+    MANUTENCAO_OPERANDO: 'Em manutenção, operando',
+    MANUTENCAO_PARADO: 'Em manutenção, parado',
+    EM_TESTE: 'Em teste',
+    PARADO: 'Parado'
+  },
 
-  <div class="main-actions">
-    <button class="action-btn primary" onclick="abrirPainelOS('abertas')">📋 OS Abertas <span id="totalOrdensAbertasHome">(0)</span></button>
-    <button class="action-btn" id="btnOrdensNaoIniciadasHome" onclick="abrirPainelOS('naoIniciadas')" style="display:none;">⏳ OS Não Iniciadas <span id="totalOrdensNaoIniciadasHome">(0)</span></button>
-    <button class="action-btn" id="btnOrdensIniciadasHome" onclick="abrirPainelOS('iniciadas')" style="display:none;">🛠️ OS Iniciadas <span id="totalOrdensIniciadasHome">(0)</span></button>
-    <button class="action-btn" id="btnOrdensEncerradasHome" onclick="abrirPainelOS('encerradas')" style="display:none;">✅ Ordens Encerradas <span id="totalOrdensEncerradasHome">(0)</span></button>
-    <button class="action-btn" id="btnPainelKPI" onclick="abrirPainelGerencial()" style="display:none;">📊 KPIs Industriais</button>
-    <button class="action-btn" onclick="atualizarAgora()">🔄 Atualizar agora</button>
-    <button class="action-btn" onclick="limparCacheOperacional()">🧹 Limpar cache</button>
-  </div>
+  PERFIS_GESTAO: ['administrador', 'gerente', 'supervisor', 'coordenador'],
+  SETORES_PATRIMONIO_OPCIONAL: ['Usinagem', 'Caldeiraria', 'Instalações Mecânicas'],
 
-  <div class="equipment-list" id="equipmentList"></div>
-  <div class="version"><span>GMAN 8.5.7.0</span> · <span id="syncText">sinc. pendente</span></div>
+  TIPOS_EVIDENCIA: {
+    FOTO: 'FOTO',
+    AUDIO: 'AUDIO'
+  },
 
-  <script>
-    'use strict';
-    const GMAN_VERSION = 'GMAN 8.5.7.0';
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec';
-    const STORAGE_USER = 'GMAN_8_5_7_0_USUARIO_LOGADO';
-    const SYSTEMS = [
-      {code:'all', label:'TODAS'}, {code:'100', label:'100 - Moinhos De Vento'}, {code:'200', label:'200 - São João'},
-      {code:'300', label:'300 - Menino Deus'}, {code:'400', label:'400 - Belém Novo'}, {code:'600', label:'600 - Ilhas'},
-      {code:'700', label:'700 - Tristeza'}, {code:'brutas', label:'BRUTAS'}
-    ];
-    let usuarioLogado = null;
-    let gestao = false;
-    let equipment = [];
-    let ordensServicoCache = [];
-    let currentSystem = 'all';
-    let currentStatus = 'all';
-    let busy = false;
+  MENSAGENS: {
+    ERRO_PADRAO: 'Não foi possível concluir a ação. Verifique os dados e tente novamente.',
+    SEM_PERMISSAO: 'Você não tem permissão para executar esta ação.',
+    OS_NAO_ENCONTRADA: 'OS não encontrada.',
+    EQUIPAMENTO_NAO_OFICIAL: 'Equipamento não encontrado na lista oficial.',
+    STATUS_SEM_OS: 'Não é permitido mudar o status operacional sem OS vinculada.',
+    DUPLICIDADE_OS: 'Não foi possível abrir esta OS porque já existe uma OS ativa para este equipamento e responsável.',
+    CAMPOS_OBRIGATORIOS: 'Preencha todos os campos obrigatórios antes de continuar.',
+    BLOQUEIO_OPERANDO: 'O equipamento não pode voltar para Operando porque ainda existe OS aberta, iniciada, em execução ou pendente vinculada a ele.',
+    EVIDENCIA_FOTO_LIMITE: 'Limite de 2 fotos por usuário dentro da OS atingido.',
+    EVIDENCIA_AUDIO_LIMITE: 'O áudio deve ter no máximo 60 segundos.',
+    EVIDENCIA_AUDIO_ORIGEM: 'O áudio precisa ser gravado na hora pelo botão do GMAN.',
+    EVIDENCIA_VIDEO_BLOQUEADO: 'Vídeo não é permitido como evidência no GMAN.'
+  }
+});
 
-    function norm(v){ return String(v ?? '').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim(); }
-    function esc(v){ return String(v ?? '').replace(/[&<>"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s])); }
-    function pct(n,total){ return !total ? '0%' : ((n/total)*100).toFixed(1).replace('.0','')+'%'; }
-    function setLoginErro(msg){ const el=document.getElementById('loginErro'); el.textContent=msg; el.style.display=msg?'block':'none'; }
-    function toast(msg){ alert(msg); }
+/* =========================
+ * ENTRADAS WEB
+ * ========================= */
 
-    async function api(action, data={}, method='POST'){
-      const payload = Object.assign({}, data, {action});
-      if(usuarioLogado && !payload.usuario) payload.usuario = usuarioLogado.LOGIN || usuarioLogado.login || usuarioLogado.NOME || usuarioLogado.nome;
-      const opts = method === 'GET' ? {} : {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload)};
-      const url = method === 'GET' ? API_URL + '?' + new URLSearchParams(payload).toString() : API_URL;
-      const res = await fetch(url, opts);
-      const txt = await res.text();
-      let json;
-      try { json = JSON.parse(txt); } catch(e) { throw new Error('Resposta da API não veio em JSON: ' + txt.slice(0,160)); }
-      if(!json.ok) throw new Error(json.mensagem || json.erro || 'Ação não concluída pela API.');
-      return json;
+function doGet(e) {
+  return responder_(rotear_(e, 'GET'));
+}
+
+function doPost(e) {
+  return responder_(rotear_(e, 'POST'));
+}
+
+function rotear_(e, metodo) {
+  const inicio = new Date();
+  const payload = normalizarPayload_(e, metodo);
+  const action = String(payload.action || payload.acao || '').trim();
+
+  try {
+    if (!action) {
+      return ok_({
+        mensagem: 'API GMAN online.',
+        versao: GMAN.VERSAO,
+        horarioBrasil: agoraBrasil_(),
+        acoesDisponiveis: acoesDisponiveis_()
+      });
     }
 
-    function renderSystemButtons(){
-      document.getElementById('systemsFilter').innerHTML = SYSTEMS.map(s=>`<button class="system-btn ${currentSystem===s.code?'active':''}" onclick="filterSystem('${s.code}')">${s.label}</button>`).join('');
-    }
+    switch (action) {
+      case 'ping':
+        return ok_({ mensagem: 'API GMAN online.', versao: GMAN.VERSAO, horarioBrasil: agoraBrasil_() });
 
-    function restaurarSessao(){
-      try { const saved = JSON.parse(localStorage.getItem(STORAGE_USER)||'null'); if(saved && saved.usuario){ usuarioLogado=saved.usuario; gestao=!!saved.gestao; return true; } } catch(e){}
-      return false;
-    }
-    function salvarSessao(){ localStorage.setItem(STORAGE_USER, JSON.stringify({usuario:usuarioLogado, gestao, hora:Date.now()})); }
+      case 'testeSaudeGMAN':
+      case 'healthCheck':
+        return ok_(testeSaudeGMAN(payload));
 
-    async function fazerLogin(){
-      const login = document.getElementById('loginUser').value.trim();
-      const senha = document.getElementById('loginPass').value.trim();
-      if(!login) return setLoginErro('Informe o usuário.');
-      if(!senha) return setLoginErro('Informe a senha.');
-      setLoginErro('');
-      try {
-        const r = await api('login', {login, senha});
-        usuarioLogado = r.usuario; gestao = !!r.gestao; salvarSessao(); entrarApp(); await iniciarSistema();
-      } catch(e) { setLoginErro(e.message); }
-    }
+      case 'auditoriaAlicerceGMAN':
+        return ok_(auditoriaAlicerceGMAN(payload));
 
-    function entrarApp(){
-      document.getElementById('loginScreen').style.display='none';
-      document.getElementById('btnOrdensNaoIniciadasHome').style.display = gestao ? '' : 'none';
-      document.getElementById('btnOrdensIniciadasHome').style.display = gestao ? '' : 'none';
-      document.getElementById('btnOrdensEncerradasHome').style.display = gestao ? '' : 'none';
-      document.getElementById('btnPainelKPI').style.display = gestao ? '' : 'none';
-    }
+      case 'autorizarGMAN':
+        return ok_(autorizarGMAN());
 
-    async function iniciarSistema(){ renderSystemButtons(); await atualizarAgora(); setInterval(()=>atualizarAgora(false), 120000); }
+      case 'prepararSenhasUsuariosGMAN':
+        return ok_(comLock_(() => prepararSenhasUsuariosGMAN()));
 
-    async function atualizarAgora(mostrar=true){
-      if(busy) return;
-      busy = true;
-      try {
-        const filtro = currentSystem === 'brutas' ? {brutas:'SIM'} : currentSystem !== 'all' ? {sistema:currentSystem} : {};
-        const [st, os] = await Promise.all([api('listarStatusAtual', filtro), api('listarOrdensServico', Object.assign({apenasAtivas:true}, filtro))]);
-        equipment = (st.status || []).map(normalizarEquipamento);
-        ordensServicoCache = os.ordens || [];
-        document.getElementById('syncText').textContent = 'sinc. ' + new Date().toLocaleTimeString('pt-BR');
-        atualizarTotalizadoresOS();
-        applyFilters();
-      } catch(e) { toast('Erro ao atualizar GMAN: ' + e.message); } finally { busy = false; }
-    }
+      case 'listarConfiguracoes':
+        return ok_(listarConfiguracoes(payload));
 
-    function normalizarEquipamento(r){
-      const statusOp = r.STATUS_OPERACIONAL || 'Operando';
-      const cat = categoriaStatus(statusOp);
-      return { id:r.ID_EQUIPAMENTO, name:r.NOME_EQUIPAMENTO_GRUPO || r.EQUIPAMENTO || r.ID_EQUIPAMENTO, local:r.LOCAL_ESTACAO || '', tipoLocal:r.TIPO_LOCAL || '', system:String(r.SISTEMA||''), brutas:String(r.FILTRO_BRUTAS||'').toUpperCase()==='SIM', status:cat, statusOperacional:statusOp, statusVisual:r.STATUS_VISUAL_GRUPO || '', justificativa:r.JUSTIFICATIVA_STATUS || '' };
-    }
-    function categoriaStatus(s){ const x=norm(s); if(x==='operando') return 'ok'; if(x.includes('parado') || x==='parado') return 'down'; return 'alert'; }
-    function labelStatus(e){ return e.statusOperacional || (e.status==='ok'?'Operando':e.status==='down'?'Parado':'Manutenção'); }
+      case 'listarListasValidacao':
+        return ok_(listarListasValidacao(payload));
 
-    function filterSystem(s){ currentSystem=s; renderSystemButtons(); atualizarAgora(false); }
-    function filterByStatus(s){ currentStatus = currentStatus===s ? 'all' : s; applyFilters(); }
-    function searchEquipment(){ applyFilters(); }
-    function applyFilters(){
-      const q = norm(document.getElementById('searchInput').value);
-      let list = equipment.slice();
-      if(currentStatus !== 'all') list = list.filter(e=>e.status===currentStatus);
-      if(q) list = list.filter(e=>norm([e.id,e.name,e.local,e.system,e.statusOperacional].join(' ')).includes(q));
-      renderStats(equipment); renderEquipment(list);
-    }
-    function renderStats(base){
-      const total = base.length; const ok=base.filter(e=>e.status==='ok').length; const alert=base.filter(e=>e.status==='alert').length; const down=base.filter(e=>e.status==='down').length;
-      document.getElementById('operationalCount').textContent=ok; document.getElementById('maintenanceCount').textContent=alert; document.getElementById('downCount').textContent=down;
-      document.getElementById('operationalPercent').textContent=pct(ok,total); document.getElementById('maintenancePercent').textContent=pct(alert,total); document.getElementById('downPercent').textContent=pct(down,total);
-    }
-    function renderEquipment(list){
-      const el=document.getElementById('equipmentList');
-      if(!list.length){ el.innerHTML='<div style="padding:18px;text-align:center;color:#a0c4e8;">Nenhum equipamento encontrado.</div>'; return; }
-      el.innerHTML = list.map(e=>`<div class="equipment-item" onclick="abrirDetalheGrupo('${esc(e.id)}')"><div class="status-icon status-${e.status}">${e.status==='ok'?'✓':e.status==='alert'?'!':'✕'}</div><div><div class="equipment-name">${esc(e.name)}</div><div class="equipment-system">${esc(e.local)} · ${esc(e.tipoLocal)} · Sistema ${esc(e.system)}${e.statusVisual?' · '+esc(e.statusVisual):''}</div><span class="system-tag tag-${esc(e.system)}">${esc(e.system)}${e.brutas?' · BRUTA':''}</span></div><span class="status-badge badge-${e.status}">${esc(labelStatus(e))}</span></div>`).join('');
-    }
+      case 'listarUsuarios':
+        return ok_(listarUsuarios(payload));
 
-    function atualizarTotalizadoresOS(){
-      const ativas = ordensServicoCache.filter(o=>!['CONCLUIDA','CANCELADA'].includes(norm(o.STATUS_OS).toUpperCase()));
-      const abertas = ordensServicoCache.filter(o=>norm(o.STATUS_OS)==='aberta').length;
-      const iniciadas = ordensServicoCache.filter(o=>['iniciada','em_execucao','em execucao'].includes(norm(o.STATUS_OS))).length;
-      const encerradas = ordensServicoCache.filter(o=>['concluida','cancelada'].includes(norm(o.STATUS_OS))).length;
-      document.getElementById('totalOrdensAbertasHome').textContent='('+ativas.length+')';
-      document.getElementById('totalOrdensNaoIniciadasHome').textContent='('+abertas+')';
-      document.getElementById('totalOrdensIniciadasHome').textContent='('+iniciadas+')';
-      document.getElementById('totalOrdensEncerradasHome').textContent='('+encerradas+')';
-    }
+      case 'login':
+        return ok_(login(payload));
 
-    function abrirModal(titulo, html){
-      fecharModal(); const wrap=document.createElement('div'); wrap.id='modalGMAN'; wrap.className='modalOverlay'; wrap.innerHTML=`<div class="modalCard"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px;"><h2>${esc(titulo)}</h2><button class="action-btn" onclick="fecharModal()">Fechar</button></div>${html}</div>`; document.body.appendChild(wrap);
-    }
-    function fecharModal(){ const m=document.getElementById('modalGMAN'); if(m) m.remove(); }
+      case 'listarEquipes':
+        return ok_(listarEquipes(payload));
 
-    function abrirDetalheGrupo(id){
-      const e = equipment.find(x=>x.id===id); if(!e) return toast('Grupo não encontrado.');
-      const html = `<p><strong>${esc(e.name)}</strong></p><p>${esc(e.local)} · ${esc(e.tipoLocal)} · Sistema ${esc(e.system)}</p><p>Status: <strong>${esc(labelStatus(e))}</strong></p><p>${esc(e.justificativa||'')}</p><div class="main-actions"><button class="action-btn primary" onclick="abrirModalCriarOS('${esc(e.id)}')">Abrir OS</button><button class="action-btn" onclick="abrirPainelOS('grupo:${esc(e.id)}')">Ver OS do grupo</button><button class="action-btn" onclick="abrirHistorico('${esc(e.id)}')">Histórico</button></div>`;
-      abrirModal('Grupo / equipamento', html);
-    }
+      case 'listarEquipamentos':
+        return ok_(listarEquipamentos(payload));
 
-    function opcoesUsuarios(){ return '<option value="">Selecione</option>' + (window.gmanUsuarios||[]).map(u=>`<option value="${esc(u.NOME||u.nome||u.LOGIN)}">${esc(u.NOME||u.nome||u.LOGIN)} — ${esc(u.PERFIL||u.perfil||'')}</option>`).join(''); }
-    async function carregarUsuariosSePreciso(){ if(window.gmanUsuarios) return; const r=await api('listarUsuarios',{}); window.gmanUsuarios=r.usuarios||[]; }
-    async function abrirModalCriarOS(id){
-      if(!gestao) return toast('Abertura de OS é permitida apenas para gestão.');
-      await carregarUsuariosSePreciso(); const e=equipment.find(x=>x.id===id) || equipment[0]; if(!e) return toast('Nenhum equipamento carregado.');
-      const html = `<label class="form-label">Equipamento</label><input class="form-field" id="osIdEquip" value="${esc(e.id)}" readonly><label class="form-label">Grupo/local</label><input class="form-field" value="${esc(e.name)} · ${esc(e.local)}" readonly><label class="form-label">Setor/equipe</label><select class="form-field" id="osSetor"><option>Mecânica</option><option>Elétrica</option><option>Automação</option><option>Usinagem</option><option>Caldeiraria</option><option>Instalações Mecânicas</option></select><label class="form-label">Responsável/executante</label><select class="form-field" id="osResp">${opcoesUsuarios()}</select><label class="form-label">Tipo OS</label><select class="form-field" id="osTipo"><option>Corretiva</option><option>Preventiva</option><option>Inspeção</option><option>Melhoria</option><option>Apoio</option></select><label class="form-label">Criticidade</label><select class="form-field" id="osCrit"><option>Normal</option><option>Atenção</option><option>Crítico</option></select><label class="form-label">Descrição da solicitação</label><textarea class="form-field" id="osDesc" placeholder="Descreva a solicitação"></textarea><div class="main-actions"><button class="action-btn success" onclick="criarOS()">Criar OS</button><button class="action-btn" onclick="fecharModal()">Cancelar</button></div>`;
-      abrirModal('Abrir Ordem de Serviço', html);
-    }
-    async function criarOS(){
-      try {
-        const payload={idEquipamento:document.getElementById('osIdEquip').value,setorEquipe:document.getElementById('osSetor').value,responsavel:document.getElementById('osResp').value,tipoOs:document.getElementById('osTipo').value,criticidade:document.getElementById('osCrit').value,descricaoSolicitacao:document.getElementById('osDesc').value.trim()};
-        if(!payload.responsavel || !payload.descricaoSolicitacao) return toast('Preencha responsável e descrição.');
-        const r=await api('criarOS',payload); toast('OS criada: '+(r.numeroOs||r.numeroOS)); fecharModal(); await atualizarAgora(false);
-      } catch(e) { toast('Erro ao criar OS: '+e.message); }
-    }
+      case 'listarStatus':
+      case 'listarStatusAtual':
+        return ok_(listarStatusAtual(payload));
 
-    function classeOS(s){ const x=norm(s); if(x==='pendente') return 'os-pendente'; if(x.includes('concluida')) return 'os-concluida'; if(x.includes('cancelada')) return 'os-cancelada'; if(x.includes('iniciada')||x.includes('execucao')) return 'os-iniciada'; return 'os-aberta'; }
-    function filtrarOS(modo){
-      let rows=ordensServicoCache.slice();
-      if(modo && modo.startsWith('grupo:')) rows=rows.filter(o=>norm(o.ID_EQUIPAMENTO)===norm(modo.replace('grupo:','')));
-      else if(modo==='naoIniciadas') rows=rows.filter(o=>norm(o.STATUS_OS)==='aberta');
-      else if(modo==='iniciadas') rows=rows.filter(o=>['iniciada','em_execucao','em execucao'].includes(norm(o.STATUS_OS)));
-      else if(modo==='encerradas') rows=rows.filter(o=>['concluida','cancelada'].includes(norm(o.STATUS_OS)));
-      else rows=rows.filter(o=>!['concluida','cancelada'].includes(norm(o.STATUS_OS)));
-      return rows;
-    }
-    function abrirPainelOS(modo='abertas'){
-      const rows=filtrarOS(modo); const title=modo==='encerradas'?'Ordens Encerradas':modo==='naoIniciadas'?'OS Não Iniciadas':modo==='iniciadas'?'OS Iniciadas':modo.startsWith('grupo:')?'OS do Grupo':'OS Abertas';
-      const html = rows.length ? rows.map(o=>`<div class="os-card"><h4>${esc(o.NUMERO_OS||o.ID_OS)} — ${esc(o.NOME_EQUIPAMENTO_GRUPO||o.ID_EQUIPAMENTO)}</h4><span class="os-badge ${classeOS(o.STATUS_OS)}">${esc(o.STATUS_OS||'Sem status')}</span><p><strong>Setor:</strong> ${esc(o.SETOR_EQUIPE||'-')} | <strong>Responsável:</strong> ${esc(o.RESPONSAVEL||'-')}</p><p><strong>Solicitação:</strong> ${esc(o.DESCRICAO_SOLICITACAO||'-')}</p><div class="main-actions">${botoesOS(o)}</div></div>`).join('') : '<p>Nenhuma OS encontrada.</p>';
-      abrirModal(title, html);
-    }
-    function botoesOS(o){
-      const st=norm(o.STATUS_OS); const id=esc(o.ID_OS);
-      if(['concluida','cancelada'].includes(st)) return '<span style="color:#2f855a;font-weight:700;">Somente consulta</span>';
-      let b=`<button class="action-btn" onclick="abrirDetalheOS('${id}')">Detalhes</button>`;
-      if(st==='aberta') b += `<button class="action-btn warn" onclick="abrirIniciarOS('${id}')">Iniciar</button>`;
-      if(['iniciada','em_execucao','em execucao'].includes(st)) b += `<button class="action-btn" onclick="abrirAndamentoOS('${id}')">Andamento</button><button class="action-btn warn" onclick="abrirPendenteOS('${id}')">Pendente</button><button class="action-btn success" onclick="abrirConcluirOS('${id}')">Concluir</button>`;
-      if(st==='pendente') b += `<button class="action-btn" onclick="abrirAndamentoOS('${id}')">Resolver/Andamento</button><span style="color:#744210;font-weight:700;">Conclusão bloqueada enquanto pendente</span>`;
-      return b;
-    }
-    function osById(id){ return ordensServicoCache.find(o=>o.ID_OS===id); }
-    function abrirDetalheOS(id){ const o=osById(id); if(!o)return; abrirModal('Detalhes da OS', `<pre style="white-space:pre-wrap;background:#f7fafc;padding:12px;border-radius:12px;color:#1a202c;">${esc(JSON.stringify(o,null,2))}</pre>`); }
-    function abrirIniciarOS(id){ abrirModal('Iniciar OS', `<label class="form-label">Condição operacional atual</label><select class="form-field" id="iniCond"><option>Operando</option><option>Em manutenção, operando</option><option>Em manutenção, parado</option><option>Em teste</option><option>Parado</option></select><label class="form-label">Justificativa</label><textarea class="form-field" id="iniJust"></textarea><button class="action-btn success" onclick="iniciarOS('${esc(id)}')">Iniciar</button>`); }
-    async function iniciarOS(id){ try{ await api('iniciarOS',{idOs:id,condicaoOperacional:document.getElementById('iniCond').value,justificativa:document.getElementById('iniJust').value.trim()}); toast('OS iniciada.'); fecharModal(); await atualizarAgora(false); }catch(e){toast(e.message)} }
-    function abrirAndamentoOS(id){ abrirModal('Atualizar andamento', `<label class="form-label">Condição operacional</label><select class="form-field" id="andCond"><option value="">Não alterar</option><option>Em manutenção, operando</option><option>Em manutenção, parado</option><option>Em teste</option><option>Parado</option><option>Operando</option></select><label class="form-label">Andamento/observação</label><textarea class="form-field" id="andObs"></textarea><button class="action-btn success" onclick="salvarAndamentoOS('${esc(id)}')">Salvar andamento</button>`); }
-    async function salvarAndamentoOS(id){ try{ await api('atualizarAndamentoOS',{idOs:id,condicaoOperacional:document.getElementById('andCond').value,observacao:document.getElementById('andObs').value.trim()}); toast('Andamento salvo.'); fecharModal(); await atualizarAgora(false); }catch(e){toast(e.message)} }
-    function abrirPendenteOS(id){ abrirModal('Marcar pendente', `<label class="form-label">Motivo da pendência</label><input class="form-field" id="penMotivo"><label class="form-label">Observação</label><textarea class="form-field" id="penObs"></textarea><button class="action-btn warn" onclick="marcarPendenteOS('${esc(id)}')">Marcar pendente</button>`); }
-    async function marcarPendenteOS(id){ try{ await api('marcarPendenteOS',{idOs:id,motivo:document.getElementById('penMotivo').value.trim(),observacao:document.getElementById('penObs').value.trim()}); toast('OS pendente.'); fecharModal(); await atualizarAgora(false); }catch(e){toast(e.message)} }
-    function abrirConcluirOS(id){ const o=osById(id); if(norm(o.STATUS_OS)==='pendente') return toast('OS pendente não pode ser concluída diretamente.'); abrirModal('Concluir OS', `<label class="form-label">Serviço realizado</label><textarea class="form-field" id="conServ"></textarea><label class="form-label">Materiais utilizados</label><input class="form-field" id="conMat" placeholder="Ex.: Não utilizado"><label class="form-label">Condição final</label><select class="form-field" id="conFinal"><option>Operando</option></select><label class="form-label">Justificativa da condição final</label><textarea class="form-field" id="conJust"></textarea><label class="form-label">Observação final</label><textarea class="form-field" id="conObs"></textarea><label class="form-label">Membros da equipe</label><input class="form-field" id="conMembros"><label style="display:flex;gap:8px;align-items:center;color:#1a202c;margin:8px 0;"><input type="checkbox" id="conSemVeic" checked style="width:auto;"> Sem uso de veículo</label><button class="action-btn success" onclick="concluirOS('${esc(id)}')">Concluir OS</button>`); }
-    async function concluirOS(id){ try{ await api('concluirOS',{idOs:id,servicoRealizado:document.getElementById('conServ').value.trim(),materiaisUtilizados:document.getElementById('conMat').value.trim(),condicaoOperacionalFinal:document.getElementById('conFinal').value,justificativaCondicaoFinal:document.getElementById('conJust').value.trim(),observacaoFinal:document.getElementById('conObs').value.trim(),membrosEquipe:document.getElementById('conMembros').value.trim(),semUsoVeiculo:document.getElementById('conSemVeic').checked?'SIM':'NÃO'}); toast('OS concluída.'); fecharModal(); await atualizarAgora(false); }catch(e){toast(e.message)} }
+      case 'listarOS':
+      case 'listarOrdensServico':
+        return ok_(listarOrdensServico(payload));
 
-    async function abrirHistorico(id){ try{ const r=await api('historicoEquipamento',{idEquipamento:id}); const html=(r.historico||[]).map(h=>`<div class="os-card"><p><strong>${esc(h.ACAO)}</strong> · ${esc(h.DATA_HORA_BRASIL)}</p><p>${esc(h.DESCRICAO||'')}</p><p>Usuário: ${esc(h.USUARIO||'-')}</p></div>`).join('') || '<p>Sem histórico.</p>'; abrirModal('Histórico do grupo', html); }catch(e){toast(e.message)} }
-    async function abrirPainelGerencial(){ if(!gestao) return; try{ const r=await api('calcularKPIs',{}); abrirModal('KPIs Industriais', `<pre style="white-space:pre-wrap;background:#f7fafc;padding:12px;border-radius:12px;color:#1a202c;">${esc(JSON.stringify(r,null,2))}</pre>`); }catch(e){toast(e.message)} }
-    function limparCacheOperacional(){ const sess=localStorage.getItem(STORAGE_USER); Object.keys(localStorage).filter(k=>k.startsWith('GMAN_') && k!==STORAGE_USER).forEach(k=>localStorage.removeItem(k)); if(sess)localStorage.setItem(STORAGE_USER,sess); toast('Cache operacional limpo. Login preservado.'); atualizarAgora(false); }
+      case 'criarOS':
+        return ok_(comLock_(() => criarOS(payload)));
 
-    window.addEventListener('load', async()=>{ renderSystemButtons(); if(restaurarSessao()){ entrarApp(); await iniciarSistema(); } });
-  </script>
-</body>
-</html>
+      case 'iniciarOS':
+        return ok_(comLock_(() => iniciarOS(payload)));
+
+      case 'atualizarAndamentoOS':
+        return ok_(comLock_(() => atualizarAndamentoOS(payload)));
+
+      case 'marcarPendenteOS':
+        return ok_(comLock_(() => marcarPendenteOS(payload)));
+
+      case 'solicitarCancelamentoOS':
+        return ok_(comLock_(() => solicitarCancelamentoOS(payload)));
+
+      case 'aprovarCancelamentoOS':
+        return ok_(comLock_(() => aprovarCancelamentoOS(payload)));
+
+      case 'solicitarRedistribuicaoOS':
+        return ok_(comLock_(() => solicitarRedistribuicaoOS(payload)));
+
+      case 'aprovarRedistribuicaoOS':
+        return ok_(comLock_(() => aprovarRedistribuicaoOS(payload)));
+
+      case 'concluirOS':
+        return ok_(comLock_(() => concluirOS(payload)));
+
+      case 'anexarEvidencia':
+        return ok_(comLock_(() => anexarEvidencia(payload)));
+
+      case 'registrarFichaTecnica':
+        return ok_(comLock_(() => registrarFichaTecnica(payload)));
+
+      case 'confirmarPatrimonio':
+        return ok_(comLock_(() => confirmarPatrimonio(payload)));
+
+      case 'historicoEquipamento':
+        return ok_(historicoEquipamento(payload));
+
+      case 'calcularKPIs':
+        return ok_(calcularKPIs(payload));
+
+      case 'salvarSnapshotKPIs':
+        return ok_(comLock_(() => salvarSnapshotKPIs(payload)));
+
+      case 'listarCargaOperacional':
+        return ok_(listarCargaOperacional(payload));
+
+      case 'listarReincidencia':
+        return ok_(listarReincidencia(payload));
+
+      default:
+        throw erroUsuario_('Ação não reconhecida pela API GMAN: ' + action, 'ACAO_DESCONHECIDA');
+    }
+  } catch (err) {
+    const tempoMs = new Date().getTime() - inicio.getTime();
+    registrarAuditoriaSegura_({
+      usuario: payload.usuario || payload.login || '',
+      perfil: '',
+      acao: action || 'acao_indefinida',
+      aba: '',
+      idRegistro: '',
+      campo: '',
+      anterior: '',
+      novo: '',
+      justificativa: '',
+      resultado: 'ERRO',
+      erroTecnico: erroParaTexto_(err),
+      origem: 'API_' + metodo + '_' + tempoMs + 'ms'
+    });
+
+    return {
+      ok: false,
+      mensagem: err && err.userMessage ? err.userMessage : GMAN.MENSAGENS.ERRO_PADRAO,
+      codigo: err && err.code ? err.code : 'ERRO_GMAN',
+      versao: GMAN.VERSAO,
+      horarioBrasil: agoraBrasil_(),
+      erroTecnico: payload.debug === true || payload.debug === 'SIM' ? erroParaTexto_(err) : undefined
+    };
+  }
+}
+
+/* =========================
+ * AÇÕES PÚBLICAS
+ * ========================= */
+
+function autorizarGMAN() {
+  const ss = getSpreadsheet_();
+  const nomes = Object.values(GMAN.SHEETS);
+  const existentes = ss.getSheets().map(s => s.getName());
+  const pasta = getOrCreateEvidenceFolder_();
+  return {
+    mensagem: 'Autorização concluída. Planilha e pasta de evidências acessíveis.',
+    planilha: ss.getName(),
+    pastaEvidencias: pasta.getName(),
+    pastaEvidenciasId: pasta.getId(),
+    abasEncontradas: existentes.filter(n => nomes.indexOf(n) !== -1).length,
+    abasObrigatorias: nomes.length,
+    horarioBrasil: agoraBrasil_(),
+    versao: GMAN.VERSAO
+  };
+}
+
+
+function prepararSenhasUsuariosGMAN() {
+  const ss = getSpreadsheet_();
+  const sh = ss.getSheetByName(GMAN.SHEETS.USUARIOS);
+  if (!sh) throw erroUsuario_('Aba USUARIOS não encontrada.', 'ABA_USUARIOS_AUSENTE');
+
+  let lastCol = sh.getLastColumn();
+  let headers = sh.getRange(1, 1, 1, lastCol).getValues()[0].map(h => String(h || '').trim());
+
+  function ensureHeader_(nome) {
+    let idx = headers.findIndex(h => canon_(h) === canon_(nome));
+    if (idx >= 0) return idx + 1;
+    lastCol += 1;
+    sh.getRange(1, lastCol).setValue(nome);
+    headers.push(nome);
+    return lastCol;
+  }
+
+  const colSenha = ensureHeader_('SENHA_ACESSO');
+  const colTrocar = ensureHeader_('TROCAR_SENHA');
+  const colData = ensureHeader_('DATA_SENHA');
+  const colObs = ensureHeader_('OBS_SEGURANCA');
+
+  const lastRow = sh.getLastRow();
+  if (lastRow < 2) {
+    return {
+      mensagem: 'Aba USUARIOS não possui usuários para preparar senha.',
+      usuariosAtivos: 0,
+      senhasCriadas: 0,
+      versao: GMAN.VERSAO,
+      horarioBrasil: agoraBrasil_()
+    };
+  }
+
+  const values = sh.getRange(2, 1, lastRow - 1, sh.getLastColumn()).getValues();
+  const idxAtivo = headers.findIndex(h => canon_(h) === canon_('ATIVO'));
+  const idxSenha = colSenha - 1;
+  const hoje = agoraBrasil_();
+  let ativos = 0;
+  let criadas = 0;
+
+  values.forEach((row, i) => {
+    const ativo = idxAtivo >= 0 ? ativo_(row[idxAtivo]) : true;
+    if (!ativo) return;
+    ativos += 1;
+    if (!valor_(row[idxSenha])) {
+      sh.getRange(i + 2, colSenha).setValue('gman2026');
+      sh.getRange(i + 2, colTrocar).setValue('SIM');
+      sh.getRange(i + 2, colData).setValue(hoje);
+      sh.getRange(i + 2, colObs).setValue('Senha temporária inicial criada pela função prepararSenhasUsuariosGMAN. Trocar individualmente após implantação.');
+      criadas += 1;
+    }
+  });
+
+  registrarAuditoriaSegura_({
+    usuario: 'SISTEMA', perfil: 'sistema', acao: 'prepararSenhasUsuariosGMAN', aba: GMAN.SHEETS.USUARIOS,
+    idRegistro: '', campo: 'SENHA_ACESSO', anterior: '', novo: criadas + ' senhas temporárias criadas',
+    justificativa: 'Ativação de login com senha no GMAN 8.5.6.44.', resultado: 'OK', erroTecnico: '', origem: 'AppsScript'
+  });
+
+  return {
+    mensagem: 'Senhas de acesso preparadas com sucesso.',
+    senhaTemporariaInicial: 'gman2026',
+    usuariosAtivos: ativos,
+    senhasCriadas: criadas,
+    observacao: 'A senha inicial oficial é gman2026. Trocar posteriormente na coluna SENHA_ACESSO da aba USUARIOS.',
+    versao: GMAN.VERSAO,
+    horarioBrasil: agoraBrasil_()
+  };
+}
+
+function testeSaudeGMAN(payload) {
+  const ss = getSpreadsheet_();
+  const resultado = [];
+  const nomes = Object.values(GMAN.SHEETS);
+  const existentes = ss.getSheets().map(s => s.getName());
+
+  nomes.forEach(nome => {
+    resultado.push({
+      item: 'ABA_' + nome,
+      status: existentes.indexOf(nome) >= 0 ? 'OK' : 'FALHA',
+      detalhe: existentes.indexOf(nome) >= 0 ? 'Aba encontrada' : 'Aba obrigatória ausente'
+    });
+  });
+
+  const equipamentos = readTable_(GMAN.SHEETS.EQUIPAMENTOS).rows.filter(r => ativo_(r.ATIVO));
+  const status = readTable_(GMAN.SHEETS.STATUS).rows.filter(r => valor_(r.ID_EQUIPAMENTO));
+  const usuarios = readTable_(GMAN.SHEETS.USUARIOS).rows.filter(r => ativo_(r.ATIVO));
+  const equipes = readTable_(GMAN.SHEETS.EQUIPES).rows.filter(r => ativo_(r.ATIVO));
+  const os = readTable_(GMAN.SHEETS.OS).rows;
+  const configuracoes = readTable_(GMAN.SHEETS.CONFIG).rows;
+  const listas = readTable_(GMAN.SHEETS.LISTAS).rows;
+
+  const idsEquip = new Set(equipamentos.map(r => canon_(r.ID_EQUIPAMENTO)));
+  const statusSemEquip = status.filter(r => !idsEquip.has(canon_(r.ID_EQUIPAMENTO)));
+  const sistemasPermitidos = ['100', '200', '300', '400', '600', '700'];
+  const prefixosBrutas = ['101', '201', '301', '401', '601', '701'];
+
+  const equipamentosSistemaInvalido = equipamentos.filter(r => sistemasPermitidos.indexOf(String(r.SISTEMA || '').trim()) < 0);
+  const equipamentosSistema500 = equipamentos.filter(r => String(r.SISTEMA || '').trim() === '500');
+  const equipamentosLocalVazio = equipamentos.filter(r => !valor_(r.LOCAL_ESTACAO));
+  const equipamentosNomeVazio = equipamentos.filter(r => !valor_(r.NOME_EQUIPAMENTO_GRUPO));
+  const equipamentosTipoLocalVazio = equipamentos.filter(r => !valor_(r.TIPO_LOCAL));
+  const equipamentosBrutasErradas = equipamentos.filter(r => {
+    const id = String(r.ID_EQUIPAMENTO || '').trim();
+    const deveSerBruta = prefixosBrutas.indexOf(id.substring(0, 3)) >= 0;
+    return ativo_(r.FILTRO_BRUTAS) !== deveSerBruta;
+  });
+  const configCom500 = configuracoes.filter(r => canon_(Object.values(r).join(' ')).indexOf('500') >= 0);
+  const listasCom500 = listas.filter(r => canon_(Object.values(r).join(' ')).indexOf('500') >= 0);
+
+  resultado.push({ item: 'API_ONLINE', status: 'OK', detalhe: 'doGet/doPost operacional' });
+  resultado.push({ item: 'PLANILHA_ACESSIVEL', status: 'OK', detalhe: ss.getName() });
+  resultado.push({ item: 'FUSO_HORARIO_BRASIL', status: 'OK', detalhe: agoraBrasil_() });
+  try {
+    const pastaEvidencias = getOrCreateEvidenceFolder_();
+    resultado.push({ item: 'DRIVE_EVIDENCIAS', status: 'OK', detalhe: pastaEvidencias.getName() + ' | ' + pastaEvidencias.getId() });
+  } catch (errDrive) {
+    resultado.push({ item: 'DRIVE_EVIDENCIAS', status: 'FALHA', detalhe: erroParaTexto_(errDrive) });
+  }
+
+  resultado.push({ item: 'EQUIPAMENTOS_OFICIAIS', status: equipamentos.length === 214 ? 'OK' : 'FALHA', detalhe: equipamentos.length + ' equipamentos ativos; esperado: 214' });
+  resultado.push({ item: 'STATUS_ATUAL', status: (status.length === equipamentos.length && statusSemEquip.length === 0) ? 'OK' : 'FALHA', detalhe: status.length + ' status; ' + statusSemEquip.length + ' sem equipamento oficial; esperado: ' + equipamentos.length });
+  resultado.push({ item: 'SISTEMAS_OFICIAIS', status: equipamentosSistemaInvalido.length === 0 ? 'OK' : 'FALHA', detalhe: sistemasPermitidos.join(', ') + ' | inválidos: ' + equipamentosSistemaInvalido.length });
+  resultado.push({ item: 'SISTEMA_500_ZERADO', status: equipamentosSistema500.length === 0 ? 'OK' : 'FALHA', detalhe: equipamentosSistema500.length + ' equipamentos no sistema 500' });
+  resultado.push({ item: 'BRUTAS_FILTRO_OK', status: equipamentosBrutasErradas.length === 0 ? 'OK' : 'FALHA', detalhe: equipamentosBrutasErradas.length + ' equipamentos com FILTRO_BRUTAS incorreto' });
+  resultado.push({ item: 'LOCAL_ESTACAO_PREENCHIDO', status: equipamentosLocalVazio.length === 0 ? 'OK' : 'FALHA', detalhe: equipamentosLocalVazio.length + ' equipamentos sem LOCAL_ESTACAO' });
+  resultado.push({ item: 'NOME_EQUIPAMENTO_GRUPO_PREENCHIDO', status: equipamentosNomeVazio.length === 0 ? 'OK' : 'FALHA', detalhe: equipamentosNomeVazio.length + ' equipamentos sem NOME_EQUIPAMENTO_GRUPO' });
+  resultado.push({ item: 'TIPO_LOCAL_PREENCHIDO', status: equipamentosTipoLocalVazio.length === 0 ? 'OK' : 'FALHA', detalhe: equipamentosTipoLocalVazio.length + ' equipamentos sem TIPO_LOCAL' });
+  resultado.push({ item: 'CONFIGURACOES_SEM_SISTEMA_500', status: configCom500.length === 0 ? 'OK' : 'FALHA', detalhe: configCom500.length + ' registros citando 500' });
+  resultado.push({ item: 'LISTAS_VALIDACAO_SEM_SISTEMA_500', status: listasCom500.length === 0 ? 'OK' : 'FALHA', detalhe: listasCom500.length + ' registros citando 500' });
+  resultado.push({ item: 'USUARIOS', status: usuarios.length > 0 ? 'OK' : 'ATENCAO', detalhe: usuarios.length + ' usuários ativos' });
+  const usuariosSemSenha = usuarios.filter(u => !valor_(u.SENHA_ACESSO || u.SENHA || u.PIN));
+  resultado.push({ item: 'SENHAS_USUARIOS', status: usuariosSemSenha.length === 0 ? 'OK' : 'FALHA', detalhe: (usuarios.length - usuariosSemSenha.length) + ' usuários com senha; ' + usuariosSemSenha.length + ' sem senha' });
+  resultado.push({ item: 'EQUIPES', status: equipes.length >= 6 ? 'OK' : 'ATENCAO', detalhe: equipes.length + ' equipes ativas' });
+  resultado.push({ item: 'ORDENS_SERVICO', status: 'OK', detalhe: os.filter(r => valor_(r.ID_OS)).length + ' registros com ID_OS' });
+  resultado.push({ item: 'VERSAO', status: 'OK', detalhe: GMAN.VERSAO });
+
+  gravarTesteSaude_(resultado);
+
+  const falhas = resultado.filter(r => r.status === 'FALHA').length;
+  const alertas = resultado.filter(r => r.status === 'ATENCAO').length;
+
+  return {
+    mensagem: falhas === 0 ? 'Teste de saúde concluído.' : 'Teste de saúde encontrou falhas.',
+    statusGeral: falhas === 0 ? 'OK' : 'FALHA',
+    falhas,
+    alertas,
+    planilha: ss.getName(),
+    horarioBrasil: agoraBrasil_(),
+    versao: GMAN.VERSAO,
+    resultado
+  };
+}
+
+function auditoriaAlicerceGMAN(payload) {
+  const saude = testeSaudeGMAN(payload || {});
+  const itensAlicerce = [
+    'EQUIPAMENTOS_OFICIAIS',
+    'STATUS_ATUAL',
+    'SISTEMAS_OFICIAIS',
+    'SISTEMA_500_ZERADO',
+    'BRUTAS_FILTRO_OK',
+    'LOCAL_ESTACAO_PREENCHIDO',
+    'NOME_EQUIPAMENTO_GRUPO_PREENCHIDO',
+    'TIPO_LOCAL_PREENCHIDO',
+    'CONFIGURACOES_SEM_SISTEMA_500',
+    'LISTAS_VALIDACAO_SEM_SISTEMA_500',
+    'SENHAS_USUARIOS',
+    'DRIVE_EVIDENCIAS'
+  ];
+  return {
+    mensagem: 'Auditoria de alicerce concluída.',
+    statusGeral: saude.statusGeral,
+    falhas: saude.falhas,
+    alertas: saude.alertas,
+    versao: GMAN.VERSAO,
+    horarioBrasil: agoraBrasil_(),
+    resultado: saude.resultado.filter(r => itensAlicerce.indexOf(r.item) >= 0)
+  };
+}
+
+function listarConfiguracoes(payload) {
+  return {
+    configuracoes: readTable_(GMAN.SHEETS.CONFIG).rows.filter(r => ativo_(r.ATIVO)),
+    versao: GMAN.VERSAO,
+    horarioBrasil: agoraBrasil_()
+  };
+}
+
+function listarListasValidacao(payload) {
+  const tipo = payload.tipoLista || payload.tipo || '';
+  let rows = readTable_(GMAN.SHEETS.LISTAS).rows.filter(r => ativo_(r.ATIVO));
+  if (tipo) rows = rows.filter(r => canon_(r.TIPO_LISTA) === canon_(tipo));
+  rows.sort((a, b) => numero_(a.ORDEM) - numero_(b.ORDEM));
+  return { listas: rows, total: rows.length };
+}
+
+function listarUsuarios(payload) {
+  const rows = readTable_(GMAN.SHEETS.USUARIOS).rows.filter(r => ativo_(r.ATIVO));
+  return { usuarios: rows, total: rows.length };
+}
+
+function login(payload) {
+  const loginRaw = payload.login || payload.usuario || payload.nome || '';
+  const senhaRaw = payload.senha || payload.password || payload.senhaAcesso || '';
+  const loginCanon = canon_(loginRaw);
+  if (!loginCanon) throw erroUsuario_('Informe o login para acessar o GMAN.', 'LOGIN_OBRIGATORIO');
+  if (!valor_(senhaRaw)) throw erroUsuario_('Informe a senha para acessar o GMAN.', 'SENHA_OBRIGATORIA');
+
+  const usuarios = readTable_(GMAN.SHEETS.USUARIOS).rows.filter(r => ativo_(r.ATIVO));
+  const usuario = usuarios.find(u =>
+    canon_(u.LOGIN) === loginCanon ||
+    canon_(u.NOME) === loginCanon ||
+    canon_(u.NOME_CANONICO) === loginCanon ||
+    canon_(u.ID_USUARIO) === loginCanon
+  );
+
+  if (!usuario) {
+    throw erroUsuario_('Usuário não encontrado ou inativo no GMAN.', 'USUARIO_NAO_ENCONTRADO');
+  }
+
+  const senhaEsperada = String(usuario.SENHA_ACESSO || usuario.SENHA || usuario.PIN || '').trim();
+  if (!senhaEsperada) {
+    throw erroUsuario_('Usuário ainda está sem senha cadastrada. Execute prepararSenhasUsuariosGMAN ou preencha SENHA_ACESSO na aba USUARIOS.', 'USUARIO_SEM_SENHA');
+  }
+
+  if (String(senhaRaw).trim() !== senhaEsperada) {
+    registrarAuditoriaSegura_({
+      usuario: loginRaw, perfil: '', acao: 'login', aba: GMAN.SHEETS.USUARIOS,
+      idRegistro: usuario.ID_USUARIO || '', campo: 'SENHA_ACESSO', anterior: '', novo: '',
+      justificativa: 'Tentativa de login com senha incorreta.', resultado: 'BLOQUEADO', erroTecnico: '', origem: 'Login'
+    });
+    throw erroUsuario_('Senha incorreta para este usuário.', 'SENHA_INCORRETA');
+  }
+
+  registrarAuditoriaSegura_({
+    usuario: usuario.LOGIN || usuario.NOME || loginRaw, perfil: usuario.PERFIL || '', acao: 'login', aba: GMAN.SHEETS.USUARIOS,
+    idRegistro: usuario.ID_USUARIO || '', campo: 'ACESSO', anterior: '', novo: 'LOGIN_VALIDADO',
+    justificativa: 'Acesso validado com login e senha.', resultado: 'OK', erroTecnico: '', origem: 'Login'
+  });
+
+  return {
+    usuario: sanitizarUsuario_(usuario),
+    gestao: isGestao_(usuario),
+    permissoes: permissoesUsuario_(usuario),
+    trocarSenha: canon_(usuario.TROCAR_SENHA) === 'sim',
+    mensagem: 'Login validado com senha.',
+    versao: GMAN.VERSAO,
+    horarioBrasil: agoraBrasil_()
+  };
+}
+
+function listarEquipes(payload) {
+  const rows = readTable_(GMAN.SHEETS.EQUIPES).rows.filter(r => ativo_(r.ATIVO));
+  return { equipes: rows, total: rows.length };
+}
+
+function listarEquipamentos(payload) {
+  const filtros = payload || {};
+  let rows = readTable_(GMAN.SHEETS.EQUIPAMENTOS).rows.filter(r => ativo_(r.ATIVO));
+
+  if (filtros.sistema) rows = rows.filter(r => canon_(r.SISTEMA) === canon_(filtros.sistema));
+  if (filtros.tipoLocal) rows = rows.filter(r => canon_(r.TIPO_LOCAL) === canon_(filtros.tipoLocal));
+  if (filtros.brutas === true || filtros.brutas === 'SIM') rows = rows.filter(r => ativo_(r.FILTRO_BRUTAS));
+  if (filtros.busca) {
+    const q = canon_(filtros.busca);
+    rows = rows.filter(r => canon_(Object.values(r).join(' ')).indexOf(q) >= 0);
+  }
+
+  return { equipamentos: rows, total: rows.length };
+}
+
+function listarStatusAtual(payload) {
+  const filtros = payload || {};
+  const equipamentos = indexBy_(readTable_(GMAN.SHEETS.EQUIPAMENTOS).rows.filter(r => ativo_(r.ATIVO)), 'ID_EQUIPAMENTO');
+  let rows = readTable_(GMAN.SHEETS.STATUS).rows
+    .filter(r => valor_(r.ID_EQUIPAMENTO))
+    .map(r => enriquecerStatusComEquipamento_(r, equipamentos[canon_(r.ID_EQUIPAMENTO)]));
+
+  if (filtros.idEquipamento) rows = rows.filter(r => canon_(r.ID_EQUIPAMENTO) === canon_(filtros.idEquipamento));
+  if (filtros.statusOperacional) rows = rows.filter(r => canon_(r.STATUS_OPERACIONAL) === canon_(filtros.statusOperacional));
+  if (filtros.sistema) rows = rows.filter(r => canon_(r.SISTEMA) === canon_(filtros.sistema));
+  if (filtros.tipoLocal) rows = rows.filter(r => canon_(r.TIPO_LOCAL) === canon_(filtros.tipoLocal));
+  if (filtros.brutas === true || filtros.brutas === 'SIM') rows = rows.filter(r => ativo_(r.FILTRO_BRUTAS));
+
+  return { status: rows, total: rows.length, horarioBrasil: agoraBrasil_(), versao: GMAN.VERSAO };
+}
+
+function enriquecerStatusComEquipamento_(statusRow, equipamentoRow) {
+  const eq = equipamentoRow || {};
+  return Object.assign({}, statusRow, {
+    SISTEMA: eq.SISTEMA || statusRow.SISTEMA || '',
+    FILTRO_BRUTAS: eq.FILTRO_BRUTAS || statusRow.FILTRO_BRUTAS || 'NÃO',
+    TIPO_LOCAL: eq.TIPO_LOCAL || statusRow.TIPO_LOCAL || '',
+    LOCAL_ESTACAO: eq.LOCAL_ESTACAO || statusRow.LOCAL_ESTACAO || '',
+    NOME_EQUIPAMENTO_GRUPO: eq.NOME_EQUIPAMENTO_GRUPO || statusRow.NOME_EQUIPAMENTO_GRUPO || statusRow.EQUIPAMENTO || statusRow.ID_EQUIPAMENTO || '',
+    COMPONENTE_PRINCIPAL: eq.COMPONENTE_PRINCIPAL || '',
+    TIPO_EQUIPAMENTO: eq.TIPO_EQUIPAMENTO || '',
+    CRITICIDADE: eq.CRITICIDADE || statusRow.CRITICIDADE || 'Normal',
+    OFICIAL_EQUIPAMENTOS: eq.ID_EQUIPAMENTO ? 'SIM' : 'NÃO'
+  });
+}
+
+function listarOrdensServico(payload) {
+  const filtros = payload || {};
+  let rows = readTable_(GMAN.SHEETS.OS).rows.filter(r => valor_(r.ID_OS));
+
+  if (filtros.idOs) rows = rows.filter(r => canon_(r.ID_OS) === canon_(filtros.idOs));
+  if (filtros.numeroOs) rows = rows.filter(r => canon_(r.NUMERO_OS) === canon_(filtros.numeroOs));
+  if (filtros.idEquipamento) rows = rows.filter(r => canon_(r.ID_EQUIPAMENTO) === canon_(filtros.idEquipamento));
+  if (filtros.statusOs) rows = rows.filter(r => canon_(r.STATUS_OS) === canon_(filtros.statusOs));
+  if (filtros.setorEquipe) rows = rows.filter(r => canon_(r.SETOR_EQUIPE) === canon_(filtros.setorEquipe));
+  if (filtros.responsavel) rows = rows.filter(r => canon_(r.RESPONSAVEL) === canon_(filtros.responsavel));
+  if (filtros.apenasAtivas === true || filtros.apenasAtivas === 'SIM') rows = rows.filter(r => isOsAtiva_(r.STATUS_OS));
+
+  const usuario = usuarioFromPayload_(payload, false);
+  if (usuario && !isGestao_(usuario) && filtros.minhas !== false) {
+    rows = rows.filter(r => canon_(r.RESPONSAVEL) === canon_(usuario.NOME) || canon_(r.RESPONSAVEL) === canon_(usuario.NOME_CANONICO) || canon_(r.RESPONSAVEL) === canon_(usuario.LOGIN));
+  }
+
+  rows.sort((a, b) => String(b.DATA_ABERTURA || '').localeCompare(String(a.DATA_ABERTURA || '')) || String(b.HORA_ABERTURA || '').localeCompare(String(a.HORA_ABERTURA || '')));
+  return { ordens: rows, total: rows.length };
+}
+
+function criarOS(payload) {
+  const usuario = usuarioFromPayload_(payload, true);
+  validarCampos_(payload, ['sistema', 'tipoLocal', 'localEstacao', 'idEquipamento', 'setorEquipe', 'responsavel', 'tipoOs', 'descricaoSolicitacao']);
+
+  const equipamento = getEquipamentoOficial_(payload.idEquipamento);
+  if (!equipamento) throw erroUsuario_(GMAN.MENSAGENS.EQUIPAMENTO_NAO_OFICIAL, 'EQUIPAMENTO_NAO_OFICIAL');
+
+  const setor = String(payload.setorEquipe).trim();
+  const responsavel = String(payload.responsavel).trim();
+  const tipoOs = String(payload.tipoOs).trim();
+  const prioridade = payload.prioridade || payload.criticidade || 'Normal';
+  const descricao = String(payload.descricaoSolicitacao).trim();
+
+  const osTable = readTable_(GMAN.SHEETS.OS);
+  const abertasEq = osTable.rows.filter(r => canon_(r.ID_EQUIPAMENTO) === canon_(payload.idEquipamento) && isOsAtiva_(r.STATUS_OS));
+
+  const duplicada = abertasEq.find(r =>
+    canon_(r.SETOR_EQUIPE) === canon_(setor) &&
+    (canon_(r.RESPONSAVEL) === canon_(responsavel) || canon_(r.EXECUTANTE_CANONICO) === canon_(responsavel))
+  );
+  if (duplicada) throw erroUsuario_(GMAN.MENSAGENS.DUPLICIDADE_OS, 'OS_DUPLICADA');
+
+  const ano2 = Utilities.formatDate(new Date(), GMAN.TIMEZONE, 'yy');
+  const baseAtiva = abertasEq.length ? String(abertasEq[0].OS_BASE || '').trim() : '';
+  const osBase = baseAtiva || gerarProximaOsBase_(osTable.rows, ano2);
+  const sequencia = baseAtiva ? proximaSequenciaBase_(osTable.rows, osBase) : 1;
+  const numeroOs = montarNumeroOs_(osBase, sequencia);
+  const idOs = 'OS-' + numeroOs.replace(/[^\dA-Za-z]/g, '-') + '-' + Utilities.getUuid().slice(0, 8).toUpperCase();
+
+  const now = new Date();
+  const row = rowFromHeaders_(osTable.headers, {
+    ID_OS: idOs,
+    NUMERO_OS: numeroOs,
+    OS_BASE: osBase,
+    SEQUENCIA_OS: sequencia,
+    ANO_OS: ano2,
+    DATA_ABERTURA: dataBrasil_(now),
+    HORA_ABERTURA: horaBrasil_(now),
+    DATA_ULTIMA_ATUALIZACAO: dataHoraBrasil_(now),
+    ID_EQUIPAMENTO: equipamento.ID_EQUIPAMENTO,
+    EQUIPAMENTO: equipamento.NOME_EQUIPAMENTO_GRUPO || equipamento.ID_EQUIPAMENTO,
+    SISTEMA: payload.sistema,
+    TIPO_LOCAL: payload.tipoLocal,
+    LOCAL_ESTACAO: payload.localEstacao,
+    SETOR_EQUIPE: setor,
+    RESPONSAVEL: responsavel,
+    EXECUTANTE_CANONICO: canonNomeExibicao_(responsavel),
+    TIPO_OS: tipoOs,
+    PRIORIDADE: prioridade,
+    STATUS_OS: GMAN.STATUS_OS.ABERTA,
+    DESCRICAO_SOLICITACAO: descricao,
+    SEM_USO_VEICULO: payload.semUsoVeiculo === false ? 'NÃO' : 'SIM',
+    KM_RODADO: '',
+    VALIDACAO_KM: payload.semUsoVeiculo === false ? 'PENDENTE_DADOS_VEICULO' : 'OK_SEM_VEICULO',
+    ENTRA_REINCIDENCIA: entraReincidencia_(tipoOs) ? 'SIM' : 'NÃO',
+    ID_OS_BASE_REINCIDENCIA: entraReincidencia_(tipoOs) ? osBase : '',
+    BLOQUEIO_RETORNO_OPERANDO: 'OK',
+    CRIADO_POR: usuario.NOME || usuario.LOGIN,
+    VERSAO_REGRA: GMAN.VERSAO,
+    OBS_VALIDACAO_APPS_SCRIPT: 'CRIADA_BACKEND',
+    ATIVO_PRODUCAO: 'SIM',
+    ORIGEM_MIGRACAO: 'NOVA',
+    HASH_REGISTRO: Utilities.getUuid()
+  });
+
+  appendRow_(GMAN.SHEETS.OS, row);
+
+  atualizarStatusVisualAbertura_(equipamento, osBase, idOs, setor, 'OS aberta vinculada ao equipamento.', usuario);
+
+  registrarHistorico_({
+    usuario,
+    idOs,
+    numeroOs,
+    idEquipamento: equipamento.ID_EQUIPAMENTO,
+    acao: 'ABERTURA_OS',
+    statusAnterior: '',
+    statusNovo: GMAN.STATUS_OS.ABERTA,
+    justificativa: descricao,
+    observacao: 'OS criada pelo GMAN.'
+  });
+
+  registrarAuditoria_({
+    usuario: usuario.NOME || usuario.LOGIN,
+    perfil: usuario.PERFIL,
+    acao: 'criarOS',
+    aba: GMAN.SHEETS.OS,
+    idRegistro: idOs,
+    campo: 'STATUS_OS',
+    anterior: '',
+    novo: GMAN.STATUS_OS.ABERTA,
+    justificativa: descricao,
+    resultado: 'OK',
+    erroTecnico: '',
+    origem: 'API'
+  });
+
+  return {
+    mensagem: 'OS criada com sucesso.',
+    idOs,
+    numeroOs,
+    osBase,
+    sequencia,
+    equipamento: equipamento.ID_EQUIPAMENTO,
+    statusOs: GMAN.STATUS_OS.ABERTA
+  };
+}
+
+function iniciarOS(payload) {
+  const usuario = usuarioFromPayload_(payload, true);
+  validarCampos_(payload, ['idOs', 'condicaoOperacional', 'justificativa']);
+
+  const ctx = getOsContext_(payload.idOs);
+  validarPermissaoOs_(usuario, ctx.row, 'iniciarOS');
+
+  if (!isOsAtiva_(ctx.row.STATUS_OS)) throw erroUsuario_('Somente OS ativa pode ser iniciada.', 'OS_NAO_ATIVA');
+  if (canon_(ctx.row.STATUS_OS) === canon_(GMAN.STATUS_OS.CONCLUIDA) || canon_(ctx.row.STATUS_OS) === canon_(GMAN.STATUS_OS.CANCELADA)) {
+    throw erroUsuario_('OS concluída ou cancelada não pode ser iniciada.', 'OS_FECHADA');
+  }
+
+  validarStatusOperacional_(payload.condicaoOperacional);
+
+  const now = new Date();
+  const updates = {
+    STATUS_OS: GMAN.STATUS_OS.INICIADA,
+    DATA_INICIO: ctx.row.DATA_INICIO || dataBrasil_(now),
+    HORA_INICIO: ctx.row.HORA_INICIO || horaBrasil_(now),
+    DATA_ULTIMA_ATUALIZACAO: dataHoraBrasil_(now),
+    CONDICAO_OPERACIONAL_ATUAL: payload.condicaoOperacional,
+    USUARIO_INICIO: usuario.NOME || usuario.LOGIN,
+    OBS_VALIDACAO_APPS_SCRIPT: 'INICIADA_BACKEND'
+  };
+  updateRowByIndex_(GMAN.SHEETS.OS, ctx.rowIndex, updates);
+
+  mudarStatusOperacionalViaOS_({
+    idEquipamento: ctx.row.ID_EQUIPAMENTO,
+    novoStatus: payload.condicaoOperacional,
+    justificativa: payload.justificativa,
+    usuario,
+    idOs: ctx.row.ID_OS,
+    osBase: ctx.row.OS_BASE,
+    setor: ctx.row.SETOR_EQUIPE
+  });
+
+  registrarHistorico_({
+    usuario,
+    idOs: ctx.row.ID_OS,
+    numeroOs: ctx.row.NUMERO_OS,
+    idEquipamento: ctx.row.ID_EQUIPAMENTO,
+    acao: 'INICIO_OS',
+    statusAnterior: ctx.row.STATUS_OS,
+    statusNovo: GMAN.STATUS_OS.INICIADA,
+    justificativa: payload.justificativa,
+    observacao: 'Condição operacional informada no início: ' + payload.condicaoOperacional
+  });
+
+  return {
+    mensagem: 'OS iniciada com sucesso.',
+    idOs: ctx.row.ID_OS,
+    numeroOs: ctx.row.NUMERO_OS,
+    statusOs: GMAN.STATUS_OS.INICIADA,
+    condicaoOperacional: payload.condicaoOperacional
+  };
+}
+
+function atualizarAndamentoOS(payload) {
+  const usuario = usuarioFromPayload_(payload, true);
+  validarCampos_(payload, ['idOs', 'observacao']);
+
+  const ctx = getOsContext_(payload.idOs);
+  validarPermissaoOs_(usuario, ctx.row, 'atualizarAndamentoOS');
+
+  if (!isOsAtiva_(ctx.row.STATUS_OS)) throw erroUsuario_('Somente OS ativa pode receber andamento.', 'OS_NAO_ATIVA');
+
+  const now = new Date();
+  const updates = {
+    STATUS_OS: GMAN.STATUS_OS.EM_EXECUCAO,
+    DATA_ULTIMA_ATUALIZACAO: dataHoraBrasil_(now),
+    OBS_VALIDACAO_APPS_SCRIPT: 'ANDAMENTO_BACKEND'
+  };
+
+  if (payload.condicaoOperacional) {
+    validarCampos_(payload, ['justificativa']);
+    validarStatusOperacional_(payload.condicaoOperacional);
+    updates.CONDICAO_OPERACIONAL_ATUAL = payload.condicaoOperacional;
+  }
+
+  updateRowByIndex_(GMAN.SHEETS.OS, ctx.rowIndex, updates);
+
+  if (payload.condicaoOperacional) {
+    mudarStatusOperacionalViaOS_({
+      idEquipamento: ctx.row.ID_EQUIPAMENTO,
+      novoStatus: payload.condicaoOperacional,
+      justificativa: payload.justificativa,
+      usuario,
+      idOs: ctx.row.ID_OS,
+      osBase: ctx.row.OS_BASE,
+      setor: ctx.row.SETOR_EQUIPE
+    });
+  }
+
+  registrarHistorico_({
+    usuario,
+    idOs: ctx.row.ID_OS,
+    numeroOs: ctx.row.NUMERO_OS,
+    idEquipamento: ctx.row.ID_EQUIPAMENTO,
+    acao: 'ANDAMENTO_OS',
+    statusAnterior: ctx.row.STATUS_OS,
+    statusNovo: GMAN.STATUS_OS.EM_EXECUCAO,
+    justificativa: payload.justificativa || '',
+    observacao: payload.observacao
+  });
+
+  return {
+    mensagem: 'Andamento registrado com sucesso.',
+    idOs: ctx.row.ID_OS,
+    numeroOs: ctx.row.NUMERO_OS,
+    statusOs: GMAN.STATUS_OS.EM_EXECUCAO
+  };
+}
+
+function marcarPendenteOS(payload) {
+  const usuario = usuarioFromPayload_(payload, true);
+  validarCampos_(payload, ['idOs', 'motivoPendencia', 'observacaoPendencia']);
+
+  const ctx = getOsContext_(payload.idOs);
+  validarPermissaoOs_(usuario, ctx.row, 'marcarPendenteOS');
+
+  if (!isOsAtiva_(ctx.row.STATUS_OS)) throw erroUsuario_('Somente OS ativa pode ser marcada como pendente.', 'OS_NAO_ATIVA');
+
+  updateRowByIndex_(GMAN.SHEETS.OS, ctx.rowIndex, {
+    STATUS_OS: GMAN.STATUS_OS.PENDENTE,
+    MOTIVO_PENDENCIA: payload.motivoPendencia,
+    OBS_PENDENCIA: payload.observacaoPendencia,
+    DATA_ULTIMA_ATUALIZACAO: agoraBrasil_(),
+    OBS_VALIDACAO_APPS_SCRIPT: 'PENDENCIA_BACKEND'
+  });
+
+  registrarHistorico_({
+    usuario,
+    idOs: ctx.row.ID_OS,
+    numeroOs: ctx.row.NUMERO_OS,
+    idEquipamento: ctx.row.ID_EQUIPAMENTO,
+    acao: 'PENDENCIA_OS',
+    statusAnterior: ctx.row.STATUS_OS,
+    statusNovo: GMAN.STATUS_OS.PENDENTE,
+    justificativa: payload.motivoPendencia,
+    observacao: payload.observacaoPendencia
+  });
+
+  return { mensagem: 'Pendência registrada com sucesso.', idOs: ctx.row.ID_OS, statusOs: GMAN.STATUS_OS.PENDENTE };
+}
+
+function solicitarCancelamentoOS(payload) {
+  const usuario = usuarioFromPayload_(payload, true);
+  validarCampos_(payload, ['idOs', 'motivoCancelamento']);
+
+  const ctx = getOsContext_(payload.idOs);
+  validarPermissaoOs_(usuario, ctx.row, 'solicitarCancelamentoOS');
+
+  if (!isOsAtiva_(ctx.row.STATUS_OS)) throw erroUsuario_('Somente OS ativa pode receber solicitação de cancelamento.', 'OS_NAO_ATIVA');
+
+  updateRowByIndex_(GMAN.SHEETS.OS, ctx.rowIndex, {
+    STATUS_OS: GMAN.STATUS_OS.CANCELAMENTO_SOLICITADO,
+    MOTIVO_PENDENCIA: 'Cancelamento solicitado',
+    OBS_PENDENCIA: payload.motivoCancelamento,
+    DATA_ULTIMA_ATUALIZACAO: agoraBrasil_(),
+    OBS_VALIDACAO_APPS_SCRIPT: 'CANCELAMENTO_SOLICITADO_BACKEND'
+  });
+
+  registrarHistorico_({
+    usuario,
+    idOs: ctx.row.ID_OS,
+    numeroOs: ctx.row.NUMERO_OS,
+    idEquipamento: ctx.row.ID_EQUIPAMENTO,
+    acao: 'SOLICITAR_CANCELAMENTO',
+    statusAnterior: ctx.row.STATUS_OS,
+    statusNovo: GMAN.STATUS_OS.CANCELAMENTO_SOLICITADO,
+    justificativa: payload.motivoCancelamento,
+    observacao: 'Aguardando aprovação da gestão.'
+  });
+
+  return { mensagem: 'Cancelamento solicitado. A gestão precisa aprovar.', idOs: ctx.row.ID_OS };
+}
+
+function aprovarCancelamentoOS(payload) {
+  const usuario = usuarioFromPayload_(payload, true);
+  validarGestao_(usuario);
+  validarCampos_(payload, ['idOs', 'justificativa']);
+
+  const ctx = getOsContext_(payload.idOs);
+
+  updateRowByIndex_(GMAN.SHEETS.OS, ctx.rowIndex, {
+    STATUS_OS: GMAN.STATUS_OS.CANCELADA,
+    DATA_CONCLUSAO: dataBrasil_(),
+    HORA_CONCLUSAO: horaBrasil_(),
+    DATA_ULTIMA_ATUALIZACAO: agoraBrasil_(),
+    FINALIZADO_POR: usuario.NOME || usuario.LOGIN,
+    OBS_VALIDACAO_APPS_SCRIPT: 'CANCELADA_BACKEND'
+  });
+
+  registrarHistorico_({
+    usuario,
+    idOs: ctx.row.ID_OS,
+    numeroOs: ctx.row.NUMERO_OS,
+    idEquipamento: ctx.row.ID_EQUIPAMENTO,
+    acao: 'CANCELAMENTO_APROVADO',
+    statusAnterior: ctx.row.STATUS_OS,
+    statusNovo: GMAN.STATUS_OS.CANCELADA,
+    justificativa: payload.justificativa,
+    observacao: 'OS cancelada pela gestão. Documento histórico mantido.'
+  });
+
+  reavaliarStatusAposFechamento_(ctx.row.ID_EQUIPAMENTO, ctx.row.OS_BASE, usuario, payload.justificativa);
+
+  return { mensagem: 'OS cancelada com sucesso.', idOs: ctx.row.ID_OS, statusOs: GMAN.STATUS_OS.CANCELADA };
+}
+
+function solicitarRedistribuicaoOS(payload) {
+  const usuario = usuarioFromPayload_(payload, true);
+  validarCampos_(payload, ['idOs', 'motivoRedistribuicao']);
+
+  const ctx = getOsContext_(payload.idOs);
+  validarPermissaoOs_(usuario, ctx.row, 'solicitarRedistribuicaoOS');
+
+  updateRowByIndex_(GMAN.SHEETS.OS, ctx.rowIndex, {
+    STATUS_OS: GMAN.STATUS_OS.REDISTRIBUICAO_SOLICITADA,
+    MOTIVO_PENDENCIA: 'Redistribuição solicitada',
+    OBS_PENDENCIA: payload.motivoRedistribuicao,
+    DATA_ULTIMA_ATUALIZACAO: agoraBrasil_(),
+    OBS_VALIDACAO_APPS_SCRIPT: 'REDISTRIBUICAO_SOLICITADA_BACKEND'
+  });
+
+  registrarHistorico_({
+    usuario,
+    idOs: ctx.row.ID_OS,
+    numeroOs: ctx.row.NUMERO_OS,
+    idEquipamento: ctx.row.ID_EQUIPAMENTO,
+    acao: 'SOLICITAR_REDISTRIBUICAO',
+    statusAnterior: ctx.row.STATUS_OS,
+    statusNovo: GMAN.STATUS_OS.REDISTRIBUICAO_SOLICITADA,
+    justificativa: payload.motivoRedistribuicao,
+    observacao: 'Aguardando aprovação da gestão.'
+  });
+
+  return { mensagem: 'Redistribuição solicitada. A gestão precisa aprovar.', idOs: ctx.row.ID_OS };
+}
+
+function aprovarRedistribuicaoOS(payload) {
+  const usuario = usuarioFromPayload_(payload, true);
+  validarGestao_(usuario);
+  validarCampos_(payload, ['idOs', 'novoSetorEquipe', 'novoResponsavel', 'justificativa']);
+
+  const ctx = getOsContext_(payload.idOs);
+
+  const anterior = ctx.row.SETOR_EQUIPE + ' / ' + ctx.row.RESPONSAVEL;
+  const novo = payload.novoSetorEquipe + ' / ' + payload.novoResponsavel;
+
+  updateRowByIndex_(GMAN.SHEETS.OS, ctx.rowIndex, {
+    SETOR_EQUIPE: payload.novoSetorEquipe,
+    RESPONSAVEL: payload.novoResponsavel,
+    EXECUTANTE_CANONICO: canonNomeExibicao_(payload.novoResponsavel),
+    STATUS_OS: GMAN.STATUS_OS.ABERTA,
+    DATA_ULTIMA_ATUALIZACAO: agoraBrasil_(),
+    OBS_VALIDACAO_APPS_SCRIPT: 'REDISTRIBUIDA_BACKEND'
+  });
+
+  registrarHistorico_({
+    usuario,
+    idOs: ctx.row.ID_OS,
+    numeroOs: ctx.row.NUMERO_OS,
+    idEquipamento: ctx.row.ID_EQUIPAMENTO,
+    acao: 'REDISTRIBUICAO_APROVADA',
+    statusAnterior: anterior,
+    statusNovo: novo,
+    justificativa: payload.justificativa,
+    observacao: 'OS redistribuída pela gestão.'
+  });
+
+  registrarAuditoria_({
+    usuario: usuario.NOME || usuario.LOGIN,
+    perfil: usuario.PERFIL,
+    acao: 'aprovarRedistribuicaoOS',
+    aba: GMAN.SHEETS.OS,
+    idRegistro: ctx.row.ID_OS,
+    campo: 'SETOR_RESPONSAVEL',
+    anterior,
+    novo,
+    justificativa: payload.justificativa,
+    resultado: 'OK',
+    erroTecnico: '',
+    origem: 'API'
+  });
+
+  return { mensagem: 'OS redistribuída com sucesso.', idOs: ctx.row.ID_OS };
+}
+
+function concluirOS(payload) {
+  const usuario = usuarioFromPayload_(payload, true);
+  validarCampos_(payload, [
+    'idOs',
+    'servicoRealizado',
+    'condicaoOperacionalFinal',
+    'justificativaCondicaoFinal',
+    'materiaisUtilizados',
+    'observacaoFinal',
+    'membrosEquipe'
+  ]);
+
+  validarStatusOperacional_(payload.condicaoOperacionalFinal);
+
+  const ctx = getOsContext_(payload.idOs);
+  validarPermissaoOs_(usuario, ctx.row, 'concluirOS');
+
+  if (!isOsAtiva_(ctx.row.STATUS_OS)) throw erroUsuario_('Somente OS ativa pode ser concluída.', 'OS_NAO_ATIVA');
+
+  const setor = ctx.row.SETOR_EQUIPE || payload.setorEquipe || '';
+  const patrimonioOpcional = GMAN.SETORES_PATRIMONIO_OPCIONAL.map(canon_).indexOf(canon_(setor)) >= 0;
+
+  const semUsoVeiculo = normalizarBooleano_(payload.semUsoVeiculo);
+  const km = validarVeiculoKm_(payload, semUsoVeiculo);
+
+  if (!patrimonioOpcional) {
+    if (!isSim_(payload.patrimonioConfirmado)) {
+      throw erroUsuario_('Confirme ou preencha o patrimônio obrigatório antes de concluir a OS.', 'PATRIMONIO_OBRIGATORIO');
+    }
+    if (!isSim_(payload.fichaTecnicaConfirmada)) {
+      throw erroUsuario_('Confirme ou preencha a ficha técnica antes de concluir a OS.', 'FICHA_TECNICA_OBRIGATORIA');
+    }
+  }
+
+  const now = new Date();
+  const tempoEspera = calcularHorasEntre_(ctx.row.DATA_ABERTURA, ctx.row.HORA_ABERTURA, ctx.row.DATA_INICIO, ctx.row.HORA_INICIO);
+  const mttr = calcularHorasEntre_(ctx.row.DATA_INICIO, ctx.row.HORA_INICIO, dataBrasil_(now), horaBrasil_(now));
+  const tempoTotal = calcularHorasEntre_(ctx.row.DATA_ABERTURA, ctx.row.HORA_ABERTURA, dataBrasil_(now), horaBrasil_(now));
+
+  updateRowByIndex_(GMAN.SHEETS.OS, ctx.rowIndex, {
+    STATUS_OS: GMAN.STATUS_OS.CONCLUIDA,
+    DATA_CONCLUSAO: dataBrasil_(now),
+    HORA_CONCLUSAO: horaBrasil_(now),
+    DATA_ULTIMA_ATUALIZACAO: dataHoraBrasil_(now),
+    SERVICO_REALIZADO: payload.servicoRealizado,
+    MATERIAIS_UTILIZADOS: payload.materiaisUtilizados,
+    OBSERVACAO_FINAL: payload.observacaoFinal,
+    CONDICAO_OPERACIONAL_FINAL: payload.condicaoOperacionalFinal,
+    JUSTIFICATIVA_CONDICAO_FINAL: payload.justificativaCondicaoFinal,
+    MEMBROS_EQUIPE: payload.membrosEquipe,
+    SEM_USO_VEICULO: semUsoVeiculo ? 'SIM' : 'NÃO',
+    PREFIXO_VEICULO: semUsoVeiculo ? '' : payload.prefixoVeiculo,
+    MOTORISTA: semUsoVeiculo ? '' : payload.motorista,
+    KM_INICIAL: semUsoVeiculo ? '' : km.inicial,
+    KM_FINAL: semUsoVeiculo ? '' : km.final,
+    KM_RODADO: semUsoVeiculo ? '' : km.rodado,
+    VALIDACAO_KM: semUsoVeiculo ? 'OK_SEM_VEICULO' : 'OK',
+    ITENS_ADICIONAIS_OBSERVADOS: payload.itensAdicionaisObservados || '',
+    PATRIMONIO_CONFIRMADO: patrimonioOpcional ? (payload.patrimonioConfirmado || 'OPCIONAL') : 'SIM',
+    FICHA_TECNICA_CONFIRMADA: patrimonioOpcional ? (payload.fichaTecnicaConfirmada || 'OPCIONAL') : 'SIM',
+    TEMPO_ESPERA_HORAS: tempoEspera,
+    MTTR_TECNICO_HORAS: mttr,
+    TEMPO_TOTAL_OS_HORAS: tempoTotal,
+    FINALIZADO_POR: usuario.NOME || usuario.LOGIN,
+    OBS_VALIDACAO_APPS_SCRIPT: 'CONCLUIDA_BACKEND'
+  });
+
+  if (!semUsoVeiculo) registrarKmVeiculo_(ctx.row, payload, km, usuario);
+
+  registrarHistorico_({
+    usuario,
+    idOs: ctx.row.ID_OS,
+    numeroOs: ctx.row.NUMERO_OS,
+    idEquipamento: ctx.row.ID_EQUIPAMENTO,
+    acao: 'CONCLUSAO_OS',
+    statusAnterior: ctx.row.STATUS_OS,
+    statusNovo: GMAN.STATUS_OS.CONCLUIDA,
+    justificativa: payload.justificativaCondicaoFinal,
+    observacao: payload.servicoRealizado
+  });
+
+  const statusFinalAplicado = reavaliarStatusAposFechamento_(ctx.row.ID_EQUIPAMENTO, ctx.row.OS_BASE, usuario, payload.justificativaCondicaoFinal);
+
+  return {
+    mensagem: 'OS concluída com sucesso.',
+    idOs: ctx.row.ID_OS,
+    numeroOs: ctx.row.NUMERO_OS,
+    statusOs: GMAN.STATUS_OS.CONCLUIDA,
+    statusFinalAplicado
+  };
+}
+
+function anexarEvidencia(payload) {
+  const usuario = usuarioFromPayload_(payload, true);
+  validarCampos_(payload, ['idOs', 'tipoEvidencia']);
+
+  const ctx = getOsContext_(payload.idOs);
+  validarPermissaoOs_(usuario, ctx.row, 'anexarEvidencia');
+
+  const tipo = String(payload.tipoEvidencia || '').toUpperCase();
+  if (tipo === 'VIDEO' || tipo === 'VÍDEO') {
+    throw erroUsuario_(GMAN.MENSAGENS.EVIDENCIA_VIDEO_BLOQUEADO, 'VIDEO_BLOQUEADO');
+  }
+
+  const evidTable = readTable_(GMAN.SHEETS.EVIDENCIAS);
+  if (tipo === GMAN.TIPOS_EVIDENCIA.FOTO) {
+    const fotosUsuario = evidTable.rows.filter(r =>
+      canon_(r.ID_OS) === canon_(ctx.row.ID_OS) &&
+      canon_(r.USUARIO) === canon_(usuario.NOME || usuario.LOGIN) &&
+      canon_(r.TIPO_EVIDENCIA) === canon_(GMAN.TIPOS_EVIDENCIA.FOTO) &&
+      canon_(r.STATUS_VALIDACAO) !== canon_('BLOQUEADA')
+    );
+    if (fotosUsuario.length >= GMAN.LIMITE_FOTO_USUARIO_OS) {
+      throw erroUsuario_(GMAN.MENSAGENS.EVIDENCIA_FOTO_LIMITE, 'LIMITE_FOTO_USUARIO_OS');
+    }
+  }
+
+  if (tipo === GMAN.TIPOS_EVIDENCIA.AUDIO) {
+    const duracao = numero_(payload.duracaoSegundos);
+    if (duracao <= 0 || duracao > GMAN.LIMITE_AUDIO_SEGUNDOS) {
+      throw erroUsuario_(GMAN.MENSAGENS.EVIDENCIA_AUDIO_LIMITE, 'LIMITE_AUDIO_60S');
+    }
+    if (canon_(payload.origemCaptura) !== canon_('GRAVADO_NA_HORA')) {
+      throw erroUsuario_(GMAN.MENSAGENS.EVIDENCIA_AUDIO_ORIGEM, 'AUDIO_ORIGEM_INVALIDA');
+    }
+  }
+
+  const idEvid = 'EVID-' + Utilities.getUuid().slice(0, 12).toUpperCase();
+  const arquivoSalvo = salvarArquivoEvidenciaSeEnviado_(payload, {
+    idEvidencia: idEvid,
+    idOs: ctx.row.ID_OS,
+    numeroOs: ctx.row.NUMERO_OS,
+    idEquipamento: ctx.row.ID_EQUIPAMENTO,
+    tipoEvidencia: tipo,
+    usuario: usuario.NOME || usuario.LOGIN
+  });
+
+  const row = rowFromHeaders_(evidTable.headers, {
+    ID_EVIDENCIA: idEvid,
+    DATA_HORA_BRASIL: agoraBrasil_(),
+    ID_OS: ctx.row.ID_OS,
+    ID_EQUIPAMENTO: ctx.row.ID_EQUIPAMENTO,
+    USUARIO: usuario.NOME || usuario.LOGIN,
+    TIPO_EVIDENCIA: tipo,
+    LINK_ARQUIVO: arquivoSalvo.linkArquivo || payload.linkArquivo || '',
+    NOME_ARQUIVO: arquivoSalvo.nomeArquivo || payload.nomeArquivo || '',
+    DURACAO_SEGUNDOS: tipo === GMAN.TIPOS_EVIDENCIA.AUDIO ? numero_(payload.duracaoSegundos) : '',
+    ORIGEM_CAPTURA: payload.origemCaptura || '',
+    STATUS_VALIDACAO: 'OK',
+    MOTIVO_BLOQUEIO: '',
+    VERSAO_REGRA: GMAN.VERSAO,
+    OBSERVACAO: payload.observacao || ''
+  });
+  appendRow_(GMAN.SHEETS.EVIDENCIAS, row);
+
+  registrarHistorico_({
+    usuario,
+    idOs: ctx.row.ID_OS,
+    numeroOs: ctx.row.NUMERO_OS,
+    idEquipamento: ctx.row.ID_EQUIPAMENTO,
+    acao: 'EVIDENCIA_ANEXADA',
+    statusAnterior: '',
+    statusNovo: tipo,
+    justificativa: '',
+    observacao: payload.observacao || ''
+  });
+
+  return { mensagem: 'Evidência registrada com sucesso.', idEvidencia: idEvid };
+}
+
+function registrarFichaTecnica(payload) {
+  const usuario = usuarioFromPayload_(payload, true);
+  validarCampos_(payload, ['idEquipamento', 'componente', 'campos']);
+
+  const equipamento = getEquipamentoOficial_(payload.idEquipamento);
+  if (!equipamento) throw erroUsuario_(GMAN.MENSAGENS.EQUIPAMENTO_NAO_OFICIAL, 'EQUIPAMENTO_NAO_OFICIAL');
+
+  const campos = payload.campos;
+  if (typeof campos !== 'object' || Array.isArray(campos)) {
+    throw erroUsuario_('Campos da ficha técnica precisam ser enviados como objeto.', 'FICHA_FORMATO_INVALIDO');
+  }
+
+  const table = readTable_(GMAN.SHEETS.FICHA_REGISTROS);
+  const registros = [];
+  Object.keys(campos).forEach(campo => {
+    registros.push(rowFromHeaders_(table.headers, {
+      ID_FICHA: 'FICHA-' + Utilities.getUuid().slice(0, 10).toUpperCase(),
+      ID_EQUIPAMENTO: equipamento.ID_EQUIPAMENTO,
+      COMPONENTE: payload.componente,
+      CAMPO_TECNICO: campo,
+      VALOR: campos[campo],
+      ORIGEM_OS: payload.idOs || '',
+      ATUALIZADO_EM: agoraBrasil_(),
+      ATUALIZADO_POR: usuario.NOME || usuario.LOGIN,
+      VALOR_ANTERIOR: '',
+      CONFIRMADO: 'SIM',
+      OBSERVACAO: payload.observacao || ''
+    }));
+  });
+
+  appendRows_(GMAN.SHEETS.FICHA_REGISTROS, registros);
+
+  registrarAuditoria_({
+    usuario: usuario.NOME || usuario.LOGIN,
+    perfil: usuario.PERFIL,
+    acao: 'registrarFichaTecnica',
+    aba: GMAN.SHEETS.FICHA_REGISTROS,
+    idRegistro: equipamento.ID_EQUIPAMENTO,
+    campo: payload.componente,
+    anterior: '',
+    novo: registros.length + ' campos registrados',
+    justificativa: payload.observacao || '',
+    resultado: 'OK',
+    erroTecnico: '',
+    origem: 'API'
+  });
+
+  return { mensagem: 'Ficha técnica registrada com sucesso.', registros: registros.length };
+}
+
+function confirmarPatrimonio(payload) {
+  const usuario = usuarioFromPayload_(payload, true);
+  validarCampos_(payload, ['idEquipamento', 'componente', 'patrimonio']);
+
+  const equipamento = getEquipamentoOficial_(payload.idEquipamento);
+  if (!equipamento) throw erroUsuario_(GMAN.MENSAGENS.EQUIPAMENTO_NAO_OFICIAL, 'EQUIPAMENTO_NAO_OFICIAL');
+
+  const table = readTable_(GMAN.SHEETS.PATRIMONIO);
+  const idx = table.rows.findIndex(r => canon_(r.ID_EQUIPAMENTO) === canon_(payload.idEquipamento) && canon_(r.COMPONENTE) === canon_(payload.componente));
+
+  if (idx >= 0) {
+    updateRowByIndex_(GMAN.SHEETS.PATRIMONIO, table.startRow + idx, {
+      PATRIMONIO: payload.patrimonio,
+      PATRIMONIO_CONFIRMADO: 'SIM',
+      CONFIRMADO_POR: usuario.NOME || usuario.LOGIN,
+      DATA_CONFIRMACAO: agoraBrasil_(),
+      ULTIMA_OS_ORIGEM: payload.idOs || '',
+      DESCRICAO_RESUMIDA: payload.descricaoResumida || '',
+      ATIVO: 'SIM'
+    });
+  } else {
+    appendRow_(GMAN.SHEETS.PATRIMONIO, rowFromHeaders_(table.headers, {
+      ID_PATRIMONIO: 'PAT-' + Utilities.getUuid().slice(0, 10).toUpperCase(),
+      ID_EQUIPAMENTO: equipamento.ID_EQUIPAMENTO,
+      COMPONENTE: payload.componente,
+      PATRIMONIO: payload.patrimonio,
+      PATRIMONIO_CONFIRMADO: 'SIM',
+      CONFIRMADO_POR: usuario.NOME || usuario.LOGIN,
+      DATA_CONFIRMACAO: agoraBrasil_(),
+      ULTIMA_OS_ORIGEM: payload.idOs || '',
+      DESCRICAO_RESUMIDA: payload.descricaoResumida || '',
+      OBRIGATORIO_NO_ENCERRAMENTO: payload.obrigatorioNoEncerramento || 'SIM',
+      ATIVO: 'SIM',
+      OBSERVACAO: payload.observacao || ''
+    }));
+  }
+
+  registrarAuditoria_({
+    usuario: usuario.NOME || usuario.LOGIN,
+    perfil: usuario.PERFIL,
+    acao: 'confirmarPatrimonio',
+    aba: GMAN.SHEETS.PATRIMONIO,
+    idRegistro: equipamento.ID_EQUIPAMENTO,
+    campo: payload.componente,
+    anterior: '',
+    novo: payload.patrimonio,
+    justificativa: payload.observacao || '',
+    resultado: 'OK',
+    erroTecnico: '',
+    origem: 'API'
+  });
+
+  return { mensagem: 'Patrimônio confirmado com sucesso.' };
+}
+
+function historicoEquipamento(payload) {
+  validarCampos_(payload, ['idEquipamento']);
+  const usuario = usuarioFromPayload_(payload, false);
+  const limiteEquipe = usuario && !isGestao_(usuario) ? 3 : 5000;
+
+  let hist = readTable_(GMAN.SHEETS.HISTORICO).rows.filter(r => canon_(r.ID_EQUIPAMENTO) === canon_(payload.idEquipamento));
+  hist.sort((a, b) => String(b.DATA_HORA_BRASIL || '').localeCompare(String(a.DATA_HORA_BRASIL || '')));
+  hist = hist.slice(0, payload.limite ? Math.min(numero_(payload.limite), limiteEquipe) : limiteEquipe);
+
+  return {
+    idEquipamento: payload.idEquipamento,
+    historico: hist,
+    totalRetornado: hist.length,
+    limiteAplicado: limiteEquipe,
+    gestao: usuario ? isGestao_(usuario) : false
+  };
+}
+
+function calcularKPIs(payload) {
+  const equipamentos = readTable_(GMAN.SHEETS.EQUIPAMENTOS).rows.filter(r => ativo_(r.ATIVO));
+  const statusRows = readTable_(GMAN.SHEETS.STATUS).rows.filter(r => valor_(r.ID_EQUIPAMENTO));
+  const osRows = filtrarOsPorPeriodo_(readTable_(GMAN.SHEETS.OS).rows.filter(r => valor_(r.ID_OS)), payload || {});
+  const totalEq = equipamentos.length || 0;
+
+  const cont = {
+    operando: contarStatus_(statusRows, GMAN.STATUS_OPERACIONAL.OPERANDO),
+    manutencaoOperando: contarStatus_(statusRows, GMAN.STATUS_OPERACIONAL.MANUTENCAO_OPERANDO),
+    manutencaoParado: contarStatus_(statusRows, GMAN.STATUS_OPERACIONAL.MANUTENCAO_PARADO),
+    emTeste: contarStatus_(statusRows, GMAN.STATUS_OPERACIONAL.EM_TESTE),
+    parado: contarStatus_(statusRows, GMAN.STATUS_OPERACIONAL.PARADO)
+  };
+
+  const disponibilidadePlena = totalEq ? cont.operando / totalEq : 0;
+  const disponibilidadeFuncional = totalEq ? (cont.operando + cont.manutencaoOperando + cont.emTeste) / totalEq : 0;
+
+  const osStatus = {
+    abertas: contarStatusOs_(osRows, GMAN.STATUS_OS.ABERTA),
+    iniciadas: contarStatusOs_(osRows, GMAN.STATUS_OS.INICIADA),
+    emExecucao: contarStatusOs_(osRows, GMAN.STATUS_OS.EM_EXECUCAO),
+    pendentes: contarStatusOs_(osRows, GMAN.STATUS_OS.PENDENTE),
+    concluidas: contarStatusOs_(osRows, GMAN.STATUS_OS.CONCLUIDA),
+    canceladas: contarStatusOs_(osRows, GMAN.STATUS_OS.CANCELADA),
+    cancelamentoSolicitado: contarStatusOs_(osRows, GMAN.STATUS_OS.CANCELAMENTO_SOLICITADO),
+    redistribuicaoSolicitada: contarStatusOs_(osRows, GMAN.STATUS_OS.REDISTRIBUICAO_SOLICITADA)
+  };
+
+  const concluidas = osRows.filter(r => canon_(r.STATUS_OS) === canon_(GMAN.STATUS_OS.CONCLUIDA));
+  const mttrVals = concluidas.map(r => numero_(r.MTTR_TECNICO_HORAS)).filter(n => n > 0);
+  const tempoTotalVals = concluidas.map(r => numero_(r.TEMPO_TOTAL_OS_HORAS)).filter(n => n > 0);
+
+  const carga = calcularCargaOperacional_(osRows);
+  const reincidencia = calcularReincidencia_(osRows, statusRows);
+
+  return {
+    periodo: periodoDescricao_(payload || {}),
+    horarioBrasil: agoraBrasil_(),
+    versao: GMAN.VERSAO,
+    situacaoOperacional: {
+      totalEquipamentos: totalEq,
+      operando: cont.operando,
+      manutencaoOperando: cont.manutencaoOperando,
+      manutencaoParado: cont.manutencaoParado,
+      emTeste: cont.emTeste,
+      parado: cont.parado,
+      disponibilidadePlena,
+      disponibilidadeFuncional
+    },
+    os: osStatus,
+    tecnico: {
+      mttrTecnicoMedioHoras: media_(mttrVals),
+      tempoTotalMedioHoras: media_(tempoTotalVals),
+      mtbf: calcularMtbf_(osRows),
+      oee: {
+        status: 'EM_IMPLANTACAO',
+        disponibilidade: disponibilidadeFuncional,
+        performance: 'DADOS_INSUFICIENTES',
+        qualidade: 'DADOS_INSUFICIENTES'
+      }
+    },
+    cargaOperacional: carga,
+    reincidencia: reincidencia
+  };
+}
+
+function salvarSnapshotKPIs(payload) {
+  const kpis = calcularKPIs(payload || {});
+  const table = readTable_(GMAN.SHEETS.KPI_SNAPSHOTS);
+  const row = rowFromHeaders_(table.headers, {
+    DATA_HORA_BRASIL: agoraBrasil_(),
+    PERIODO: kpis.periodo,
+    TOTAL_EQUIPAMENTOS: kpis.situacaoOperacional.totalEquipamentos,
+    OPERANDO: kpis.situacaoOperacional.operando,
+    MANUTENCAO_OPERANDO: kpis.situacaoOperacional.manutencaoOperando,
+    MANUTENCAO_PARADO: kpis.situacaoOperacional.manutencaoParado,
+    EM_TESTE: kpis.situacaoOperacional.emTeste,
+    PARADO: kpis.situacaoOperacional.parado,
+    DISPONIBILIDADE_PLENA: kpis.situacaoOperacional.disponibilidadePlena,
+    DISPONIBILIDADE_FUNCIONAL: kpis.situacaoOperacional.disponibilidadeFuncional,
+    OS_ABERTAS: kpis.os.abertas,
+    OS_PENDENTES: kpis.os.pendentes,
+    MTTR_TECNICO_MEDIO: kpis.tecnico.mttrTecnicoMedioHoras,
+    OEE_STATUS: kpis.tecnico.oee.status
+  });
+  appendRow_(GMAN.SHEETS.KPI_SNAPSHOTS, row);
+  return { mensagem: 'Snapshot de KPIs salvo.', snapshot: kpis };
+}
+
+function listarCargaOperacional(payload) {
+  const osRows = filtrarOsPorPeriodo_(readTable_(GMAN.SHEETS.OS).rows.filter(r => valor_(r.ID_OS)), payload || {});
+  return { cargaOperacional: calcularCargaOperacional_(osRows), periodo: periodoDescricao_(payload || {}) };
+}
+
+function listarReincidencia(payload) {
+  const osRows = filtrarOsPorPeriodo_(readTable_(GMAN.SHEETS.OS).rows.filter(r => valor_(r.ID_OS)), payload || {});
+  const statusRows = readTable_(GMAN.SHEETS.STATUS).rows.filter(r => valor_(r.ID_EQUIPAMENTO));
+  return { reincidencia: calcularReincidencia_(osRows, statusRows), periodo: periodoDescricao_(payload || {}) };
+}
+
+/* =========================
+ * REGRAS DE STATUS E FECHAMENTO
+ * ========================= */
+
+function mudarStatusOperacionalViaOS_(args) {
+  if (!args.idOs) throw erroUsuario_(GMAN.MENSAGENS.STATUS_SEM_OS, 'STATUS_SEM_OS');
+  validarStatusOperacional_(args.novoStatus);
+  if (!args.justificativa) throw erroUsuario_('Toda mudança de condição operacional exige justificativa.', 'JUSTIFICATIVA_STATUS_OBRIGATORIA');
+
+  const table = readTable_(GMAN.SHEETS.STATUS);
+  const idx = table.rows.findIndex(r => canon_(r.ID_EQUIPAMENTO) === canon_(args.idEquipamento));
+
+  const now = new Date();
+  const updates = {
+    STATUS_OPERACIONAL: args.novoStatus,
+    STATUS_VISUAL_GRUPO: statusVisualPorOperacional_(args.novoStatus),
+    ID_OS_BLOQUEADORA: args.idOs,
+    NUMERO_OS_BASE_ATIVA: args.osBase || '',
+    JUSTIFICATIVA_STATUS: args.justificativa,
+    DATA_ULTIMA_ALTERACAO: dataBrasil_(now),
+    HORA_ULTIMA_ALTERACAO: horaBrasil_(now),
+    USUARIO_ULTIMA_ALTERACAO: args.usuario.NOME || args.usuario.LOGIN,
+    EM_TESTE_DESDE: canon_(args.novoStatus) === canon_(GMAN.STATUS_OPERACIONAL.EM_TESTE) ? dataHoraBrasil_(now) : '',
+    HORAS_EM_TESTE: '',
+    ALERTA_TESTE_48H: '',
+    DISPONIBILIDADE_PLENA: canon_(args.novoStatus) === canon_(GMAN.STATUS_OPERACIONAL.OPERANDO) ? 'SIM' : 'NÃO',
+    DISPONIBILIDADE_FUNCIONAL: isDisponivelFuncional_(args.novoStatus) ? 'SIM' : 'NÃO',
+    BLOQUEIO_STATUS_AVULSO: 'OK_VIA_OS',
+    OBSERVACAO: args.justificativa
+  };
+
+  if (idx >= 0) {
+    updateRowByIndex_(GMAN.SHEETS.STATUS, table.startRow + idx, updates);
+  } else {
+    const equipamento = getEquipamentoOficial_(args.idEquipamento);
+    if (!equipamento) throw erroUsuario_(GMAN.MENSAGENS.EQUIPAMENTO_NAO_OFICIAL, 'EQUIPAMENTO_NAO_OFICIAL');
+    appendRow_(GMAN.SHEETS.STATUS, rowFromHeaders_(table.headers, Object.assign({
+      ID_EQUIPAMENTO: equipamento.ID_EQUIPAMENTO,
+      EQUIPAMENTO: equipamento.NOME_EQUIPAMENTO_GRUPO || equipamento.ID_EQUIPAMENTO,
+      ID_NORMALIZADO: equipamento.ID_NORMALIZADO || equipamento.ID_EQUIPAMENTO,
+      OFICIAL_EQUIPAMENTOS: 'SIM'
+    }, updates)));
+  }
+
+  registrarHistorico_({
+    usuario: args.usuario,
+    idOs: args.idOs,
+    numeroOs: args.osBase || '',
+    idEquipamento: args.idEquipamento,
+    acao: 'ALTERACAO_STATUS_OPERACIONAL',
+    statusAnterior: '',
+    statusNovo: args.novoStatus,
+    justificativa: args.justificativa,
+    observacao: 'Status operacional alterado via OS.'
+  });
+}
+
+function reavaliarStatusAposFechamento_(idEquipamento, osBase, usuario, justificativa) {
+  const table = readTable_(GMAN.SHEETS.OS);
+  const relacionadas = table.rows.filter(r => canon_(r.ID_EQUIPAMENTO) === canon_(idEquipamento) && canon_(r.OS_BASE) === canon_(osBase) && valor_(r.ID_OS));
+  const ativas = relacionadas.filter(r => isOsAtiva_(r.STATUS_OS));
+
+  if (ativas.length > 0) {
+    atualizarBloqueioRetorno_(relacionadas, 'BLOQUEADO_OS_ATIVA');
+    return {
+      aplicado: false,
+      motivo: GMAN.MENSAGENS.BLOQUEIO_OPERANDO,
+      osAtivas: ativas.map(r => r.NUMERO_OS)
+    };
+  }
+
+  const concluidas = relacionadas.filter(r => canon_(r.STATUS_OS) === canon_(GMAN.STATUS_OS.CONCLUIDA));
+  const finais = concluidas.map(r => String(r.CONDICAO_OPERACIONAL_FINAL || '').trim()).filter(Boolean);
+  const unicos = Array.from(new Set(finais.map(canon_)));
+
+  if (unicos.length === 0) {
+    return { aplicado: false, motivo: 'Nenhuma condição final encontrada.' };
+  }
+
+  if (unicos.length > 1) {
+    atualizarBloqueioRetorno_(relacionadas, 'BLOQUEADO_DIVERGENCIA_STATUS_FINAL');
+    mudarStatusOperacionalViaOS_({
+      idEquipamento,
+      novoStatus: GMAN.STATUS_OPERACIONAL.MANUTENCAO_PARADO,
+      justificativa: 'Retorno bloqueado por divergência de condição final entre OS vinculadas.',
+      usuario,
+      idOs: concluidas[0].ID_OS,
+      osBase,
+      setor: ''
+    });
+    return { aplicado: false, motivo: 'Divergência de condição final entre OS vinculadas.' };
+  }
+
+  const final = finais[0];
+  mudarStatusOperacionalViaOS_({
+    idEquipamento,
+    novoStatus: final,
+    justificativa: justificativa || 'Status operacional final aplicado após conclusão de todas as OS vinculadas.',
+    usuario,
+    idOs: concluidas[0].ID_OS,
+    osBase,
+    setor: ''
+  });
+
+  atualizarBloqueioRetorno_(relacionadas, 'OK');
+  return { aplicado: true, statusOperacional: final };
+}
+
+function atualizarStatusVisualAbertura_(equipamento, osBase, idOs, setor, justificativa, usuario) {
+  const table = readTable_(GMAN.SHEETS.STATUS);
+  const idx = table.rows.findIndex(r => canon_(r.ID_EQUIPAMENTO) === canon_(equipamento.ID_EQUIPAMENTO));
+  const now = new Date();
+
+  const updates = {
+    STATUS_VISUAL_GRUPO: 'Com OS aberta',
+    ID_OS_BLOQUEADORA: idOs,
+    NUMERO_OS_BASE_ATIVA: osBase,
+    SETORES_ATIVOS: setor,
+    JUSTIFICATIVA_STATUS: justificativa,
+    DATA_ULTIMA_ALTERACAO: dataBrasil_(now),
+    HORA_ULTIMA_ALTERACAO: horaBrasil_(now),
+    USUARIO_ULTIMA_ALTERACAO: usuario.NOME || usuario.LOGIN,
+    OFICIAL_EQUIPAMENTOS: 'SIM',
+    BLOQUEIO_STATUS_AVULSO: 'BLOQUEAR_SEM_OS'
+  };
+
+  if (idx >= 0) {
+    updateRowByIndex_(GMAN.SHEETS.STATUS, table.startRow + idx, updates);
+  } else {
+    appendRow_(GMAN.SHEETS.STATUS, rowFromHeaders_(table.headers, Object.assign({
+      ID_EQUIPAMENTO: equipamento.ID_EQUIPAMENTO,
+      EQUIPAMENTO: equipamento.NOME_EQUIPAMENTO_GRUPO || equipamento.ID_EQUIPAMENTO,
+      STATUS_OPERACIONAL: GMAN.STATUS_OPERACIONAL.OPERANDO,
+      DISPONIBILIDADE_PLENA: 'SIM',
+      DISPONIBILIDADE_FUNCIONAL: 'SIM',
+      ID_NORMALIZADO: equipamento.ID_NORMALIZADO || equipamento.ID_EQUIPAMENTO
+    }, updates)));
+  }
+}
+
+/* =========================
+ * KPI AUXILIARES
+ * ========================= */
+
+function calcularCargaOperacional_(osRows) {
+  const byArea = {};
+  const byExec = {};
+
+  osRows.forEach(r => {
+    const area = r.SETOR_EQUIPE || 'Sem área';
+    const exec = r.RESPONSAVEL || r.EXECUTANTE_CANONICO || 'Sem executante';
+    initCarga_(byArea, area, '');
+    initCarga_(byExec, exec, area);
+
+    aplicarCarga_(byArea[area], r);
+    aplicarCarga_(byExec[exec], r);
+  });
+
+  return {
+    porAreaEquipe: Object.keys(byArea).sort().map(k => finalizarCarga_(byArea[k])),
+    porExecutante: Object.keys(byExec).sort().map(k => finalizarCarga_(byExec[k]))
+  };
+}
+
+function initCarga_(obj, chave, area) {
+  if (!obj[chave]) {
+    obj[chave] = {
+      nome: chave,
+      area: area,
+      osAbertas: 0,
+      osEmExecucao: 0,
+      osPendentes: 0,
+      osConcluidasPeriodo: 0,
+      esperaValores: [],
+      execucaoValores: []
+    };
+  }
+}
+
+function aplicarCarga_(c, r) {
+  const st = canon_(r.STATUS_OS);
+  if (st === canon_(GMAN.STATUS_OS.ABERTA)) c.osAbertas++;
+  if (st === canon_(GMAN.STATUS_OS.INICIADA) || st === canon_(GMAN.STATUS_OS.EM_EXECUCAO)) c.osEmExecucao++;
+  if (st === canon_(GMAN.STATUS_OS.PENDENTE)) c.osPendentes++;
+  if (st === canon_(GMAN.STATUS_OS.CONCLUIDA)) {
+    c.osConcluidasPeriodo++;
+    if (numero_(r.TEMPO_ESPERA_HORAS) > 0) c.esperaValores.push(numero_(r.TEMPO_ESPERA_HORAS));
+    if (numero_(r.MTTR_TECNICO_HORAS) > 0) c.execucaoValores.push(numero_(r.MTTR_TECNICO_HORAS));
+  }
+}
+
+function finalizarCarga_(c) {
+  return {
+    nome: c.nome,
+    areaEquipe: c.area || c.nome,
+    osAbertas: c.osAbertas,
+    osEmExecucao: c.osEmExecucao,
+    osPendentes: c.osPendentes,
+    osConcluidasPeriodo: c.osConcluidasPeriodo,
+    esperaMediaHoras: media_(c.esperaValores),
+    execucaoMediaHoras: media_(c.execucaoValores)
+  };
+}
+
+function calcularReincidencia_(osRows, statusRows) {
+  const corretivas = osRows.filter(r => entraReincidencia_(r.TIPO_OS) && valor_(r.OS_BASE));
+  const bases = {};
+  corretivas.forEach(r => {
+    const key = canon_(r.ID_EQUIPAMENTO) + '|' + canon_(r.OS_BASE);
+    if (!bases[key]) bases[key] = r;
+  });
+
+  const porEquip = {};
+  Object.keys(bases).forEach(k => {
+    const r = bases[k];
+    const id = r.ID_EQUIPAMENTO || '';
+    if (!porEquip[id]) porEquip[id] = { idEquipamento: id, sistema: r.SISTEMA, qtd: 0, ultimaOs: '', ultimaFalha: '', setores: {} };
+    porEquip[id].qtd++;
+    porEquip[id].ultimaOs = r.NUMERO_OS || porEquip[id].ultimaOs;
+    porEquip[id].ultimaFalha = r.DESCRICAO_SOLICITACAO || porEquip[id].ultimaFalha;
+    porEquip[id].setores[r.SETOR_EQUIPE || ''] = (porEquip[id].setores[r.SETOR_EQUIPE || ''] || 0) + 1;
+  });
+
+  const statusIndex = indexBy_(statusRows, 'ID_EQUIPAMENTO');
+  return Object.keys(porEquip).map(id => {
+    const x = porEquip[id];
+    const setorMais = Object.keys(x.setores).sort((a, b) => x.setores[b] - x.setores[a])[0] || '';
+    return {
+      sistema: x.sistema,
+      idEquipamentoGrupo: x.idEquipamento,
+      qtdOsRecorrentes: x.qtd,
+      criticidadeReincidencia: x.qtd >= 3 ? 'Crítico' : (x.qtd >= 2 ? 'Atenção' : 'Evento isolado'),
+      condicaoAtual: statusIndex[canon_(id)] ? statusIndex[canon_(id)].STATUS_OPERACIONAL : '',
+      ultimaOs: x.ultimaOs,
+      ultimaFalha: x.ultimaFalha,
+      setorMaisAcionado: setorMais
+    };
+  }).filter(x => x.qtdOsRecorrentes >= 2 || canon_(x.condicaoAtual) === canon_(GMAN.STATUS_OPERACIONAL.PARADO) || canon_(x.condicaoAtual) === canon_(GMAN.STATUS_OPERACIONAL.MANUTENCAO_PARADO))
+    .sort((a, b) => b.qtdOsRecorrentes - a.qtdOsRecorrentes);
+}
+
+function calcularMtbf_(osRows) {
+  const corretivas = osRows.filter(r => entraReincidencia_(r.TIPO_OS) && valor_(r.OS_BASE) && valor_(r.DATA_ABERTURA));
+  const porEquip = {};
+  corretivas.forEach(r => {
+    const key = r.ID_EQUIPAMENTO || '';
+    if (!porEquip[key]) porEquip[key] = {};
+    porEquip[key][r.OS_BASE] = r.DATA_ABERTURA + ' ' + (r.HORA_ABERTURA || '00:00');
+  });
+
+  const saida = [];
+  Object.keys(porEquip).forEach(eq => {
+    const datas = Object.keys(porEquip[eq]).map(k => parseDataHoraBrasil_(porEquip[eq][k])).filter(Boolean).sort((a, b) => a.getTime() - b.getTime());
+    if (datas.length >= 2) {
+      const intervalos = [];
+      for (let i = 1; i < datas.length; i++) {
+        intervalos.push((datas[i].getTime() - datas[i - 1].getTime()) / 36e5);
+      }
+      saida.push({ idEquipamento: eq, mtbfHoras: media_(intervalos), falhasBase: datas.length });
+    }
+  });
+  return saida;
+}
+
+/* =========================
+ * VALIDAÇÕES E PERMISSÕES
+ * ========================= */
+
+function usuarioFromPayload_(payload, obrigatorio) {
+  const login = payload.login || payload.usuario || payload.user || payload.usuarioLogado || '';
+  if (!login && !obrigatorio) return null;
+  if (!login && obrigatorio) throw erroUsuario_('Usuário logado é obrigatório para esta ação.', 'USUARIO_OBRIGATORIO');
+
+  const users = readTable_(GMAN.SHEETS.USUARIOS).rows.filter(r => ativo_(r.ATIVO));
+  const c = canon_(login);
+  const user = users.find(u => canon_(u.LOGIN) === c || canon_(u.NOME) === c || canon_(u.NOME_CANONICO) === c || canon_(u.ID_USUARIO) === c);
+  if (!user && obrigatorio) throw erroUsuario_('Usuário não encontrado ou inativo no GMAN.', 'USUARIO_NAO_ENCONTRADO');
+  return user || null;
+}
+
+function validarPermissaoOs_(usuario, osRow, acao) {
+  if (isGestao_(usuario)) return true;
+
+  const resp = canon_(osRow.RESPONSAVEL);
+  const u1 = canon_(usuario.NOME);
+  const u2 = canon_(usuario.NOME_CANONICO);
+  const u3 = canon_(usuario.LOGIN);
+
+  if (resp && (resp === u1 || resp === u2 || resp === u3)) return true;
+
+  throw erroUsuario_(GMAN.MENSAGENS.SEM_PERMISSAO + ' Equipe operacional só pode alterar OS sob sua responsabilidade.', 'SEM_PERMISSAO_OS');
+}
+
+function validarGestao_(usuario) {
+  if (!isGestao_(usuario)) throw erroUsuario_(GMAN.MENSAGENS.SEM_PERMISSAO, 'SOMENTE_GESTAO');
+}
+
+function isGestao_(usuario) {
+  if (!usuario) return false;
+  if (isSim_(usuario.PODE_VER_GESTAO)) return true;
+  return GMAN.PERFIS_GESTAO.indexOf(String(usuario.PERFIL || '').toLowerCase()) >= 0;
+}
+
+function permissoesUsuario_(usuario) {
+  return {
+    gestao: isGestao_(usuario),
+    podeAlterarTodasOs: isSim_(usuario.PODE_ALTERAR_TODAS_OS) || isGestao_(usuario),
+    podeCancelar: isSim_(usuario.PODE_CANCELAR) || isGestao_(usuario),
+    podeAprovarRedistribuicao: isSim_(usuario.PODE_APROVAR_REDISTRIBUICAO) || isGestao_(usuario)
+  };
+}
+
+function validarCampos_(payload, campos) {
+  const faltando = campos.filter(c => !valor_(payload[c]));
+  if (faltando.length) {
+    throw erroUsuario_(GMAN.MENSAGENS.CAMPOS_OBRIGATORIOS + ' Campos: ' + faltando.join(', '), 'CAMPOS_OBRIGATORIOS');
+  }
+}
+
+function validarStatusOperacional_(status) {
+  const validos = Object.values(GMAN.STATUS_OPERACIONAL).map(canon_);
+  if (validos.indexOf(canon_(status)) < 0) {
+    throw erroUsuario_('Condição operacional inválida: ' + status, 'STATUS_OPERACIONAL_INVALIDO');
+  }
+}
+
+function validarVeiculoKm_(payload, semUsoVeiculo) {
+  if (semUsoVeiculo) return { inicial: '', final: '', rodado: '' };
+
+  validarCampos_(payload, ['prefixoVeiculo', 'motorista', 'kmInicial', 'kmFinal']);
+  const ini = numero_(payload.kmInicial);
+  const fim = numero_(payload.kmFinal);
+  if (fim < ini) throw erroUsuario_('KM final não pode ser menor que KM inicial.', 'KM_INVALIDO');
+
+  return { inicial: ini, final: fim, rodado: fim - ini };
+}
+
+/* =========================
+ * DADOS / PLANILHA
+ * ========================= */
+
+function getSpreadsheet_() {
+  if (GMAN.SPREADSHEET_ID) return SpreadsheetApp.openById(GMAN.SPREADSHEET_ID);
+  const active = SpreadsheetApp.getActiveSpreadsheet();
+  if (!active) throw new Error('Script não está vinculado a uma planilha e SPREADSHEET_ID está vazio.');
+  return active;
+}
+
+function sheet_(nome) {
+  const s = getSpreadsheet_().getSheetByName(nome);
+  if (!s) throw new Error('Aba obrigatória não encontrada: ' + nome);
+  return s;
+}
+
+function readTable_(sheetName) {
+  const sh = sheet_(sheetName);
+  const lastRow = Math.max(sh.getLastRow(), 1);
+  const lastCol = Math.max(sh.getLastColumn(), 1);
+  const values = sh.getRange(1, 1, lastRow, lastCol).getValues();
+  const headers = values[0].map(h => String(h || '').trim());
+  const rows = [];
+  for (let i = 1; i < values.length; i++) {
+    const obj = {};
+    let empty = true;
+    headers.forEach((h, j) => {
+      obj[h] = values[i][j];
+      if (values[i][j] !== '' && values[i][j] !== null) empty = false;
+    });
+    if (!empty) rows.push(obj);
+  }
+  return { sheet: sh, headers, rows, startRow: 2, lastRow, lastCol };
+}
+
+function appendRow_(sheetName, rowArray) {
+  const sh = sheet_(sheetName);
+  sh.appendRow(rowArray);
+}
+
+function appendRows_(sheetName, rows) {
+  if (!rows || !rows.length) return;
+  const sh = sheet_(sheetName);
+  const start = sh.getLastRow() + 1;
+  sh.getRange(start, 1, rows.length, rows[0].length).setValues(rows);
+}
+
+function updateRowByIndex_(sheetName, rowIndex1Based, updates) {
+  const table = readTable_(sheetName);
+  const sh = table.sheet;
+  const current = sh.getRange(rowIndex1Based, 1, 1, table.headers.length).getValues()[0];
+
+  Object.keys(updates).forEach(k => {
+    const idx = table.headers.indexOf(k);
+    if (idx >= 0) current[idx] = updates[k];
+  });
+
+  sh.getRange(rowIndex1Based, 1, 1, table.headers.length).setValues([current]);
+}
+
+function rowFromHeaders_(headers, obj) {
+  return headers.map(h => obj.hasOwnProperty(h) ? obj[h] : '');
+}
+
+function getOsContext_(idOs) {
+  const table = readTable_(GMAN.SHEETS.OS);
+  const idx = table.rows.findIndex(r => canon_(r.ID_OS) === canon_(idOs) || canon_(r.NUMERO_OS) === canon_(idOs));
+  if (idx < 0) throw erroUsuario_(GMAN.MENSAGENS.OS_NAO_ENCONTRADA, 'OS_NAO_ENCONTRADA');
+  return { table, row: table.rows[idx], rowIndex: table.startRow + idx };
+}
+
+function getEquipamentoOficial_(idEquipamento) {
+  const table = readTable_(GMAN.SHEETS.EQUIPAMENTOS);
+  return table.rows.find(r => ativo_(r.ATIVO) && (canon_(r.ID_EQUIPAMENTO) === canon_(idEquipamento) || canon_(r.ID_NORMALIZADO) === canon_(idEquipamento)));
+}
+
+function indexBy_(rows, field) {
+  const o = {};
+  rows.forEach(r => { if (valor_(r[field])) o[canon_(r[field])] = r; });
+  return o;
+}
+
+/* =========================
+ * HISTÓRICO / AUDITORIA
+ * ========================= */
+
+function registrarHistorico_(args) {
+  const table = readTable_(GMAN.SHEETS.HISTORICO);
+  const usuario = args.usuario || {};
+  appendRow_(GMAN.SHEETS.HISTORICO, rowFromHeaders_(table.headers, {
+    ID_HISTORICO: 'HIST-' + Utilities.getUuid().slice(0, 12).toUpperCase(),
+    DATA_HORA_BRASIL: agoraBrasil_(),
+    USUARIO: usuario.NOME || usuario.LOGIN || '',
+    PERFIL: usuario.PERFIL || '',
+    ID_OS: args.idOs || '',
+    NUMERO_OS: args.numeroOs || '',
+    ID_EQUIPAMENTO: args.idEquipamento || '',
+    ACAO: args.acao || '',
+    STATUS_ANTERIOR: args.statusAnterior || '',
+    STATUS_NOVO: args.statusNovo || '',
+    JUSTIFICATIVA: args.justificativa || '',
+    OBSERVACAO: args.observacao || '',
+    VERSAO_REGRA: GMAN.VERSAO,
+    ORIGEM: 'APPS_SCRIPT'
+  }));
+}
+
+function registrarAuditoria_(args) {
+  const table = readTable_(GMAN.SHEETS.AUDITORIA);
+  appendRow_(GMAN.SHEETS.AUDITORIA, rowFromHeaders_(table.headers, {
+    ID_LOG: 'LOG-' + Utilities.getUuid().slice(0, 12).toUpperCase(),
+    DATA_HORA_BRASIL: agoraBrasil_(),
+    USUARIO: args.usuario || '',
+    PERFIL: args.perfil || '',
+    ACAO: args.acao || '',
+    ABA_AFETADA: args.aba || '',
+    ID_REGISTRO: args.idRegistro || '',
+    CAMPO_ALTERADO: args.campo || '',
+    VALOR_ANTERIOR: args.anterior || '',
+    VALOR_NOVO: args.novo || '',
+    JUSTIFICATIVA: args.justificativa || '',
+    RESULTADO: args.resultado || '',
+    ERRO_TECNICO: args.erroTecnico || '',
+    VERSAO_REGRA: GMAN.VERSAO,
+    ORIGEM: args.origem || 'APPS_SCRIPT'
+  }));
+}
+
+function registrarAuditoriaSegura_(args) {
+  try {
+    registrarAuditoria_(args);
+  } catch (e) {
+    console.log('Falha ao registrar auditoria: ' + erroParaTexto_(e));
+  }
+}
+
+function gravarTesteSaude_(resultado) {
+  try {
+    const table = readTable_(GMAN.SHEETS.TESTE_SAUDE);
+    const sh = table.sheet;
+    const rows = resultado.map(r => rowFromHeaders_(table.headers, {
+      DATA_HORA_BRASIL: agoraBrasil_(),
+      ITEM: r.item,
+      STATUS: r.status,
+      DETALHE: r.detalhe,
+      VERSAO: GMAN.VERSAO
+    }));
+    appendRows_(GMAN.SHEETS.TESTE_SAUDE, rows);
+  } catch (e) {
+    registrarAuditoriaSegura_({
+      usuario: 'SISTEMA',
+      perfil: '',
+      acao: 'gravarTesteSaude',
+      resultado: 'ERRO',
+      erroTecnico: erroParaTexto_(e),
+      origem: 'TESTE_SAUDE'
+    });
+  }
+}
+
+/* =========================
+ * GERAÇÃO DE OS E CÁLCULOS
+ * ========================= */
+
+function gerarProximaOsBase_(rows, ano2) {
+  let max = 0;
+  rows.forEach(r => {
+    const base = String(r.OS_BASE || '');
+    const m = base.match(/^(\d{4})\/(\d{2})$/);
+    if (m && m[2] === ano2) max = Math.max(max, parseInt(m[1], 10));
+  });
+  return pad4_(max + 1) + '/' + ano2;
+}
+
+function proximaSequenciaBase_(rows, osBase) {
+  let max = 0;
+  rows.forEach(r => {
+    if (canon_(r.OS_BASE) === canon_(osBase)) max = Math.max(max, numero_(r.SEQUENCIA_OS));
+  });
+  return max + 1;
+}
+
+function montarNumeroOs_(osBase, seq) {
+  const p = String(osBase).split('/');
+  return p[0] + '.' + pad2_(seq) + '/' + p[1];
+}
+
+function calcularHorasEntre_(dataIni, horaIni, dataFim, horaFim) {
+  const ini = parseDataHoraBrasil_(String(dataIni || '') + ' ' + String(horaIni || '00:00'));
+  const fim = parseDataHoraBrasil_(String(dataFim || '') + ' ' + String(horaFim || '00:00'));
+  if (!ini || !fim) return '';
+  const horas = (fim.getTime() - ini.getTime()) / 36e5;
+  return horas >= 0 ? Math.round(horas * 100) / 100 : '';
+}
+
+function registrarKmVeiculo_(osRow, payload, km, usuario) {
+  const table = readTable_(GMAN.SHEETS.VEICULOS_KM);
+  appendRow_(GMAN.SHEETS.VEICULOS_KM, rowFromHeaders_(table.headers, {
+    ID_REGISTRO_KM: 'KM-' + Utilities.getUuid().slice(0, 10).toUpperCase(),
+    DATA_HORA_BRASIL: agoraBrasil_(),
+    ID_OS: osRow.ID_OS,
+    PREFIXO_VEICULO: payload.prefixoVeiculo,
+    MOTORISTA: payload.motorista,
+    KM_INICIAL: km.inicial,
+    KM_FINAL: km.final,
+    KM_RODADO: km.rodado,
+    VALIDACAO_KM: 'OK',
+    REGISTRADO_POR: usuario.NOME || usuario.LOGIN,
+    OBSERVACAO: payload.observacaoVeiculo || ''
+  }));
+}
+
+function atualizarBloqueioRetorno_(osRows, valor) {
+  const table = readTable_(GMAN.SHEETS.OS);
+  osRows.forEach(os => {
+    const idx = table.rows.findIndex(r => canon_(r.ID_OS) === canon_(os.ID_OS));
+    if (idx >= 0) updateRowByIndex_(GMAN.SHEETS.OS, table.startRow + idx, { BLOQUEIO_RETORNO_OPERANDO: valor });
+  });
+}
+
+/* =========================
+ * FILTROS
+ * ========================= */
+
+function filtrarOsPorPeriodo_(rows, payload) {
+  const p = payload || {};
+  let inicio = null;
+  let fim = null;
+
+  const hoje = new Date();
+  if (p.periodo === 'hoje') {
+    inicio = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    fim = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 1);
+  } else if (p.periodo === '7dias') {
+    inicio = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 7);
+    fim = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 1);
+  } else if (p.periodo === '30dias') {
+    inicio = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 30);
+    fim = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 1);
+  } else if (p.periodo === 'mesAtual' || !p.periodo) {
+    inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 1);
+  } else if (p.dataInicio && p.dataFim) {
+    inicio = parseDataHoraBrasil_(p.dataInicio + ' 00:00');
+    fim = parseDataHoraBrasil_(p.dataFim + ' 23:59');
+  }
+
+  let out = rows;
+  if (inicio && fim) {
+    out = out.filter(r => {
+      const d = parseDataHoraBrasil_(String(r.DATA_ABERTURA || '') + ' ' + String(r.HORA_ABERTURA || '00:00'));
+      return d && d.getTime() >= inicio.getTime() && d.getTime() <= fim.getTime();
+    });
+  }
+
+  if (p.sistema) out = out.filter(r => canon_(r.SISTEMA) === canon_(p.sistema));
+  if (p.tipoLocal) out = out.filter(r => canon_(r.TIPO_LOCAL) === canon_(p.tipoLocal));
+  if (p.idEquipamento) out = out.filter(r => canon_(r.ID_EQUIPAMENTO) === canon_(p.idEquipamento));
+  if (p.setorEquipe) out = out.filter(r => canon_(r.SETOR_EQUIPE) === canon_(p.setorEquipe));
+  if (p.executante) out = out.filter(r => canon_(r.RESPONSAVEL) === canon_(p.executante) || canon_(r.EXECUTANTE_CANONICO) === canon_(p.executante));
+  if (p.statusOs) out = out.filter(r => canon_(r.STATUS_OS) === canon_(p.statusOs));
+
+  return out;
+}
+
+function periodoDescricao_(payload) {
+  if (payload.dataInicio && payload.dataFim) return payload.dataInicio + ' a ' + payload.dataFim;
+  if (payload.periodo) return payload.periodo;
+  return 'mesAtual';
+}
+
+
+/* =========================
+ * EVIDÊNCIAS NO GOOGLE DRIVE
+ * ========================= */
+
+function getOrCreateEvidenceFolder_() {
+  const nome = GMAN.EVIDENCIAS_DRIVE_FOLDER_NAME;
+  const folders = DriveApp.getFoldersByName(nome);
+  if (folders.hasNext()) return folders.next();
+  return DriveApp.createFolder(nome);
+}
+
+function salvarArquivoEvidenciaSeEnviado_(payload, meta) {
+  const base64Raw = payload.arquivoBase64 || payload.conteudoBase64 || payload.base64 || '';
+  if (!base64Raw) {
+    return { linkArquivo: '', nomeArquivo: payload.nomeArquivo || '' };
+  }
+
+  const mimeType = payload.mimeType || detectarMimeBase64_(base64Raw) || (meta.tipoEvidencia === GMAN.TIPOS_EVIDENCIA.AUDIO ? 'audio/webm' : 'image/jpeg');
+  const base64Limpo = String(base64Raw).replace(/^data:[^;]+;base64,/, '');
+  const bytes = Utilities.base64Decode(base64Limpo);
+
+  const extensao = extensaoPorMime_(mimeType, meta.tipoEvidencia);
+  const nomeOriginal = limparNomeArquivo_(payload.nomeArquivo || (meta.idEvidencia + '.' + extensao));
+  const nomeArquivo = [
+    meta.idEvidencia,
+    meta.numeroOs || meta.idOs,
+    meta.idEquipamento,
+    meta.tipoEvidencia,
+    nomeOriginal
+  ].map(limparNomeArquivo_).join('_');
+
+  const pasta = getOrCreateEvidenceFolder_();
+  const blob = Utilities.newBlob(bytes, mimeType, nomeArquivo);
+  const file = pasta.createFile(blob);
+
+  return {
+    linkArquivo: file.getUrl(),
+    nomeArquivo: nomeArquivo,
+    fileId: file.getId()
+  };
+}
+
+function detectarMimeBase64_(base64Raw) {
+  const m = String(base64Raw).match(/^data:([^;]+);base64,/);
+  return m ? m[1] : '';
+}
+
+function extensaoPorMime_(mimeType, tipoEvidencia) {
+  const m = String(mimeType || '').toLowerCase();
+  if (m.indexOf('png') >= 0) return 'png';
+  if (m.indexOf('webp') >= 0) return 'webp';
+  if (m.indexOf('jpeg') >= 0 || m.indexOf('jpg') >= 0) return 'jpg';
+  if (m.indexOf('mpeg') >= 0 || m.indexOf('mp3') >= 0) return 'mp3';
+  if (m.indexOf('wav') >= 0) return 'wav';
+  if (m.indexOf('ogg') >= 0) return 'ogg';
+  if (m.indexOf('webm') >= 0) return 'webm';
+  return tipoEvidencia === GMAN.TIPOS_EVIDENCIA.AUDIO ? 'webm' : 'jpg';
+}
+
+function limparNomeArquivo_(nome) {
+  return String(nome || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Za-z0-9._-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 90) || 'arquivo';
+}
+
+/* =========================
+ * UTILITÁRIOS
+ * ========================= */
+
+function normalizarPayload_(e, metodo) {
+  let payload = {};
+  if (e && e.parameter) Object.keys(e.parameter).forEach(k => payload[k] = e.parameter[k]);
+
+  if (metodo === 'POST' && e && e.postData && e.postData.contents) {
+    try {
+      const body = JSON.parse(e.postData.contents);
+      payload = Object.assign(payload, body);
+    } catch (err) {
+      payload.rawBody = e.postData.contents;
+    }
+  }
+  return payload;
+}
+
+function responder_(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function ok_(data) {
+  return Object.assign({ ok: true, versao: GMAN.VERSAO, horarioBrasil: agoraBrasil_() }, data || {});
+}
+
+function erroUsuario_(mensagem, codigo) {
+  const e = new Error(mensagem);
+  e.userMessage = mensagem;
+  e.code = codigo || 'ERRO_USUARIO';
+  return e;
+}
+
+function erroParaTexto_(err) {
+  if (!err) return '';
+  return (err.stack || err.message || String(err)).toString();
+}
+
+function comLock_(fn) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    return fn();
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function agoraBrasil_() {
+  return Utilities.formatDate(new Date(), GMAN.TIMEZONE, 'dd/MM/yyyy HH:mm:ss');
+}
+
+function dataBrasil_(date) {
+  return Utilities.formatDate(date || new Date(), GMAN.TIMEZONE, 'dd/MM/yyyy');
+}
+
+function horaBrasil_(date) {
+  return Utilities.formatDate(date || new Date(), GMAN.TIMEZONE, 'HH:mm');
+}
+
+function dataHoraBrasil_(date) {
+  return Utilities.formatDate(date || new Date(), GMAN.TIMEZONE, 'dd/MM/yyyy HH:mm:ss');
+}
+
+function parseDataHoraBrasil_(s) {
+  const txt = String(s || '').trim();
+  const m = txt.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?/);
+  if (!m) return null;
+  return new Date(parseInt(m[3], 10), parseInt(m[2], 10) - 1, parseInt(m[1], 10), parseInt(m[4] || '0', 10), parseInt(m[5] || '0', 10), parseInt(m[6] || '0', 10));
+}
+
+function canon_(v) {
+  return String(v == null ? '' : v)
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase();
+}
+
+function canonNomeExibicao_(v) {
+  return String(v || '').trim().toUpperCase();
+}
+
+function valor_(v) {
+  return v !== null && v !== undefined && String(v).trim() !== '';
+}
+
+function ativo_(v) {
+  return canon_(v || 'SIM') === 'SIM' || canon_(v) === 'ATIVO';
+}
+
+function isSim_(v) {
+  return canon_(v) === 'SIM' || v === true;
+}
+
+function normalizarBooleano_(v) {
+  if (v === true) return true;
+  if (v === false) return false;
+  const c = canon_(v);
+  return c === 'SIM' || c === 'TRUE' || c === '1' || c === 'X' || c === 'MARCADO';
+}
+
+function numero_(v) {
+  if (typeof v === 'number') return v;
+  const n = parseFloat(String(v || '').replace(',', '.'));
+  return isNaN(n) ? 0 : n;
+}
+
+function pad2_(n) {
+  return String(n).padStart(2, '0');
+}
+
+function pad4_(n) {
+  return String(n).padStart(4, '0');
+}
+
+function media_(arr) {
+  if (!arr || !arr.length) return '';
+  const vals = arr.filter(n => typeof n === 'number' && !isNaN(n));
+  if (!vals.length) return '';
+  return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 100) / 100;
+}
+
+function isOsAtiva_(status) {
+  const c = canon_(status);
+  return [
+    GMAN.STATUS_OS.ABERTA,
+    GMAN.STATUS_OS.INICIADA,
+    GMAN.STATUS_OS.EM_EXECUCAO,
+    GMAN.STATUS_OS.PENDENTE,
+    GMAN.STATUS_OS.CANCELAMENTO_SOLICITADO,
+    GMAN.STATUS_OS.REDISTRIBUICAO_SOLICITADA
+  ].map(canon_).indexOf(c) >= 0;
+}
+
+function contarStatus_(rows, status) {
+  return rows.filter(r => canon_(r.STATUS_OPERACIONAL) === canon_(status)).length;
+}
+
+function contarStatusOs_(rows, status) {
+  return rows.filter(r => canon_(r.STATUS_OS) === canon_(status)).length;
+}
+
+function isDisponivelFuncional_(status) {
+  const c = canon_(status);
+  return c === canon_(GMAN.STATUS_OPERACIONAL.OPERANDO) ||
+    c === canon_(GMAN.STATUS_OPERACIONAL.MANUTENCAO_OPERANDO) ||
+    c === canon_(GMAN.STATUS_OPERACIONAL.EM_TESTE);
+}
+
+function statusVisualPorOperacional_(status) {
+  const c = canon_(status);
+  if (c === canon_(GMAN.STATUS_OPERACIONAL.OPERANDO)) return 'Operando';
+  if (c === canon_(GMAN.STATUS_OPERACIONAL.MANUTENCAO_OPERANDO)) return 'Em manutenção, operando';
+  if (c === canon_(GMAN.STATUS_OPERACIONAL.MANUTENCAO_PARADO)) return 'Em manutenção, parado';
+  if (c === canon_(GMAN.STATUS_OPERACIONAL.EM_TESTE)) return 'Em teste';
+  if (c === canon_(GMAN.STATUS_OPERACIONAL.PARADO)) return 'Parado';
+  return status;
+}
+
+function entraReincidencia_(tipoOs) {
+  return canon_(tipoOs) === canon_('Corretiva') || canon_(tipoOs) === canon_('Falha') || canon_(tipoOs) === canon_('Corretiva/Falha');
+}
+
+function sanitizarUsuario_(u) {
+  return {
+    idUsuario: u.ID_USUARIO,
+    nome: u.NOME,
+    login: u.LOGIN,
+    perfil: u.PERFIL,
+    setorPadrao: u.SETOR_PADRAO,
+    gestao: isGestao_(u)
+  };
+}
+
+function acoesDisponiveis_() {
+  return [
+    'ping',
+    'testeSaudeGMAN',
+    'auditoriaAlicerceGMAN',
+    'autorizarGMAN',
+    'prepararSenhasUsuariosGMAN',
+    'listarConfiguracoes',
+    'listarListasValidacao',
+    'listarUsuarios',
+    'login',
+    'listarEquipes',
+    'listarEquipamentos',
+    'listarStatusAtual',
+    'listarOrdensServico',
+    'criarOS',
+    'iniciarOS',
+    'atualizarAndamentoOS',
+    'marcarPendenteOS',
+    'solicitarCancelamentoOS',
+    'aprovarCancelamentoOS',
+    'solicitarRedistribuicaoOS',
+    'aprovarRedistribuicaoOS',
+    'concluirOS',
+    'anexarEvidencia',
+    'registrarFichaTecnica',
+    'confirmarPatrimonio',
+    'historicoEquipamento',
+    'calcularKPIs',
+    'salvarSnapshotKPIs',
+    'listarCargaOperacional',
+    'listarReincidencia'
+  ];
+}
+
+/**
+ * Revisões registradas na entrega:
+ * REVISÃO 1 — Cobertura das 38 decisões finais:
+ * - Fluxo OS, permissões, KPIs, sincronização, bloqueios, evidências, veículo/KM, patrimônio e auditoria incorporados.
+ *
+ * REVISÃO 2 — Alinhamento com a planilha nova:
+ * - Nomes de abas e cabeçalhos principais conferidos contra a planilha GMAN nova.
+ *
+ * AUDITORIA PROFUNDA 1 — Integridade operacional:
+ * - Bloqueios de duplicidade, status sem OS, retorno para Operando, encerramento incompleto e permissões de equipe implementados.
+ *
+ * AUDITORIA PROFUNDA 2 — Integridade técnica:
+ * - LockService aplicado em gravações, erros amigáveis, log técnico, data/hora Brasil, ausência de macro/VBA, ausência de imagens.
+ *
+ * GMAN 8.5.6.44 — Reforço de alicerce:
+ * - Teste de saúde rígido para 214 equipamentos, 214 status, sistema 500 zerado, BRUTAS correto, LOCAL_ESTACAO e NOME_EQUIPAMENTO_GRUPO preenchidos.
+ * - listarStatusAtual enriquecido com dados da aba EQUIPAMENTOS para exibir nome dos lugares nos cards.
+ */
