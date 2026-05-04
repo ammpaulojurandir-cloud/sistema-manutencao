@@ -1,356 +1,719 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b5f94" />
-  <title>GMAN DMAE — Gestão de Manutenção de Bombeamento e Reservação</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1e3a5f">
+  <title>Sistema de Manutenção GMAN</title>
   <style>
-    :root{
-      --azul:#0b5f94; --azul2:#083f63; --azul3:#eaf6fb; --verde:#23a455; --laranja:#f28c28;
-      --vermelho:#c7362f; --amarelo:#f2c94c; --cinza:#eef3f7; --texto:#102330; --muted:#677887;
-      --card:#ffffff; --borda:#d7e2ea; --shadow:0 10px 26px rgba(8,63,99,.12); --radius:18px;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --azul-fundo:#1e3a5f;
+      --azul-fundo-2:#2c5282;
+      --azul:#3182ce;
+      --azul-claro:#63b3ed;
+      --verde:#38a169;
+      --verde-claro:#48bb78;
+      --amarelo:#d69e2e;
+      --amarelo-claro:#ecc94b;
+      --vermelho:#e53e3e;
+      --vermelho-claro:#f56565;
+      --cinza:#718096;
+      --texto:#1a202c;
+      --muted:#a0c4e8;
+      --borda:rgba(255,255,255,0.18);
     }
-    *{box-sizing:border-box} html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--texto);background:#f6fbfe}
-    body::before{content:"";position:fixed;inset:0;z-index:-2;background:
-      linear-gradient(120deg,rgba(11,95,148,.08),rgba(35,164,85,.06)),
-      repeating-linear-gradient(0deg,rgba(11,95,148,.06) 0 1px,transparent 1px 32px),
-      repeating-linear-gradient(90deg,rgba(11,95,148,.06) 0 1px,transparent 1px 32px),#f7fbfd}
-    body::after{content:"";position:fixed;inset:auto -10% -25% -10%;height:55%;z-index:-1;background:radial-gradient(circle at 30% 30%,rgba(35,164,85,.12),transparent 32%),radial-gradient(circle at 70% 45%,rgba(242,140,40,.12),transparent 35%)}
-    button,input,select,textarea{font:inherit} button{cursor:pointer;border:0;border-radius:14px;padding:11px 14px;background:var(--azul);color:#fff;font-weight:700;box-shadow:0 5px 13px rgba(11,95,148,.22)}
-    button.secondary{background:#fff;color:var(--azul);border:1px solid var(--borda);box-shadow:none} button.warn{background:var(--laranja)} button.danger{background:var(--vermelho)} button.good{background:var(--verde)} button.ghost{background:transparent;color:var(--azul);border:1px solid transparent;box-shadow:none}
-    button:disabled{opacity:.55;cursor:not-allowed} input,select,textarea{width:100%;border:1px solid var(--borda);border-radius:14px;padding:12px;background:#fff;color:var(--texto)} textarea{min-height:96px;resize:vertical}.row{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}.col-12{grid-column:span 12}.col-8{grid-column:span 8}.col-6{grid-column:span 6}.col-4{grid-column:span 4}.col-3{grid-column:span 3}.col-2{grid-column:span 2}
-    @media(max-width:760px){.row{grid-template-columns:1fr}.col-12,.col-8,.col-6,.col-4,.col-3,.col-2{grid-column:span 1}.desktop{display:none!important}}
-    .app{max-width:1220px;margin:0 auto;padding:16px 14px 96px}.topbar{position:sticky;top:0;z-index:50;margin:-16px -14px 14px;padding:14px;background:rgba(247,251,253,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(215,226,234,.8)}
-    .brand{display:flex;align-items:center;gap:12px}.brandmark{width:46px;height:46px;border-radius:15px;background:linear-gradient(145deg,var(--azul),#1d87c5);box-shadow:inset 0 1px 1px rgba(255,255,255,.45),0 10px 18px rgba(11,95,148,.2);display:grid;place-items:center;color:#fff;font-weight:900;letter-spacing:-1px}.brand h1{font-size:18px;margin:0;line-height:1.05}.brand p{margin:3px 0 0;color:var(--muted);font-size:12px}.toprow{display:flex;align-items:center;justify-content:space-between;gap:12px}.userbox{text-align:right;font-size:12px;color:var(--muted)}
-    .tabs{display:flex;gap:8px;overflow:auto;padding:8px 0 2px}.tab{white-space:nowrap;background:#fff;color:var(--azul);border:1px solid var(--borda);box-shadow:none;padding:10px 12px}.tab.active{background:var(--azul);color:#fff;border-color:var(--azul)}
-    .card{background:rgba(255,255,255,.93);border:1px solid var(--borda);border-radius:var(--radius);padding:15px;box-shadow:var(--shadow);margin-bottom:12px}.card h2,.card h3{margin:0 0 12px}.section-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:8px 0 12px}.section-title h2{font-size:18px;margin:0}.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 10px;border:1px solid var(--borda);background:#fff;color:var(--muted);font-size:12px;font-weight:700}.pill.good{color:var(--verde);border-color:rgba(35,164,85,.25)}.pill.warn{color:#b36700;border-color:rgba(242,140,40,.28)}.pill.danger{color:var(--vermelho);border-color:rgba(199,54,47,.25)}
-    .kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}@media(max-width:980px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}.kpi{background:#fff;border:1px solid var(--borda);border-radius:16px;padding:12px;box-shadow:0 4px 12px rgba(8,63,99,.08)}.kpi .label{font-size:12px;color:var(--muted);font-weight:700}.kpi .value{font-size:26px;font-weight:900;margin:6px 0 0}.kpi .meta{font-size:11px;color:var(--muted)}.value.good{color:var(--verde)}.value.warn{color:#b36700}.value.danger{color:var(--vermelho)}
-    .filters{display:flex;gap:8px;overflow:auto;padding:2px 0 10px}.filter-btn{background:#fff;color:var(--azul);border:1px solid var(--borda);box-shadow:none;white-space:nowrap}.filter-btn.active{background:var(--azul);color:#fff;border-color:var(--azul)}
-    .equip-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}@media(max-width:980px){.equip-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:620px){.equip-grid{grid-template-columns:1fr}}.equip{position:relative;overflow:hidden}.equip::before{content:"";position:absolute;inset:0 0 auto 0;height:5px;background:var(--azul)}.equip.operando::before{background:var(--verde)}.equip.manutencao::before{background:var(--laranja)}.equip.parado::before{background:var(--vermelho)}.equip.teste::before{background:#7457c5}.equip-title{font-weight:900;font-size:16px}.equip-sub{color:var(--muted);font-size:12px;margin-top:3px}.equip-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.mini{font-size:12px;padding:8px 10px;border-radius:12px}
-    table{width:100%;border-collapse:separate;border-spacing:0 8px} th{font-size:12px;color:var(--muted);text-align:left;padding:0 8px} td{background:#fff;border-top:1px solid var(--borda);border-bottom:1px solid var(--borda);padding:10px 8px;font-size:13px} td:first-child{border-left:1px solid var(--borda);border-radius:12px 0 0 12px} td:last-child{border-right:1px solid var(--borda);border-radius:0 12px 12px 0}.table-wrap{overflow:auto}.empty{padding:24px;text-align:center;color:var(--muted);border:1px dashed var(--borda);border-radius:16px;background:rgba(255,255,255,.72)}
-    .modal{position:fixed;inset:0;display:none;align-items:flex-end;justify-content:center;background:rgba(5,20,32,.45);z-index:100}.modal.open{display:flex}.modal-card{width:min(980px,100%);max-height:92vh;overflow:auto;background:#f8fcfe;border-radius:24px 24px 0 0;padding:16px;border:1px solid var(--borda);box-shadow:0 -12px 36px rgba(0,0,0,.18)}@media(min-width:980px){.modal{align-items:center}.modal-card{border-radius:24px;max-height:88vh}}.modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.modal-head h2{margin:0;font-size:18px}.close{background:#fff;color:var(--azul);border:1px solid var(--borda);box-shadow:none}
-    .toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:#102330;color:#fff;padding:12px 14px;border-radius:14px;box-shadow:0 14px 30px rgba(0,0,0,.18);z-index:200;display:none;max-width:92%;font-size:13px}.toast.show{display:block}.offline{display:none;position:fixed;top:0;left:0;right:0;background:var(--laranja);color:#fff;text-align:center;padding:8px;font-weight:800;z-index:300}.offline.show{display:block}.version{position:fixed;right:8px;bottom:8px;font-size:10px;color:var(--muted);background:rgba(255,255,255,.85);border:1px solid var(--borda);border-radius:999px;padding:6px 8px;z-index:70}.bottomnav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.94);border-top:1px solid var(--borda);display:flex;gap:4px;justify-content:space-around;padding:8px;z-index:60}.navbtn{background:transparent;color:var(--muted);box-shadow:none;font-size:11px;padding:6px 8px}.navbtn.active{color:var(--azul);font-weight:900}.login-screen{min-height:100vh;display:grid;place-items:center;padding:18px}.login-card{width:min(460px,100%);background:rgba(255,255,255,.92);border:1px solid var(--borda);border-radius:28px;box-shadow:var(--shadow);padding:24px}.login-card h1{margin:12px 0 5px}.login-card p{color:var(--muted)}.badge-line{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.required::after{content:" *";color:var(--vermelho);font-weight:900}.hint{font-size:12px;color:var(--muted);margin-top:4px}.hidden{display:none!important}.actions-row{display:flex;gap:8px;flex-wrap:wrap}.audio-box{border:1px dashed var(--borda);border-radius:16px;padding:12px;background:#fff}.timer{font-size:34px;font-weight:900;color:var(--azul)}.progress{height:8px;background:#e5eef5;border-radius:999px;overflow:hidden}.progress span{display:block;height:100%;background:var(--azul);width:0%}.lock-note{font-size:12px;color:var(--muted);background:#fff;border:1px solid var(--borda);border-radius:14px;padding:10px}.small{font-size:12px;color:var(--muted)}
-
-    /* GMAN 8.5.6.45 — ajuste institucional sem imagens */
-    body::before{background:
-      linear-gradient(135deg,rgba(6,58,92,.12),rgba(17,132,91,.08)),
-      repeating-linear-gradient(0deg,rgba(11,95,148,.045) 0 1px,transparent 1px 34px),
-      repeating-linear-gradient(90deg,rgba(11,95,148,.045) 0 1px,transparent 1px 34px),#f3f8fb}
-    .login-screen{align-items:center;background:radial-gradient(circle at 10% 10%,rgba(11,95,148,.11),transparent 30%),radial-gradient(circle at 90% 80%,rgba(242,140,40,.10),transparent 28%)}
-    .login-card{width:min(504px,100%);padding:26px;border-radius:26px;border:1px solid rgba(11,95,148,.16);box-shadow:0 20px 50px rgba(6,58,92,.18);background:linear-gradient(180deg,rgba(255,255,255,.97),rgba(247,252,255,.96))}
-    .login-card .brandmark{margin-bottom:8px}.login-card h1{font-size:28px;letter-spacing:-.8px;color:var(--azul2)}
-    .login-panel-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.login-panel-title span{font-size:12px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.08em}
-    .dmae-wordmark{font-weight:900;color:var(--azul);font-size:18px;letter-spacing:-.4px}.dmae-wordmark small{display:block;color:var(--muted);font-size:10px;letter-spacing:.02em;font-weight:700}
-    .login-fields{display:grid;gap:12px;margin-top:16px}.password-wrap{position:relative}.password-wrap input{padding-right:86px}.show-pass{position:absolute;right:7px;top:7px;background:#eef6fb;color:var(--azul);box-shadow:none;border:1px solid var(--borda);padding:7px 9px;border-radius:11px;font-size:12px}
-    .actions-row.login-actions{display:grid;grid-template-columns:1fr auto;align-items:center}.actions-row.login-actions button:first-child{padding:13px 16px;border-radius:15px;background:linear-gradient(135deg,var(--azul),#0879b7)}
-    .topbar{border-bottom:1px solid rgba(11,95,148,.12);box-shadow:0 8px 22px rgba(8,63,99,.06)}.card{box-shadow:0 8px 24px rgba(8,63,99,.08);border-color:rgba(11,95,148,.12)}
-    .brandmark{background:linear-gradient(145deg,#0b5f94,#0d7fb9 55%,#23a455);font-size:15px}.tab.active,.filter-btn.active{background:linear-gradient(135deg,var(--azul),#0879b7)}
-    .version{opacity:.72}.version:hover{opacity:1}
-
-
-
-    /* GMAN 8.5.6.45 — VISUAL REFORÇADO SEM PRÉVIA DE IMAGEM NO CHAT, SOMENTE CSS/HTML */
-    :root{
-      --azul-profundo:#053452;
-      --azul-vivo:#0a7db8;
-      --verde-vivo:#22b35e;
-      --laranja-vivo:#ff9a2d;
-      --vidro:rgba(255,255,255,.82);
-      --shadow-strong:0 18px 46px rgba(5,52,82,.18);
-      --shadow-soft:0 8px 22px rgba(5,52,82,.10);
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, var(--azul-fundo) 0%, var(--azul-fundo-2) 100%);
+      min-height: 100vh;
+      color: white;
+      padding: 20px;
     }
-    html,body{background:#eef7fb;}
-    body::before{background:
-      radial-gradient(circle at 12% 8%, rgba(10,125,184,.20), transparent 28%),
-      radial-gradient(circle at 92% 18%, rgba(34,179,94,.14), transparent 25%),
-      radial-gradient(circle at 52% 90%, rgba(255,154,45,.13), transparent 32%),
-      linear-gradient(135deg,#edf8fd 0%,#f8fbfd 46%,#eef8f2 100%);
+    body::before {
+      content:"";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(56,161,105,0.16), transparent 28%),
+        radial-gradient(circle at 88% 16%, rgba(99,179,237,0.14), transparent 32%),
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 36px),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 36px);
+      z-index: -1;
     }
-    body::after{inset:0;height:auto;background:
-      repeating-linear-gradient(0deg, rgba(5,52,82,.035) 0 1px, transparent 1px 34px),
-      repeating-linear-gradient(90deg, rgba(5,52,82,.035) 0 1px, transparent 1px 34px),
-      linear-gradient(120deg, transparent 0 48%, rgba(10,125,184,.045) 48% 49%, transparent 49% 100%);opacity:1;}
-    .login-screen{background:
-      radial-gradient(circle at 20% 10%,rgba(10,125,184,.20),transparent 30%),
-      radial-gradient(circle at 82% 84%,rgba(255,154,45,.16),transparent 28%),
-      linear-gradient(160deg,rgba(5,52,82,.06),rgba(34,179,94,.07));}
-    .login-card{position:relative;overflow:hidden;border:1px solid rgba(10,125,184,.25);box-shadow:0 26px 70px rgba(5,52,82,.24);background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(241,250,255,.95));}
-    .login-card::before{content:"";position:absolute;left:0;top:0;right:0;height:8px;background:linear-gradient(90deg,var(--azul-vivo),var(--verde-vivo),var(--laranja-vivo));}
-    .login-card::after{content:"GMAN";position:absolute;right:-16px;bottom:-12px;font-size:74px;font-weight:1000;letter-spacing:-5px;color:rgba(10,125,184,.055);pointer-events:none;}
-    .brandmark{width:52px;height:52px;border-radius:18px;background:linear-gradient(145deg,#053452 0%,#0a7db8 54%,#22b35e 100%);box-shadow:inset 0 2px 4px rgba(255,255,255,.35),inset 0 -8px 14px rgba(0,0,0,.16),0 14px 26px rgba(5,52,82,.22);transform:translateZ(0);}
-    .login-card .brandmark{width:62px;height:62px;font-size:18px;border-radius:22px;}
-    .dmae-wordmark{font-size:21px;color:var(--azul-profundo)}.dmae-wordmark small{color:#597182;}
-    .login-card h1{font-size:34px;line-height:1;margin-top:14px;background:linear-gradient(90deg,var(--azul-profundo),var(--azul-vivo));-webkit-background-clip:text;background-clip:text;color:transparent;}
-    .login-card p{font-size:14px;}
-    input,select,textarea{border-color:rgba(10,125,184,.20);background:rgba(255,255,255,.96);box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 3px 10px rgba(5,52,82,.04);}
-    input:focus,select:focus,textarea:focus{outline:3px solid rgba(10,125,184,.16);border-color:rgba(10,125,184,.55);}
-    button{background:linear-gradient(135deg,#075c8e,#0a7db8);box-shadow:0 10px 22px rgba(10,125,184,.24),inset 0 1px 0 rgba(255,255,255,.24);transition:transform .15s ease,box-shadow .15s ease,filter .15s ease;}
-    button:hover{transform:translateY(-1px);filter:saturate(1.05);box-shadow:0 14px 26px rgba(10,125,184,.28),inset 0 1px 0 rgba(255,255,255,.24);}button:active{transform:translateY(0);}
-    button.secondary{background:linear-gradient(180deg,#fff,#eef8fd);box-shadow:0 5px 14px rgba(5,52,82,.08);}button.good{background:linear-gradient(135deg,#168546,#22b35e)}button.warn{background:linear-gradient(135deg,#dd7419,#ff9a2d)}button.danger{background:linear-gradient(135deg,#a92622,#d94a43)}
-    .topbar{background:rgba(245,251,254,.84);border-bottom:1px solid rgba(10,125,184,.16);box-shadow:0 12px 32px rgba(5,52,82,.10);}.brand h1{font-size:20px;color:var(--azul-profundo);letter-spacing:-.5px;}.brand p{color:#5e7384;}.tabs{padding-top:11px;}
-    .tab,.filter-btn{border-color:rgba(10,125,184,.18);background:rgba(255,255,255,.86);box-shadow:0 6px 16px rgba(5,52,82,.06);}.tab.active,.filter-btn.active{background:linear-gradient(135deg,#053452,#0a7db8);box-shadow:0 12px 28px rgba(10,125,184,.24);}
-    .card{position:relative;overflow:hidden;background:var(--vidro);border:1px solid rgba(10,125,184,.18);box-shadow:var(--shadow-soft);backdrop-filter:blur(12px);}.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,var(--azul-vivo),var(--verde-vivo));opacity:.95;}.card h2,.card h3{color:var(--azul-profundo);}.section-title h2{font-size:20px;letter-spacing:-.4px;}
-    .kpi{position:relative;overflow:hidden;border-color:rgba(10,125,184,.18);box-shadow:0 10px 24px rgba(5,52,82,.10);background:linear-gradient(180deg,#fff,#f4fbff);}.kpi::after{content:"";position:absolute;right:-26px;top:-26px;width:82px;height:82px;border-radius:50%;background:rgba(10,125,184,.07);}.kpi .value{font-size:30px;letter-spacing:-1px;}
-    .pill{background:rgba(255,255,255,.86);box-shadow:0 4px 12px rgba(5,52,82,.05);}.pill.good{background:rgba(34,179,94,.10);}.pill.warn{background:rgba(255,154,45,.12);}.pill.danger{background:rgba(217,74,67,.10);}
-    .equip{transition:transform .16s ease,box-shadow .16s ease;border-color:rgba(10,125,184,.16);}.equip:hover{transform:translateY(-2px);box-shadow:var(--shadow-strong);}.equip::before{height:7px;}.equip-title{font-size:17px;color:var(--azul-profundo);}
-    .bottomnav{background:rgba(255,255,255,.92);box-shadow:0 -12px 28px rgba(5,52,82,.11);backdrop-filter:blur(12px);}.navbtn.active{background:rgba(10,125,184,.10);border-radius:14px;}.version{background:rgba(255,255,255,.92);box-shadow:0 6px 14px rgba(5,52,82,.08);}.modal-card{background:linear-gradient(180deg,#f8fcfe,#eef8fd);box-shadow:0 28px 80px rgba(5,52,82,.26);}table th{text-transform:uppercase;letter-spacing:.045em;}table td{box-shadow:0 4px 12px rgba(5,52,82,.045);}
-
+    h1 { text-align:center; margin-bottom: 5px; font-size: 1.6rem; letter-spacing: .02em; }
+    .subtitle { text-align:center; color: var(--muted); margin-bottom: 10px; font-size: .85rem; }
+    .top-brand { text-align:center; margin-bottom:20px; }
+    .logo-css {
+      width: 90px; height: 90px; border-radius: 22px; margin:0 auto 10px;
+      display:flex; align-items:center; justify-content:center;
+      background: linear-gradient(145deg,#0b5f94,#3182ce 55%,#38a169);
+      box-shadow: 0 10px 30px rgba(0,0,0,.28), inset 0 2px 4px rgba(255,255,255,.35), inset 0 -10px 16px rgba(0,0,0,.14);
+      font-size: 1.15rem; font-weight: 900; color:white; letter-spacing:-1px;
+    }
+    .systems-filter { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:20px; }
+    .system-btn {
+      padding: 8px 16px; border:2px solid rgba(255,255,255,.30); background: rgba(255,255,255,.10);
+      color:white; border-radius:20px; cursor:pointer; font-size:.80rem; transition: all .25s;
+    }
+    .system-btn:hover, .system-btn.active { background: var(--azul); border-color: var(--azul); transform: translateY(-1px); }
+    .stats { display:grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap:10px; margin-bottom:20px; }
+    .stat-card {
+      backdrop-filter: blur(10px); border-radius:12px; padding:15px; text-align:center; cursor:pointer; transition: all .25s;
+      border:1px solid rgba(255,255,255,.20); background: rgba(255,255,255,.10);
+    }
+    .stat-card:hover { background: rgba(255,255,255,.18); transform: translateY(-1px); }
+    .stat-number { font-size:2rem; font-weight:bold; }
+    .stat-label { font-size:.75rem; color:var(--muted); margin-top:5px; font-weight:700; }
+    .stat-percent { font-size:.82rem; color:white; margin-top:6px; font-weight:700; opacity:.95; }
+    #card-ok { background: rgba(56,161,105,.15); border-color: rgba(56,161,105,.30); }
+    #card-ok .stat-number { color: var(--verde-claro); }
+    #card-alert { background: rgba(214,158,46,.15); border-color: rgba(214,158,46,.30); }
+    #card-alert .stat-number { color: var(--amarelo-claro); }
+    #card-down { background: rgba(229,62,62,.15); border-color: rgba(229,62,62,.30); }
+    #card-down .stat-number { color: var(--vermelho-claro); }
+    .search-box {
+      width:100%; padding:12px; border:none; border-radius:10px; margin-bottom:15px;
+      font-size:.95rem; background: rgba(255,255,255,.15); color:white; outline:none;
+    }
+    .search-box::placeholder { color: var(--muted); }
+    .main-actions { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:0 0 18px 0; }
+    .action-btn {
+      padding:10px 16px; border:1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.12); color:white;
+      border-radius:12px; cursor:pointer; font-size:.85rem; font-weight:700; transition:all .22s;
+    }
+    .action-btn:hover { background: rgba(255,255,255,.22); transform: translateY(-1px); }
+    .action-btn.primary { background: var(--azul); border-color: var(--azul); }
+    .action-btn.success { background: var(--verde); border-color: var(--verde); }
+    .action-btn.warn { background: var(--amarelo); border-color: var(--amarelo); }
+    .action-btn.danger { background: var(--vermelho); border-color: var(--vermelho); }
+    .equipment-list { background: rgba(255,255,255,.05); border-radius:15px; overflow:hidden; max-height:60vh; overflow-y:auto; border:1px solid rgba(255,255,255,.08); }
+    .equipment-item { padding:12px; border-bottom:1px solid rgba(255,255,255,.10); display:grid; grid-template-columns:45px 1fr auto; gap:12px; align-items:center; transition:background .25s; cursor:pointer; }
+    .equipment-item:hover { background: rgba(255,255,255,.10); }
+    .status-icon { width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1rem; font-weight:900; box-shadow:0 6px 15px rgba(0,0,0,.18); }
+    .status-ok { background:var(--verde); }
+    .status-alert { background:var(--amarelo); }
+    .status-down { background:var(--vermelho); }
+    .equipment-name { font-weight:700; font-size:.92rem; }
+    .equipment-system { font-size:.75rem; color: var(--muted); margin-top:2px; }
+    .equipment-note { font-size:.72rem; color:#dbeafe; margin-top:3px; opacity:.9; }
+    .status-badge { padding:4px 10px; border-radius:15px; font-size:.70rem; font-weight:800; text-transform:uppercase; white-space:nowrap; }
+    .badge-ok { background:var(--verde); }
+    .badge-alert { background:var(--amarelo); }
+    .badge-down { background:var(--vermelho); }
+    .system-tag { display:inline-block; padding:2px 8px; border-radius:10px; font-size:.65rem; margin-top:3px; color:white; }
+    .tag-100 { background:#e53e3e; } .tag-200 { background:#dd6b20; } .tag-300 { background:#d69e2e; }
+    .tag-400 { background:#38a169; } .tag-600 { background:#3182ce; } .tag-700 { background:#805ad5; }
+    .login-screen { position:fixed; inset:0; background:linear-gradient(135deg,#1e3a5f 0%,#2c5282 100%); display:flex; align-items:center; justify-content:center; z-index:9999; padding:18px; }
+    .login-card { background:white; padding:36px; border-radius:20px; text-align:center; max-width:400px; width:92%; box-shadow:0 20px 60px rgba(0,0,0,.30); color:var(--texto); }
+    .login-card .logo-css { width:70px; height:70px; border-radius:18px; margin-bottom:18px; }
+    .login-card h2 { color:#1e3a5f; margin-bottom:5px; }
+    .login-card p { color:#718096; margin-bottom:24px; font-size:.90rem; }
+    .login-input { width:100%; padding:12px; margin-bottom:15px; border:2px solid #e2e8f0; border-radius:10px; font-size:1rem; color:#333; }
+    .login-input:focus { outline:3px solid rgba(49,130,206,.18); border-color:#3182ce; }
+    .login-button { width:100%; padding:15px; background:#3182ce; color:white; border:none; border-radius:10px; font-size:1rem; font-weight:700; cursor:pointer; }
+    .login-erro { color:#e53e3e; margin-top:15px; font-size:.85rem; display:none; font-weight:bold; }
+    .user-info { text-align:center; margin:-8px auto 14px; color:#dbeafe; font-size:.82rem; }
+    .version-bar { position:fixed; right:8px; bottom:8px; z-index:80; background:rgba(255,255,255,.92); color:#1e3a5f; border:1px solid rgba(255,255,255,.4); border-radius:999px; padding:5px 8px; font-size:.68rem; box-shadow:0 8px 18px rgba(0,0,0,.12); }
+    .version-bar button { border:none; background:transparent; color:#1e3a5f; font-weight:800; cursor:pointer; font-size:.68rem; }
+    .modal { position:fixed; inset:0; background:rgba(0,0,0,.82); display:none; align-items:center; justify-content:center; z-index:1500; padding:16px; }
+    .modal.open { display:flex; }
+    .modal-card { background:white; color:var(--texto); border-radius:20px; padding:22px; width:96%; max-width:760px; max-height:92vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.25); }
+    .modal-head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px; }
+    .modal-title { color:#1e3a5f; margin:0; font-size:1.2rem; }
+    .close-btn { padding:9px 13px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer; }
+    .form-field { width:100%; padding:10px; margin-bottom:10px; border:1px solid #cbd5e0; border-radius:9px; color:#1a202c; font-size:.90rem; background:white; }
+    .form-label { display:block; color:#2d3748; font-size:.78rem; font-weight:800; margin:8px 0 5px; text-align:left; }
+    .grid { display:grid; gap:10px; }
+    .grid-2 { grid-template-columns:repeat(2,1fr); }
+    .grid-3 { grid-template-columns:repeat(3,1fr); }
+    @media(max-width:700px){ body{padding:14px;} .grid-2,.grid-3{grid-template-columns:1fr;} .equipment-item{grid-template-columns:38px 1fr;}.status-badge{grid-column:1 / span 2; width:max-content; margin-left:50px;} }
+    .os-card { background:#f7fafc; border-radius:12px; padding:12px; margin-bottom:10px; border-left:5px solid #3182ce; color:#1a202c; text-align:left; }
+    .os-card h4 { margin:0 0 6px 0; color:#1e3a5f; font-size:.95rem; }
+    .os-card p { margin:4px 0; color:#4a5568; font-size:.80rem; }
+    .os-badge { display:inline-block; padding:4px 8px; border-radius:999px; color:white; font-size:.68rem; font-weight:800; margin:2px 4px 2px 0; }
+    .os-aberta { background:#3182ce; } .os-iniciada{background:#ed8936;} .os-execucao{background:#d69e2e;} .os-pendente{background:#b7791f;} .os-concluida{background:#38a169;} .os-cancelada{background:#718096; }
+    .summary-box { background:#edf2f7; border-radius:14px; padding:12px; margin-bottom:12px; border-left:5px solid #3182ce; color:#1e3a5f; }
+    .mini-pill { display:inline-block; padding:4px 8px; border-radius:999px; background:#fff; border:1px solid #e2e8f0; color:#1e3a5f; font-size:.74rem; font-weight:800; margin:2px; }
+    .offline { display:none; position:fixed; top:0; left:0; right:0; background:#d69e2e; color:white; text-align:center; padding:8px; font-weight:800; z-index:3000; }
+    .offline.show { display:block; }
   </style>
 </head>
 <body>
   <div id="offline" class="offline">Sem conexão. O preenchimento aberto será preservado neste aparelho e ainda não foi salvo oficialmente.</div>
-  <div id="toast" class="toast"></div>
 
-  <main id="loginScreen" class="login-screen">
-    <section class="login-card">
-      <div class="login-panel-title">
-        <div class="brandmark">GM</div>
-        <div class="dmae-wordmark">dmae<small>departamento municipal de águas e esgotos</small></div>
-      </div>
-      <h1>GMAN DMAE</h1>
-      <p>Gestão de Manutenção de Bombeamento e Reservação</p>
-      <div class="badge-line"><span class="pill good">GMAN 8.5.6.45</span><span class="pill warn">Alicerce corrigido</span><span class="pill">Acesso protegido</span><span class="pill">Sem imagens na tela do chat</span></div>
-      <div class="login-fields">
-        <div>
-          <label class="required">Login do usuário</label>
-          <input id="loginInput" autocomplete="username" placeholder="Digite seu login, nome ou ID" />
-        </div>
-        <div>
-          <label class="required">Senha</label>
-          <div class="password-wrap">
-            <input id="senhaInput" type="password" autocomplete="current-password" placeholder="Digite sua senha" />
-            <button type="button" class="show-pass" data-no-busy="1" id="btnMostrarSenha">Mostrar</button>
-          </div>
-          <div class="hint">Senha inicial temporária oficial: gman2026. A gestão pode trocar na aba USUARIOS, coluna SENHA_ACESSO.</div>
-        </div>
-      </div>
-      <div class="actions-row login-actions" style="margin-top:16px"><button id="btnLogin">Entrar no GMAN</button><button class="secondary" id="btnPingLogin">Testar API</button></div>
-    </section>
-  </main>
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="logo-css">GM</div>
+      <h2>Sistema de Manutenção</h2>
+      <p>GMAN DMAE — departamento municipal de água e esgotos</p>
+      <form id="loginFormGMAN" onsubmit="event.preventDefault(); fazerLogin(); return false;">
+        <input type="text" id="loginUser" class="login-input" placeholder="Usuário, login ou ID" autocomplete="username">
+        <input type="password" id="loginPass" class="login-input" placeholder="Senha" autocomplete="current-password">
+        <button type="submit" class="login-button">Entrar no GMAN</button>
+      </form>
+      <p id="loginErro" class="login-erro"></p>
+    </div>
+  </div>
 
-  <main id="app" class="app hidden">
-    <header class="topbar">
-      <div class="toprow">
-        <div class="brand"><div class="brandmark">GM</div><div><h1>GMAN DMAE</h1><p>Gestão de Manutenção de Bombeamento e Reservação</p></div></div>
-        <div class="userbox"><strong id="userName">Usuário</strong><br><span id="userPerfil">Perfil</span><br><button class="ghost mini" id="btnLogout">Sair</button></div>
-      </div>
-      <nav class="tabs" id="tabs"></nav>
-    </header>
+  <div class="top-brand">
+    <div class="logo-css">GM</div>
+    <h1>Sistema de Manutenção</h1>
+    <p class="subtitle">GMAN DMAE — Gestão de Manutenção de Bombeamento e Reservação</p>
+  </div>
+  <div id="userInfo" class="user-info"></div>
 
-    <section id="view-dashboard" class="view"></section>
-    <section id="view-equipamentos" class="view hidden"></section>
-    <section id="view-os" class="view hidden"></section>
-    <section id="view-kpis" class="view hidden"></section>
-    <section id="view-gestao" class="view hidden"></section>
-  </main>
+  <div class="systems-filter" id="systemsFilter">
+    <button class="system-btn active" onclick="filterSystem('all')">TODAS</button>
+    <button class="system-btn" onclick="filterSystem('100')">100 - Moinhos de Vento</button>
+    <button class="system-btn" onclick="filterSystem('200')">200 - São João</button>
+    <button class="system-btn" onclick="filterSystem('300')">300 - Menino Deus</button>
+    <button class="system-btn" onclick="filterSystem('400')">400 - Belém Novo</button>
+    <button class="system-btn" onclick="filterSystem('600')">600 - Ilhas</button>
+    <button class="system-btn" onclick="filterSystem('700')">700 - Tristeza</button>
+    <button class="system-btn" onclick="filterSystem('brutas')">BRUTAS</button>
+  </div>
 
-  <nav id="bottomNav" class="bottomnav hidden"></nav>
-  <div class="version"><span id="versionText">GMAN 8.5.6.45</span> · <span id="syncText">sinc. pendente</span> · <button class="ghost mini" id="btnRefresh">Atualizar</button> <button class="ghost mini" id="btnClearCache">Limpar cache</button></div>
+  <div class="stats">
+    <div class="stat-card" id="card-ok" onclick="filterByStatus('ok')">
+      <div class="stat-number" id="operationalCount">0</div><div class="stat-label">OPERANDO</div><div class="stat-percent" id="operationalPercent">0%</div>
+    </div>
+    <div class="stat-card" id="card-alert" onclick="filterByStatus('alert')">
+      <div class="stat-number" id="maintenanceCount">0</div><div class="stat-label">MANUTENÇÃO</div><div class="stat-percent" id="maintenancePercent">0%</div>
+    </div>
+    <div class="stat-card" id="card-down" onclick="filterByStatus('down')">
+      <div class="stat-number" id="downCount">0</div><div class="stat-label">PARADOS</div><div class="stat-percent" id="downPercent">0%</div>
+    </div>
+  </div>
 
-  <div id="modal" class="modal"><div class="modal-card"><div class="modal-head"><h2 id="modalTitle">Modal</h2><button class="close" id="modalClose">Fechar</button></div><div id="modalBody"></div></div></div>
+  <input type="text" class="search-box" id="searchInput" placeholder="🔍 Buscar por nome, código ou sistema..." onkeyup="searchEquipment()">
+
+  <div class="main-actions">
+    <button class="action-btn primary" id="btnOrdensAbertasHome" onclick="abrirPainelOS('abertas')">📋 OS Abertas <span id="totalOrdensAbertasHome">(0)</span></button>
+    <button class="action-btn" id="btnOrdensNaoIniciadasHome" onclick="abrirPainelOS('naoIniciadas')" style="display:none;">⏳ OS Não Iniciadas <span id="totalOrdensNaoIniciadasHome">(0)</span></button>
+    <button class="action-btn" id="btnOrdensIniciadasHome" onclick="abrirPainelOS('iniciadas')" style="display:none;">🛠️ OS Iniciadas <span id="totalOrdensIniciadasHome">(0)</span></button>
+    <button class="action-btn" id="btnOrdensEncerradasHome" onclick="abrirPainelOS('encerradas')" style="display:none;">✅ Ordens Encerradas <span id="totalOrdensEncerradasHome">(0)</span></button>
+    <button class="action-btn" id="btnPainelKPI" onclick="abrirPainelGerencial()" style="display:none;">📊 KPIs Industriais</button>
+    <button class="action-btn" onclick="atualizarAgora()">🔄 Atualizar agora</button>
+    <button class="action-btn" onclick="limparCacheOperacionalGMAN85646()">🧹 Limpar cache</button>
+  </div>
+
+  <div class="equipment-list" id="equipmentList"></div>
+
+  <div class="version-bar"><span id="versaoGMAN85646">GMAN 8.5.6.46</span> · <span id="syncText">sinc. pendente</span></div>
+
+  <div id="modalGMAN" class="modal"><div class="modal-card"><div class="modal-head"><h2 id="modalTitle" class="modal-title">GMAN</h2><button class="close-btn" onclick="fecharModal()">Fechar</button></div><div id="modalBody"></div></div></div>
 
   <script>
     'use strict';
-    const GMAN = {
-      VERSAO: 'GMAN 8.5.6.45',
-      API_URL: 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec',
-      SYNC_MS: 120000,
-      STORAGE_USER: 'GMAN_8_5_6_45_USUARIO_LOGADO',
-      STORAGE_DRAFT: 'GMAN_8_5_6_45_RASCUNHOS',
-      STATUS_OPERACIONAL: ['Operando','Em manutenção, operando','Em manutenção, parado','Em teste','Parado'],
-      STATUS_OS: ['Aberta','Iniciada','Em execução','Pendente','Concluída','Cancelada','Cancelamento solicitado','Redistribuição solicitada'],
-      SETORES: ['Mecânica','Elétrica','Automação','Usinagem','Caldeiraria','Instalações Mecânicas'],
-      TIPO_OS: ['Corretiva','Preventiva','Inspeção','Melhoria','Apoio'],
-      CRITICIDADE: ['Normal','Atenção','Crítico'],
-      PENDENCIAS: ['Falta de material','Aguardando liberação operacional','Aguardando peça da Usinagem','Aguardando serviço da Caldeiraria','Aguardando equipe Mecânica','Aguardando equipe Elétrica','Aguardando Automação','Aguardando teste','Falta de acesso ao local','Outro motivo'],
-      SISTEMAS: ['TODAS','100','200','300','400','600','700','BRUTAS']
-    };
-    const state = { usuario:null, gestao:false, tab:'dashboard', filtroSistema:'TODAS', filtros:{}, equipamentos:[], status:[], os:[], kpis:null, carga:null, reincidencia:null, equipes:[], usuarios:[], listas:[], loading:false, modalOpen:false, draftDirty:false, recorder:null, audioChunks:[], audioBlob:null, audioSeconds:0, audioTimer:null };
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec';
+    const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.46 — Index clássico restaurado com regras novas';
+    const SYNC_INTERVALO_GMAN = 120000;
 
-    const $ = (id)=>document.getElementById(id);
-    const esc = (v)=>String(v??'').replace(/[&<>"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s]));
-    const canon = (v)=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
-    const pct = (n)=> (Number(n||0)*100).toFixed(1).replace('.',',')+'%';
-    const fmtHoras = (n)=>{ n=Number(n||0); if(!n) return '0h'; const h=Math.floor(n), m=Math.round((n-h)*60); return h+'h'+String(m).padStart(2,'0'); };
-    const isAtiva = (s)=> !['concluida','cancelada'].includes(canon(s));
-    const isGestao = ()=> !!(state.usuario && state.gestao);
-    const toast = (msg)=>{ $('toast').textContent=msg; $('toast').classList.add('show'); setTimeout(()=>$('toast').classList.remove('show'),4200); };
-    const setBusy = (v)=>{ state.loading=v; document.querySelectorAll('button').forEach(b=>{ if(b.dataset.noBusy!=='1') b.disabled=v; }); };
+    let usuarioLogado = null;
+    let apiOnline = false;
+    let equipamentosCache = [];
+    let statusAtualCache = [];
+    let ordensServicoCache = [];
+    let usuariosCache = [];
+    let equipesCache = [];
+    let currentSystemFilter = 'all';
+    let currentStatusFilter = 'all';
+    let modoPainelOSAtual = 'abertas';
+    let syncTimerGMAN = null;
+    let audioRecorderGMAN = null;
+    let audioChunksGMAN = [];
+    let audioBlobGMAN = null;
+    let audioSegundosGMAN = 0;
+    let audioIntervalGMAN = null;
 
-    async function api(action, data={}, method='POST'){
-      const payload = Object.assign({}, data, { action });
-      if(state.usuario && !payload.usuario && !payload.login && !payload.usuarioLogado){
-        const usuarioLogado = state.usuario.LOGIN || state.usuario.login || state.usuario.NOME || state.usuario.nome || state.usuario.ID_USUARIO || state.usuario.idUsuario || '';
-        if(usuarioLogado){ payload.usuario = usuarioLogado; payload.usuarioLogado = usuarioLogado; }
+    const SISTEMA_LABELS = { '100':'moinhos de vento', '200':'são joao', '300':'menino deus', '400':'belem novo', '600':'ilha da pintada', '700':'tristeza' };
+    const STATUS_OPERACIONAL_OPCOES = ['Operando','Em manutenção, operando','Em manutenção, parado','Em teste','Parado'];
+    const SETORES_OFICIAIS = ['Mecânica','Elétrica','Automação','Usinagem','Caldeiraria','Instalações Mecânicas'];
+    const TIPOS_OS = ['Corretiva','Preventiva','Inspeção','Melhoria','Apoio'];
+    const CRITICIDADES = ['Normal','Atenção','Crítico'];
+    const MOTIVOS_PENDENCIA = ['Falta de material','Aguardando liberação operacional','Aguardando peça da Usinagem','Aguardando serviço da Caldeiraria','Aguardando equipe Mecânica','Aguardando equipe Elétrica','Aguardando Automação','Aguardando teste','Falta de acesso ao local','Outro motivo'];
+
+    function normalizarTextoGMAN(valor) {
+      return String(valor || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+    function escaparHTMLGMAN(valor) {
+      return String(valor ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s]));
+    }
+    function campo(obj, ...nomes) {
+      if (!obj) return '';
+      for (const n of nomes) if (obj[n] !== undefined && obj[n] !== null && obj[n] !== '') return obj[n];
+      return '';
+    }
+    function percentual(parte, total) {
+      if (!total) return '0%';
+      return ((parte / total) * 100).toFixed(1).replace('.0','') + '%';
+    }
+    function mostrarMensagem(mensagem) { alert(mensagem); }
+    function isOsEncerrada(status) {
+      const s = normalizarTextoGMAN(status);
+      return ['concluida','cancelada','fechada','encerrada','finalizada'].includes(s);
+    }
+    function isOsPendente(status) { return normalizarTextoGMAN(status) === 'pendente'; }
+    function isOsAberta(status) { return normalizarTextoGMAN(status) === 'aberta'; }
+    function isOsIniciadaOuExecucao(status) {
+      const s = normalizarTextoGMAN(status);
+      return ['iniciada','em execucao','em andamento'].includes(s);
+    }
+    function isOsAtiva(status) { return !isOsEncerrada(status); }
+    function statusOperacionalClasse(status) {
+      const s = normalizarTextoGMAN(status);
+      if (s === 'operando') return 'ok';
+      if (s === 'parado' || s === 'em manutencao, parado') return 'down';
+      return 'alert';
+    }
+    function statusOperacionalLabel(status) { return String(status || 'Sem status'); }
+    function sistemaTextoDoCodigo(codigo) { return SISTEMA_LABELS[String(codigo || '')] || String(codigo || '').toLowerCase(); }
+    function getPerfilUsuario() { return campo(usuarioLogado, 'PERFIL','perfil','funcao','FUNCAO'); }
+    function getNomeUsuario() { return campo(usuarioLogado, 'NOME','nome','LOGIN','login','ID_USUARIO','idUsuario'); }
+    function getLoginUsuario() { return campo(usuarioLogado, 'LOGIN','login','NOME','nome','ID_USUARIO','idUsuario'); }
+    function podeGerenciarOS() {
+      const p = normalizarTextoGMAN(getPerfilUsuario());
+      return ['administrador','gerente','supervisor','coordenador','gestao','admin'].includes(p);
+    }
+    function usuarioPodeAlterarOS(os) {
+      if (!usuarioLogado || !os) return false;
+      if (podeGerenciarOS()) return true;
+      return normalizarTextoGMAN(campo(os,'RESPONSAVEL','responsavel')) === normalizarTextoGMAN(getNomeUsuario());
+    }
+
+    async function fetchJSONGMAN(url, opcoes = {}) {
+      const resposta = await fetch(url, Object.assign({ cache:'no-store' }, opcoes));
+      const texto = await resposta.text();
+      let json;
+      try { json = JSON.parse(texto); } catch (e) { throw new Error('A API não retornou JSON válido: ' + texto.slice(0, 140)); }
+      if (!resposta.ok || json.ok === false || json.sucesso === false) throw new Error(json.mensagem || json.erro || ('Falha HTTP ' + resposta.status));
+      return json;
+    }
+    async function apiGet(action, params = {}) {
+      const query = new URLSearchParams(Object.assign({}, params, { action, v:'85646', t:Date.now() })).toString();
+      return fetchJSONGMAN(API_URL + '?' + query);
+    }
+    async function apiPost(action, payload = {}) {
+      const base = Object.assign({}, payload, { action });
+      if (usuarioLogado) {
+        base.usuario = base.usuario || getLoginUsuario();
+        base.nomeUsuario = base.nomeUsuario || getNomeUsuario();
+        base.perfilUsuario = base.perfilUsuario || getPerfilUsuario();
       }
-      try{
-        const opts = method==='GET' ? {} : { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload) };
-        const url = method==='GET' ? GMAN.API_URL + '?' + new URLSearchParams(payload).toString() : GMAN.API_URL;
-        const res = await fetch(url, opts);
-        const txt = await res.text();
-        let json; try{ json=JSON.parse(txt); }catch(e){ throw new Error('Resposta da API não veio em JSON: '+txt.slice(0,160)); }
-        if(!json.ok) throw new Error(json.mensagem || json.erro || 'Ação não concluída pela API.');
-        return json;
-      }catch(err){
-        if(!navigator.onLine) showOffline(true);
-        throw err;
+      return fetchJSONGMAN(API_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(base) });
+    }
+
+    function showOffline(v) { document.getElementById('offline').classList.toggle('show', !!v); }
+    window.addEventListener('online', () => showOffline(false));
+    window.addEventListener('offline', () => showOffline(true));
+
+    async function fazerLogin() {
+      const login = document.getElementById('loginUser').value.trim();
+      const senha = document.getElementById('loginPass').value.trim();
+      const erro = document.getElementById('loginErro');
+      erro.style.display = 'none';
+      if (!login) { erro.textContent = 'Informe o usuário.'; erro.style.display = 'block'; return; }
+      if (!senha) { erro.textContent = 'Informe a senha.'; erro.style.display = 'block'; return; }
+      try {
+        const retorno = await apiPost('login', { login, senha });
+        usuarioLogado = retorno.usuario || {};
+        sessionStorage.setItem('gman_85646_usuario_logado', JSON.stringify(usuarioLogado));
+        document.getElementById('loginScreen').style.display = 'none';
+        mostrarUsuarioLogado();
+        aplicarPermissoes();
+        await iniciarSistema();
+      } catch (e) {
+        erro.textContent = e.message || 'Usuário ou senha incorretos.';
+        erro.style.display = 'block';
       }
     }
-
-    function showOffline(v){ $('offline').classList.toggle('show', !!v); }
-    window.addEventListener('online',()=>{showOffline(false); toast('Conexão restabelecida. Revise e toque em salvar novamente.');});
-    window.addEventListener('offline',()=>showOffline(true));
-
-    function saveUser(user, gestao){ localStorage.setItem(GMAN.STORAGE_USER, JSON.stringify({user, gestao, savedAt:Date.now()})); }
-    function loadUser(){ try{ const x=JSON.parse(localStorage.getItem(GMAN.STORAGE_USER)||'null'); if(x&&x.user){ state.usuario=x.user; state.gestao=!!x.gestao; return true; }}catch(e){} return false; }
-    function saveDraft(key, obj){ const all=JSON.parse(localStorage.getItem(GMAN.STORAGE_DRAFT)||'{}'); all[key]=obj; localStorage.setItem(GMAN.STORAGE_DRAFT, JSON.stringify(all)); }
-    function getDraft(key){ try{ return JSON.parse(localStorage.getItem(GMAN.STORAGE_DRAFT)||'{}')[key]||{}; }catch(e){return{}} }
-    function clearDraft(key){ const all=JSON.parse(localStorage.getItem(GMAN.STORAGE_DRAFT)||'{}'); delete all[key]; localStorage.setItem(GMAN.STORAGE_DRAFT, JSON.stringify(all)); }
-
-    async function login(){
-      const login = $('loginInput').value.trim();
-      const senha = $('senhaInput').value.trim();
-      if(!login) return toast('Informe o login para acessar o GMAN.');
-      if(!senha) return toast('Informe a senha para acessar o GMAN.');
-      setBusy(true);
-      try{
-        const r=await api('login',{login, senha});
-        state.usuario=r.usuario; state.gestao=!!r.gestao; saveUser(state.usuario,state.gestao); enterApp();
-        toast(r.trocarSenha ? 'Login validado. Senha temporária: solicite troca individual na gestão.' : 'Login validado com senha.');
-      }catch(e){ toast(e.message); } finally{ setBusy(false); }
+    function recuperarLoginSalvo() {
+      try {
+        const salvo = JSON.parse(sessionStorage.getItem('gman_85646_usuario_logado') || 'null');
+        if (!salvo) return false;
+        usuarioLogado = salvo;
+        document.getElementById('loginScreen').style.display = 'none';
+        mostrarUsuarioLogado();
+        aplicarPermissoes();
+        return true;
+      } catch (e) { return false; }
     }
-    async function ping(){ setBusy(true); try{ const r=await api('ping',{},'GET'); toast(r.mensagem+' '+r.versao); }catch(e){ toast(e.message); } finally{ setBusy(false); } }
-    function logout(){ localStorage.removeItem(GMAN.STORAGE_USER); location.reload(); }
-
-    function enterApp(){
-      $('loginScreen').classList.add('hidden'); $('app').classList.remove('hidden'); $('bottomNav').classList.remove('hidden');
-      $('userName').textContent = state.usuario.NOME || state.usuario.nome || state.usuario.LOGIN || state.usuario.login || 'Usuário';
-      $('userPerfil').textContent = (state.usuario.PERFIL || state.usuario.perfil || '') + (state.gestao?' · gestão':' · equipe');
-      renderNav(); renderViews(); syncAll(true); startAutoSync();
+    function fazerLogout() {
+      sessionStorage.removeItem('gman_85646_usuario_logado');
+      usuarioLogado = null;
+      location.reload();
     }
-    function renderNav(){
-      const tabs = [ ['dashboard','Início'], ['equipamentos','Equipamentos'], ['os','OS'], ['kpis','KPIs'], ['gestao','Gestão'] ];
-      const allowed = tabs.filter(t => t[0]!=='gestao' || isGestao()).filter(t => t[0]!=='kpis' || isGestao());
-      $('tabs').innerHTML = allowed.map(t=>`<button class="tab ${state.tab===t[0]?'active':''}" data-tab="${t[0]}">${t[1]}</button>`).join('');
-      $('bottomNav').innerHTML = allowed.map(t=>`<button class="navbtn ${state.tab===t[0]?'active':''}" data-tab="${t[0]}">${t[1]}</button>`).join('');
-      document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+    function mostrarUsuarioLogado() {
+      const el = document.getElementById('userInfo');
+      if (!usuarioLogado) { el.innerHTML = ''; return; }
+      el.innerHTML = `Usuário: <strong>${escaparHTMLGMAN(getNomeUsuario())}</strong> · Perfil: <strong>${escaparHTMLGMAN(getPerfilUsuario())}</strong> <button class="action-btn" style="padding:5px 10px; margin-left:8px;" onclick="fazerLogout()">Sair</button>`;
     }
-    function switchTab(tab){ state.tab=tab; document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden')); $('view-'+tab).classList.remove('hidden'); renderNav(); renderViews(); }
+    function aplicarPermissoes() {
+      const gestao = podeGerenciarOS();
+      ['btnOrdensNaoIniciadasHome','btnOrdensIniciadasHome','btnOrdensEncerradasHome','btnPainelKPI'].forEach(id => {
+        const b = document.getElementById(id); if (b) b.style.display = gestao ? '' : 'none';
+      });
+    }
 
-    async function syncAll(force=false){
-      if(state.modalOpen || state.draftDirty){ if(!force) { $('syncText').textContent='preenchimento preservado'; return; } }
-      try{
-        const [equip,status,os,users,eqp] = await Promise.all([
-          api('listarEquipamentos', filtroPayload(), 'POST'), api('listarStatusAtual', filtroPayload(), 'POST'), api('listarOrdensServico', osFiltroPayload(), 'POST'), api('listarUsuarios',{},'POST'), api('listarEquipes',{},'POST')
-        ]);
-        state.equipamentos = equip.equipamentos || []; state.status = status.status || []; state.os = os.ordens || []; state.usuarios=users.usuarios||[]; state.equipes=eqp.equipes||[];
-        if(isGestao()){
-          const [k,c,r] = await Promise.all([api('calcularKPIs', state.filtros,'POST'), api('listarCargaOperacional', state.filtros,'POST'), api('listarReincidencia', state.filtros,'POST')]);
-          state.kpis=k; state.carga=c.cargaOperacional||{}; state.reincidencia=r.reincidencia||{};
+    async function iniciarSistema() {
+      await atualizarAgora();
+      if (syncTimerGMAN) clearInterval(syncTimerGMAN);
+      syncTimerGMAN = setInterval(() => atualizarAgora(false), SYNC_INTERVALO_GMAN);
+    }
+    function normalizarEquipamentoAPI(eq) {
+      const id = campo(eq,'ID_EQUIPAMENTO','idEquipamento','id','codigo');
+      const sistema = String(campo(eq,'SISTEMA','sistema','systemCode') || '').trim();
+      return {
+        id,
+        name: campo(eq,'NOME_EQUIPAMENTO_GRUPO','nomeEquipamentoGrupo','EQUIPAMENTO','equipamento','name') || id,
+        systemCode: sistema,
+        system: sistemaTextoDoCodigo(sistema),
+        filtroBrutas: String(campo(eq,'FILTRO_BRUTAS','filtroBrutas') || '').toUpperCase(),
+        tipoLocal: campo(eq,'TIPO_LOCAL','tipoLocal'),
+        localEstacao: campo(eq,'LOCAL_ESTACAO','localEstacao'),
+        criticidade: campo(eq,'CRITICIDADE','criticidade') || 'Normal',
+        status: 'ok',
+        statusOperacional: 'Operando',
+        observacaoStatus: ''
+      };
+    }
+    function normalizarStatusAPI(st) {
+      return {
+        id: campo(st,'ID_EQUIPAMENTO','idEquipamento','id'),
+        equipamento: campo(st,'EQUIPAMENTO','equipamento'),
+        statusOperacional: campo(st,'STATUS_OPERACIONAL','statusOperacional','statusAtual') || 'Operando',
+        statusVisual: campo(st,'STATUS_VISUAL_GRUPO','statusVisualGrupo'),
+        justificativa: campo(st,'JUSTIFICATIVA_STATUS','justificativaStatus','OBSERVACAO','observacao'),
+        sistema: campo(st,'SISTEMA','sistema'),
+        filtroBrutas: campo(st,'FILTRO_BRUTAS','filtroBrutas'),
+        tipoLocal: campo(st,'TIPO_LOCAL','tipoLocal'),
+        localEstacao: campo(st,'LOCAL_ESTACAO','localEstacao'),
+        nomeGrupo: campo(st,'NOME_EQUIPAMENTO_GRUPO','nomeEquipamentoGrupo')
+      };
+    }
+    function aplicarStatusNosEquipamentos() {
+      const mapa = new Map(statusAtualCache.map(s => [normalizarTextoGMAN(s.id), s]));
+      equipamentosCache.forEach(eq => {
+        const st = mapa.get(normalizarTextoGMAN(eq.id));
+        if (st) {
+          eq.statusOperacional = st.statusOperacional || eq.statusOperacional;
+          eq.status = statusOperacionalClasse(eq.statusOperacional);
+          eq.observacaoStatus = st.justificativa || st.statusVisual || '';
+          if (st.localEstacao) eq.localEstacao = st.localEstacao;
+          if (st.nomeGrupo) eq.name = st.nomeGrupo;
+          if (st.tipoLocal) eq.tipoLocal = st.tipoLocal;
+          if (st.filtroBrutas) eq.filtroBrutas = String(st.filtroBrutas).toUpperCase();
         }
-        $('syncText').textContent = 'sinc. '+new Date().toLocaleString('pt-BR'); renderViews();
-      }catch(e){ toast(e.message); }
+      });
     }
-    function startAutoSync(){ setInterval(()=>syncAll(false), GMAN.SYNC_MS); }
-    function filtroPayload(){ const p={}; if(state.filtroSistema==='BRUTAS') p.brutas='SIM'; else if(state.filtroSistema!=='TODAS') p.sistema=state.filtroSistema; return p; }
-    function osFiltroPayload(){ const p=Object.assign({apenasAtivas:true}, filtroPayload()); if(!isGestao()) p.minhas=true; return p; }
-
-    function renderViews(){ renderDashboard(); renderEquipamentos(); renderOS(); if(isGestao()){ renderKPIs(); renderGestao(); } }
-    function renderDashboard(){
-      const sCounts = countStatus(); const osCounts = countOS(); const view=$('view-dashboard');
-      view.innerHTML = `<div class="section-title"><h2>Situação operacional atual</h2><span class="pill">${state.equipamentos.length} equipamentos filtrados</span></div>${renderFilters()}
-      <div class="kpi-grid">
-        ${kpi('Operando',sCounts.operando,'Meta plena ≥ 90%','good')}${kpi('Manut. operando',sCounts.manutencaoOperando,'Conta funcional','warn')}${kpi('Manut. parado',sCounts.manutencaoParado,'Impacto operacional','danger')}${kpi('Em teste',sCounts.emTeste,'Alerta após 48h','warn')}${kpi('Parado',sCounts.parado,'Crítico','danger')}
-      </div>
-      <div class="section-title"><h2>Status das OS</h2><button class="secondary" onclick="openCriarOS()">Abrir nova OS</button></div>
-      <div class="kpi-grid">${kpi('OS abertas',osCounts.aberta,'Não iniciadas','')}${kpi('Iniciadas',osCounts.iniciada,'Condição informada','')}${kpi('Em execução',osCounts.execucao,'Serviço em andamento','')}${kpi('Pendentes',osCounts.pendente,'Gargalos','warn')}${kpi('Minhas/visíveis',state.os.length,'Filtro aplicado','')}</div>
-      <div class="card"><div class="section-title"><h2>Equipamentos em destaque</h2><button class="secondary" onclick="switchTab('equipamentos')">Ver todos</button></div>${renderEquipCards(state.equipamentos.slice(0,6))}</div>`;
-      bindFilterButtons();
+    function normalizarOSAPI(os) {
+      return {
+        idOS: campo(os,'ID_OS','idOs'),
+        numeroOS: campo(os,'NUMERO_OS','numeroOs'),
+        idEquipamento: campo(os,'ID_EQUIPAMENTO','idEquipamento'),
+        equipamento: campo(os,'EQUIPAMENTO','equipamento'),
+        sistema: campo(os,'SISTEMA','sistema'),
+        tipoLocal: campo(os,'TIPO_LOCAL','tipoLocal'),
+        localEstacao: campo(os,'LOCAL_ESTACAO','localEstacao'),
+        setorEquipe: campo(os,'SETOR_EQUIPE','setorEquipe'),
+        responsavel: campo(os,'RESPONSAVEL','responsavel'),
+        tipoOs: campo(os,'TIPO_OS','tipoOs'),
+        prioridade: campo(os,'PRIORIDADE','prioridade'),
+        statusOS: campo(os,'STATUS_OS','statusOs'),
+        descricaoSolicitacao: campo(os,'DESCRICAO_SOLICITACAO','descricaoSolicitacao'),
+        dataAbertura: campo(os,'DATA_ABERTURA','dataAbertura'),
+        horaAbertura: campo(os,'HORA_ABERTURA','horaAbertura'),
+        motivoPendencia: campo(os,'MOTIVO_PENDENCIA','motivoPendencia'),
+        observacaoPendencia: campo(os,'OBS_PENDENCIA','observacaoPendencia')
+      };
     }
-    function renderFilters(){ return `<div class="filters">${GMAN.SISTEMAS.map(s=>`<button class="filter-btn ${state.filtroSistema===s?'active':''}" data-sistema="${s}">${s}</button>`).join('')}</div>`; }
-    function bindFilterButtons(){ document.querySelectorAll('[data-sistema]').forEach(b=>b.onclick=()=>{state.filtroSistema=b.dataset.sistema; syncAll(true);}); }
-    function kpi(label,value,meta,level){ return `<div class="kpi"><div class="label">${esc(label)}</div><div class="value ${level||''}">${esc(value)}</div><div class="meta">${esc(meta||'')}</div></div>`; }
-    function countStatus(){ const c={operando:0,manutencaoOperando:0,manutencaoParado:0,emTeste:0,parado:0}; state.status.forEach(r=>{ const x=canon(r.STATUS_OPERACIONAL); if(x==='operando') c.operando++; else if(x==='em manutencao, operando') c.manutencaoOperando++; else if(x==='em manutencao, parado') c.manutencaoParado++; else if(x==='em teste') c.emTeste++; else if(x==='parado') c.parado++; }); return c; }
-    function countOS(){ const c={aberta:0,iniciada:0,execucao:0,pendente:0}; state.os.forEach(r=>{ const x=canon(r.STATUS_OS); if(x==='aberta') c.aberta++; else if(x==='iniciada') c.iniciada++; else if(x==='em execucao') c.execucao++; else if(x==='pendente') c.pendente++; }); return c; }
-    function statusByEq(id){ return state.status.find(s=>canon(s.ID_EQUIPAMENTO)===canon(id)) || {}; }
-
-    function renderEquipamentos(){ const view=$('view-equipamentos'); view.innerHTML = `<div class="section-title"><h2>Equipamentos oficiais</h2><button class="secondary" onclick="syncAll(true)">Atualizar agora</button></div>${renderFilters()}<div class="card"><input id="buscaEquip" placeholder="Buscar equipamento, estação ou grupo" oninput="renderEquipamentosFiltrado()"></div><div id="equipList">${renderEquipCards(state.equipamentos)}</div>`; bindFilterButtons(); }
-    function renderEquipamentosFiltrado(){ const q=canon($('buscaEquip').value); const rows=state.equipamentos.filter(e=>canon(Object.values(e).join(' ')).includes(q)); $('equipList').innerHTML=renderEquipCards(rows); }
-    function renderEquipCards(rows){ if(!rows.length) return `<div class="empty">Nenhum equipamento encontrado.</div>`; return `<div class="equip-grid">${rows.map(eq=>{ const st=statusByEq(eq.ID_EQUIPAMENTO); const cls=statusClass(st.STATUS_OPERACIONAL); return `<article class="card equip ${cls}"><div class="equip-title">${esc(eq.NOME_EQUIPAMENTO_GRUPO||eq.ID_EQUIPAMENTO)}</div><div class="equip-sub">${esc(eq.LOCAL_ESTACAO||'')} · Sistema ${esc(eq.SISTEMA||'')}</div><div style="margin-top:10px"><span class="pill ${pillClass(st.STATUS_OPERACIONAL)}">${esc(st.STATUS_OPERACIONAL||'Sem status')}</span></div><div class="small" style="margin-top:8px">${esc(st.JUSTIFICATIVA_STATUS||'')}</div><div class="equip-actions"><button class="mini" onclick="openCriarOS('${esc(eq.ID_EQUIPAMENTO)}')">Abrir OS</button><button class="secondary mini" onclick="openHistorico('${esc(eq.ID_EQUIPAMENTO)}')">Histórico</button></div></article>`; }).join('')}</div>`; }
-    function statusClass(s){ const c=canon(s); if(c==='operando') return 'operando'; if(c==='parado'||c==='em manutencao, parado') return 'parado'; if(c==='em teste') return 'teste'; return 'manutencao'; }
-    function pillClass(s){ const c=canon(s); if(c==='operando') return 'good'; if(c==='parado'||c==='em manutencao, parado') return 'danger'; return 'warn'; }
-
-    function renderOS(){ const rows=state.os; const view=$('view-os'); view.innerHTML = `<div class="section-title"><h2>Ordens de Serviço</h2><button onclick="openCriarOS()">Abrir nova OS</button></div><div class="card"><div class="actions-row"><button class="secondary" onclick="syncAll(true)">Atualizar OS</button><button class="secondary" onclick="toggleSomenteMinhas()">${state.filtros.minhas===false?'Ver minhas':'Visão permitida'}</button></div></div>${renderOSTable(rows)}`; }
-    function toggleSomenteMinhas(){ state.filtros.minhas = state.filtros.minhas===false ? true : false; syncAll(true); }
-    function renderOSTable(rows){ if(!rows.length) return `<div class="empty">Nenhuma OS ativa encontrada para sua permissão/filtro.</div>`; return `<div class="table-wrap"><table><thead><tr><th>OS</th><th>Equipamento</th><th>Setor</th><th>Responsável</th><th>Status</th><th>Ações</th></tr></thead><tbody>${rows.map(o=>`<tr><td><strong>${esc(o.NUMERO_OS)}</strong><br><span class="small">${esc(o.ID_OS)}</span></td><td>${esc(o.EQUIPAMENTO||o.ID_EQUIPAMENTO)}</td><td>${esc(o.SETOR_EQUIPE)}</td><td>${esc(o.RESPONSAVEL)}</td><td><span class="pill ${canon(o.STATUS_OS)==='pendente'?'warn':''}">${esc(o.STATUS_OS)}</span></td><td><div class="actions-row"><button class="mini" onclick="openOSDetalhe('${esc(o.ID_OS)}')">Abrir</button></div></td></tr>`).join('')}</tbody></table></div>`; }
-
-    function renderKPIs(){ const k=state.kpis; const view=$('view-kpis'); if(!k){ view.innerHTML='<div class="empty">Carregando KPIs...</div>'; return; } const so=k.situacaoOperacional||{}, os=k.os||{}, tec=k.tecnico||{};
-      view.innerHTML = `<div class="section-title"><h2>KPIs da gestão</h2><button class="secondary" onclick="syncAll(true)">Atualizar KPIs</button></div><div class="card"><div class="row"><div class="col-3"><label>Período rápido</label><select id="periodoRapido" onchange="setPeriodoRapido(this.value)"><option value="mesAtual">Mês atual</option><option value="hoje">Hoje</option><option value="7d">Últimos 7 dias</option><option value="30d">Últimos 30 dias</option></select></div><div class="col-3"><label>Sistema</label><select onchange="state.filtroSistema=this.value;syncAll(true)">${GMAN.SISTEMAS.map(s=>`<option ${state.filtroSistema===s?'selected':''}>${s}</option>`).join('')}</select></div></div></div>
-      <div class="section-title"><h2>Bloco 1 — Situação operacional atual</h2></div><div class="kpi-grid">${kpi('Total equipamentos',so.totalEquipamentos,'Base oficial','')}${kpi('Disponibilidade plena',pct(so.disponibilidadePlena),'Meta ≥ 90%',so.disponibilidadePlena>=.9?'good':'warn')}${kpi('Disponibilidade funcional',pct(so.disponibilidadeFuncional),'Operando + manut. operando + teste',so.disponibilidadeFuncional>=.9?'good':'warn')}${kpi('Em teste',so.emTeste,'Alerta > 48h','warn')}${kpi('Parados',so.parado,'Crítico',so.parado?'danger':'good')}</div>
-      <div class="section-title"><h2>Bloco 2 — Situação das OS</h2></div><div class="kpi-grid">${kpi('Abertas',os.abertas,'Não iniciadas','')}${kpi('Iniciadas',os.iniciadas,'Já assumidas','')}${kpi('Em execução',os.emExecucao,'Trabalho ativo','')}${kpi('Pendentes',os.pendentes,'Gargalos',os.pendentes?'warn':'good')}${kpi('Concluídas',os.concluidas,'No período','good')}</div>
-      <div class="section-title"><h2>Bloco 3 — Indicadores técnicos</h2></div><div class="kpi-grid">${kpi('MTTR técnico',fmtHoras(tec.mttrTecnicoMedioHoras),'Início até conclusão','')}${kpi('Tempo total médio',fmtHoras(tec.tempoTotalMedioHoras),'Abertura até conclusão','')}${kpi('OEE',tec.oee?.status||'EM_IMPLANTACAO','Dados insuficientes para completo','warn')}</div>
-      <div class="section-title"><h2>Bloco 4 — Reincidência e criticidade</h2></div>${renderReincidencia()}
-      <div class="section-title"><h2>Bloco 5 — Carga operacional</h2></div>${renderCargaOperacional()}`;
+    async function atualizarAgora(exibirAlerta = true) {
+      try {
+        const [equip, status, os, users, teams] = await Promise.all([
+          apiPost('listarEquipamentos', {}),
+          apiPost('listarStatusAtual', {}),
+          apiPost('listarOrdensServico', {}),
+          apiPost('listarUsuarios', {}),
+          apiPost('listarEquipes', {})
+        ]);
+        equipamentosCache = (equip.equipamentos || equip.rows || []).map(normalizarEquipamentoAPI).filter(e => e.id);
+        statusAtualCache = (status.status || status.statusAtual || status.rows || []).map(normalizarStatusAPI).filter(s => s.id);
+        ordensServicoCache = (os.ordens || os.ordensServico || os.rows || []).map(normalizarOSAPI).filter(o => o.idOS);
+        usuariosCache = users.usuarios || users.rows || [];
+        equipesCache = teams.equipes || teams.rows || [];
+        aplicarStatusNosEquipamentos();
+        apiOnline = true;
+        document.getElementById('syncText').textContent = 'sinc. ' + new Date().toLocaleTimeString('pt-BR');
+        atualizarTotalizadoresOS();
+        applyFilters();
+        if (document.getElementById('osModal')) renderizarOS(ordensServicoCache);
+        if (exibirAlerta) console.log('GMAN atualizado.');
+      } catch (e) {
+        apiOnline = false;
+        console.error(e);
+        if (exibirAlerta) mostrarMensagem('Erro ao atualizar GMAN: ' + e.message);
+      }
     }
-    function setPeriodoRapido(v){ const now=new Date(), d=new Date(); const fmt=(x)=>x.toISOString().slice(0,10); delete state.filtros.dataInicio; delete state.filtros.dataFim; if(v==='hoje'){state.filtros.dataInicio=fmt(now);state.filtros.dataFim=fmt(now)} if(v==='7d'){d.setDate(now.getDate()-7);state.filtros.dataInicio=fmt(d);state.filtros.dataFim=fmt(now)} if(v==='30d'){d.setDate(now.getDate()-30);state.filtros.dataInicio=fmt(d);state.filtros.dataFim=fmt(now)} syncAll(true); }
-    function renderCargaOperacional(){ const c=state.carga||{}; const area=c.porAreaEquipe||[], exec=c.porExecutante||[]; return `<div class="card"><h3>Aba 1 — Por área/equipe</h3>${simpleTable(area,['nome','osAbertas','osEmExecucao','osPendentes','osConcluidasPeriodo','esperaMediaHoras','execucaoMediaHoras'])}<h3>Aba 2 — Por executante/responsável</h3>${simpleTable(exec,['nome','areaEquipe','osAbertas','osEmExecucao','osPendentes','osConcluidasPeriodo','esperaMediaHoras','execucaoMediaHoras'])}</div>`; }
-    function renderReincidencia(){ const lista = Array.isArray(state.reincidencia) ? state.reincidencia : []; const porSistema = agruparReincidenciaSistema(lista); return `<div class="card"><h3>Por sistema</h3>${simpleTable(porSistema,['sistema','qtdOsRecorrentes','gruposCriticos'])}<h3>Por grupo/equipamento</h3>${simpleTable(lista,['sistema','idEquipamentoGrupo','qtdOsRecorrentes','criticidadeReincidencia','condicaoAtual','ultimaOs','ultimaFalha','setorMaisAcionado'])}<h3>Por componente/equipamento</h3><div class="empty">A análise por componente será preenchida quando as OS registrarem componente/tipo de falha de forma consistente.</div></div>`; }
-    function agruparReincidenciaSistema(lista){ const m={}; (lista||[]).forEach(x=>{ const s=x.sistema||'Sem sistema'; if(!m[s]) m[s]={sistema:s,qtdOsRecorrentes:0,gruposCriticos:0}; m[s].qtdOsRecorrentes += Number(x.qtdOsRecorrentes||0); if(canon(x.criticidadeReincidencia)==='critico') m[s].gruposCriticos++; }); return Object.values(m).sort((a,b)=>b.qtdOsRecorrentes-a.qtdOsRecorrentes); }
-    function simpleTable(rows, keys){ if(!rows || !rows.length) return '<div class="empty">Sem dados no período.</div>'; return `<div class="table-wrap"><table><thead><tr>${keys.map(k=>`<th>${esc(k)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${keys.map(k=>`<td>${esc(r[k]??r[k.toUpperCase()]??'')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`; }
-    function renderGestao(){ $('view-gestao').innerHTML = `<div class="section-title"><h2>Gestão e saúde da API</h2><button onclick="runHealth()">Rodar teste de saúde</button></div><div class="card"><div id="healthResult" class="empty">Clique em Rodar teste de saúde.</div></div>`; }
-    async function runHealth(){ setBusy(true); try{ const r=await api('testeSaudeGMAN',{},'GET'); $('healthResult').innerHTML=`<strong>Status geral:</strong> ${esc(r.statusGeral)} · <strong>Falhas:</strong> ${esc(r.falhas)} · <strong>Alertas:</strong> ${esc(r.alertas)}<br><span class="small">${esc(r.planilha)} · ${esc(r.versao)}</span>${simpleTable(r.resultado||[],['item','status','detalhe'])}`; }catch(e){toast(e.message)}finally{setBusy(false)} }
 
-    function openModal(title, html){ state.modalOpen=true; $('modalTitle').textContent=title; $('modalBody').innerHTML=html; $('modal').classList.add('open'); bindDraftInputs(); }
-    function closeModal(){ state.modalOpen=false; state.draftDirty=false; $('modal').classList.remove('open'); $('modalBody').innerHTML=''; }
-    function bindDraftInputs(){ $('modalBody').querySelectorAll('input,select,textarea').forEach(el=>el.addEventListener('input',()=>{state.draftDirty=true;})); }
+    function isEquipamentoBrutaGMAN(eq) { return String(eq.filtroBrutas || '').toUpperCase() === 'SIM'; }
+    function filterSystem(system) {
+      currentSystemFilter = system;
+      document.querySelectorAll('.system-btn').forEach(b => b.classList.remove('active'));
+      const map = { all:0, '100':1, '200':2, '300':3, '400':4, '600':5, '700':6, brutas:7 };
+      const btn = document.querySelectorAll('.system-btn')[map[system] || 0]; if (btn) btn.classList.add('active');
+      applyFilters();
+    }
+    function filterByStatus(status) { currentStatusFilter = currentStatusFilter === status ? 'all' : status; applyFilters(); }
+    function searchEquipment() { applyFilters(); }
+    function applyFilters() {
+      const term = normalizarTextoGMAN(document.getElementById('searchInput').value);
+      let filtered = equipamentosCache.slice();
+      if (currentSystemFilter === 'brutas') filtered = filtered.filter(isEquipamentoBrutaGMAN);
+      else if (currentSystemFilter !== 'all') filtered = filtered.filter(eq => String(eq.systemCode) === String(currentSystemFilter));
+      if (currentStatusFilter !== 'all') {
+        if (currentStatusFilter === 'alert') filtered = filtered.filter(eq => eq.status === 'alert');
+        else filtered = filtered.filter(eq => eq.status === currentStatusFilter);
+      }
+      if (term) filtered = filtered.filter(eq => normalizarTextoGMAN(`${eq.id} ${eq.name} ${eq.localEstacao} ${eq.systemCode} ${eq.tipoLocal}`).includes(term));
+      renderEquipmentList(filtered);
+      updateStats();
+    }
+    function updateStats() {
+      const total = equipamentosCache.length;
+      const ok = equipamentosCache.filter(e => statusOperacionalClasse(e.statusOperacional) === 'ok').length;
+      const alert = equipamentosCache.filter(e => statusOperacionalClasse(e.statusOperacional) === 'alert').length;
+      const down = equipamentosCache.filter(e => statusOperacionalClasse(e.statusOperacional) === 'down').length;
+      document.getElementById('operationalCount').textContent = ok;
+      document.getElementById('maintenanceCount').textContent = alert;
+      document.getElementById('downCount').textContent = down;
+      document.getElementById('operationalPercent').textContent = percentual(ok,total);
+      document.getElementById('maintenancePercent').textContent = percentual(alert,total);
+      document.getElementById('downPercent').textContent = percentual(down,total);
+    }
+    function renderEquipmentList(lista) {
+      const container = document.getElementById('equipmentList');
+      if (!lista.length) { container.innerHTML = '<div style="padding:20px; text-align:center; color:#a0c4e8;">Nenhum equipamento encontrado.</div>'; return; }
+      container.innerHTML = lista.map(eq => {
+        const classe = eq.status || statusOperacionalClasse(eq.statusOperacional);
+        const icon = classe === 'ok' ? '✓' : classe === 'alert' ? '!' : '✕';
+        const tag = 'tag-' + (eq.systemCode || '100');
+        return `<div class="equipment-item" onclick="abrirCardEquipamento('${escaparHTMLGMAN(eq.id)}')">
+          <div class="status-icon status-${classe}">${icon}</div>
+          <div>
+            <div class="equipment-name">${escaparHTMLGMAN(eq.name || eq.id)}</div>
+            <div class="equipment-system">${escaparHTMLGMAN(eq.localEstacao || '')} · ${escaparHTMLGMAN(eq.tipoLocal || '')} · Sistema ${escaparHTMLGMAN(eq.systemCode || '')} <span class="system-tag ${tag}">${escaparHTMLGMAN(eq.systemCode || '')}</span></div>
+            ${eq.observacaoStatus ? `<div class="equipment-note">${escaparHTMLGMAN(eq.observacaoStatus)}</div>` : ''}
+          </div>
+          <span class="status-badge badge-${classe}">${escaparHTMLGMAN(statusOperacionalLabel(eq.statusOperacional))}</span>
+        </div>`;
+      }).join('');
+    }
+    function abrirCardEquipamento(id) {
+      const eq = equipamentosCache.find(e => normalizarTextoGMAN(e.id) === normalizarTextoGMAN(id));
+      if (!eq) return;
+      const osGrupo = ordensServicoCache.filter(os => normalizarTextoGMAN(os.idEquipamento) === normalizarTextoGMAN(id));
+      const ativas = osGrupo.filter(os => isOsAtiva(os.statusOS));
+      abrirModal(`${eq.name}`, `<div class="summary-box"><strong>${escaparHTMLGMAN(eq.id)}</strong><br>${escaparHTMLGMAN(eq.localEstacao || '')} · ${escaparHTMLGMAN(eq.tipoLocal || '')} · Sistema ${escaparHTMLGMAN(eq.systemCode || '')}<br>Status: <strong>${escaparHTMLGMAN(eq.statusOperacional)}</strong></div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;"><span class="mini-pill">OS totais: ${osGrupo.length}</span><span class="mini-pill">OS ativas: ${ativas.length}</span></div>
+      <div class="main-actions" style="justify-content:flex-start;">
+        ${podeGerenciarOS() ? `<button class="action-btn success" onclick="abrirModalCriarOS('${escaparHTMLGMAN(eq.id)}')">Abrir OS</button>` : ''}
+        <button class="action-btn primary" onclick="abrirPainelOS('grupo:${escaparHTMLGMAN(eq.id)}')">Ver OS</button>
+        <button class="action-btn" onclick="abrirHistoricoEquipamento('${escaparHTMLGMAN(eq.id)}')">Histórico</button>
+      </div>`);
+    }
+    async function abrirHistoricoEquipamento(id) {
+      try {
+        const r = await apiPost('historicoEquipamento', { idEquipamento: id });
+        const lista = r.historico || r.rows || [];
+        abrirModal('Histórico do grupo ' + id, lista.length ? lista.slice(0,20).map(h => `<div class="os-card"><p><strong>${escaparHTMLGMAN(campo(h,'DATA_HORA_BRASIL','DATA_HORA','dataHora') || '')}</strong></p><p>${escaparHTMLGMAN(campo(h,'ACAO','acao') || '')}</p><p>${escaparHTMLGMAN(campo(h,'OBSERVACAO','observacao') || campo(h,'JUSTIFICATIVA','justificativa') || '')}</p></div>`).join('') : '<div class="summary-box">Sem histórico retornado.</div>');
+      } catch(e) { mostrarMensagem('Erro ao carregar histórico: ' + e.message); }
+    }
 
-    function openCriarOS(idEquipamento=''){
-      const d=getDraft('criarOS'); const eqOpts=state.equipamentos.map(e=>`<option value="${esc(e.ID_EQUIPAMENTO)}" ${e.ID_EQUIPAMENTO===idEquipamento?'selected':''}>${esc(e.ID_EQUIPAMENTO+' — '+(e.NOME_EQUIPAMENTO_GRUPO||''))}</option>`).join('');
-      const userOpts=state.usuarios.map(u=>`<option>${esc(u.NOME||u.LOGIN||u.ID_USUARIO)}</option>`).join('');
-      openModal('Abrir nova OS', `<form id="formCriarOS"><div class="row"><div class="col-4"><label class="required">Equipamento</label><select name="idEquipamento" onchange="preencherEqOS(this.value)">${eqOpts}</select></div><div class="col-2"><label class="required">Sistema</label><input name="sistema" value="${esc(d.sistema||'')}" /></div><div class="col-3"><label class="required">Tipo local</label><input name="tipoLocal" value="${esc(d.tipoLocal||'')}" /></div><div class="col-3"><label class="required">Local/estação</label><input name="localEstacao" value="${esc(d.localEstacao||'')}" /></div><div class="col-4"><label class="required">Setor/equipe</label><select name="setorEquipe">${GMAN.SETORES.map(s=>`<option>${s}</option>`).join('')}</select></div><div class="col-4"><label class="required">Responsável/executante</label><select name="responsavel">${userOpts}</select></div><div class="col-2"><label class="required">Tipo OS</label><select name="tipoOs">${GMAN.TIPO_OS.map(s=>`<option>${s}</option>`).join('')}</select></div><div class="col-2"><label>Prioridade</label><select name="prioridade">${GMAN.CRITICIDADE.map(s=>`<option>${s}</option>`).join('')}</select></div><div class="col-12"><label class="required">Descrição da solicitação</label><textarea name="descricaoSolicitacao">${esc(d.descricaoSolicitacao||'')}</textarea></div></div><div class="actions-row"><button type="button" onclick="submitCriarOS()">Criar OS</button><button type="button" class="secondary" onclick="closeModal()">Cancelar</button></div></form>`); preencherEqOS(idEquipamento || (state.equipamentos[0]&&state.equipamentos[0].ID_EQUIPAMENTO)); }
-    function preencherEqOS(id){ const eq=state.equipamentos.find(e=>canon(e.ID_EQUIPAMENTO)===canon(id)); const f=$('formCriarOS'); if(eq&&f){ f.sistema.value=eq.SISTEMA||''; f.tipoLocal.value=eq.TIPO_LOCAL||''; f.localEstacao.value=eq.LOCAL_ESTACAO||''; } }
-    function formObj(form){ return Object.fromEntries(new FormData(form).entries()); }
-    async function submitCriarOS(){ const f=$('formCriarOS'); const data=formObj(f); saveDraft('criarOS', data); setBusy(true); try{ const r=await api('criarOS',data); clearDraft('criarOS'); closeModal(); toast(r.mensagem+' '+r.numeroOs); await syncAll(true); }catch(e){toast(e.message)}finally{setBusy(false)} }
+    function atualizarTotalizadoresOS(lista = ordensServicoCache) {
+      const dados = Array.isArray(lista) ? lista : [];
+      const abertas = dados.filter(os => isOsAtiva(os.statusOS));
+      const naoIniciadas = dados.filter(os => isOsAberta(os.statusOS));
+      const iniciadas = dados.filter(os => isOsIniciadaOuExecucao(os.statusOS) || isOsPendente(os.statusOS));
+      const encerradas = dados.filter(os => isOsEncerrada(os.statusOS));
+      const minhas = dados.filter(os => isOsAtiva(os.statusOS) && usuarioPodeAlterarOS(os));
+      setText('totalOrdensAbertasHome','(' + abertas.length + ')');
+      setText('totalOrdensNaoIniciadasHome','(' + naoIniciadas.length + ')');
+      setText('totalOrdensIniciadasHome','(' + iniciadas.length + ')');
+      setText('totalOrdensEncerradasHome','(' + encerradas.length + ')');
+      setText('totalOrdensAbertasPainel','(' + abertas.length + ')');
+      setText('totalOrdensNaoIniciadasPainel','(' + naoIniciadas.length + ')');
+      setText('totalOrdensIniciadasPainel','(' + iniciadas.length + ')');
+      setText('totalOrdensEncerradasPainel','(' + encerradas.length + ')');
+      setText('totalMinhasOSPainel','(' + minhas.length + ')');
+      return { abertas: abertas.length, naoIniciadas: naoIniciadas.length, iniciadas: iniciadas.length, encerradas: encerradas.length, minhas: minhas.length };
+    }
+    function setText(id, txt) { const el = document.getElementById(id); if (el) el.textContent = txt; }
+    function tituloPainelOS(modo) {
+      if (String(modo).startsWith('grupo:')) return 'OS do grupo ' + String(modo).replace('grupo:','');
+      if (modo === 'encerradas') return 'Ordens Encerradas';
+      if (modo === 'naoIniciadas') return 'OS Não Iniciadas';
+      if (modo === 'iniciadas') return 'OS Iniciadas';
+      if (modo === 'minhas') return 'Minhas OS';
+      return 'OS Abertas';
+    }
+    function filtrarOSPorModo(modo) {
+      let base = ordensServicoCache.slice();
+      if (String(modo).startsWith('grupo:')) {
+        const id = String(modo).replace('grupo:','');
+        base = base.filter(os => normalizarTextoGMAN(os.idEquipamento) === normalizarTextoGMAN(id));
+      } else if (modo === 'encerradas') base = base.filter(os => isOsEncerrada(os.statusOS));
+      else if (modo === 'naoIniciadas') base = base.filter(os => isOsAberta(os.statusOS));
+      else if (modo === 'iniciadas') base = base.filter(os => isOsIniciadaOuExecucao(os.statusOS) || isOsPendente(os.statusOS));
+      else if (modo === 'minhas') base = base.filter(os => isOsAtiva(os.statusOS) && usuarioPodeAlterarOS(os));
+      else base = base.filter(os => isOsAtiva(os.statusOS));
+      if (!podeGerenciarOS() && modo !== 'minhas') base = base.filter(os => isOsAtiva(os.statusOS));
+      return base.reverse();
+    }
+    function abrirPainelOS(modo = 'abertas') {
+      if (modo === 'encerradas' && !podeGerenciarOS()) { mostrarMensagem('Ordens encerradas são visíveis apenas para gestão.'); return; }
+      modoPainelOSAtual = modo;
+      abrirModal(tituloPainelOS(modo), `<div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+        <button class="action-btn primary" onclick="mudarModoPainelOS('abertas')">📋 OS Abertas <span id="totalOrdensAbertasPainel"></span></button>
+        ${podeGerenciarOS() ? `<button class="action-btn" onclick="mudarModoPainelOS('naoIniciadas')">⏳ Não Iniciadas <span id="totalOrdensNaoIniciadasPainel"></span></button><button class="action-btn warn" onclick="mudarModoPainelOS('iniciadas')">🛠️ Iniciadas <span id="totalOrdensIniciadasPainel"></span></button>` : ''}
+        <button class="action-btn" onclick="mudarModoPainelOS('minhas')">👤 Minhas OS <span id="totalMinhasOSPainel"></span></button>
+        ${podeGerenciarOS() ? `<button class="action-btn" onclick="mudarModoPainelOS('encerradas')">✅ Encerradas <span id="totalOrdensEncerradasPainel"></span></button>` : ''}
+        <button class="action-btn" onclick="atualizarAgora().then(()=>renderizarOS())">🔄 Recarregar OS</button>
+      </div><div id="osConteudo"></div>`);
+      atualizarTotalizadoresOS();
+      renderizarOS();
+    }
+    function mudarModoPainelOS(modo) { modoPainelOSAtual = modo; document.getElementById('modalTitle').textContent = tituloPainelOS(modo); renderizarOS(); }
+    function resumoOSHTML(lista) {
+      const c = { aberta:0, iniciada:0, execucao:0, pendente:0, concluida:0, cancelada:0 };
+      lista.forEach(os => {
+        const s = normalizarTextoGMAN(os.statusOS);
+        if (s === 'aberta') c.aberta++;
+        else if (s === 'iniciada') c.iniciada++;
+        else if (s === 'em execucao') c.execucao++;
+        else if (s === 'pendente') c.pendente++;
+        else if (s === 'concluida') c.concluida++;
+        else if (s === 'cancelada') c.cancelada++;
+      });
+      return `<div class="summary-box"><strong>Resumo — ${escaparHTMLGMAN(tituloPainelOS(modoPainelOSAtual))}</strong><br><span class="mini-pill">Total: ${lista.length}</span><span class="mini-pill">Abertas: ${c.aberta}</span><span class="mini-pill">Iniciadas: ${c.iniciada}</span><span class="mini-pill">Em execução: ${c.execucao}</span><span class="mini-pill">Pendentes: ${c.pendente}</span><span class="mini-pill">Concluídas: ${c.concluida}</span></div>`;
+    }
+    function classeOS(status) { const s = normalizarTextoGMAN(status); if (s === 'concluida') return 'os-concluida'; if (s === 'cancelada') return 'os-cancelada'; if (s === 'pendente') return 'os-pendente'; if (s === 'em execucao') return 'os-execucao'; if (s === 'iniciada') return 'os-iniciada'; return 'os-aberta'; }
+    function renderizarOS() {
+      const container = document.getElementById('osConteudo'); if (!container) return;
+      const lista = filtrarOSPorModo(modoPainelOSAtual);
+      atualizarTotalizadoresOS();
+      if (!lista.length) { container.innerHTML = resumoOSHTML(lista) + '<div class="summary-box">Nenhuma OS encontrada neste filtro.</div>'; return; }
+      container.innerHTML = resumoOSHTML(lista) + lista.map(os => renderOSCard(os)).join('');
+    }
+    function renderOSCard(os) {
+      const encerrada = isOsEncerrada(os.statusOS);
+      const pendente = isOsPendente(os.statusOS);
+      const aberta = isOsAberta(os.statusOS);
+      const exec = isOsIniciadaOuExecucao(os.statusOS);
+      const permissao = usuarioPodeAlterarOS(os);
+      const podeIniciar = !encerrada && aberta && permissao;
+      const podeAndamento = !encerrada && !pendente && permissao && (exec || aberta);
+      const podePendente = !encerrada && !pendente && permissao && (exec || aberta);
+      const podeConcluir = !encerrada && !pendente && permissao && exec;
+      const podeResolverPendencia = !encerrada && pendente && permissao;
+      return `<div class="os-card">
+        <h4>${escaparHTMLGMAN(os.numeroOS || os.idOS)} — ${escaparHTMLGMAN(os.equipamento || os.idEquipamento)}</h4>
+        <span class="os-badge ${classeOS(os.statusOS)}">${escaparHTMLGMAN(os.statusOS || 'Sem status')}</span><span class="os-badge os-aberta">${escaparHTMLGMAN(os.prioridade || 'Normal')}</span>
+        <p><strong>Local:</strong> ${escaparHTMLGMAN(os.localEstacao || '-')} | <strong>Sistema:</strong> ${escaparHTMLGMAN(os.sistema || '-')}</p>
+        <p><strong>Setor:</strong> ${escaparHTMLGMAN(os.setorEquipe || '-')} | <strong>Tipo:</strong> ${escaparHTMLGMAN(os.tipoOs || '-')}</p>
+        <p><strong>Responsável:</strong> ${escaparHTMLGMAN(os.responsavel || '-')}</p>
+        <p><strong>Descrição:</strong> ${escaparHTMLGMAN(os.descricaoSolicitacao || '-')}</p>
+        ${pendente ? `<p style="background:#fffaf0; border-left:4px solid #d69e2e; border-radius:8px; padding:8px; color:#744210;"><strong>Pendente:</strong> ${escaparHTMLGMAN(os.motivoPendencia || '-')}<br>${escaparHTMLGMAN(os.observacaoPendencia || '')}</p>` : ''}
+        ${(!permissao && !encerrada) ? '<p style="color:#744210; background:#fffaf0; border-left:4px solid #d69e2e; border-radius:8px; padding:8px; font-weight:700;">🔒 Somente o responsável ou gestão pode alterar esta OS.</p>' : ''}
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
+          ${podeIniciar ? `<button class="action-btn warn" onclick="abrirModalIniciarOS('${escaparHTMLGMAN(os.idOS)}')">▶️ Iniciar</button>` : ''}
+          ${podeAndamento ? `<button class="action-btn primary" onclick="abrirModalAndamentoOS('${escaparHTMLGMAN(os.idOS)}')">📝 Atualizar andamento</button>` : ''}
+          ${podePendente ? `<button class="action-btn warn" onclick="abrirModalPendenteOS('${escaparHTMLGMAN(os.idOS)}')">⏸️ Marcar pendente</button>` : ''}
+          ${podeResolverPendencia ? `<button class="action-btn success" onclick="abrirModalResolverPendencia('${escaparHTMLGMAN(os.idOS)}')">✅ Resolver pendência</button>` : ''}
+          ${(!encerrada && permissao) ? `<button class="action-btn" onclick="abrirModalEvidenciaOS('${escaparHTMLGMAN(os.idOS)}')">📎 Evidência</button>` : ''}
+          ${podeConcluir ? `<button class="action-btn success" onclick="abrirModalConcluirOS('${escaparHTMLGMAN(os.idOS)}')">✅ Concluir</button>` : ''}
+          ${(pendente && permissao) ? `<button class="action-btn danger" onclick="abrirModalSolicitarCancelamento('${escaparHTMLGMAN(os.idOS)}')">Solicitar cancelamento</button><button class="action-btn warn" onclick="abrirModalSolicitarRedistribuicao('${escaparHTMLGMAN(os.idOS)}')">Solicitar redistribuição</button>` : ''}
+        </div>
+      </div>`;
+    }
 
-    function osById(id){ return state.os.find(o=>canon(o.ID_OS)===canon(id)) || {}; }
-    function openOSDetalhe(id){ const o=osById(id); openModal('OS '+(o.NUMERO_OS||''), `<div class="card"><strong>${esc(o.EQUIPAMENTO||o.ID_EQUIPAMENTO)}</strong><br><span class="small">${esc(o.SETOR_EQUIPE)} · ${esc(o.RESPONSAVEL)} · ${esc(o.STATUS_OS)}</span><p>${esc(o.DESCRICAO_SOLICITACAO||'')}</p></div><div class="actions-row"><button onclick="openIniciarOS('${esc(id)}')">Iniciar</button><button class="secondary" onclick="openAndamentoOS('${esc(id)}')">Andamento</button><button class="warn" onclick="openPendenteOS('${esc(id)}')">Pendente</button><button class="secondary" onclick="openEvidenciaOS('${esc(id)}')">Evidência</button><button class="good" onclick="openConcluirOS('${esc(id)}')">Concluir</button><button class="secondary" onclick="openPatrimonioFicha('${esc(id)}')">Patrimônio/Ficha</button><button class="danger" onclick="openSolicitarCancelamento('${esc(id)}')">Solicitar cancelamento</button><button class="warn" onclick="openSolicitarRedistribuicao('${esc(id)}')">Solicitar redistribuição</button></div>`); }
-    function statusOptions(){ return GMAN.STATUS_OPERACIONAL.map(s=>`<option>${s}</option>`).join(''); }
-    function openIniciarOS(id){ openModal('Iniciar OS', `<form id="formIniciar"><label class="required">Condição operacional atual</label><select name="condicaoOperacional">${statusOptions()}</select><label class="required">Justificativa</label><textarea name="justificativa"></textarea><div class="actions-row"><button type="button" onclick="submitIniciarOS('${esc(id)}')">Iniciar OS</button></div></form>`); }
-    async function submitIniciarOS(id){ const data=Object.assign(formObj($('formIniciar')),{idOs:id}); await actionSubmit('iniciarOS',data); }
-    function openAndamentoOS(id){ openModal('Registrar andamento', `<form id="formAndamento"><label class="required">Observação do andamento</label><textarea name="observacao"></textarea><label>Alterar condição operacional?</label><select name="condicaoOperacional"><option value="">Não alterar</option>${statusOptions()}</select><label>Justificativa se alterar condição</label><textarea name="justificativa"></textarea><div class="actions-row"><button type="button" onclick="submitAndamentoOS('${esc(id)}')">Salvar andamento</button></div></form>`); }
-    async function submitAndamentoOS(id){ const data=Object.assign(formObj($('formAndamento')),{idOs:id}); await actionSubmit('atualizarAndamentoOS',data); }
-    function openPendenteOS(id){ openModal('Marcar OS como pendente', `<form id="formPendente"><label class="required">Motivo da pendência</label><select name="motivoPendencia">${GMAN.PENDENCIAS.map(s=>`<option>${s}</option>`).join('')}</select><label class="required">Observação complementar</label><textarea name="observacaoPendencia"></textarea><div class="actions-row"><button class="warn" type="button" onclick="submitPendenteOS('${esc(id)}')">Marcar pendente</button></div></form>`); }
-    async function submitPendenteOS(id){ const data=Object.assign(formObj($('formPendente')),{idOs:id}); await actionSubmit('marcarPendenteOS',data); }
-    function openSolicitarCancelamento(id){ openModal('Solicitar cancelamento', `<form id="formCancel"><label class="required">Motivo do cancelamento</label><textarea name="motivoCancelamento"></textarea><button type="button" class="danger" onclick="submitSolicitarCancelamento('${esc(id)}')">Solicitar cancelamento</button></form>`); }
-    async function submitSolicitarCancelamento(id){ await actionSubmit('solicitarCancelamentoOS',Object.assign(formObj($('formCancel')),{idOs:id})); }
-    function openSolicitarRedistribuicao(id){ openModal('Solicitar redistribuição', `<form id="formRedis"><label class="required">Motivo da redistribuição</label><textarea name="motivoRedistribuicao"></textarea><button type="button" class="warn" onclick="submitSolicitarRedistribuicao('${esc(id)}')">Solicitar redistribuição</button></form>`); }
-    async function submitSolicitarRedistribuicao(id){ await actionSubmit('solicitarRedistribuicaoOS',Object.assign(formObj($('formRedis')),{idOs:id})); }
+    function abrirModal(titulo, html) { document.getElementById('modalTitle').textContent = titulo; document.getElementById('modalBody').innerHTML = html; document.getElementById('modalGMAN').classList.add('open'); }
+    function fecharModal() { document.getElementById('modalGMAN').classList.remove('open'); document.getElementById('modalBody').innerHTML = ''; }
+    function opt(lista, valor='') { return lista.map(x => `<option ${String(x)===String(valor)?'selected':''}>${escaparHTMLGMAN(x)}</option>`).join(''); }
+    function usuariosOptions() { return usuariosCache.map(u => `<option value="${escaparHTMLGMAN(campo(u,'NOME','LOGIN','ID_USUARIO'))}">${escaparHTMLGMAN(campo(u,'NOME','LOGIN','ID_USUARIO'))} — ${escaparHTMLGMAN(campo(u,'PERFIL','perfil') || '')}</option>`).join(''); }
+    function formDataObj(formId) { const form = document.getElementById(formId); return Object.fromEntries(new FormData(form).entries()); }
 
-    function openConcluirOS(id){ const o=osById(id); const patrimonioOpcional=['usinagem','caldeiraria','instalacoes mecanicas'].includes(canon(o.SETOR_EQUIPE)); openModal('Encerramento padrão da OS', `<form id="formConcluir"><div class="row"><div class="col-12"><label class="required">Serviço realizado</label><textarea name="servicoRealizado"></textarea></div><div class="col-4"><label class="required">Condição operacional final</label><select name="condicaoOperacionalFinal">${statusOptions()}</select></div><div class="col-8"><label class="required">Justificativa da condição final</label><textarea name="justificativaCondicaoFinal"></textarea></div><div class="col-6"><label class="required">Materiais utilizados</label><textarea name="materiaisUtilizados">Não utilizado</textarea></div><div class="col-6"><label class="required">Observação final</label><textarea name="observacaoFinal"></textarea></div><div class="col-12"><label class="required">Membros da equipe</label><input name="membrosEquipe" placeholder="Nomes de quem participou" /></div><div class="col-12"><label>Itens adicionais observados</label><textarea name="itensAdicionaisObservados" placeholder="Equipamentos, características, adaptações ou anomalias observadas"></textarea></div><div class="col-12"><label><input type="checkbox" name="semUsoVeiculo" value="true" checked onchange="toggleVeiculo(this.checked)"> Sem uso de veículo</label></div><div class="col-3 veiculoFields hidden"><label>Prefixo veículo</label><input name="prefixoVeiculo"></div><div class="col-3 veiculoFields hidden"><label>Motorista</label><input name="motorista"></div><div class="col-3 veiculoFields hidden"><label>KM inicial</label><input name="kmInicial" type="number"></div><div class="col-3 veiculoFields hidden"><label>KM final</label><input name="kmFinal" type="number"></div><div class="col-6"><label><input type="checkbox" name="patrimonioConfirmado" value="SIM" ${patrimonioOpcional?'checked':''}> Patrimônio confirmado/preenchido ${patrimonioOpcional?'(opcional para este setor)':''}</label></div><div class="col-6"><label><input type="checkbox" name="fichaTecnicaConfirmada" value="SIM" ${patrimonioOpcional?'checked':''}> Ficha técnica confirmada/preenchida ${patrimonioOpcional?'(opcional para este setor)':''}</label></div></div><div class="lock-note">Conclusão só é salva oficialmente depois da confirmação do Apps Script. Sem uso de veículo dispensa KM e motorista.</div><div class="actions-row" style="margin-top:12px"><button class="good" type="button" onclick="submitConcluirOS('${esc(id)}')">Concluir OS</button></div></form>`); }
-    function toggleVeiculo(sem){ document.querySelectorAll('.veiculoFields').forEach(e=>e.classList.toggle('hidden', sem)); }
-    async function submitConcluirOS(id){ const f=$('formConcluir'); const data=formObj(f); data.idOs=id; data.semUsoVeiculo=!!f.semUsoVeiculo.checked; data.patrimonioConfirmado=f.patrimonioConfirmado.checked?'SIM':''; data.fichaTecnicaConfirmada=f.fichaTecnicaConfirmada.checked?'SIM':''; await actionSubmit('concluirOS',data); }
-    async function actionSubmit(action,data){ setBusy(true); try{ const r=await api(action,data); closeModal(); toast(r.mensagem||'Ação concluída.'); await syncAll(true); }catch(e){toast(e.message)}finally{setBusy(false)} }
+    function abrirModalCriarOS(idEquipamento = '') {
+      if (!podeGerenciarOS()) return mostrarMensagem('Abertura de OS é permitida apenas para gestão.');
+      const eqOptions = equipamentosCache.map(eq => `<option value="${escaparHTMLGMAN(eq.id)}" ${eq.id===idEquipamento?'selected':''}>${escaparHTMLGMAN(eq.id + ' — ' + eq.name)}</option>`).join('');
+      abrirModal('Abrir Ordem de Serviço', `<form id="formCriarOS" class="grid">
+        <label class="form-label">Grupo/equipamento</label><select class="form-field" name="idEquipamento" onchange="preencherDadosEquipamentoOS(this.value)">${eqOptions}</select>
+        <div class="grid grid-3"><div><label class="form-label">Sistema</label><input class="form-field" name="sistema" readonly></div><div><label class="form-label">Tipo de local</label><input class="form-field" name="tipoLocal" readonly></div><div><label class="form-label">Local/estação</label><input class="form-field" name="localEstacao" readonly></div></div>
+        <div class="grid grid-2"><div><label class="form-label">Setor/equipe</label><select class="form-field" name="setorEquipe">${opt(SETORES_OFICIAIS)}</select></div><div><label class="form-label">Responsável/executante principal</label><select class="form-field" name="responsavel"><option value="">Selecione</option>${usuariosOptions()}</select></div></div>
+        <div class="grid grid-2"><div><label class="form-label">Tipo de OS</label><select class="form-field" name="tipoOs">${opt(TIPOS_OS)}</select></div><div><label class="form-label">Prioridade/criticidade</label><select class="form-field" name="prioridade">${opt(CRITICIDADES)}</select></div></div>
+        <label class="form-label">Descrição da solicitação</label><textarea class="form-field" name="descricaoSolicitacao" rows="4"></textarea>
+        <div class="main-actions" style="justify-content:flex-end;"><button type="button" class="action-btn" onclick="fecharModal()">Cancelar</button><button type="button" class="action-btn success" onclick="criarOSPeloModal()">Criar OS</button></div>
+      </form>`);
+      preencherDadosEquipamentoOS(idEquipamento || (equipamentosCache[0] && equipamentosCache[0].id));
+    }
+    function preencherDadosEquipamentoOS(id) {
+      const eq = equipamentosCache.find(e => normalizarTextoGMAN(e.id) === normalizarTextoGMAN(id));
+      const f = document.getElementById('formCriarOS'); if (!eq || !f) return;
+      f.sistema.value = eq.systemCode || '';
+      f.tipoLocal.value = eq.tipoLocal || '';
+      f.localEstacao.value = eq.localEstacao || '';
+    }
+    async function criarOSPeloModal() {
+      const data = formDataObj('formCriarOS');
+      const faltantes = [];
+      ['idEquipamento','sistema','tipoLocal','localEstacao','setorEquipe','responsavel','tipoOs','descricaoSolicitacao'].forEach(k => { if (!String(data[k]||'').trim()) faltantes.push(k); });
+      if (faltantes.length) return mostrarMensagem('Preencha todos os campos obrigatórios antes de criar a OS: ' + faltantes.join(', '));
+      try { const r = await apiPost('criarOS', data); fecharModal(); mostrarMensagem((r.mensagem || 'OS criada com sucesso.') + (r.numeroOs ? '\nOS: ' + r.numeroOs : '')); await atualizarAgora(false); }
+      catch(e) { mostrarMensagem('Erro ao criar OS: ' + e.message); }
+    }
+    function getOS(id) { return ordensServicoCache.find(os => normalizarTextoGMAN(os.idOS) === normalizarTextoGMAN(id)); }
+    function validarPermissao(idOS, acao) { const os = getOS(idOS); if (!os) { mostrarMensagem('OS não localizada. Atualize e tente novamente.'); return false; } if (!usuarioPodeAlterarOS(os)) { mostrarMensagem('Permissão bloqueada. Somente o responsável ou gestão pode ' + acao + ' esta OS.'); return false; } return true; }
+    function abrirModalIniciarOS(idOS) { if (!validarPermissao(idOS,'iniciar')) return; abrirModal('Iniciar OS', `<form id="formIniciarOS"><label class="form-label">Condição operacional atual</label><select class="form-field" name="condicaoOperacional">${opt(STATUS_OPERACIONAL_OPCOES)}</select><label class="form-label">Justificativa</label><textarea class="form-field" name="justificativa" rows="3"></textarea><div class="main-actions" style="justify-content:flex-end;"><button type="button" class="action-btn warn" onclick="executarIniciarOS('${escaparHTMLGMAN(idOS)}')">Iniciar OS</button></div></form>`); }
+    async function executarIniciarOS(idOS) { const d = formDataObj('formIniciarOS'); if(!d.justificativa) return mostrarMensagem('Informe a justificativa.'); try { await apiPost('iniciarOS', Object.assign({idOs:idOS}, d)); fecharModal(); await atualizarAgora(false); mostrarMensagem('OS iniciada com sucesso.'); } catch(e){ mostrarMensagem('Erro ao iniciar OS: ' + e.message); } }
+    function abrirModalAndamentoOS(idOS) { if (!validarPermissao(idOS,'atualizar')) return; abrirModal('Atualizar andamento da OS', `<form id="formAndamentoOS"><label class="form-label">Observação do andamento</label><textarea class="form-field" name="observacao" rows="4"></textarea><label class="form-label">Alterar condição operacional?</label><select class="form-field" name="condicaoOperacional"><option value="">Não alterar</option>${opt(STATUS_OPERACIONAL_OPCOES)}</select><label class="form-label">Justificativa da condição, se alterar</label><textarea class="form-field" name="justificativa" rows="3"></textarea><div class="main-actions" style="justify-content:flex-end;"><button type="button" class="action-btn primary" onclick="executarAndamentoOS('${escaparHTMLGMAN(idOS)}')">Salvar andamento</button></div></form>`); }
+    async function executarAndamentoOS(idOS) { const d = formDataObj('formAndamentoOS'); if(!d.observacao) return mostrarMensagem('Informe a observação.'); if(d.condicaoOperacional && !d.justificativa) return mostrarMensagem('Informe a justificativa da condição operacional.'); try { await apiPost('atualizarAndamentoOS', Object.assign({idOs:idOS}, d)); fecharModal(); await atualizarAgora(false); mostrarMensagem('Andamento registrado.'); } catch(e){ mostrarMensagem('Erro ao atualizar andamento: ' + e.message); } }
+    function abrirModalPendenteOS(idOS) { if (!validarPermissao(idOS,'marcar pendente')) return; abrirModal('Marcar OS como pendente', `<form id="formPendenteOS"><label class="form-label">Motivo da pendência</label><select class="form-field" name="motivoPendencia">${opt(MOTIVOS_PENDENCIA)}</select><label class="form-label">Observação da pendência</label><textarea class="form-field" name="observacaoPendencia" rows="4"></textarea><div class="main-actions" style="justify-content:flex-end;"><button type="button" class="action-btn warn" onclick="executarPendenteOS('${escaparHTMLGMAN(idOS)}')">Registrar pendência</button></div></form>`); }
+    async function executarPendenteOS(idOS) { const d = formDataObj('formPendenteOS'); if(!d.observacaoPendencia) return mostrarMensagem('Informe a observação da pendência.'); try { await apiPost('marcarPendenteOS', Object.assign({idOs:idOS}, d)); fecharModal(); await atualizarAgora(false); mostrarMensagem('Pendência registrada. A OS não pode ser concluída enquanto estiver pendente.'); } catch(e){ mostrarMensagem('Erro ao marcar pendência: ' + e.message); } }
+    function abrirModalResolverPendencia(idOS) { if (!validarPermissao(idOS,'resolver pendência')) return; abrirModal('Resolver pendência', `<form id="formResolverPendencia"><label class="form-label">Como a pendência foi resolvida?</label><textarea class="form-field" name="observacao" rows="4"></textarea><label class="form-label">Condição operacional após resolver</label><select class="form-field" name="condicaoOperacional"><option value="">Não alterar</option>${opt(STATUS_OPERACIONAL_OPCOES)}</select><label class="form-label">Justificativa da condição, se alterar</label><textarea class="form-field" name="justificativa" rows="3"></textarea><div class="main-actions" style="justify-content:flex-end;"><button type="button" class="action-btn success" onclick="executarResolverPendencia('${escaparHTMLGMAN(idOS)}')">Resolver e voltar para execução</button></div></form>`); }
+    async function executarResolverPendencia(idOS) { const d = formDataObj('formResolverPendencia'); if(!d.observacao) return mostrarMensagem('Informe como a pendência foi resolvida.'); if(d.condicaoOperacional && !d.justificativa) return mostrarMensagem('Informe a justificativa da condição operacional.'); try { await apiPost('atualizarAndamentoOS', Object.assign({idOs:idOS}, d)); fecharModal(); await atualizarAgora(false); mostrarMensagem('Pendência resolvida. A OS voltou para execução.'); } catch(e){ mostrarMensagem('Erro ao resolver pendência: ' + e.message); } }
+    function abrirModalConcluirOS(idOS) { const os = getOS(idOS); if (!validarPermissao(idOS,'concluir')) return; if (isOsPendente(os.statusOS)) return mostrarMensagem('OS pendente não pode ser concluída diretamente. Resolva a pendência primeiro.'); if (!isOsIniciadaOuExecucao(os.statusOS)) return mostrarMensagem('A OS só pode ser concluída depois de iniciada ou em execução.'); abrirModal('Concluir OS', `<form id="formConcluirOS"><label class="form-label">Serviço realizado</label><textarea class="form-field" name="servicoRealizado" rows="4"></textarea><label class="form-label">Condição operacional final</label><select class="form-field" name="condicaoOperacionalFinal">${opt(STATUS_OPERACIONAL_OPCOES)}</select><label class="form-label">Justificativa da condição final</label><textarea class="form-field" name="justificativaCondicaoFinal" rows="3"></textarea><label class="form-label">Materiais utilizados</label><textarea class="form-field" name="materiaisUtilizados" rows="2" placeholder="Informe materiais ou escreva Não utilizado"></textarea><label class="form-label">Observação final</label><textarea class="form-field" name="observacaoFinal" rows="3"></textarea><label class="form-label">Membros da equipe</label><textarea class="form-field" name="membrosEquipe" rows="2"></textarea><label style="display:flex; gap:8px; align-items:center; color:#1e3a5f; font-weight:800;"><input type="checkbox" name="semUsoVeiculo" value="SIM" checked onchange="toggleVeiculoConclusao(this.checked)"> Sem uso de veículo</label><div id="boxVeiculoConclusao" style="display:none;"><div class="grid grid-3"><div><label class="form-label">Prefixo do veículo</label><input class="form-field" name="prefixoVeiculo"></div><div><label class="form-label">Motorista</label><input class="form-field" name="motorista"></div><div><label class="form-label">KM inicial</label><input class="form-field" name="kmInicial" type="number"></div><div><label class="form-label">KM final</label><input class="form-field" name="kmFinal" type="number"></div></div></div><label class="form-label">Itens adicionais observados</label><textarea class="form-field" name="itensAdicionaisObservados" rows="2"></textarea><label style="display:flex; gap:8px; align-items:center; color:#1e3a5f; font-weight:800;"><input type="checkbox" name="patrimonioConfirmado" value="SIM"> Confirmo patrimônio obrigatório / opcional conforme setor</label><label style="display:flex; gap:8px; align-items:center; color:#1e3a5f; font-weight:800;"><input type="checkbox" name="fichaTecnicaConfirmada" value="SIM"> Confirmo ficha técnica preenchida/conferida quando aplicável</label><div class="main-actions" style="justify-content:flex-end;"><button type="button" class="action-btn success" onclick="executarConcluirOS('${escaparHTMLGMAN(idOS)}')">Concluir OS</button></div></form>`); }
+    function toggleVeiculoConclusao(semUso) { const box = document.getElementById('boxVeiculoConclusao'); if (box) box.style.display = semUso ? 'none' : 'block'; }
+    async function executarConcluirOS(idOS) { const form = document.getElementById('formConcluirOS'); const d = formDataObj('formConcluirOS'); d.semUsoVeiculo = form.semUsoVeiculo.checked; d.patrimonioConfirmado = form.patrimonioConfirmado.checked ? 'SIM' : ''; d.fichaTecnicaConfirmada = form.fichaTecnicaConfirmada.checked ? 'SIM' : ''; const obrig = ['servicoRealizado','condicaoOperacionalFinal','justificativaCondicaoFinal','materiaisUtilizados','observacaoFinal','membrosEquipe']; const falt = obrig.filter(k => !String(d[k]||'').trim()); if (falt.length) return mostrarMensagem('Preencha todos os campos obrigatórios antes de concluir: ' + falt.join(', ')); if (!d.semUsoVeiculo && (!d.prefixoVeiculo || !d.motorista || d.kmInicial==='' || d.kmFinal==='')) return mostrarMensagem('Informe veículo, motorista, KM inicial e KM final, ou marque Sem uso de veículo.'); try { await apiPost('concluirOS', Object.assign({idOs:idOS}, d)); fecharModal(); await atualizarAgora(false); mostrarMensagem('OS concluída com sucesso.'); } catch(e) { mostrarMensagem('Erro ao concluir OS: ' + e.message); } }
+    function abrirModalSolicitarCancelamento(idOS) { abrirModal('Solicitar cancelamento', `<form id="formCancelamento"><label class="form-label">Motivo do cancelamento</label><textarea class="form-field" name="motivoCancelamento" rows="4"></textarea><div class="main-actions" style="justify-content:flex-end;"><button type="button" class="action-btn danger" onclick="executarSolicitarCancelamento('${escaparHTMLGMAN(idOS)}')">Solicitar cancelamento</button></div></form>`); }
+    async function executarSolicitarCancelamento(idOS) { const d = formDataObj('formCancelamento'); if(!d.motivoCancelamento) return mostrarMensagem('Informe o motivo.'); try { await apiPost('solicitarCancelamentoOS', Object.assign({idOs:idOS}, d)); fecharModal(); await atualizarAgora(false); mostrarMensagem('Cancelamento solicitado.'); } catch(e){ mostrarMensagem('Erro: ' + e.message); } }
+    function abrirModalSolicitarRedistribuicao(idOS) { abrirModal('Solicitar redistribuição', `<form id="formRedistribuicao"><label class="form-label">Novo responsável</label><select class="form-field" name="novoResponsavel"><option value="">Selecione</option>${usuariosOptions()}</select><label class="form-label">Motivo</label><textarea class="form-field" name="motivoRedistribuicao" rows="4"></textarea><div class="main-actions" style="justify-content:flex-end;"><button type="button" class="action-btn warn" onclick="executarSolicitarRedistribuicao('${escaparHTMLGMAN(idOS)}')">Solicitar redistribuição</button></div></form>`); }
+    async function executarSolicitarRedistribuicao(idOS) { const d = formDataObj('formRedistribuicao'); if(!d.novoResponsavel || !d.motivoRedistribuicao) return mostrarMensagem('Informe o novo responsável e o motivo.'); try { await apiPost('solicitarRedistribuicaoOS', Object.assign({idOs:idOS}, d)); fecharModal(); await atualizarAgora(false); mostrarMensagem('Redistribuição solicitada.'); } catch(e){ mostrarMensagem('Erro: ' + e.message); } }
 
-    function openPatrimonioFicha(id){ const o=osById(id); openModal('Patrimônio e ficha técnica', `<form id="formPat"><div class="row"><div class="col-4"><label class="required">Componente</label><select name="componente"><option>Painel</option><option>Motor</option><option>Bomba</option><option>Válvula de Sucção</option><option>Válvula de Recalque</option><option>Válvula de Retenção</option><option>Tubulação</option><option>Outro</option></select></div><div class="col-4"><label class="required">Patrimônio</label><input name="patrimonio"></div><div class="col-4"><label>Descrição resumida</label><input name="descricaoResumida"></div><div class="col-12"><label>Campos da ficha técnica</label><textarea name="camposFicha" placeholder="Exemplo: Marca=WEG\nModelo=...\nPotência=..."></textarea></div></div><div class="actions-row"><button type="button" onclick="submitPatrimonioFicha('${esc(id)}','${esc(o.ID_EQUIPAMENTO)}')">Salvar patrimônio e ficha</button></div></form>`); }
-    async function submitPatrimonioFicha(id,idEq){ const f=$('formPat'), d=formObj(f); const campos={}; (d.camposFicha||'').split('\n').forEach(l=>{ const p=l.split('='); if(p[0]) campos[p[0].trim()]=(p.slice(1).join('=')||'').trim(); }); setBusy(true); try{ await api('confirmarPatrimonio',{idOs:id,idEquipamento:idEq,componente:d.componente,patrimonio:d.patrimonio,descricaoResumida:d.descricaoResumida}); if(Object.keys(campos).length) await api('registrarFichaTecnica',{idOs:id,idEquipamento:idEq,componente:d.componente,campos}); closeModal(); toast('Patrimônio/ficha salvos.'); }catch(e){toast(e.message)}finally{setBusy(false)} }
+    function abrirModalEvidenciaOS(idOS) { if (!validarPermissao(idOS,'anexar evidência')) return; abrirModal('Evidências da OS', `<div class="summary-box">Regra: até 2 fotos por usuário e áudio gravado na hora com 60 segundos. Vídeo bloqueado.</div><label class="form-label">Foto</label><input class="form-field" type="file" id="fotoEvidencia" accept="image/*" capture="environment"><label class="form-label">Observação</label><input class="form-field" id="obsEvidencia" placeholder="Observação da evidência"><div class="main-actions" style="justify-content:flex-start;"><button class="action-btn" onclick="enviarFotoEvidencia('${escaparHTMLGMAN(idOS)}')">Enviar foto</button></div><hr style="margin:14px 0;"><div class="summary-box"><strong>Áudio gravado no momento</strong><br><span id="audioTimerLabel">60s</span></div><div class="main-actions" style="justify-content:flex-start;"><button class="action-btn primary" onclick="iniciarAudioGMAN()">🎙️ Iniciar</button><button class="action-btn warn" onclick="pararAudioGMAN()">⏹️ Parar</button><button class="action-btn success" onclick="enviarAudioEvidencia('${escaparHTMLGMAN(idOS)}')">Enviar áudio</button></div><audio id="audioPreview" controls style="width:100%; display:none;"></audio>`); }
+    function arquivoParaBase64(file) { return new Promise((resolve,reject) => { const r = new FileReader(); r.onload = () => resolve(String(r.result||'').split(',')[1] || ''); r.onerror = reject; r.readAsDataURL(file); }); }
+    async function enviarFotoEvidencia(idOS) { const input = document.getElementById('fotoEvidencia'); if(!input.files.length) return mostrarMensagem('Selecione uma foto.'); const file = input.files[0]; if(!String(file.type).startsWith('image/')) return mostrarMensagem('Envie somente foto.'); try { const base64 = await arquivoParaBase64(file); await apiPost('anexarEvidencia', { idOs:idOS, tipoEvidencia:'FOTO', nomeArquivo:file.name, mimeType:file.type, conteudoBase64:base64, observacao:document.getElementById('obsEvidencia').value || '' }); input.value=''; mostrarMensagem('Foto enviada.'); } catch(e){ mostrarMensagem('Erro ao enviar foto: ' + e.message); } }
+    async function iniciarAudioGMAN() { try { const stream = await navigator.mediaDevices.getUserMedia({audio:true}); audioChunksGMAN=[]; audioBlobGMAN=null; audioSegundosGMAN=60; document.getElementById('audioTimerLabel').textContent='60s'; audioRecorderGMAN = new MediaRecorder(stream); audioRecorderGMAN.ondataavailable = ev => { if(ev.data.size) audioChunksGMAN.push(ev.data); }; audioRecorderGMAN.onstop = () => { stream.getTracks().forEach(t=>t.stop()); audioBlobGMAN = new Blob(audioChunksGMAN,{type:'audio/webm'}); const p=document.getElementById('audioPreview'); if(p){p.src=URL.createObjectURL(audioBlobGMAN);p.style.display='block';} }; audioRecorderGMAN.start(); audioIntervalGMAN = setInterval(() => { audioSegundosGMAN--; document.getElementById('audioTimerLabel').textContent = audioSegundosGMAN + 's'; if(audioSegundosGMAN<=0) pararAudioGMAN(); },1000); } catch(e){ mostrarMensagem('Não foi possível abrir o microfone: ' + e.message); } }
+    function pararAudioGMAN() { if(audioIntervalGMAN) clearInterval(audioIntervalGMAN); if(audioRecorderGMAN && audioRecorderGMAN.state === 'recording') audioRecorderGMAN.stop(); }
+    async function enviarAudioEvidencia(idOS) { if(!audioBlobGMAN) return mostrarMensagem('Grave o áudio primeiro.'); const dur = 60 - Math.max(0,audioSegundosGMAN); if(dur<=0 || dur>60) return mostrarMensagem('Áudio inválido ou acima de 60 segundos.'); try { const file = new File([audioBlobGMAN], 'audio_gman_' + Date.now() + '.webm', {type:'audio/webm'}); const base64 = await arquivoParaBase64(file); await apiPost('anexarEvidencia', { idOs:idOS, tipoEvidencia:'AUDIO', nomeArquivo:file.name, mimeType:file.type, conteudoBase64:base64, duracaoSegundos:dur, origemCaptura:'GRAVADO_NA_HORA', observacao:document.getElementById('obsEvidencia').value || '' }); audioBlobGMAN=null; mostrarMensagem('Áudio enviado.'); } catch(e){ mostrarMensagem('Erro ao enviar áudio: ' + e.message); } }
 
-    function openEvidenciaOS(id){ openModal('Evidências da OS', `<div class="row"><div class="col-6"><div class="card"><h3>Foto</h3><p class="small">Limite oficial: 2 fotos por usuário dentro da OS.</p><input id="fotoInput" type="file" accept="image/*" capture="environment"><button style="margin-top:8px" onclick="submitFoto('${esc(id)}')">Anexar foto</button></div></div><div class="col-6"><div class="audio-box"><h3>Áudio gravado na hora</h3><div class="timer" id="audioTimer">60s</div><div class="progress"><span id="audioProgress"></span></div><div class="actions-row" style="margin-top:10px"><button onclick="startAudio()">Gravar</button><button class="secondary" onclick="stopAudio()">Parar</button><button class="good" onclick="submitAudio('${esc(id)}')">Enviar áudio</button></div><p class="small">O áudio para automaticamente em 60 segundos. Não há envio de áudio pronto do aparelho.</p></div></div></div>`); }
-    async function fileToBase64(file){ return new Promise((resolve,reject)=>{ const fr=new FileReader(); fr.onload=()=>resolve(fr.result); fr.onerror=reject; fr.readAsDataURL(file); }); }
-    async function compressImage(file){ const img=new Image(); const data=await fileToBase64(file); await new Promise(res=>{img.onload=res; img.src=data}); const max=1280, scale=Math.min(1,max/Math.max(img.width,img.height)); const canvas=document.createElement('canvas'); canvas.width=Math.round(img.width*scale); canvas.height=Math.round(img.height*scale); canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height); return canvas.toDataURL('image/jpeg',.75); }
-    async function submitFoto(id){ const f=$('fotoInput').files[0]; if(!f) return toast('Selecione uma foto.'); setBusy(true); try{ const b64=await compressImage(f); await api('anexarEvidencia',{idOs:id,tipoEvidencia:'FOTO',base64Arquivo:b64,nomeArquivo:f.name,mimeType:'image/jpeg',observacao:'Foto registrada pelo app GMAN'}); closeModal(); toast('Foto anexada.'); await syncAll(true); }catch(e){toast(e.message)}finally{setBusy(false)} }
-    async function startAudio(){ if(!navigator.mediaDevices) return toast('Gravador não disponível neste navegador.'); state.audioChunks=[]; state.audioSeconds=0; state.audioBlob=null; const stream=await navigator.mediaDevices.getUserMedia({audio:true}); state.recorder=new MediaRecorder(stream); state.recorder.ondataavailable=e=>state.audioChunks.push(e.data); state.recorder.onstop=()=>{ state.audioBlob=new Blob(state.audioChunks,{type:'audio/webm'}); stream.getTracks().forEach(t=>t.stop()); }; state.recorder.start(); updateAudioUI(0); state.audioTimer=setInterval(()=>{ state.audioSeconds++; updateAudioUI(state.audioSeconds); if(state.audioSeconds>=60) stopAudio(); },1000); }
-    function stopAudio(){ if(state.audioTimer) clearInterval(state.audioTimer); if(state.recorder && state.recorder.state!=='inactive') state.recorder.stop(); }
-    function updateAudioUI(sec){ const rem=Math.max(0,60-sec); $('audioTimer').textContent=rem+'s'; $('audioProgress').style.width=(sec/60*100)+'%'; }
-    async function submitAudio(id){ if(!state.audioBlob) return toast('Grave um áudio primeiro.'); const data=await fileToBase64(state.audioBlob); await actionSubmit('anexarEvidencia',{idOs:id,tipoEvidencia:'AUDIO',duracaoSegundos:Math.max(1,state.audioSeconds),origemCaptura:'GRAVADO_NA_HORA',base64Arquivo:data,nomeArquivo:'audio_gman.webm',mimeType:'audio/webm',observacao:'Áudio gravado na hora pelo GMAN'}); }
+    async function abrirPainelGerencial() {
+      if (!podeGerenciarOS()) return mostrarMensagem('KPIs industriais disponíveis apenas para gestão.');
+      try {
+        const [k,c,r] = await Promise.all([apiPost('calcularKPIs', {}), apiPost('listarCargaOperacional', {}), apiPost('listarReincidencia', {})]);
+        const so = k.situacaoOperacional || {}, os = k.os || {}, tec = k.tecnico || {};
+        abrirModal('KPIs Industriais', `<div class="summary-box"><strong>Bloco 1 — Situação operacional</strong><br><span class="mini-pill">Total: ${so.totalEquipamentos || 0}</span><span class="mini-pill">Disponibilidade plena: ${percentual(so.disponibilidadePlena || 0,1)}</span><span class="mini-pill">Disponibilidade funcional: ${percentual(so.disponibilidadeFuncional || 0,1)}</span></div><div class="summary-box"><strong>Bloco 2 — OS</strong><br><span class="mini-pill">Abertas: ${os.abertas || 0}</span><span class="mini-pill">Iniciadas: ${os.iniciadas || 0}</span><span class="mini-pill">Execução: ${os.emExecucao || 0}</span><span class="mini-pill">Pendentes: ${os.pendentes || 0}</span><span class="mini-pill">Concluídas: ${os.concluidas || 0}</span></div><div class="summary-box"><strong>Bloco 3 — Técnicos</strong><br><span class="mini-pill">MTTR: ${tec.mttrTecnicoMedioHoras || 0} h</span><span class="mini-pill">Tempo total médio: ${tec.tempoTotalMedioHoras || 0} h</span><span class="mini-pill">OEE: em implantação</span></div><div class="summary-box"><strong>Bloco 5 — Carga operacional</strong><br>${renderTabelaSimples((c.cargaOperacional && c.cargaOperacional.porAreaEquipe) || [])}</div><div class="summary-box"><strong>Bloco 4 — Reincidência</strong><br>${renderTabelaSimples(r.reincidencia || [])}</div>`);
+      } catch(e) { mostrarMensagem('Erro ao carregar KPIs: ' + e.message); }
+    }
+    function renderTabelaSimples(rows) { if(!rows || !rows.length) return 'Sem dados.'; const keys = Object.keys(rows[0]).slice(0,6); return `<div style="overflow:auto;"><table style="width:100%; border-collapse:collapse; font-size:.75rem;">${rows.slice(0,10).map(row => `<tr>${keys.map(k => `<td style="border-bottom:1px solid #e2e8f0; padding:5px;">${escaparHTMLGMAN(row[k])}</td>`).join('')}</tr>`).join('')}</table></div>`; }
+    function limparCacheOperacionalGMAN85646() { try { sessionStorage.removeItem('gman_85646_usuario_logado'); localStorage.removeItem('GMAN_8_5_6_43_USUARIO_LOGADO'); localStorage.removeItem('GMAN_8_5_6_43_RASCUNHOS'); } catch(e) {} mostrarMensagem('Cache operacional limpo. Faça login novamente.'); location.reload(); }
 
-    async function openHistorico(idEq){ setBusy(true); try{ const r=await api('historicoEquipamento',{idEquipamento:idEq,limite:isGestao()?9999:3}); openModal('Histórico técnico do equipamento', `<div class="lock-note">Equipe vê apenas as 3 últimas intervenções. Gestão vê histórico completo.</div>${simpleTable(r.historico||[],['DATA_HORA_BRASIL','NUMERO_OS','ACAO','STATUS_NOVO','JUSTIFICATIVA','OBSERVACAO'])}`); }catch(e){toast(e.message)}finally{setBusy(false)} }
-
-    $('btnLogin').onclick=login; $('btnPingLogin').onclick=ping; $('btnLogout').onclick=logout; $('modalClose').onclick=closeModal; $('btnRefresh').onclick=()=>syncAll(true); $('btnClearCache').onclick=()=>{ localStorage.removeItem(GMAN.STORAGE_DRAFT); caches&&caches.keys&&caches.keys().then(keys=>keys.forEach(k=>caches.delete(k))); toast('Cache local limpo. Recarregue a página se necessário.'); };
-    $('btnMostrarSenha').onclick=()=>{ const i=$('senhaInput'); const aberto=i.type==='text'; i.type=aberto?'password':'text'; $('btnMostrarSenha').textContent=aberto?'Mostrar':'Ocultar'; i.focus(); };
-    document.addEventListener('keydown',e=>{ if(e.key==='Enter' && !$('loginScreen').classList.contains('hidden')) login(); if(e.key==='Escape' && state.modalOpen) closeModal(); });
-    $('versionText').textContent = GMAN.VERSAO;
-    if(loadUser()) enterApp(); else $('loginInput').focus();
+    document.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('versaoGMAN85646').textContent = VERSAO_FRONTEND_GMAN;
+      if (recuperarLoginSalvo()) await iniciarSistema();
+      document.getElementById('loginUser').addEventListener('keydown', e => { if(e.key==='Enter') { e.preventDefault(); fazerLogin(); }});
+      document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key==='Enter') { e.preventDefault(); fazerLogin(); }});
+    });
   </script>
 </body>
 </html>
