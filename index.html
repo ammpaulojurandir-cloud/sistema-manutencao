@@ -437,6 +437,27 @@
                 .replace(/[\u0300-\u036f]/g, '');
         }
 
+
+
+        /* GMAN 8.5.7.4 — blindagem contra erro splice/equipment fora do window */
+        function gmanAtualizarListaEquipamentos8574(lista) {
+            const novaLista = Array.isArray(lista) ? lista.filter(Boolean) : [];
+            try {
+                if (typeof equipment !== 'undefined' && Array.isArray(equipment)) {
+                    equipment.length = 0;
+                    novaLista.forEach(item => equipment.push(item));
+                    window.equipment = equipment;
+                    return true;
+                }
+            } catch (erro) {
+                console.warn('GMAN 8.5.7.4: equipment lexical indisponível, usando window.equipment.', erro);
+            }
+            if (!Array.isArray(window.equipment)) window.equipment = [];
+            window.equipment.length = 0;
+            novaLista.forEach(item => window.equipment.push(item));
+            return true;
+        }
+
         function chaveGrupoGMAN85633(valor) {
             const texto = String(valor || '')
                 .trim()
@@ -3644,6 +3665,10 @@ function aplicarPermissoes() {
             { id: '706-GR2', name: '706 EBAT PRAÇA MOEMA (GR2)', system: 'tristeza', systemCode: '700', status: 'ok' }
         ];
         
+
+        window.equipment = equipment;
+        window.gmanEquipmentRef8574 = equipment;
+
         function getSystemTagClass(code) { return `tag-${code}`; }
 
         function isEquipamentoBrutaGMAN(eq) {
@@ -5001,7 +5026,7 @@ function aplicarPainelOperacionalRapidoNaTelaGMAN85654(painel) {
 
     if (Array.isArray(painel.equipamentosOficiais) && painel.equipamentosOficiais.length) {
         const lista = painel.equipamentosOficiais.map(normalizarEquipamentoPainelGMAN85645).filter(e => e.id);
-        equipment.splice(0, equipment.length, ...lista);
+        gmanAtualizarListaEquipamentos8574(lista);
     }
 
     if (Array.isArray(painel.ordensServicoValidas)) {
@@ -5254,7 +5279,7 @@ function aplicarPainelConsolidadoNaTelaGMAN85645(painel) {
     // Preferência absoluta: equipamentos oficiais já calculados pelo backend.
     if (Array.isArray(painel.equipamentosOficiais) && painel.equipamentosOficiais.length) {
         const lista = painel.equipamentosOficiais.map(normalizarEquipamentoPainelGMAN85645).filter(e => e.id);
-        equipment.splice(0, equipment.length, ...lista);
+        gmanAtualizarListaEquipamentos8574(lista);
     } else if (Array.isArray(painel.statusAtualOficial) && painel.statusAtualOficial.length) {
         // Fallback: aplica status oficial deduplicado sobre lista atual.
         painel.statusAtualOficial.forEach(item => {
@@ -5333,7 +5358,7 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
 
 <script>
 /* =========================================================
-   GMAN 8.5.7.3 — CORREÇÃO CIRÚRGICA DO ESCOPO GLOBAL DO INDEX CLÁSSICO
+   GMAN 8.5.7.4 — BLINDAGEM CIRÚRGICA DO ESCOPO GLOBAL E ERRO SPLICE
    Escopo: manter layout clássico; corrigir API 8.5.6.44, login, botões, equipamentos/status e OS.
    Não altera planilha. Não altera Apps Script. Não usa imagens. Não usa API antiga.
    ========================================================= */
@@ -5341,7 +5366,7 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
   'use strict';
 
   const GMAN_API_OFICIAL_8572 = 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec';
-  const GMAN_VERSAO_INDEX_8572 = 'GMAN 8.5.7.3 — Index clássico real corrigido: escopo global, API 8.5.6.44 e botões';
+  const GMAN_VERSAO_INDEX_8572 = 'GMAN 8.5.7.4 — Index clássico real blindado contra erro splice, API 8.5.6.44 e botões';
   const GMAN_GESTAO_FORTE_8572 = ['ADMINISTRADOR','GERENTE','SUPERVISOR','COORDENADOR'];
 
   function canon8572(valor){
@@ -5612,7 +5637,7 @@ async function executarReparoStatusGrupoGMAN85651(idGrupo) {
 
       const oficiais = lista.map(equipamentoDeStatus8572).filter(e => e.id);
       if (oficiais.length) {
-        equipment.splice(0, equipment.length, ...oficiais);
+        gmanAtualizarListaEquipamentos8574(oficiais);
       }
 
       try {
