@@ -255,7 +255,7 @@
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.70 — visual 8.5.6.14 restaurado, login rápido e Enter ativo';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.71 — visual 8.5.6.14 restaurado e API atual compatível';
         const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.70';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
@@ -548,37 +548,72 @@
             });
         }
 
+        function extrairListaGMAN_(retorno, chaves) {
+            if (Array.isArray(retorno)) return retorno;
+            for (const chave of chaves) {
+                if (Array.isArray(retorno?.[chave])) return retorno[chave];
+                if (Array.isArray(retorno?.dados?.[chave])) return retorno.dados[chave];
+                if (Array.isArray(retorno?.payload?.[chave])) return retorno.payload[chave];
+            }
+            return [];
+        }
+
+        async function apiAcaoGMAN(acao, dados = {}) {
+            const resposta = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(Object.assign({ acao }, dados || {}))
+            });
+
+            const texto = await resposta.text();
+            let retorno;
+            try {
+                retorno = JSON.parse(texto);
+            } catch (erro) {
+                throw new Error('A API respondeu em formato inválido. Esperado JSON da base oficial GMAN.');
+            }
+
+            if (!resposta.ok || retorno.sucesso === false) {
+                throw new Error(retorno.erro || retorno.mensagem || ('Falha na ação ' + acao));
+            }
+
+            return retorno;
+        }
+
         async function carregarStatusOnline() {
-            atualizarIndicadorConexao('🔄 Sincronizando com o Banco Central...', 'neutro');
+            atualizarIndicadorConexao('🔄 Sincronizando com a base oficial GMAN...', 'neutro');
 
             try {
-                const resposta = await fetch(`${API_URL}?acao=listarStatus&t=${Date.now()}`);
-                if (!resposta.ok) throw new Error('Falha ao consultar a API.');
+                const retorno = await apiAcaoGMAN('listarTudo', { usuario: usuarioLogado ? usuarioLogado.nome : '' });
+                const statusOnline = extrairListaGMAN_(retorno, ['status', 'statusAtual', 'listaStatus']);
 
-                const statusOnline = await resposta.json();
-                if (!Array.isArray(statusOnline)) throw new Error('Resposta da API não veio em formato de lista.');
+                if (!Array.isArray(statusOnline)) throw new Error('Resposta da API não trouxe status em formato de lista.');
 
                 statusOnline.forEach(item => {
-                    const eq = equipment.find(e => String(e.id) === String(item.idEquipamento));
+                    const id = item.idEquipamento || item.ID_EQUIPAMENTO || item.id || item.equipamento || item.EQUIPAMENTO;
+                    const eq = equipment.find(e => String(e.id) === String(id));
                     if (!eq) return;
 
-                    eq.status = normalizarStatusApp(item.statusAtual, item.observacao);
-                    eq.ultimoTecnico = item.usuarioUltimaAlteracao || '';
-                    eq.ultimaAlteracao = formatarDataApi(item.dataUltimaAlteracao);
-                    eq.observacaoStatus = item.observacao || '';
+                    const statusAtual = item.statusAtual || item.STATUS_ATUAL || item.status || item.Status || item.statusVisual || item.STATUS_VISUAL || 'Operando';
+                    const observacao = item.observacao || item.OBSERVACAO || item.justificativa || item.JUSTIFICATIVA || item.justificativaStatus || '';
+
+                    eq.status = normalizarStatusApp(statusAtual, observacao);
+                    eq.ultimoTecnico = item.usuarioUltimaAlteracao || item.USUARIO_ULTIMA_ALTERACAO || item.usuario || item.USUARIO || '';
+                    eq.ultimaAlteracao = formatarDataApi(item.dataUltimaAlteracao || item.DATA_ULTIMA_ALTERACAO || item.dataHora || item.DATA_HORA || '');
+                    eq.observacaoStatus = observacao;
                 });
 
                 apiOnline = true;
                 saveData();
                 applyFilters();
-                atualizarIndicadorConexao('✅ Online: conectado ao Banco Central GMAN', 'online');
+                atualizarIndicadorConexao('✅ Online: conectado à base oficial GMAN', 'online');
                 return true;
 
             } catch (erro) {
                 apiOnline = false;
                 loadData();
                 applyFilters();
-                atualizarIndicadorConexao('⚠️ Modo local: não foi possível sincronizar com o Banco Central', 'offline');
+                atualizarIndicadorConexao('⚠️ Modo local: API online no health, mas falhou ao listar dados — ' + erro.message, 'offline');
                 console.error('Erro ao carregar status online:', erro);
                 return false;
             }
@@ -589,13 +624,7 @@
         }
 
         async function apiPost(payload) {
-            const resposta = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload)
-            });
-            const retorno = await resposta.json();
-            if (!retorno.sucesso) throw new Error(retorno.erro || retorno.mensagem || 'Erro desconhecido na API.');
+            const retorno = await apiAcaoGMAN(payload && payload.acao ? payload.acao : '', payload || {});
             return retorno;
         }
 
@@ -654,9 +683,11 @@
         }
 
         async function listarOSOnline() {
-            const resposta = await fetch(`${API_URL}?acao=listarOS&t=${Date.now()}`);
-            if (!resposta.ok) throw new Error('Falha ao consultar Ordens de Serviço.');
-            const lista = await resposta.json();
+            const retorno = await apiAcaoGMAN('listarOS', {
+                incluirEncerradas: true,
+                usuario: usuarioLogado ? usuarioLogado.nome : ''
+            });
+            const lista = extrairListaGMAN_(retorno, ['ordens', 'os', 'listaOS', 'ordensServico']);
             if (!Array.isArray(lista)) throw new Error('Resposta de OS não veio em formato de lista.');
             return lista;
         }
