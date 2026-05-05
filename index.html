@@ -130,7 +130,7 @@
           <h3>Quarentena segura</h3>
           <div class="danger-zone">
             <p class="muted" style="margin-bottom:10px">A execução move registros inválidos/teste para abas de quarentena, com auditoria. Não apaga direto.</p>
-            <div class="field"><label>Confirmação obrigatória</label><input id="confirmacaoQuarentena" placeholder="CONFIRMO QUARENTENA GMAN 8.5.6.61" /></div>
+            <div class="field"><label>Confirmação obrigatória</label><input id="confirmacaoQuarentena" placeholder="CONFIRMO QUARENTENA GMAN 8.5.6.62" /></div>
             <button class="btn danger" onclick="executarQuarentena()">Executar quarentena segura</button>
           </div>
           <div id="quarentenaBox" class="mono" style="margin-top:10px">Aguardando simulação.</div>
@@ -144,10 +144,10 @@
 
   <script>
     const APP = {
-      versao: 'GMAN 8.5.6.61',
+      versao: 'GMAN 8.5.6.62',
       apiUrlPadrao: '',
       apiUrl: '',
-      apiStorageKey: 'gman_85661_api_url',
+      apiStorageKey: 'gman_85662_api_url',
       usuario: null,
       equipamentos: [], status: [], ordens: [], usuarios: [], equipes: [], kpis: [],
       rankingReincidencia: [], rankingArea: [], rankingLider: [],
@@ -163,14 +163,14 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('loginSenha').addEventListener('keydown', e => { if(e.key === 'Enter') login(); });
-      const salvo = localStorage.getItem('gman_85661_usuario') || localStorage.getItem('gman_85660_usuario');
-      if (salvo) { try { APP.usuario = JSON.parse(salvo); } catch(e){ localStorage.removeItem('gman_85661_usuario'); } }
+      const salvo = localStorage.getItem('gman_85662_usuario') || localStorage.getItem('gman_85661_usuario') || localStorage.getItem('gman_85660_usuario');
+      if (salvo) { try { APP.usuario = JSON.parse(salvo); } catch(e){ localStorage.removeItem('gman_85662_usuario'); localStorage.removeItem('gman_85661_usuario'); } }
       montarFiltros(); atualizarUsuario(); inicializarApi();
       APP.autoTimer = setInterval(() => { if(validarUrlApi(obterApiUrl()).ok) carregarTudo(); }, 120000);
     });
 
     function obterApiUrl(){
-      const salva = (localStorage.getItem(APP.apiStorageKey) || localStorage.getItem('gman_85660_api_url') || '').trim();
+      const salva = (localStorage.getItem(APP.apiStorageKey) || localStorage.getItem('gman_85661_api_url') || localStorage.getItem('gman_85660_api_url') || '').trim();
       const padrao = (APP.apiUrlPadrao || '').trim();
       APP.apiUrl = salva || padrao;
       return APP.apiUrl;
@@ -234,7 +234,7 @@
     }
 
     function limparApiUrl(){
-      localStorage.removeItem(APP.apiStorageKey); localStorage.removeItem('gman_85660_api_url'); APP.apiUrl='';
+      localStorage.removeItem(APP.apiStorageKey); localStorage.removeItem('gman_85661_api_url'); localStorage.removeItem('gman_85660_api_url'); APP.apiUrl='';
       const input = document.getElementById('apiUrlInput'); if(input) input.value='';
       mostrarApiConfig(true, 'API removida. Cole novamente a URL do Apps Script /exec.');
       setApi(false, 'API não configurada.');
@@ -278,11 +278,11 @@
       try{
         const r = await api('login',{usuario,senha});
         if(!r.sucesso || !r.autorizado) throw new Error(r.erro || 'Login não autorizado.');
-        APP.usuario = r.usuario; localStorage.setItem('gman_85661_usuario', JSON.stringify(APP.usuario));
+        APP.usuario = r.usuario; localStorage.setItem('gman_85662_usuario', JSON.stringify(APP.usuario));
         document.getElementById('login').style.display='none'; atualizarUsuario(); await carregarTudo(); toast('Login autorizado.');
       }catch(e){ erro.textContent=e.message; erro.style.display='block'; }
     }
-    function logout(){ localStorage.removeItem('gman_85661_usuario'); localStorage.removeItem('gman_85660_usuario'); APP.usuario=null; document.getElementById('login').style.display='flex'; atualizarUsuario(); inicializarApi(); }
+    function logout(){ localStorage.removeItem('gman_85662_usuario'); localStorage.removeItem('gman_85661_usuario'); localStorage.removeItem('gman_85660_usuario'); APP.usuario=null; document.getElementById('login').style.display='flex'; atualizarUsuario(); inicializarApi(); }
     function atualizarUsuario(){
       const el = document.getElementById('usuarioLinha');
       if(!APP.usuario){ el.textContent='Usuário não identificado'; return; }
@@ -407,7 +407,7 @@
     async function diagnostico(){ try{ const r=await api('diagnosticoProfundo',{usuario:APP.usuario?.nome||''}); document.getElementById('diagnosticoBox').textContent=JSON.stringify(r.diagnostico||r,null,2); }catch(e){ document.getElementById('diagnosticoBox').textContent=e.message; } }
     async function simularQuarentena(){ try{ const r=await api('simularQuarentenaSegura',{usuario:APP.usuario?.nome||''}); document.getElementById('quarentenaBox').textContent=JSON.stringify(r,null,2); }catch(e){ document.getElementById('quarentenaBox').textContent=e.message; } }
     async function executarQuarentena(){ try{ const r=await api('executarQuarentenaSegura',{usuario:APP.usuario?.nome||'',confirmacao:v('confirmacaoQuarentena')}); document.getElementById('quarentenaBox').textContent=JSON.stringify(r,null,2); if(!r.sucesso) throw new Error(r.erro); toast('Quarentena executada.'); await carregarTudo(); }catch(e){ toast(e.message); } }
-    async function repararStatus(){ try{ const r=await api('repararStatusAtual',{usuario:APP.usuario?.nome||'',confirmacao:'CONFIRMO REPARO STATUS GMAN 8.5.6.61'}); toast('Reparo concluído: '+JSON.stringify(r)); await carregarTudo(); }catch(e){ toast(e.message); } }
+    async function repararStatus(){ try{ const r=await api('repararStatusAtual',{usuario:APP.usuario?.nome||'',confirmacao:'CONFIRMO REPARO STATUS GMAN 8.5.6.62'}); toast('Reparo concluído: '+JSON.stringify(r)); await carregarTudo(); }catch(e){ toast(e.message); } }
 
     function abrirAba(id){ document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===id)); document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.getElementById('sec-'+id).classList.add('active'); if(id==='encerradas') renderEncerradas(); if(id==='diagnostico') diagnostico(); }
     function abrirModal(titulo,sub,html){ document.getElementById('modalTitulo').innerHTML=titulo; document.getElementById('modalSub').textContent=sub||''; document.getElementById('modalConteudo').innerHTML=html; document.getElementById('modal').classList.add('open'); }
@@ -421,4 +421,4 @@
 </body>
 </html>
 
-<!-- GMAN 8.5.6.61 - index completo com logo oficial DMAE sem alteração de cores - 05/05/2026 -->
+<!-- GMAN 8.5.6.62 - index completo com logo oficial DMAE sem alteração de cores - 05/05/2026 -->
