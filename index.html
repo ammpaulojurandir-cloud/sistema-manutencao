@@ -23,6 +23,7 @@
     .field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}.field label{font-size:.77rem;color:#42566d;font-weight:800;text-transform:uppercase;letter-spacing:.04em}.field input,.field select,.field textarea{border:1px solid var(--borda);border-radius:14px;padding:12px;background:#fff;color:#17324d;outline:none}.field textarea{min-height:86px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:#3c97d3;box-shadow:0 0 0 3px rgba(60,151,211,.12)}
     .btn{border-radius:14px;padding:12px 14px;font-weight:800;background:var(--azul);color:#fff;box-shadow:0 8px 18px rgba(11,61,105,.18)}.btn:hover{filter:brightness(1.05)}.btn.secondary{background:#e9f3fc;color:var(--azul);box-shadow:none}.btn.warn{background:var(--laranja)}.btn.danger{background:var(--vermelho)}.btn.ok{background:var(--verde)}.btn.small{padding:8px 10px;border-radius:12px;font-size:.78rem}.btn.ghost{background:transparent;color:var(--azul);border:1px solid var(--borda);box-shadow:none}.btn:disabled{opacity:.55;cursor:not-allowed}
     .error{display:none;background:#fff1f1;color:#a51e1e;border:1px solid #ffd0d0;border-radius:12px;padding:10px;margin-top:10px;font-size:.88rem}
+    .api-config{display:none;border:1px solid #ffd49a;background:#fff8eb;border-radius:16px;padding:12px;margin:12px 0}.api-config.show{display:block}.api-config b{display:block;color:#8a4d00;margin-bottom:5px}.api-config p{font-size:.82rem;color:#6a5a40;line-height:1.35;margin-bottom:10px}.api-config .row{margin-top:8px}
     .topbar{position:sticky;top:0;z-index:20;backdrop-filter:blur(16px);background:rgba(238,245,251,.88);border-bottom:1px solid rgba(220,232,243,.75);padding:10px 0 12px;margin-bottom:14px}
     .header{display:flex;gap:12px;align-items:center;justify-content:space-between}.title-wrap{display:flex;gap:12px;align-items:center}.logo-mini{width:52px;height:52px;border-radius:17px;display:grid;place-items:center;background:linear-gradient(135deg,#0b3d69,#2b8bc6);color:white;font-weight:900;box-shadow:0 8px 22px rgba(11,61,105,.20)}
     .header h2{font-size:1rem;color:var(--azul)}.header p{font-size:.74rem;color:#60738a}.userline{font-size:.75rem;color:#42566d;text-align:right}.status-api{display:inline-flex;gap:6px;align-items:center;border-radius:99px;padding:4px 9px;background:#e9f7ef;color:#176e49;font-weight:800;margin-top:5px}.dot{width:8px;height:8px;border-radius:99px;background:var(--verde)}.dot.off{background:var(--vermelho)}
@@ -46,7 +47,14 @@
       </div>
       <div class="field"><label>Usuário</label><input id="loginUsuario" autocomplete="username" placeholder="Nome completo" /></div>
       <div class="field"><label>Senha</label><input id="loginSenha" type="password" autocomplete="current-password" placeholder="Senha" /></div>
-      <button class="btn" style="width:100%" onclick="login()">Entrar</button>
+      <div id="apiConfigBox" class="api-config">
+        <b>Configuração obrigatória da API</b>
+        <p>Informe a URL do Apps Script publicada como App da Web. Ela precisa ser do Google Apps Script e terminar com <strong>/exec</strong>. O link da página do aplicativo no GitHub Pages não é aceito como API.</p>
+        <div class="field"><label>URL da API Apps Script</label><input id="apiUrlInput" placeholder="https://script.google.com/macros/s/.../exec" /></div>
+        <div class="row"><button class="btn small ok" onclick="salvarApiUrl()">Salvar API</button><button class="btn small ghost" onclick="limparApiUrl()">Limpar API</button></div>
+        <div id="apiConfigErro" class="error"></div>
+      </div>
+      <button id="btnEntrar" class="btn" style="width:100%" onclick="login()">Entrar</button>
       <div id="loginErro" class="error"></div>
     </div>
   </div>
@@ -118,7 +126,7 @@
           <h3>Quarentena segura</h3>
           <div class="danger-zone">
             <p class="muted" style="margin-bottom:10px">A execução move registros inválidos/teste para abas de quarentena, com auditoria. Não apaga direto.</p>
-            <div class="field"><label>Confirmação obrigatória</label><input id="confirmacaoQuarentena" placeholder="CONFIRMO QUARENTENA GMAN 8.5.6.59" /></div>
+            <div class="field"><label>Confirmação obrigatória</label><input id="confirmacaoQuarentena" placeholder="CONFIRMO QUARENTENA GMAN 8.5.6.60" /></div>
             <button class="btn danger" onclick="executarQuarentena()">Executar quarentena segura</button>
           </div>
           <div id="quarentenaBox" class="mono" style="margin-top:10px">Aguardando simulação.</div>
@@ -132,8 +140,10 @@
 
   <script>
     const APP = {
-      versao: 'GMAN 8.5.6.59',
-      apiUrl: 'COLE_AQUI_A_URL_DA_API_APPS_SCRIPT',
+      versao: 'GMAN 8.5.6.60',
+      apiUrlPadrao: '',
+      apiUrl: '',
+      apiStorageKey: 'gman_85660_api_url',
       usuario: null,
       equipamentos: [], status: [], ordens: [], usuarios: [], equipes: [], kpis: [],
       filtroSistema: 'TODOS', filtroStatus: 'TODOS', autoTimer: null
@@ -148,32 +158,126 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('loginSenha').addEventListener('keydown', e => { if(e.key === 'Enter') login(); });
-      const salvo = localStorage.getItem('gman_85658_usuario');
-      if (salvo) { try { APP.usuario = JSON.parse(salvo); document.getElementById('login').style.display='none'; } catch(e){} }
-      montarFiltros(); atualizarUsuario(); carregarTudo();
-      APP.autoTimer = setInterval(carregarTudo, 120000);
+      const salvo = localStorage.getItem('gman_85660_usuario');
+      if (salvo) { try { APP.usuario = JSON.parse(salvo); } catch(e){ localStorage.removeItem('gman_85660_usuario'); } }
+      montarFiltros(); atualizarUsuario(); inicializarApi();
+      APP.autoTimer = setInterval(() => { if(validarUrlApi(obterApiUrl()).ok) carregarTudo(); }, 120000);
     });
 
+    function obterApiUrl(){
+      const salva = (localStorage.getItem(APP.apiStorageKey) || '').trim();
+      const padrao = (APP.apiUrlPadrao || '').trim();
+      APP.apiUrl = salva || padrao;
+      return APP.apiUrl;
+    }
+
+    function validarUrlApi(url){
+      const u = (url || '').trim();
+      if(!u) return {ok:false, erro:'API_NAO_CONFIGURADA', mensagem:'API não configurada. Cole a URL do Apps Script que termina com /exec.'};
+      if(u.includes('COLE_AQUI') || u.includes('SEU_CODIGO_DA_IMPLANTACAO')) return {ok:false, erro:'API_PLACEHOLDER', mensagem:'API ainda está com texto de exemplo. Cole a URL real do Apps Script /exec.'};
+      let parsed;
+      try{ parsed = new URL(u); }catch(e){ return {ok:false, erro:'API_URL_INVALIDA', mensagem:'URL da API inválida. Copie a URL completa do Apps Script.'}; }
+      const host = parsed.hostname.toLowerCase();
+      const path = parsed.pathname.toLowerCase();
+      if(parsed.protocol !== 'https:') return {ok:false, erro:'API_SEM_HTTPS', mensagem:'A API precisa usar https.'};
+      if(host.includes('github.io') || host.includes('githubusercontent.com')) return {ok:false, erro:'API_APONTANDO_PARA_GITHUB', mensagem:'A URL configurada é a página do aplicativo no GitHub Pages, não a API. Use a URL do Apps Script terminada em /exec.'};
+      if(!host.includes('script.google.com') && !host.includes('script.googleusercontent.com')) return {ok:false, erro:'API_DOMINIO_INVALIDO', mensagem:'A API precisa ser uma URL do Google Apps Script, não outro site.'};
+      if(!path.includes('/exec')) return {ok:false, erro:'API_SEM_EXEC', mensagem:'A URL da API precisa terminar com /exec. Não use o link do editor do Apps Script, nem GitHub Pages.'};
+      return {ok:true, mensagem:'API configurada.'};
+    }
+
+    function inicializarApi(){
+      const url = obterApiUrl();
+      const validacao = validarUrlApi(url);
+      const input = document.getElementById('apiUrlInput');
+      if(input && url) input.value = url;
+      mostrarApiConfig(!validacao.ok, validacao.mensagem);
+      setApi(validacao.ok, validacao.mensagem);
+      if(validacao.ok){
+        if(APP.usuario) document.getElementById('login').style.display='none';
+        carregarTudo();
+      } else {
+        document.getElementById('login').style.display='flex';
+      }
+    }
+
+    function mostrarApiConfig(mostrar, mensagem){
+      const box = document.getElementById('apiConfigBox');
+      const erro = document.getElementById('apiConfigErro');
+      const btn = document.getElementById('btnEntrar');
+      if(box) box.classList.toggle('show', !!mostrar);
+      if(btn) btn.disabled = !!mostrar;
+      if(erro){ erro.textContent = mensagem || ''; erro.style.display = mostrar && mensagem ? 'block' : 'none'; }
+    }
+
+    async function salvarApiUrl(){
+      const input = document.getElementById('apiUrlInput');
+      const url = (input?.value || '').trim();
+      const validacao = validarUrlApi(url);
+      if(!validacao.ok){ mostrarApiConfig(true, validacao.mensagem); return; }
+      localStorage.setItem(APP.apiStorageKey, url);
+      APP.apiUrl = url;
+      try{
+        const r = await api('health',{});
+        if(!r.sucesso) throw new Error(r.erro || 'API respondeu, mas não confirmou saúde.');
+        mostrarApiConfig(false, ''); setApi(true, r.versao || 'API online'); toast('API salva e validada.');
+        if(APP.usuario) document.getElementById('login').style.display='none';
+        await carregarTudo();
+      }catch(e){
+        mostrarApiConfig(true, e.message); setApi(false, e.message);
+      }
+    }
+
+    function limparApiUrl(){
+      localStorage.removeItem(APP.apiStorageKey); APP.apiUrl='';
+      const input = document.getElementById('apiUrlInput'); if(input) input.value='';
+      mostrarApiConfig(true, 'API removida. Cole novamente a URL do Apps Script /exec.');
+      setApi(false, 'API não configurada.');
+      document.getElementById('login').style.display='flex';
+    }
+
     async function api(acao, dados={}){
+      const url = obterApiUrl();
+      const validacao = validarUrlApi(url);
+      if(!validacao.ok){ mostrarApiConfig(true, validacao.mensagem); throw new Error(validacao.mensagem); }
       const payload = Object.assign({acao, versaoIndex: APP.versao}, dados);
-      const resp = await fetch(APP.apiUrl, { method:'POST', body: JSON.stringify(payload), headers:{'Content-Type':'text/plain;charset=utf-8'} });
-      const txt = await resp.text();
-      try { return JSON.parse(txt); } catch(e){ throw new Error('Resposta inválida da API: '+txt.slice(0,180)); }
+      let resp, txt;
+      try{
+        resp = await fetch(url, { method:'POST', body: JSON.stringify(payload), headers:{'Content-Type':'text/plain;charset=utf-8'} });
+        txt = await resp.text();
+      }catch(e){
+        throw new Error('Não foi possível conectar à API do Apps Script. Confirme a URL /exec e a publicação como App da Web. Detalhe: '+e.message);
+      }
+      let json;
+      try{ json = JSON.parse(txt); }
+      catch(e){ throw new Error(formatarErroRespostaApi(resp, txt)); }
+      if(!resp.ok) throw new Error(json.erro || ('API retornou erro HTTP '+resp.status));
+      return json;
+    }
+
+    function formatarErroRespostaApi(resp, txt){
+      const bruto = String(txt || '').slice(0, 260);
+      const limpo = bruto.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+      if(/405\s+Not\s+Allowed/i.test(bruto) || resp?.status === 405) return 'A URL configurada como API não aceita gravação. Use a URL do Apps Script que termina com /exec, não o link da página do aplicativo.';
+      if(/<!doctype|<html|<head|<body/i.test(bruto)) return 'A API respondeu HTML em vez de JSON. Isso indica URL errada, publicação incorreta do Apps Script ou acesso negado. Confirme a URL /exec.';
+      return 'Resposta inválida da API. Era esperado JSON do Apps Script. Retorno recebido: '+(limpo || 'vazio');
     }
 
     async function login(){
       const usuario = document.getElementById('loginUsuario').value.trim();
       const senha = document.getElementById('loginSenha').value.trim();
       const erro = document.getElementById('loginErro'); erro.style.display='none';
+      const validacaoApi = validarUrlApi(obterApiUrl());
+      if(!validacaoApi.ok){ mostrarApiConfig(true, validacaoApi.mensagem); erro.textContent=validacaoApi.mensagem; erro.style.display='block'; return; }
       if(!usuario || !senha){ erro.textContent='Informe usuário e senha.'; erro.style.display='block'; return; }
       try{
         const r = await api('login',{usuario,senha});
         if(!r.sucesso || !r.autorizado) throw new Error(r.erro || 'Login não autorizado.');
-        APP.usuario = r.usuario; localStorage.setItem('gman_85658_usuario', JSON.stringify(APP.usuario));
+        APP.usuario = r.usuario; localStorage.setItem('gman_85660_usuario', JSON.stringify(APP.usuario));
         document.getElementById('login').style.display='none'; atualizarUsuario(); await carregarTudo(); toast('Login autorizado.');
       }catch(e){ erro.textContent=e.message; erro.style.display='block'; }
     }
-    function logout(){ localStorage.removeItem('gman_85658_usuario'); APP.usuario=null; document.getElementById('login').style.display='flex'; atualizarUsuario(); }
+    function logout(){ localStorage.removeItem('gman_85660_usuario'); APP.usuario=null; document.getElementById('login').style.display='flex'; atualizarUsuario(); inicializarApi(); }
     function atualizarUsuario(){
       const el = document.getElementById('usuarioLinha');
       if(!APP.usuario){ el.textContent='Usuário não identificado'; return; }
@@ -183,7 +287,8 @@
     function isGestao(){ if(!APP.usuario) return false; return ['ADMINISTRADOR','SUPERVISOR','COORDENADOR','GERENTE'].includes(norm(APP.usuario.perfil)); }
 
     async function carregarTudo(){
-      if(APP.apiUrl.includes('COLE_AQUI')){ setApi(false,'Cole a URL da API no arquivo Index.'); return; }
+      const validacaoApi = validarUrlApi(obterApiUrl());
+      if(!validacaoApi.ok){ setApi(false, validacaoApi.mensagem); mostrarApiConfig(true, validacaoApi.mensagem); return; }
       try{
         const r = await api('listarTudo',{usuario: APP.usuario?.nome || ''});
         if(!r.sucesso) throw new Error(r.erro || 'Falha ao listar dados.');
@@ -281,7 +386,7 @@
     async function diagnostico(){ try{ const r=await api('diagnosticoProfundo',{usuario:APP.usuario?.nome||''}); document.getElementById('diagnosticoBox').textContent=JSON.stringify(r.diagnostico||r,null,2); }catch(e){ document.getElementById('diagnosticoBox').textContent=e.message; } }
     async function simularQuarentena(){ try{ const r=await api('simularQuarentenaSegura',{usuario:APP.usuario?.nome||''}); document.getElementById('quarentenaBox').textContent=JSON.stringify(r,null,2); }catch(e){ document.getElementById('quarentenaBox').textContent=e.message; } }
     async function executarQuarentena(){ try{ const r=await api('executarQuarentenaSegura',{usuario:APP.usuario?.nome||'',confirmacao:v('confirmacaoQuarentena')}); document.getElementById('quarentenaBox').textContent=JSON.stringify(r,null,2); if(!r.sucesso) throw new Error(r.erro); toast('Quarentena executada.'); await carregarTudo(); }catch(e){ toast(e.message); } }
-    async function repararStatus(){ try{ const r=await api('repararStatusAtual',{usuario:APP.usuario?.nome||'',confirmacao:'CONFIRMO REPARO STATUS GMAN 8.5.6.59'}); toast('Reparo concluído: '+JSON.stringify(r)); await carregarTudo(); }catch(e){ toast(e.message); } }
+    async function repararStatus(){ try{ const r=await api('repararStatusAtual',{usuario:APP.usuario?.nome||'',confirmacao:'CONFIRMO REPARO STATUS GMAN 8.5.6.60'}); toast('Reparo concluído: '+JSON.stringify(r)); await carregarTudo(); }catch(e){ toast(e.message); } }
 
     function abrirAba(id){ document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===id)); document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.getElementById('sec-'+id).classList.add('active'); if(id==='encerradas') renderEncerradas(); if(id==='diagnostico') diagnostico(); }
     function abrirModal(titulo,sub,html){ document.getElementById('modalTitulo').innerHTML=titulo; document.getElementById('modalSub').textContent=sub||''; document.getElementById('modalConteudo').innerHTML=html; document.getElementById('modal').classList.add('open'); }
