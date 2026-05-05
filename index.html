@@ -1,1063 +1,296 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema de Manutenção GMAN</title>
-  <link rel="icon" type="image/png" href="./logo.png">
-  <link rel="apple-touch-icon" href="./logo.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GMAN DMAE — Gestão de Manutenção de Bombeamento e Reservação</title>
+  <meta name="theme-color" content="#0b3d69" />
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
-      min-height: 100vh;
-      color: white;
-      padding: 20px;
+    :root{
+      --azul:#0b3d69; --azul2:#155c93; --azul3:#eaf4ff; --verde:#1e9b64; --laranja:#f28c28;
+      --vermelho:#c93838; --amarelo:#c69216; --branco:#fff; --cinza:#64748b; --bg:#eef5fb;
+      --card:#ffffff; --borda:#dce8f3; --sombra:0 12px 32px rgba(15,60,100,.14);
     }
-    body::before {
-      content:"";
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      background:
-        radial-gradient(circle at 12% 8%, rgba(56,161,105,0.22), transparent 28%),
-        radial-gradient(circle at 88% 16%, rgba(49,130,206,0.24), transparent 32%),
-        radial-gradient(circle at 50% 100%, rgba(255,255,255,0.08), transparent 35%);
-      z-index:-1;
-    }
-    h1 { text-align: center; margin-bottom: 5px; font-size: 1.6rem; letter-spacing:.02em; }
-    .subtitle { text-align: center; color: #a0c4e8; margin-bottom: 10px; font-size: 0.85rem; }
-    .top-logo { text-align:center; margin-bottom:20px; }
-    .top-logo img { width:100px; height:100px; object-fit:contain; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,.3); margin-bottom:10px; }
-    .systems-filter { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:16px; }
-    .system-btn {
-      padding:8px 16px; border:2px solid rgba(255,255,255,.3); background:rgba(255,255,255,.1);
-      color:white; border-radius:20px; cursor:pointer; font-size:.8rem; transition:all .2s; font-weight:700;
-      box-shadow:0 8px 18px rgba(0,0,0,.10);
-    }
-    .system-btn:hover, .system-btn.active { background:linear-gradient(135deg,#38a169,#3182ce); border-color:rgba(255,255,255,.55); }
-    .status-line { text-align:center; margin:0 auto 14px auto; padding:8px 12px; border-radius:12px; max-width:780px; font-size:.8rem; font-weight:700; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2); color:#a0c4e8; }
-    .status-line.online { background:rgba(56,161,105,.18); border-color:rgba(56,161,105,.45); color:#c6f6d5; }
-    .status-line.offline { background:rgba(229,62,62,.18); border-color:rgba(229,62,62,.45); color:#fed7d7; }
-    .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(100px,1fr)); gap:10px; margin-bottom:20px; }
-    .stat-card { backdrop-filter:blur(10px); border-radius:12px; padding:15px; text-align:center; cursor:pointer; transition:all .2s; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.1); }
-    .stat-card:hover { background:rgba(255,255,255,.2); transform:translateY(-1px); }
-    .stat-card.active { outline:2px solid rgba(255,255,255,.55); }
-    .stat-number { font-size:2rem; font-weight:900; }
-    .stat-label { font-size:.75rem; color:#a0c4e8; margin-top:5px; font-weight:800; }
-    .stat-percent { font-size:.82rem; color:#fff; margin-top:6px; font-weight:800; opacity:.95; }
-    #card-ok { background:rgba(56,161,105,.15); border-color:rgba(56,161,105,.3); }
-    #card-ok .stat-number { color:#48bb78; }
-    #card-alert { background:rgba(214,158,46,.15); border-color:rgba(214,158,46,.3); }
-    #card-alert .stat-number { color:#ecc94b; }
-    #card-down { background:rgba(229,62,62,.15); border-color:rgba(229,62,62,.3); }
-    #card-down .stat-number { color:#f56565; }
-    .search-box { width:100%; padding:12px; border:none; border-radius:10px; margin-bottom:15px; font-size:.95rem; background:rgba(255,255,255,.15); color:white; }
-    .search-box::placeholder { color:#a0c4e8; }
-    .main-actions { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:0 0 18px 0; padding:8px; border-radius:20px; background:rgba(255,255,255,.05); backdrop-filter:blur(10px); }
-    .action-btn { padding:10px 16px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.12); color:white; border-radius:12px; cursor:pointer; font-size:.85rem; font-weight:800; transition:all .2s; box-shadow:inset 0 1px 3px rgba(255,255,255,.16),0 8px 18px rgba(0,0,0,.12); }
-    .action-btn:hover { background:rgba(255,255,255,.22); transform:translateY(-1px); }
-    .action-btn.primary { background:#3182ce; border-color:#3182ce; }
-    .action-btn.success { background:#38a169; border-color:#38a169; }
-    .equipment-list { background:rgba(255,255,255,.05); border-radius:15px; overflow:hidden; max-height:60vh; overflow-y:auto; border:1px solid rgba(255,255,255,.14); box-shadow:0 18px 42px rgba(0,0,0,.16); padding:6px; }
-    .equipment-item { padding:12px; margin:8px; border-radius:18px; border-bottom:1px solid rgba(255,255,255,.08); display:grid; grid-template-columns:45px 1fr auto; gap:12px; align-items:center; cursor:pointer; background:linear-gradient(135deg,rgba(255,255,255,.075),rgba(255,255,255,.025)); transition:all .2s; box-shadow:0 10px 22px rgba(0,0,0,.10); }
-    .equipment-item:hover { background:linear-gradient(135deg,rgba(255,255,255,.18),rgba(56,161,105,.12)); transform:translateY(-1px); }
-    .status-icon { width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1rem; font-weight:1000; text-shadow:0 2px 2px rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.35); box-shadow:inset 0 2px 6px rgba(255,255,255,.34), inset 0 -5px 10px rgba(0,0,0,.16), 0 10px 20px rgba(0,0,0,.20); }
-    .status-ok { background:linear-gradient(135deg,#68d391,#2f855a); }
-    .status-alert { background:linear-gradient(135deg,#f6e05e,#d69e2e); }
-    .status-down { background:linear-gradient(135deg,#fc8181,#c53030); }
-    .equipment-name { font-weight:800; font-size:.9rem; }
-    .equipment-system { font-size:.75rem; color:#a0c4e8; margin-top:2px; line-height:1.35; }
-    .status-badge { padding:4px 10px; border-radius:15px; font-size:.7rem; font-weight:900; text-transform:uppercase; box-shadow:inset 0 2px 5px rgba(255,255,255,.20),0 8px 16px rgba(0,0,0,.12); }
-    .badge-ok { background:#38a169; }
-    .badge-alert { background:#d69e2e; }
-    .badge-down { background:#e53e3e; }
-    .system-tag { display:inline-block; padding:2px 8px; border-radius:10px; font-size:.65rem; margin-top:3px; font-weight:900; }
-    .tag-100 { background:#e53e3e; } .tag-200 { background:#dd6b20; } .tag-300 { background:#d69e2e; } .tag-400 { background:#38a169; } .tag-600 { background:#3182ce; } .tag-700 { background:#805ad5; }
-    #loginScreen { position:fixed; inset:0; background:linear-gradient(135deg,#1e3a5f 0%,#2c5282 100%); display:flex; align-items:center; justify-content:center; z-index:9999; }
-    .login-card { background:white; padding:40px; border-radius:20px; text-align:center; max-width:400px; width:90%; box-shadow:0 26px 70px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.6); }
-    .login-card img { width:80px; height:80px; margin-bottom:20px; object-fit:contain; }
-    .login-card h2 { color:#1e3a5f; margin-bottom:5px; }
-    .login-card p { color:#718096; margin-bottom:30px; font-size:.9rem; }
-    .login-card input { width:100%; padding:12px; margin-bottom:15px; border:2px solid #e2e8f0; border-radius:10px; font-size:1rem; color:#333; }
-    .login-card button { width:100%; padding:15px; background:#3182ce; color:white; border:none; border-radius:10px; font-size:1rem; font-weight:700; cursor:pointer; }
-    #loginErro { color:#e53e3e; margin-top:15px; font-size:.85rem; display:none; font-weight:800; }
-    #userInfo { text-align:center; color:#a0c4e8; font-size:.85rem; margin-bottom:15px; font-weight:700; }
-    #userInfo button { margin-left:10px; padding:4px 10px; background:rgba(255,255,255,.1); color:white; border:1px solid rgba(255,255,255,.3); border-radius:5px; cursor:pointer; font-size:.75rem; }
-    .modal { position:fixed; inset:0; background:rgba(0,0,0,.82); display:flex; align-items:center; justify-content:center; z-index:1200; padding:18px; }
-    .modal-card { background:white; color:#1a202c; border-radius:20px; padding:22px; width:95%; max-width:760px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.25); }
-    .modal-head { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; margin-bottom:14px; }
-    .modal-head h2 { color:#1e3a5f; margin:0; font-size:1.15rem; }
-    .close-btn { padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer; font-weight:800; }
-    .form-field { width:100%; padding:10px; margin-bottom:10px; border:1px solid #cbd5e0; border-radius:9px; color:#1a202c; font-size:.9rem; }
-    .form-label { display:block; color:#2d3748; font-size:.78rem; font-weight:900; margin:8px 0 5px; text-align:left; }
-    .os-card { background:#f7fafc; border-radius:12px; padding:12px; margin-bottom:10px; border-left:5px solid #3182ce; color:#1a202c; text-align:left; }
-    .os-card h4 { margin:0 0 6px 0; color:#1e3a5f; font-size:.95rem; }
-    .os-card p { margin:4px 0; color:#4a5568; font-size:.78rem; }
-    .os-badge { display:inline-block; padding:4px 8px; border-radius:999px; color:white; font-size:.68rem; font-weight:900; margin:2px 4px 2px 0; }
-    .os-aberta { background:#3182ce; } .os-iniciada { background:#ed8936; } .os-execucao { background:#d69e2e; } .os-pendente { background:#c53030; } .os-concluida { background:#38a169; } .os-cancelada { background:#718096; }
-    .empty-box { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18); border-radius:15px; padding:16px; text-align:center; color:#bee3f8; font-weight:700; }
-
-    /* GMAN 8.5.7.10 — blindagem visual dos textos dos botões */
-    .system-btn,
-    .system-btn *,
-    .action-btn,
-    .action-btn *,
-    .close-btn,
-    .close-btn *,
-    .login-card button,
-    .login-card button * {
-      color: #ffffff !important;
-      -webkit-text-fill-color: #ffffff !important;
-      opacity: 1 !important;
-      visibility: visible !important;
-      font-family: 'Segoe UI', Arial, sans-serif !important;
-      text-shadow: 0 1px 2px rgba(0,0,0,.35);
-    }
-    .system-btn {
-      background: rgba(15,39,66,.46) !important;
-      border-color: rgba(255,255,255,.42) !important;
-      min-height: 38px;
-    }
-    .system-btn.active,
-    .system-btn:hover {
-      background: linear-gradient(135deg,#38a169,#3182ce) !important;
-      border-color: rgba(255,255,255,.72) !important;
-    }
-    .action-btn {
-      background: rgba(30,58,95,.72) !important;
-      border-color: rgba(255,255,255,.38) !important;
-      min-height: 42px;
-      line-height: 1.25;
-      white-space: normal;
-    }
-    .action-btn.primary {
-      background: #2563a9 !important;
-      border-color: #63b3ed !important;
-    }
-    .action-btn.success {
-      background: #2f855a !important;
-      border-color: #68d391 !important;
-    }
-
-
-    .rule-box { background:#ebf8ff; border-left:5px solid #3182ce; border-radius:14px; padding:12px; color:#1e3a5f; margin-bottom:12px; font-size:.82rem; text-align:left; }
-    .warn-box { background:#fffaf0; border-left:5px solid #d69e2e; border-radius:14px; padding:12px; color:#744210; margin-bottom:12px; font-size:.82rem; text-align:left; }
-    .danger-box { background:#fff5f5; border-left:5px solid #e53e3e; border-radius:14px; padding:12px; color:#742a2a; margin-bottom:12px; font-size:.82rem; text-align:left; }
-    .ok-box { background:#f0fff4; border-left:5px solid #38a169; border-radius:14px; padding:12px; color:#22543d; margin-bottom:12px; font-size:.82rem; text-align:left; }
-    .pat-grid { display:grid; gap:10px; margin:10px 0; }
-    .pat-row { background:linear-gradient(135deg,#ffffff,#f8fbff); border:1px solid #e2e8f0; border-radius:16px; padding:10px; display:grid; gap:8px; color:#2d3748; }
-    .pat-row-title { display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; align-items:center; color:#1e3a5f; font-weight:900; }
-    .mini-chip { display:inline-block; padding:3px 8px; border-radius:999px; background:#edf2f7; color:#2d3748; font-size:.68rem; font-weight:900; }
-    .mini-chip.required { background:#fffaf0; color:#744210; border:1px solid #fbd38d; }
-    .mini-chip.optional { background:#f0fff4; color:#22543d; border:1px solid #9ae6b4; }
-    .ficha-preview { white-space:pre-wrap; background:#f7fafc; border:1px solid #e2e8f0; border-radius:10px; padding:9px; min-height:38px; color:#2d3748; font-size:.74rem; overflow:auto; max-height:110px; }
-    .btn-small { padding:8px 10px; border:none; border-radius:9px; background:#3182ce; color:#fff !important; -webkit-text-fill-color:#fff !important; font-weight:900; cursor:pointer; }
-    .btn-small.green { background:#38a169; }
-    .btn-small.gray { background:#718096; }
-    .btn-small.orange { background:#d69e2e; }
-
-    .grid-2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
-    .hidden { display:none !important; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Inter,Segoe UI,Arial,sans-serif;background:linear-gradient(180deg,#edf7ff 0%,#f7fbff 45%,#eef5fb 100%);color:#17324d;min-height:100vh}
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer;border:0}
+    .app{max-width:1180px;margin:0 auto;padding:14px 14px 96px}
+    .login{position:fixed;inset:0;background:radial-gradient(circle at 20% 10%,#2a7fba 0%,#0b3d69 45%,#072944 100%);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px}
+    .login-card{width:min(430px,100%);background:rgba(255,255,255,.97);border-radius:26px;padding:26px;box-shadow:0 24px 80px rgba(0,0,0,.35)}
+    .brand{text-align:center;margin-bottom:18px}.brand-mark{width:72px;height:72px;border-radius:22px;margin:0 auto 12px;display:grid;place-items:center;background:linear-gradient(135deg,#0b3d69,#3c97d3);color:#fff;font-weight:900;font-size:1.2rem;box-shadow:0 10px 28px rgba(11,61,105,.28)}
+    .brand h1{font-size:1.35rem;color:var(--azul);line-height:1.2}.brand p{font-size:.85rem;color:#60738a;margin-top:6px;line-height:1.35}
+    .field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}.field label{font-size:.77rem;color:#42566d;font-weight:800;text-transform:uppercase;letter-spacing:.04em}.field input,.field select,.field textarea{border:1px solid var(--borda);border-radius:14px;padding:12px;background:#fff;color:#17324d;outline:none}.field textarea{min-height:86px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:#3c97d3;box-shadow:0 0 0 3px rgba(60,151,211,.12)}
+    .btn{border-radius:14px;padding:12px 14px;font-weight:800;background:var(--azul);color:#fff;box-shadow:0 8px 18px rgba(11,61,105,.18)}.btn:hover{filter:brightness(1.05)}.btn.secondary{background:#e9f3fc;color:var(--azul);box-shadow:none}.btn.warn{background:var(--laranja)}.btn.danger{background:var(--vermelho)}.btn.ok{background:var(--verde)}.btn.small{padding:8px 10px;border-radius:12px;font-size:.78rem}.btn.ghost{background:transparent;color:var(--azul);border:1px solid var(--borda);box-shadow:none}.btn:disabled{opacity:.55;cursor:not-allowed}
+    .error{display:none;background:#fff1f1;color:#a51e1e;border:1px solid #ffd0d0;border-radius:12px;padding:10px;margin-top:10px;font-size:.88rem}
+    .topbar{position:sticky;top:0;z-index:20;backdrop-filter:blur(16px);background:rgba(238,245,251,.88);border-bottom:1px solid rgba(220,232,243,.75);padding:10px 0 12px;margin-bottom:14px}
+    .header{display:flex;gap:12px;align-items:center;justify-content:space-between}.title-wrap{display:flex;gap:12px;align-items:center}.logo-mini{width:52px;height:52px;border-radius:17px;display:grid;place-items:center;background:linear-gradient(135deg,#0b3d69,#2b8bc6);color:white;font-weight:900;box-shadow:0 8px 22px rgba(11,61,105,.20)}
+    .header h2{font-size:1rem;color:var(--azul)}.header p{font-size:.74rem;color:#60738a}.userline{font-size:.75rem;color:#42566d;text-align:right}.status-api{display:inline-flex;gap:6px;align-items:center;border-radius:99px;padding:4px 9px;background:#e9f7ef;color:#176e49;font-weight:800;margin-top:5px}.dot{width:8px;height:8px;border-radius:99px;background:var(--verde)}.dot.off{background:var(--vermelho)}
+    .tabs{display:flex;gap:8px;overflow-x:auto;padding:8px 0 0}.tab{white-space:nowrap;border-radius:99px;background:#fff;color:var(--azul);border:1px solid var(--borda);padding:9px 12px;font-weight:800;font-size:.82rem}.tab.active{background:var(--azul);color:#fff;border-color:var(--azul)}
+    .grid{display:grid;gap:12px}.grid.cols4{grid-template-columns:repeat(4,1fr)}.grid.cols3{grid-template-columns:repeat(3,1fr)}.grid.cols2{grid-template-columns:repeat(2,1fr)}
+    .card{background:var(--card);border:1px solid var(--borda);border-radius:22px;padding:14px;box-shadow:var(--sombra)}.card.soft{box-shadow:none;background:rgba(255,255,255,.75)}.card h3{font-size:.95rem;color:var(--azul);margin-bottom:10px}.muted{color:#64748b;font-size:.84rem}.pill{display:inline-flex;align-items:center;gap:6px;border-radius:99px;padding:5px 9px;background:#eef6fd;color:var(--azul);font-size:.72rem;font-weight:900}.pill.ok{background:#e9f7ef;color:#176e49}.pill.warn{background:#fff5df;color:#8a5a00}.pill.danger{background:#fff1f1;color:#a51e1e}.pill.orange{background:#fff1df;color:#9b4c05}.pill.gray{background:#eef1f5;color:#475569}
+    .kpi{min-height:108px}.kpi .num{font-size:1.55rem;font-weight:950;letter-spacing:-.03em}.kpi .label{font-size:.76rem;color:#60738a;font-weight:800;margin-top:4px}.kpi .meta{font-size:.68rem;color:#7b8da3;margin-top:8px}.progress{height:8px;background:#e8eef5;border-radius:999px;overflow:hidden;margin-top:10px}.bar{height:100%;width:0%;background:linear-gradient(90deg,var(--verde),var(--laranja),var(--vermelho));border-radius:999px}
+    .filters{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px}.filter{white-space:nowrap;background:#fff;border:1px solid var(--borda);color:var(--azul);border-radius:99px;padding:8px 12px;font-weight:900;font-size:.8rem}.filter.active{background:var(--azul);border-color:var(--azul);color:#fff}.search{width:100%;border:1px solid var(--borda);border-radius:16px;padding:12px;background:#fff;margin-bottom:12px;outline:none}.search:focus{border-color:#3c97d3}
+    .equip-list{display:grid;gap:10px}.equip{background:#fff;border:1px solid var(--borda);border-radius:18px;padding:12px;display:grid;grid-template-columns:46px 1fr auto;gap:10px;align-items:center;box-shadow:0 8px 20px rgba(15,60,100,.06)}.equip:hover{border-color:#9dc7e6}.ico{width:42px;height:42px;border-radius:15px;display:grid;place-items:center;font-weight:950;color:#fff;box-shadow:inset 0 2px 5px rgba(255,255,255,.28),0 8px 16px rgba(15,60,100,.18)}.ico.ok{background:linear-gradient(145deg,#35b879,#158450)}.ico.warn{background:linear-gradient(145deg,#ffa735,#ca720f)}.ico.danger{background:linear-gradient(145deg,#e15555,#a92626)}.ico.blue{background:linear-gradient(145deg,#2e93d1,#0b3d69)}
+    .equip b{display:block;color:#17324d;font-size:.92rem}.equip small{display:block;color:#64748b;margin-top:2px;line-height:1.35}.equip-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.hidden{display:none!important}.section{display:none}.section.active{display:block}.list{display:grid;gap:9px}.os{border:1px solid var(--borda);border-radius:18px;background:#fff;padding:12px}.os-head{display:flex;gap:8px;justify-content:space-between;align-items:flex-start}.os b{color:var(--azul)}.os p{font-size:.83rem;color:#52677f;margin-top:6px;line-height:1.35}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.modal{position:fixed;inset:0;background:rgba(6,21,36,.72);display:none;align-items:flex-end;justify-content:center;z-index:60;padding:12px}.modal.open{display:flex}.modal-card{width:min(760px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:24px;padding:16px;box-shadow:0 28px 90px rgba(0,0,0,.35)}.modal-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:12px}.close{background:#eef3f8;color:#17324d;border-radius:14px;width:40px;height:40px;font-weight:900}.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.full{grid-column:1/-1}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#123a5a;color:#fff;padding:12px 14px;border-radius:16px;box-shadow:0 16px 40px rgba(0,0,0,.28);display:none;z-index:80;max-width:min(560px,92vw);font-size:.88rem}.toast.show{display:block}.danger-zone{border:1px dashed #ffb4b4;background:#fff7f7;border-radius:18px;padding:12px}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.76rem;white-space:pre-wrap;background:#0f172a;color:#d9e7ff;border-radius:16px;padding:12px;overflow:auto}.empty{padding:18px;text-align:center;color:#64748b;background:#fff;border:1px dashed var(--borda);border-radius:18px}
+    @media(max-width:840px){.grid.cols4,.grid.cols3,.grid.cols2{grid-template-columns:1fr}.header{align-items:flex-start}.userline{text-align:left}.form-grid{grid-template-columns:1fr}.equip{grid-template-columns:42px 1fr}.equip-actions{grid-column:1/-1;justify-content:flex-start}.modal{align-items:flex-end;padding:0}.modal-card{border-radius:24px 24px 0 0;max-height:92vh}.app{padding:10px 10px 96px}.topbar{padding-left:0;padding-right:0}}
   </style>
 </head>
 <body>
-  <div id="loginScreen">
+  <div id="login" class="login">
     <div class="login-card">
-      <img src="./logo.png" alt="Logo DMAE">
-      <h2>Sistema de Manutenção</h2>
-      <p>GMAN DMAE — Gestão de Manutenção de Bombeamento e Reservação</p>
-      <form id="loginFormGMAN">
-        <input type="text" id="loginUser" placeholder="Usuário ou login" autocomplete="username" required>
-        <input type="password" id="loginPass" placeholder="Senha" autocomplete="current-password" required>
-        <button type="submit">Entrar</button>
-      </form>
-      <p id="loginErro"></p>
+      <div class="brand">
+        <div class="brand-mark">GMAN</div>
+        <h1>GMAN DMAE</h1>
+        <p>Gestão de Manutenção de Bombeamento e Reservação</p>
+      </div>
+      <div class="field"><label>Usuário</label><input id="loginUsuario" autocomplete="username" placeholder="Nome completo" /></div>
+      <div class="field"><label>Senha</label><input id="loginSenha" type="password" autocomplete="current-password" placeholder="Senha" /></div>
+      <button class="btn" style="width:100%" onclick="login()">Entrar</button>
+      <div id="loginErro" class="error"></div>
     </div>
   </div>
 
-  <div class="top-logo">
-    <img src="./logo.png" alt="Logo DMAE">
-    <h1>Sistema de Manutenção</h1>
-    <p class="subtitle">GMAN DMAE — Gestão de Manutenção de Bombeamento e Reservação</p>
+  <div class="app">
+    <div class="topbar">
+      <div class="header">
+        <div class="title-wrap">
+          <div class="logo-mini">GM</div>
+          <div>
+            <h2>GMAN DMAE</h2>
+            <p>Gestão de Manutenção de Bombeamento e Reservação</p>
+          </div>
+        </div>
+        <div class="userline">
+          <div id="usuarioLinha">Usuário não identificado</div>
+          <div id="apiLinha" class="status-api"><span class="dot off"></span> API aguardando</div>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-tab="inicio" onclick="abrirAba('inicio')">Início</button>
+        <button class="tab" data-tab="os" onclick="abrirAba('os')">Ordens abertas</button>
+        <button class="tab gestao-only" data-tab="encerradas" onclick="abrirAba('encerradas')">Ordens encerradas</button>
+        <button class="tab gestao-only" data-tab="diagnostico" onclick="abrirAba('diagnostico')">Diagnóstico</button>
+      </div>
+    </div>
+
+    <section id="sec-inicio" class="section active">
+      <div class="grid cols4" id="kpiGrid"></div>
+      <div class="card" style="margin-top:12px">
+        <h3>Filtros oficiais</h3>
+        <div class="filters" id="filtrosSistema"></div>
+        <input class="search" id="busca" oninput="renderEquipamentos()" placeholder="Buscar por grupo, sistema, status ou justificativa..." />
+        <div class="filters" id="filtrosStatus"></div>
+        <div class="equip-list" id="equipList"></div>
+      </div>
+    </section>
+
+    <section id="sec-os" class="section">
+      <div class="card">
+        <div class="row" style="justify-content:space-between;margin-bottom:10px">
+          <h3>Ordens abertas</h3>
+          <button class="btn small" onclick="abrirModalCriarOS()">+ Abrir OS</button>
+        </div>
+        <div id="osAbertas" class="list"></div>
+      </div>
+    </section>
+
+    <section id="sec-encerradas" class="section">
+      <div class="card">
+        <h3>Ordens encerradas, gestão</h3>
+        <p class="muted" style="margin-bottom:10px">Esta área não é exibida para líderes/equipes operacionais.</p>
+        <div id="osEncerradas" class="list"></div>
+      </div>
+    </section>
+
+    <section id="sec-diagnostico" class="section">
+      <div class="grid cols2">
+        <div class="card">
+          <h3>Painel de saúde da base oficial</h3>
+          <div class="row" style="margin-bottom:10px">
+            <button class="btn small" onclick="diagnostico()">Atualizar diagnóstico</button>
+            <button class="btn small secondary" onclick="simularQuarentena()">Simular quarentena</button>
+            <button class="btn small secondary" onclick="repararStatus()">Reparar STATUS_ATUAL</button>
+          </div>
+          <div id="diagnosticoBox" class="mono">Diagnóstico ainda não carregado.</div>
+        </div>
+        <div class="card">
+          <h3>Quarentena segura</h3>
+          <div class="danger-zone">
+            <p class="muted" style="margin-bottom:10px">A execução move registros inválidos/teste para abas de quarentena, com auditoria. Não apaga direto.</p>
+            <div class="field"><label>Confirmação obrigatória</label><input id="confirmacaoQuarentena" placeholder="CONFIRMO QUARENTENA GMAN 8.5.6.59" /></div>
+            <button class="btn danger" onclick="executarQuarentena()">Executar quarentena segura</button>
+          </div>
+          <div id="quarentenaBox" class="mono" style="margin-top:10px">Aguardando simulação.</div>
+        </div>
+      </div>
+    </section>
   </div>
 
-  <div id="userInfo" class="hidden"></div>
-  <div id="apiStatus" class="status-line">GMAN 8.5.7.10 — aguardando login</div>
-
-  <div class="systems-filter" id="systemsFilter">
-    <button class="system-btn active" data-system="all">TODAS</button>
-    <button class="system-btn" data-system="100">100 - Moinhos de Vento</button>
-    <button class="system-btn" data-system="200">200 - São João</button>
-    <button class="system-btn" data-system="300">300 - Menino Deus</button>
-    <button class="system-btn" data-system="400">400 - Belém Novo</button>
-    <button class="system-btn" data-system="600">600 - Ilhas</button>
-    <button class="system-btn" data-system="700">700 - Tristeza</button>
-    <button class="system-btn" data-system="brutas">BRUTAS</button>
-  </div>
-
-  <div class="stats">
-    <div class="stat-card" id="card-ok" data-status="ok"><div class="stat-number" id="operationalCount">0</div><div class="stat-label">OPERANDO</div><div class="stat-percent" id="operationalPercent">0%</div></div>
-    <div class="stat-card" id="card-alert" data-status="alert"><div class="stat-number" id="maintenanceCount">0</div><div class="stat-label">MANUTENÇÃO</div><div class="stat-percent" id="maintenancePercent">0%</div></div>
-    <div class="stat-card" id="card-down" data-status="down"><div class="stat-number" id="downCount">0</div><div class="stat-label">PARADOS</div><div class="stat-percent" id="downPercent">0%</div></div>
-  </div>
-
-  <input type="text" class="search-box" id="searchInput" placeholder="🔍 Buscar por nome, código ou sistema...">
-
-  <div class="main-actions" id="mainActions">
-    <button class="action-btn primary" id="btnOrdensAbertasHome" data-action="os-abertas">📋 OS Abertas <span id="totalOrdensAbertasHome">(0)</span></button>
-    <button class="action-btn" id="btnMinhasOSHome" data-action="os-minhas">👤 Minhas OS <span id="totalMinhasOSHome">(0)</span></button>
-    <button class="action-btn" id="btnOrdensNaoIniciadasHome" data-action="os-nao-iniciadas" data-gestao="true">⏳ OS Não Iniciadas <span id="totalOrdensNaoIniciadasHome">(0)</span></button>
-    <button class="action-btn" id="btnOrdensIniciadasHome" data-action="os-iniciadas" data-gestao="true">🛠️ OS Iniciadas <span id="totalOrdensIniciadasHome">(0)</span></button>
-    <button class="action-btn" id="btnOrdensEncerradasHome" data-action="os-encerradas" data-gestao="true">✅ Ordens Encerradas <span id="totalOrdensEncerradasHome">(0)</span></button>
-    <button class="action-btn" id="btnPainelKPI" data-action="kpis" data-gestao="true">📊 KPIs Industriais</button>
-    <button class="action-btn" id="btnAtualizarAgora" data-action="atualizar">🔄 Atualizar agora</button>
-    <button class="action-btn" id="btnLimparCache" data-action="limpar-cache">🧹 Limpar cache</button>
-  </div>
-
-  <div class="equipment-list" id="equipmentList"></div>
+  <div id="modal" class="modal"><div class="modal-card"><div class="modal-head"><div><h3 id="modalTitulo">Modal</h3><p id="modalSub" class="muted"></p></div><button class="close" onclick="fecharModal()">×</button></div><div id="modalConteudo"></div></div></div>
+  <div id="toast" class="toast"></div>
 
   <script>
-  (function(){
-    'use strict';
-
-    const GMAN = {
-      versaoIndex: 'GMAN 8.5.7.10 — Index clássico limpo com regras operacionais blindadas',
-      apiUrl: 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec',
-      storageUser: 'GMAN_USUARIO_LOGADO_OFICIAL_85710',
-      syncMs: 120000
-    };
-
-    const state = {
+    const APP = {
+      versao: 'GMAN 8.5.6.59',
+      apiUrl: 'COLE_AQUI_A_URL_DA_API_APPS_SCRIPT',
       usuario: null,
-      equipamentos: [],
-      ordens: [],
-      filtroSistema: 'all',
-      filtroStatus: '',
-      busca: '',
-      sincronizando: false,
-      timer: null
+      equipamentos: [], status: [], ordens: [], usuarios: [], equipes: [], kpis: [],
+      filtroSistema: 'TODOS', filtroStatus: 'TODOS', autoTimer: null
     };
+    const STATUS_MAP = {
+      'OPERANDO':'ok','EM MANUTENCAO (OPERANDO)':'warn','EM MANUTENCAO (PARADO)':'danger','PARADO':'danger','AGUARDANDO MATERIAL':'warn','AGUARDANDO LIBERACAO':'warn','EM TESTE':'warn','INICIADA':'orange'
+    };
+    const SISTEMAS = ['TODOS','100','200','300','400','600','700','BRUTAS'];
+    const BRUTAS = ['101','201','301','401','601','701'];
+    const AREAS = ['Automação','Elétrica','Mecânica','Usinagem','Caldeiraria','Instalações Mecânicas'];
+    const STATUS_EQUIP = ['Operando','Em manutenção (operando)','Em manutenção (parado)','Parado','Aguardando material','Aguardando liberação','Em teste'];
 
-    const perfilGestao = ['administrador','gerente','supervisor','coordenador'];
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('loginSenha').addEventListener('keydown', e => { if(e.key === 'Enter') login(); });
+      const salvo = localStorage.getItem('gman_85658_usuario');
+      if (salvo) { try { APP.usuario = JSON.parse(salvo); document.getElementById('login').style.display='none'; } catch(e){} }
+      montarFiltros(); atualizarUsuario(); carregarTudo();
+      APP.autoTimer = setInterval(carregarTudo, 120000);
+    });
 
-    function $(id){ return document.getElementById(id); }
-    function canon(v){ return String(v || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
-    function sim(v){ const c = canon(v); return c === 'sim' || c === 's' || c === 'true' || c === '1'; }
-    function esc(v){ return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
-    function pct(n,total){ return total ? ((n/total)*100).toFixed(1).replace('.0','') + '%' : '0%'; }
-    function agora(){ return new Date().toLocaleString('pt-BR', { timeZone:'America/Sao_Paulo' }); }
-
-    function setStatus(txt, tipo){
-      const el = $('apiStatus');
-      if (!el) return;
-      el.className = 'status-line' + (tipo ? ' ' + tipo : '');
-      el.textContent = txt;
+    async function api(acao, dados={}){
+      const payload = Object.assign({acao, versaoIndex: APP.versao}, dados);
+      const resp = await fetch(APP.apiUrl, { method:'POST', body: JSON.stringify(payload), headers:{'Content-Type':'text/plain;charset=utf-8'} });
+      const txt = await resp.text();
+      try { return JSON.parse(txt); } catch(e){ throw new Error('Resposta inválida da API: '+txt.slice(0,180)); }
     }
 
-    function apiUrl(params){
-      const p = new URLSearchParams(Object.assign({}, params || {}, { t: Date.now() }));
-      return GMAN.apiUrl + '?' + p.toString();
+    async function login(){
+      const usuario = document.getElementById('loginUsuario').value.trim();
+      const senha = document.getElementById('loginSenha').value.trim();
+      const erro = document.getElementById('loginErro'); erro.style.display='none';
+      if(!usuario || !senha){ erro.textContent='Informe usuário e senha.'; erro.style.display='block'; return; }
+      try{
+        const r = await api('login',{usuario,senha});
+        if(!r.sucesso || !r.autorizado) throw new Error(r.erro || 'Login não autorizado.');
+        APP.usuario = r.usuario; localStorage.setItem('gman_85658_usuario', JSON.stringify(APP.usuario));
+        document.getElementById('login').style.display='none'; atualizarUsuario(); await carregarTudo(); toast('Login autorizado.');
+      }catch(e){ erro.textContent=e.message; erro.style.display='block'; }
     }
-
-    async function apiGet(action, params){
-      const ret = await fetch(apiUrl(Object.assign({ action }, params || {})), { cache:'no-store' });
-      const json = await ret.json();
-      validarRetorno(json);
-      return json;
+    function logout(){ localStorage.removeItem('gman_85658_usuario'); APP.usuario=null; document.getElementById('login').style.display='flex'; atualizarUsuario(); }
+    function atualizarUsuario(){
+      const el = document.getElementById('usuarioLinha');
+      if(!APP.usuario){ el.textContent='Usuário não identificado'; return; }
+      el.innerHTML = `${APP.usuario.nome} · ${APP.usuario.perfil} · ${APP.usuario.area} <button class="btn small ghost" onclick="logout()">Sair</button>`;
+      const gestao = isGestao(); document.querySelectorAll('.gestao-only').forEach(x=>x.classList.toggle('hidden',!gestao));
     }
+    function isGestao(){ if(!APP.usuario) return false; return ['ADMINISTRADOR','SUPERVISOR','COORDENADOR','GERENTE'].includes(norm(APP.usuario.perfil)); }
 
-    async function apiPost(action, payload){
-      const ret = await fetch(GMAN.apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(Object.assign({ action }, payload || {}))
-      });
-      const json = await ret.json();
-      validarRetorno(json);
-      return json;
+    async function carregarTudo(){
+      if(APP.apiUrl.includes('COLE_AQUI')){ setApi(false,'Cole a URL da API no arquivo Index.'); return; }
+      try{
+        const r = await api('listarTudo',{usuario: APP.usuario?.nome || ''});
+        if(!r.sucesso) throw new Error(r.erro || 'Falha ao listar dados.');
+        APP.equipamentos = r.equipamentos || []; APP.status = r.status || []; APP.ordens = r.ordens || []; APP.usuarios = r.usuarios || []; APP.equipes = r.equipes || []; APP.kpis = r.kpis || [];
+        setApi(true, r.versao || APP.versao); renderKPIs(); renderEquipamentos(); renderOS(); renderEncerradas();
+      }catch(e){ setApi(false,e.message); toast(e.message); }
     }
+    function setApi(ok,msg){ const el=document.getElementById('apiLinha'); el.innerHTML=`<span class="dot ${ok?'':'off'}"></span>${ok?'API online':'API alerta'} · ${escapeHtml(msg||'')}`; }
 
-    function validarRetorno(json){
-      if (!json) throw new Error('Resposta vazia da API GMAN.');
-      if (json.ok === false || json.sucesso === false) throw new Error(json.mensagem || json.erro || json.codigo || 'A API recusou a operação.');
+    function montarFiltros(){
+      document.getElementById('filtrosSistema').innerHTML = SISTEMAS.map(s=>`<button class="filter ${s==='TODOS'?'active':''}" data-sis="${s}" onclick="setFiltroSistema('${s}')">${s}</button>`).join('');
+      const sts = ['TODOS','Operando','Iniciada','Em manutenção (operando)','Em manutenção (parado)','Parado','Aguardando material','Aguardando liberação','Em teste'];
+      document.getElementById('filtrosStatus').innerHTML = sts.map(s=>`<button class="filter ${s==='TODOS'?'active':''}" data-st="${s}" onclick="setFiltroStatus('${s}')">${s}</button>`).join('');
     }
+    function setFiltroSistema(s){ APP.filtroSistema=s; document.querySelectorAll('[data-sis]').forEach(b=>b.classList.toggle('active',b.dataset.sis===s)); renderEquipamentos(); }
+    function setFiltroStatus(s){ APP.filtroStatus=s; document.querySelectorAll('[data-st]').forEach(b=>b.classList.toggle('active',b.dataset.st===s)); renderEquipamentos(); }
 
-    function extrairLista(retorno, nomes){
-      if (Array.isArray(retorno)) return retorno;
-      for (const n of nomes) if (Array.isArray(retorno[n])) return retorno[n];
-      if (retorno.dados && Array.isArray(retorno.dados)) return retorno.dados;
-      if (retorno.resultado && Array.isArray(retorno.resultado)) return retorno.resultado;
-      return [];
-    }
-
-    function ehGestao(usuario){
-      if (!usuario) return false;
-      if (usuario.gestao === true) return true;
-      if (canon(usuario.nome).includes('paulo jurandir')) return true;
-      const perfil = canon(usuario.perfil || usuario.funcao || '');
-      return perfilGestao.includes(perfil);
-    }
-
-    function perfilUsuario(usuario){ return usuario ? String(usuario.perfil || usuario.funcao || '').toUpperCase() : ''; }
-    function setorUsuario(usuario){ return usuario ? String(usuario.setorPadrao || usuario.area || '').toUpperCase() : ''; }
-
-    function normalizarUsuario(retorno){
-      const u = retorno.usuario || retorno.user || retorno || {};
-      const nome = u.nome || u.NOME || u.name || u.login || u.LOGIN || '';
-      const perfil = u.perfil || u.PERFIL || u.funcao || u.FUNCAO || '';
-      const setor = u.setorPadrao || u.SETOR_PADRAO || u.area || u.AREA || '';
-      const gestao = retorno.gestao === true || u.gestao === true || perfilGestao.includes(canon(perfil)) || canon(nome).includes('paulo jurandir');
-      return { idUsuario: u.idUsuario || u.ID_USUARIO || '', nome, login: u.login || u.LOGIN || nome, perfil, setorPadrao: setor, gestao };
-    }
-
-    function statusClasse(statusOperacional){
-      const s = canon(statusOperacional);
-      if (s.includes('parado') && !s.includes('operando')) return 'down';
-      if (s.includes('manutencao') || s.includes('teste') || s.includes('restricao') || s.includes('aguard')) return 'alert';
-      return 'ok';
-    }
-
-    function labelStatus(e){
-      return e.statusOperacional || (e.status === 'ok' ? 'Operando' : e.status === 'down' ? 'Parado' : 'Manutenção');
-    }
-
-    function equipamentoDeStatus(row){
-      const id = row.ID_EQUIPAMENTO || row.idEquipamento || row.equipamento || '';
-      const sistema = String(row.SISTEMA || row.sistema || '').trim();
-      const statusOperacional = row.STATUS_OPERACIONAL || row.STATUS_ATUAL || row.statusOperacional || row.statusAtual || 'Operando';
-      const nome = row.NOME_EQUIPAMENTO_GRUPO || row.NOME_GRUPO || row.nomeEquipamentoGrupo || row.EQUIPAMENTO || row.equipamento || id;
-      const local = row.LOCAL_ESTACAO || row.localEstacao || row.LOCAL || '';
-      const filtroBrutas = sim(row.FILTRO_BRUTAS || row.filtroBrutas);
-      const status = statusClasse(statusOperacional);
-      return {
-        id, name: nome, local, systemCode: sistema, system: nomeSistema(sistema), filtroBrutas,
-        tipoLocal: row.TIPO_LOCAL || row.tipoLocal || '', statusOperacional, status,
-        justificativa: row.JUSTIFICATIVA_STATUS || row.OBSERVACAO || row.observacao || '',
-        atualizadoEm: row.DATA_ULTIMA_ALTERACAO || row.ATUALIZADO_EM || row.horarioBrasil || ''
-      };
-    }
-
-    function osApiParaTela(row){
-      return {
-        idOS: row.ID_OS || row.idOs || row.idOS || row.NUMERO_OS || '',
-        numeroOS: row.NUMERO_OS || row.numeroOS || row.ID_OS || '',
-        idEquipamento: row.ID_EQUIPAMENTO || row.idEquipamento || '',
-        equipamento: row.EQUIPAMENTO || row.NOME_EQUIPAMENTO_GRUPO || row.equipamento || row.ID_EQUIPAMENTO || '',
-        sistema: row.SISTEMA || row.sistema || '',
-        tipoLocal: row.TIPO_LOCAL || row.tipoLocal || '',
-        localEstacao: row.LOCAL_ESTACAO || row.localEstacao || '',
-        statusOS: row.STATUS_OS || row.statusOS || row.status || '',
-        setorEquipe: row.SETOR_EQUIPE || row.setorEquipe || row.area || '',
-        tipoOs: row.TIPO_OS || row.tipoOs || row.tipoManutencao || '',
-        prioridade: row.PRIORIDADE || row.prioridade || 'Normal',
-        responsavel: row.RESPONSAVEL || row.responsavel || '',
-        descricao: row.DESCRICAO_SOLICITACAO || row.DESCRICAO_PROBLEMA || row.descricaoSolicitacao || row.descricaoProblema || '',
-        dataAbertura: row.DATA_ABERTURA || row.dataAbertura || '',
-        dataInicio: row.DATA_INICIO || row.dataInicio || '',
-        dataConclusao: row.DATA_CONCLUSAO || row.dataConclusao || '',
-        servicoRealizado: row.SERVICO_REALIZADO || row.servicoRealizado || '',
-        finalizadoPor: row.FINALIZADO_POR || row.finalizadoPor || '',
-        membrosEquipe: row.MEMBROS_EQUIPE || row.membrosEquipe || ''
-      };
-    }
-
-    function nomeSistema(codigo){
-      const mapa = { '100':'Moinhos de Vento', '200':'São João', '300':'Menino Deus', '400':'Belém Novo', '600':'Ilhas', '700':'Tristeza' };
-      return mapa[String(codigo)] || String(codigo || '');
-    }
-
-    function osEncerrada(os){ const s = canon(os.statusOS); return ['concluida','cancelada','encerrada','fechada','finalizada'].includes(s); }
-    function osAberta(os){ return canon(os.statusOS) === 'aberta'; }
-    function osIniciada(os){ const s = canon(os.statusOS); return s.includes('iniciada') || s.includes('execucao') || s.includes('andamento'); }
-    function osPendente(os){ return canon(os.statusOS).includes('pendente'); }
-    function osAtiva(os){ return !osEncerrada(os); }
-
-    function isResponsavel(os){ return state.usuario && canon(os.responsavel) === canon(state.usuario.nome); }
-    function podeAlterarOS(os){ return ehGestao(state.usuario) || isResponsavel(os); }
-
-    async function fazerLogin(){
-      const login = $('loginUser').value.trim();
-      const senha = $('loginPass').value;
-      const erro = $('loginErro');
-      erro.style.display = 'none';
-      if (!login || !senha) { erro.textContent = 'Informe usuário e senha.'; erro.style.display = 'block'; return; }
-      try {
-        setStatus('🔄 Validando login na API oficial...', '');
-        const ret = await apiPost('login', { login, usuario: login, senha });
-        state.usuario = normalizarUsuario(ret);
-        if (!state.usuario.nome) throw new Error('Login validado, mas a API não retornou nome do usuário.');
-        localStorage.setItem(GMAN.storageUser, JSON.stringify(state.usuario));
-        $('loginScreen').style.display = 'none';
-        mostrarUsuarioLogado();
-        aplicarPermissoes();
-        await atualizarAgora();
-      } catch(e){
-        erro.textContent = e.message || 'Falha no login.';
-        erro.style.display = 'block';
-        setStatus('⚠️ Login não validado: ' + (e.message || e), 'offline');
-      }
-    }
-
-    function recuperarLoginSalvo(){
-      try {
-        const salvo = JSON.parse(localStorage.getItem(GMAN.storageUser) || 'null');
-        if (!salvo || !salvo.nome) return false;
-        state.usuario = salvo;
-        $('loginScreen').style.display = 'none';
-        mostrarUsuarioLogado();
-        aplicarPermissoes();
-        return true;
-      } catch(e){ localStorage.removeItem(GMAN.storageUser); return false; }
-    }
-
-    function mostrarUsuarioLogado(){
-      const box = $('userInfo');
-      if (!state.usuario) { box.classList.add('hidden'); box.innerHTML = ''; return; }
-      const tipo = ehGestao(state.usuario) ? 'GESTÃO' : 'OPERACIONAL';
-      box.classList.remove('hidden');
-      box.innerHTML = `👤 ${esc(state.usuario.nome)} | ${esc(perfilUsuario(state.usuario) || 'SEM PERFIL')} | ${tipo}${setorUsuario(state.usuario) ? ' | ' + esc(setorUsuario(state.usuario)) : ''}<button id="btnSairGMAN">Sair</button>`;
-      $('btnSairGMAN').addEventListener('click', fazerLogout);
-    }
-
-    function fazerLogout(){
-      localStorage.removeItem(GMAN.storageUser);
-      state.usuario = null;
-      $('loginScreen').style.display = 'flex';
-      $('loginUser').value = '';
-      $('loginPass').value = '';
-      mostrarUsuarioLogado();
-      aplicarPermissoes();
-      setStatus('GMAN 8.5.7.10 — sessão encerrada', '');
-    }
-
-    function aplicarPermissoes(){
-      const gestao = ehGestao(state.usuario);
-      document.querySelectorAll('[data-gestao="true"]').forEach(el => el.classList.toggle('hidden', !gestao));
-    }
-
-    async function carregarStatus(){
-      const ret = await apiGet('listarStatusAtual');
-      const lista = extrairLista(ret, ['status','statusAtual','equipamentos']);
-      state.equipamentos = lista.map(equipamentoDeStatus).filter(e => e.id);
-      if (!state.equipamentos.length) throw new Error('A API não retornou equipamentos/status oficiais.');
-    }
-function atualizarTotalizadores(){
-      const total = state.equipamentos.length;
-      const ok = state.equipamentos.filter(e => e.status === 'ok').length;
-      const alert = state.equipamentos.filter(e => e.status === 'alert').length;
-      const down = state.equipamentos.filter(e => e.status === 'down').length;
-      $('operationalCount').textContent = ok;
-      $('maintenanceCount').textContent = alert;
-      $('downCount').textContent = down;
-      $('operationalPercent').textContent = pct(ok,total);
-      $('maintenancePercent').textContent = pct(alert,total);
-      $('downPercent').textContent = pct(down,total);
-
-      const abertas = state.ordens.filter(osAtiva).length;
-      const nao = state.ordens.filter(osAberta).length;
-      const ini = state.ordens.filter(osIniciada).length;
-      const enc = state.ordens.filter(osEncerrada).length;
-      const minhas = state.ordens.filter(o => osAtiva(o) && isResponsavel(o)).length;
-      $('totalOrdensAbertasHome').textContent = `(${abertas})`;
-      $('totalOrdensNaoIniciadasHome').textContent = `(${nao})`;
-      $('totalOrdensIniciadasHome').textContent = `(${ini})`;
-      $('totalOrdensEncerradasHome').textContent = `(${enc})`;
-      $('totalMinhasOSHome').textContent = `(${minhas})`;
-    }
-
-    function listaFiltrada(){
-      const q = canon(state.busca);
-      return state.equipamentos.filter(e => {
-        if (state.filtroSistema === 'brutas' && !e.filtroBrutas) return false;
-        if (state.filtroSistema !== 'all' && state.filtroSistema !== 'brutas' && String(e.systemCode) !== String(state.filtroSistema)) return false;
-        if (state.filtroStatus && e.status !== state.filtroStatus) return false;
-        if (q && !canon([e.id,e.name,e.local,e.system,e.systemCode,e.tipoLocal,e.statusOperacional].join(' ')).includes(q)) return false;
-        return true;
-      });
+    function statusDoEquip(id){ return APP.status.find(s=>s.idEquipamento===id) || {}; }
+    function statusClasse(status, visual){ const n=norm(visual||status||'Operando'); return STATUS_MAP[n] || STATUS_MAP[norm(status)] || 'blue'; }
+    function labelStatus(st){ return st?.statusVisual && st.statusVisual !== st.statusAtual ? st.statusVisual : (st?.statusAtual || 'Operando'); }
+    function renderKPIs(){
+      const grid = document.getElementById('kpiGrid');
+      const base = APP.kpis.length ? APP.kpis : [
+        {indicador:'Equipamentos oficiais',valor:APP.equipamentos.length,meta:'214 esperados',status:APP.equipamentos.length===214?'OK':'ATENÇÃO'},
+        {indicador:'OS abertas',valor:APP.ordens.length,meta:'Monitorar',status:'OK'}
+      ];
+      grid.innerHTML = base.slice(0,6).map(k=>{
+        const status = norm(k.status); const cls = status.includes('CRITICO')?'danger':status.includes('ATEN')?'warn':'ok';
+        let pct = 70; const val = String(k.valor||'').match(/[\d,.]+/); if(val) pct = Math.min(100, Math.max(8, Number(val[0].replace(',','.'))));
+        return `<div class="card kpi"><span class="pill ${cls}">${escapeHtml(k.status||'OK')}</span><div class="num">${escapeHtml(k.valor)}</div><div class="label">${escapeHtml(k.indicador)}</div><div class="meta">Meta: ${escapeHtml(k.meta||'')}</div><div class="progress"><div class="bar" style="width:${pct}%"></div></div></div>`;
+      }).join('');
     }
 
     function renderEquipamentos(){
-      const box = $('equipmentList');
-      const dados = listaFiltrada();
-      if (!dados.length) { box.innerHTML = '<div class="empty-box">Nenhum equipamento encontrado para este filtro.</div>'; return; }
-      box.innerHTML = dados.map(e => `
-        <div class="equipment-item" data-eq="${esc(e.id)}">
-          <div class="status-icon status-${e.status}">${e.status === 'ok' ? '✓' : e.status === 'alert' ? '!' : '✕'}</div>
-          <div>
-            <div class="equipment-name">${esc(e.id)} — ${esc(e.name)}</div>
-            <div class="equipment-system">${esc(e.local || 'Local não informado')}<br><span class="system-tag tag-${esc(e.systemCode)}">${esc(e.systemCode)}</span> ${esc(e.system)} ${e.filtroBrutas ? ' · BRUTA' : ''}</div>
-            ${e.justificativa ? `<div class="equipment-system">Justificativa: ${esc(e.justificativa)}</div>` : ''}
-          </div>
-          <div><span class="status-badge badge-${e.status}">${esc(labelStatus(e))}</span></div>
-        </div>`).join('');
-      box.querySelectorAll('.equipment-item').forEach(item => item.addEventListener('click', () => abrirGrupo(item.dataset.eq)));
-    }
-function abrirModal(titulo, corpo){
-      fecharModal();
-      const modal = document.createElement('div');
-      modal.className = 'modal'; modal.id = 'modalGMAN';
-      modal.innerHTML = `<div class="modal-card"><div class="modal-head"><h2>${titulo}</h2><button class="close-btn" id="modalFechar">Fechar</button></div><div id="modalBody">${corpo}</div></div>`;
-      document.body.appendChild(modal);
-      $('modalFechar').addEventListener('click', fecharModal);
-    }
-    function fecharModal(){ const m = $('modalGMAN'); if (m) m.remove(); }
-
-    function classeOS(status){ const s=canon(status); if(s.includes('concl')) return 'os-concluida'; if(s.includes('cancel')) return 'os-cancelada'; if(s.includes('pend')) return 'os-pendente'; if(s.includes('inici')) return 'os-iniciada'; if(s.includes('exec') || s.includes('andamento')) return 'os-execucao'; return 'os-aberta'; }
-
-    function filtrarOS(modo){
-      let lista = state.ordens.slice();
-      if (modo === 'encerradas') lista = lista.filter(osEncerrada);
-      else if (modo === 'naoIniciadas') lista = lista.filter(osAberta);
-      else if (modo === 'iniciadas') lista = lista.filter(osIniciada);
-      else if (modo === 'minhas') lista = lista.filter(o => osAtiva(o) && isResponsavel(o));
-      else if (String(modo).startsWith('grupo:')) { const id = String(modo).replace('grupo:',''); lista = lista.filter(o => canon(o.idEquipamento) === canon(id) || canon(o.equipamento).includes(canon(id))); }
-      else lista = lista.filter(osAtiva);
-      return lista.reverse();
-    }
-function formatarData(v){
-      if (!v) return '';
-      const d = new Date(v);
-      if (!isNaN(d.getTime())) return d.toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'});
-      return String(v);
-    }
-async function abrirPainelKPI(){
-      if(!ehGestao(state.usuario)) return alert('KPIs disponíveis somente para gestão.');
-      abrirModal('KPIs Industriais', '<div id="kpiBox">🔄 Calculando KPIs...</div>');
-      try {
-        const ret = await apiGet('calcularKPIs');
-        const box = $('kpiBox');
-        const cards = ret.cards || ret.kpis || ret.resultado || [];
-        if (Array.isArray(cards) && cards.length) {
-          box.innerHTML = '<div class="grid-2">' + cards.map(c => `<div style="background:#f7fafc;border-left:5px solid #3182ce;border-radius:14px;padding:12px;"><strong>${esc(c.chave || c.nome || c.indicador || 'KPI')}</strong><br><span style="font-size:1.4rem;color:#1e3a5f;font-weight:900;">${esc(c.valor || c.resultado || c.total || '')}</span><br><small>${esc(c.meta || c.prova || c.descricao || '')}</small></div>`).join('') + '</div>';
-        } else {
-          box.innerHTML = `<pre style="white-space:pre-wrap;background:#f7fafc;border-radius:12px;padding:12px;color:#2d3748;">${esc(JSON.stringify(ret, null, 2))}</pre>`;
-        }
-      } catch(e){ $('kpiBox').innerHTML = `<div style="background:#fff5f5;border-left:5px solid #e53e3e;border-radius:12px;padding:12px;color:#742a2a;">Erro ao carregar KPIs: ${esc(e.message)}</div>`; }
-    }
-
-    function limparCache(){
-      const manter = localStorage.getItem(GMAN.storageUser);
-      Object.keys(localStorage).filter(k => k.toLowerCase().includes('gman')).forEach(k => localStorage.removeItem(k));
-      if (manter) localStorage.setItem(GMAN.storageUser, manter);
-      alert('Cache operacional limpo. Sessão preservada.');
-    }
-
-    function configurarEventos(){
-      $('loginFormGMAN').addEventListener('submit', ev => { ev.preventDefault(); fazerLogin(); });
-      $('searchInput').addEventListener('input', ev => { state.busca = ev.target.value; renderEquipamentos(); });
-      document.querySelectorAll('.system-btn').forEach(btn => btn.addEventListener('click', () => {
-        state.filtroSistema = btn.dataset.system;
-        document.querySelectorAll('.system-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        renderEquipamentos();
-      }));
-      document.querySelectorAll('.stat-card').forEach(card => card.addEventListener('click', () => {
-        const st = card.dataset.status;
-        state.filtroStatus = state.filtroStatus === st ? '' : st;
-        document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
-        if (state.filtroStatus) card.classList.add('active');
-        renderEquipamentos();
-      }));
-      $('mainActions').addEventListener('click', ev => {
-        const btn = ev.target.closest('[data-action]'); if (!btn) return;
-        const ac = btn.dataset.action;
-        if (ac === 'os-abertas') abrirPainelOS('abertas');
-        if (ac === 'os-minhas') abrirPainelOS('minhas');
-        if (ac === 'os-nao-iniciadas') abrirPainelOS('naoIniciadas');
-        if (ac === 'os-iniciadas') abrirPainelOS('iniciadas');
-        if (ac === 'os-encerradas') abrirPainelOS('encerradas');
-        if (ac === 'kpis') abrirPainelKPI();
-        if (ac === 'atualizar') atualizarAgora();
-        if (ac === 'limpar-cache') limparCache();
-      });
-    }
-
-
-    /* =====================================================
-     * GMAN 8.5.7.10 — regras operacionais restauradas e blindadas no Index
-     * - Permissões fortes por perfil
-     * - Patrimônio obrigatório por componente
-     * - Ficha técnica por componente
-     * - Sem uso de veículo
-     * - Evidências: foto/áudio, sem vídeo
-     * - OS pendente bloqueada para conclusão direta
-     * ===================================================== */
-
-    const COMPONENTES_GMAN8577 = [
-      { chave:'PAINEL', rotulo:'Painel', patObrigatorio:true, campos:['Localização','Tipo de partida','A máxima','Situação da instalação','Condição visual'] },
-      { chave:'MOTOR', rotulo:'Motor', patObrigatorio:true, campos:['Marca','Modelo','Potência','Tensão','Corrente nominal','Corrente de trabalho','Rolamentos','Condição visual'] },
-      { chave:'BOMBA', rotulo:'Bomba', patObrigatorio:true, campos:['Modelo','Tipo','Diâmetro da sucção','Diâmetro do recalque','Rolamentos','Retentores','Selo','Gaxeta','Acoplamento','Diâmetro do rotor','Tipo de óleo'] },
-      { chave:'VS', rotulo:'Válvula de Sucção', patObrigatorio:true, campos:['Tipo','Diâmetro','Acionamento','Flanges'] },
-      { chave:'VR', rotulo:'Válvula de Recalque', patObrigatorio:true, campos:['Tipo','Diâmetro','Acionamento','Flanges'] },
-      { chave:'RETENCAO', rotulo:'Válvula de Retenção', patObrigatorio:true, campos:['Tipo','Diâmetro','Acionamento','Flanges'] },
-      { chave:'TUBULACAO', rotulo:'Tubulação', patObrigatorio:false, campos:['Diâmetro','Material','Situação visual'] }
-    ];
-
-    const SETORES_PATRIMONIO_OPCIONAL_GMAN8577 = ['usinagem','caldeiraria','instalacoes mecanicas'];
-    const STATUS_ANDAMENTO_GMAN8577 = ['Em manutenção, operando','Em manutenção, parado','Em teste','Parado','Operando com restrição','Aguardando material','Aguardando liberação','Em andamento'];
-    let audioRecorder8577 = null;
-    let audioChunks8577 = [];
-    let audioBlob8577 = null;
-    let audioInicio8577 = 0;
-    let audioDuracao8577 = 0;
-
-    function payloadUsuario8577(extra){
-      return Object.assign({
-        usuario: state.usuario ? state.usuario.nome : '',
-        login: state.usuario ? (state.usuario.login || state.usuario.nome) : '',
-        perfil: state.usuario ? (state.usuario.perfil || state.usuario.funcao || '') : ''
-      }, extra || {});
-    }
-
-    function setorPatrimonioOpcional8577(valor){
-      const c = canon(valor);
-      return SETORES_PATRIMONIO_OPCIONAL_GMAN8577.some(s => c.includes(s));
-    }
-
-    function comp8577(chave){ return COMPONENTES_GMAN8577.find(c => c.chave === chave); }
-    function idSafe8577(v){ return String(v || '').replace(/[^A-Za-z0-9_\-]/g,'_'); }
-
-    async function carregarUsuarios(){
-      try{
-        const ret = await apiGet('listarUsuarios', payloadUsuario8577());
-        const lista = extrairLista(ret, ['usuarios','users']);
-        state.usuarios = lista.map(u => ({
-          nome: u.NOME || u.nome || u.LOGIN || u.login || '',
-          perfil: u.PERFIL || u.perfil || '',
-          setor: u.SETOR_PADRAO || u.setorPadrao || u.AREA || u.area || '',
-          ativo: u.ATIVO || u.ativo || 'SIM'
-        })).filter(u => u.nome);
-      } catch(e){ console.warn('Não foi possível carregar usuários para seletores:', e); state.usuarios = state.usuarios || []; }
-    }
-
-    async function carregarOrdens(){
-      const filtros = ehGestao(state.usuario) ? payloadUsuario8577({ minhas:false }) : payloadUsuario8577({});
-      const ret = await apiGet('listarOrdensServico', filtros);
-      const lista = extrairLista(ret, ['ordens','ordensServico','os']);
-      state.ordens = lista.map(osApiParaTela).filter(o => o.idOS || o.numeroOS);
-    }
-
-    async function atualizarAgora(){
-      if (state.sincronizando) return;
-      state.sincronizando = true;
-      setStatus('🔄 Sincronizando com API oficial GMAN 8.5.7.10...', '');
-      try {
-        await carregarStatus();
-        await carregarUsuarios();
-        try { await carregarOrdens(); } catch(e){ console.warn('OS não carregadas:', e); state.ordens = []; }
-        atualizarTotalizadores();
-        renderEquipamentos();
-        aplicarPermissoes();
-        setStatus(`✅ Online: API oficial conectada | ${GMAN.versaoIndex} | ${agora()}`, 'online');
-      } catch(e){
-        console.error(e);
-        renderEquipamentos();
-        setStatus('⚠️ Falha ao carregar API oficial: ' + (e.message || e), 'offline');
-      } finally { state.sincronizando = false; }
-    }
-
-    async function consultarPatrimonioGrupo8577(idEquipamento){
-      try{
-        const ret = await apiGet('consultarPatrimonioGrupo', payloadUsuario8577({ idEquipamento }));
-        return ret || { patrimonios:{}, fichas:{} };
-      } catch(e){
-        console.warn('Consulta patrimonial indisponível. Modal abrirá em modo manual:', e);
-        return { patrimonios:{}, fichas:{}, aviso:'Consulta patrimonial indisponível: ' + (e.message || e) };
+      const termo = norm(document.getElementById('busca').value);
+      let lista = APP.equipamentos.map(e => Object.assign({}, e, { st: statusDoEquip(e.id) }));
+      if(APP.filtroSistema !== 'TODOS'){
+        if(APP.filtroSistema === 'BRUTAS') lista = lista.filter(e => BRUTAS.includes((e.id||'').slice(0,3)));
+        else lista = lista.filter(e => String(e.sistema) === APP.filtroSistema);
       }
+      if(APP.filtroStatus !== 'TODOS') lista = lista.filter(e => norm(labelStatus(e.st)) === norm(APP.filtroStatus) || norm(e.st.statusAtual) === norm(APP.filtroStatus));
+      if(termo) lista = lista.filter(e => norm([e.id,e.equipamento,e.sistema,labelStatus(e.st),e.st.justificativa].join(' ')).includes(termo));
+      const box = document.getElementById('equipList');
+      if(!lista.length){ box.innerHTML='<div class="empty">Nenhum equipamento encontrado.</div>'; return; }
+      box.innerHTML = lista.map(e=>{
+        const st = e.st || {}; const cls = statusClasse(st.statusAtual, st.statusVisual); const label = labelStatus(st);
+        return `<div class="equip" onclick="abrirEquip('${e.id}')"><div class="ico ${cls}">${iconeStatus(cls)}</div><div><b>${escapeHtml(e.equipamento||e.id)}</b><small><span class="pill gray">${escapeHtml(e.id)}</span> <span class="pill">Sistema ${escapeHtml(e.sistema||'')}</span> <span class="pill ${pillClasse(cls)}">${escapeHtml(label)}</span><br>${escapeHtml(st.justificativa||'Sem justificativa recente')}</small></div><div class="equip-actions"><button class="btn small secondary" onclick="event.stopPropagation(); abrirOSGrupo('${e.id}')">Ver OS</button><button class="btn small" onclick="event.stopPropagation(); abrirModalCriarOS('${e.id}')">Abrir OS</button></div></div>`;
+      }).join('');
     }
+    function iconeStatus(cls){ return cls==='ok'?'✓':cls==='danger'?'!':cls==='orange'?'▶':'•'; }
+    function pillClasse(cls){ return cls==='ok'?'ok':cls==='danger'?'danger':cls==='orange'?'orange':'warn'; }
 
-    function montarOptionsResponsaveis8577(){
-      const vistos = new Set();
-      const base = (state.usuarios || [])
-        .filter(u => canon(u.ativo) !== 'nao')
-        .filter(u => u.nome)
-        .filter(u => {
-          const p = canon(u.perfil);
-          return p.includes('lider') || p.includes('administrador') || p.includes('supervisor') || p.includes('coordenador') || p.includes('gerente');
-        })
-        .filter(u => { const k=canon(u.nome); if(vistos.has(k)) return false; vistos.add(k); return true; })
-        .sort((a,b) => a.nome.localeCompare(b.nome,'pt-BR'));
-      const opts = ['<option value="">Selecione o responsável</option>'].concat(base.map(u => `<option value="${esc(u.nome)}">${esc(u.nome)}${u.perfil ? ' — ' + esc(String(u.perfil).toUpperCase()) : ''}${u.setor ? ' / ' + esc(String(u.setor).toUpperCase()) : ''}</option>`));
-      return opts.join('');
+    function renderOS(){
+      const abertas = APP.ordens.filter(o=>!['CONCLUÍDA','CANCELADA'].includes(norm(o.statusOS)));
+      document.getElementById('osAbertas').innerHTML = abertas.length ? abertas.map(cardOS).join('') : '<div class="empty">Nenhuma OS aberta retornada pela API.</div>';
     }
-
-    function renderComponentesAbertura8577(){
-      return `<div class="rule-box"><strong>Equipamento/componente solicitado dentro do grupo</strong><br>Marque o que motivou a OS. Membros da equipe não entram na abertura, somente no encerramento.</div>` +
-        COMPONENTES_GMAN8577.map(c => `<label style="display:flex;align-items:center;gap:8px;color:#2d3748;font-weight:800;background:#f7fafc;border:1px solid #e2e8f0;border-radius:10px;padding:9px;margin-bottom:6px;"><input type="checkbox" class="compSolicitado8577" value="${c.chave}"> ${esc(c.rotulo)} <span class="mini-chip ${c.patObrigatorio ? 'required':'optional'}">${c.patObrigatorio ? 'PAT obrigatório no encerramento':'PAT opcional'}</span></label>`).join('');
+    async function renderEncerradas(){
+      if(!isGestao()) return;
+      try{ const r = await api('listarOS',{incluirEncerradas:true,usuario:APP.usuario?.nome||''}); const encerradas=(r.ordens||[]).filter(o=>['CONCLUÍDA','CANCELADA'].includes(norm(o.statusOS))); document.getElementById('osEncerradas').innerHTML = encerradas.length ? encerradas.map(cardOS).join('') : '<div class="empty">Nenhuma OS encerrada encontrada.</div>'; }catch(e){ document.getElementById('osEncerradas').innerHTML='<div class="empty">'+escapeHtml(e.message)+'</div>'; }
     }
-
-    function coletarComponentesSolicitados8577(){
-      return Array.from(document.querySelectorAll('.compSolicitado8577:checked')).map(x => x.value);
+    function cardOS(o){
+      const enc = ['CONCLUÍDA','CANCELADA'].includes(norm(o.statusOS));
+      return `<div class="os"><div class="os-head"><div><b>${escapeHtml(o.numeroOS||o.idOS)}</b><p>${escapeHtml(o.equipamento||o.idEquipamento)} · ${escapeHtml(o.area||'')} · ${escapeHtml(o.responsavel||'')}</p></div><span class="pill ${enc?'gray':'warn'}">${escapeHtml(o.statusOS||'')}</span></div><p>${escapeHtml(o.descricaoProblema||o.observacaoFinal||'Sem descrição')}</p><div class="row" style="margin-top:10px"><button class="btn small secondary" onclick="abrirOSDetalhe('${o.idOS}')">Detalhes</button>${enc?'':`<button class="btn small" onclick="iniciarOS('${o.idOS}')">Iniciar</button><button class="btn small warn" onclick="abrirModalAndamento('${o.idOS}')">Andamento</button><button class="btn small ok" onclick="abrirModalConcluir('${o.idOS}')">Concluir</button>`}</div></div>`;
     }
-
-    function abrirGrupo(id){
-      const e = state.equipamentos.find(x => x.id === id);
-      if (!e) return;
-      const ordensGrupo = state.ordens.filter(o => canon(o.idEquipamento) === canon(id) || canon(o.equipamento).includes(canon(id)));
-      const ativa = ordensGrupo.filter(osAtiva).length;
-      const ultimas = ordensGrupo.slice(0, ehGestao(state.usuario) ? 20 : 3);
-      abrirModal(`Grupo ${esc(e.id)}`, `
-        <div class="rule-box">
-          <strong>${esc(e.id)} — ${esc(e.name)}</strong><br>
-          Local: ${esc(e.local || '-')}<br>
-          Sistema: ${esc(e.systemCode)} — ${esc(e.system)}<br>
-          Status: <strong>${esc(labelStatus(e))}</strong>${e.filtroBrutas ? '<br><strong>Filtro BRUTAS:</strong> SIM' : ''}<br>
-          ${e.justificativa ? '<strong>Justificativa visível:</strong> ' + esc(e.justificativa) : 'Justificativa visível: -'}
-        </div>
-        <div class="grid-2" style="margin-bottom:12px;">
-          <button class="action-btn primary" id="modalOSGrupo">📋 Ver OS do grupo (${ordensGrupo.length})</button>
-          <button class="action-btn" id="modalPatrimonioGrupo">🏷️ Patrimônio e ficha técnica</button>
-          ${ehGestao(state.usuario) ? '<button class="action-btn success" id="modalCriarOS">➕ Abrir OS neste grupo</button>' : ''}
-        </div>
-        <div class="warn-box">OS ativas no grupo: <strong>${ativa}</strong>. O equipamento só volta para Operando quando não houver OS ativa vinculada bloqueando o retorno.</div>
-        <div class="ok-box"><strong>Histórico recente ${ehGestao(state.usuario) ? '(gestão: ampliado)' : '(operação: últimas 3)'}</strong><br>${ultimas.length ? ultimas.map(o => `${esc(o.numeroOS || o.idOS)} — ${esc(o.statusOS || '-')} — ${esc(o.responsavel || '-')}`).join('<br>') : 'Sem OS registradas para este grupo.'}</div>
-      `);
-      $('modalOSGrupo').addEventListener('click', () => abrirPainelOS('grupo:' + id));
-      $('modalPatrimonioGrupo').addEventListener('click', () => abrirModalPatrimonioFichaGrupo8577(id));
-      const criar = $('modalCriarOS'); if (criar) criar.addEventListener('click', () => abrirModalCriarOS(id));
+    async function abrirEquip(id){
+      const eq = APP.equipamentos.find(e=>e.id===id); const st = statusDoEquip(id); const hist = await api('listarHistoricoGrupo',{idEquipamento:id,usuario:APP.usuario?.nome||''}).catch(()=>({historico:[]})); const pat = await api('listarPatrimonioGrupo',{idEquipamento:id}).catch(()=>({patrimonio:null}));
+      abrirModal(`Grupo ${escapeHtml(id)}`, eq?.equipamento || '', `<div class="grid cols2"><div class="card soft"><h3>Status atual</h3><p><span class="pill ${pillClasse(statusClasse(st.statusAtual,st.statusVisual))}">${escapeHtml(labelStatus(st))}</span></p><p class="muted" style="margin-top:8px">${escapeHtml(st.justificativa||'Sem justificativa')}</p></div><div class="card soft"><h3>Ações</h3><div class="row"><button class="btn small" onclick="fecharModal(); abrirModalCriarOS('${id}')">Abrir OS</button><button class="btn small secondary" onclick="fecharModal(); abrirOSGrupo('${id}')">Ver OS</button></div></div></div><div class="card soft" style="margin-top:10px"><h3>Histórico recente</h3>${(hist.historico||[]).slice(0, isGestao()?50:3).map(h=>`<p class="muted"><b>${escapeHtml(h.dataHora)}</b> · ${escapeHtml(h.acao)} · ${escapeHtml(h.usuario)}<br>${escapeHtml(h.observacao||'')}</p>`).join('') || '<p class="muted">Sem histórico.</p>'}</div><div class="card soft" style="margin-top:10px"><h3>Patrimônio/ficha técnica</h3><div class="mono">${escapeHtml(JSON.stringify(pat.patrimonio||{}, null, 2))}</div></div>`);
     }
+    async function abrirOSGrupo(id){ const r=await api('listarOS',{idEquipamento:id,incluirEncerradas:true,usuario:APP.usuario?.nome||''}); abrirModal('OS do grupo '+id,'Lista oficial vinculada ao equipamento',(r.ordens||[]).map(cardOS).join('')||'<div class="empty">Sem OS para este grupo.</div>'); }
+    function abrirOSDetalhe(id){ const o=[...APP.ordens].find(x=>x.idOS===id||x.numeroOS===id); abrirModal('Detalhes da OS', id, `<div class="mono">${escapeHtml(JSON.stringify(o||{}, null, 2))}</div>`); }
 
-    function cardOS(os){
-      const encerrada = osEncerrada(os), pendente = osPendente(os), perm = podeAlterarOS(os);
-      const iniciar = !encerrada && !pendente && perm && osAberta(os);
-      const andamento = !encerrada && perm;
-      const concluir = !encerrada && !pendente && perm && !osAberta(os);
-      return `<div class="os-card">
-        <h4>${esc(os.numeroOS || os.idOS)} — ${esc(os.equipamento || os.idEquipamento)}</h4>
-        <span class="os-badge ${classeOS(os.statusOS)}">${esc(os.statusOS || 'Sem status')}</span><span class="os-badge os-aberta">${esc(os.prioridade || 'Normal')}</span>
-        <p><strong>Sistema:</strong> ${esc(os.sistema || '-')} | <strong>Setor:</strong> ${esc(os.setorEquipe || '-')} | <strong>Tipo:</strong> ${esc(os.tipoOs || '-')}</p>
-        <p><strong>Responsável:</strong> ${esc(os.responsavel || '-')}</p>
-        <p><strong>Solicitação:</strong> ${esc(os.descricao || '-')}</p>
-        ${os.dataAbertura ? `<p><strong>Abertura:</strong> ${esc(formatarData(os.dataAbertura))}</p>` : ''}
-        ${!encerrada && !perm ? '<p style="color:#744210;background:#fffaf0;border-left:4px solid #d69e2e;border-radius:10px;padding:8px;font-weight:800;">🔒 Somente o responsável ou a gestão pode alterar esta OS.</p>' : ''}
-        ${pendente ? '<p style="color:#742a2a;background:#fff5f5;border-left:4px solid #e53e3e;border-radius:10px;padding:8px;font-weight:800;">⚠️ OS pendente não pode ser concluída diretamente. Primeiro regularize o andamento.</p>' : ''}
-        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
-          ${iniciar ? `<button class="action-btn" data-iniciar-os="${esc(os.idOS)}">▶️ Iniciar</button>` : ''}
-          ${andamento ? `<button class="action-btn" data-andamento-os="${esc(os.idOS)}">📝 ${pendente ? 'Regularizar pendência':'Atualizar andamento'}</button>` : ''}
-          ${(!encerrada && !pendente && perm) ? `<button class="action-btn" data-pendente-os="${esc(os.idOS)}">⏸️ Marcar pendente</button>` : ''}
-          ${(!encerrada && perm) ? `<button class="action-btn" data-evidencia-os="${esc(os.idOS)}">📎 Evidências</button>` : ''}
-          ${concluir ? `<button class="action-btn success" data-concluir-os="${esc(os.idOS)}">✅ Concluir</button>` : ''}
-        </div>
-      </div>`;
+    function abrirModalCriarOS(idEquip=''){
+      abrirModal('Abrir nova OS','Abertura validada pela base oficial', `<div class="form-grid"><div class="field"><label>Equipamento</label><input id="f_idEquip" value="${escapeAttr(idEquip)}" placeholder="101-GR1"></div><div class="field"><label>Área</label><select id="f_area">${AREAS.map(a=>`<option>${a}</option>`).join('')}</select></div><div class="field"><label>Tipo</label><select id="f_tipo"><option>Corretiva</option><option>Preventiva</option><option>Melhoria</option></select></div><div class="field"><label>Prioridade</label><select id="f_prio"><option>Normal</option><option>Alta</option><option>Crítica</option><option>Baixa</option></select></div><div class="field"><label>Responsável</label><input id="f_resp" placeholder="Nome do líder/responsável"></div><div class="field"><label>Equipe responsável</label><input id="f_equipe" placeholder="Mecânica, Elétrica..."></div><div class="field full"><label>Descrição do problema/serviço</label><textarea id="f_desc"></textarea></div></div><button class="btn" onclick="criarOS()">Criar OS</button>`);
     }
-
-    function abrirPainelOS(modo){
-      if (modo === 'encerradas' && !ehGestao(state.usuario)) { alert('Ordens encerradas são visíveis apenas para gestão.'); return; }
-      const lista = filtrarOS(modo);
-      const titulo = modo === 'encerradas' ? 'Ordens Encerradas' : modo === 'naoIniciadas' ? 'OS Não Iniciadas' : modo === 'iniciadas' ? 'OS Iniciadas' : modo === 'minhas' ? 'Minhas OS' : String(modo).startsWith('grupo:') ? 'OS do grupo' : 'OS Abertas';
-      const html = `
-        <div class="grid-2" style="margin-bottom:12px;">
-          <button class="action-btn primary" data-modo-os="abertas">📋 OS Abertas</button>
-          <button class="action-btn" data-modo-os="minhas">👤 Minhas OS</button>
-          ${ehGestao(state.usuario) ? '<button class="action-btn" data-modo-os="naoIniciadas">⏳ Não Iniciadas</button><button class="action-btn" data-modo-os="iniciadas">🛠️ Iniciadas</button><button class="action-btn" data-modo-os="encerradas">✅ Encerradas</button>' : ''}
-        </div>
-        ${lista.length ? lista.map(cardOS).join('') : '<div style="background:#f7fafc;border-radius:12px;padding:14px;color:#4a5568;">Nenhuma OS encontrada neste filtro.</div>'}
-      `;
-      abrirModal(titulo, html);
-      document.querySelectorAll('[data-modo-os]').forEach(b => b.addEventListener('click', () => abrirPainelOS(b.dataset.modoOs)));
-      document.querySelectorAll('[data-iniciar-os]').forEach(b => b.addEventListener('click', () => abrirModalIniciarOS8577(b.dataset.iniciarOs)));
-      document.querySelectorAll('[data-andamento-os]').forEach(b => b.addEventListener('click', () => abrirModalAndamentoOS(b.dataset.andamentoOs)));
-      document.querySelectorAll('[data-pendente-os]').forEach(b => b.addEventListener('click', () => abrirModalPendenteOS8577(b.dataset.pendenteOs)));
-      document.querySelectorAll('[data-evidencia-os]').forEach(b => b.addEventListener('click', () => abrirModalEvidenciasOS8577(b.dataset.evidenciaOs)));
-      document.querySelectorAll('[data-concluir-os]').forEach(b => b.addEventListener('click', () => abrirModalConcluirOS(b.dataset.concluirOs)));
+    async function criarOS(){
+      try{ const r=await api('criarOS',{usuario:APP.usuario?.nome||'',perfil:APP.usuario?.perfil||'',idEquipamento:v('f_idEquip'),area:v('f_area'),tipoManutencao:v('f_tipo'),prioridade:v('f_prio'),responsavel:v('f_resp'),equipeResponsavel:v('f_equipe'),descricaoProblema:v('f_desc')}); if(!r.sucesso) throw new Error(r.erro); toast('OS criada: '+r.os.NUMERO_OS); fecharModal(); await carregarTudo(); }catch(e){ toast(e.message); }
     }
-
-    function abrirModalCriarOS(idEquipamento){
-      if (!ehGestao(state.usuario)) return alert('Abertura de OS é permitida apenas para gestão.');
-      const eq = state.equipamentos.find(e => e.id === idEquipamento);
-      if (!eq) return alert('Grupo não localizado. Atualize a tela.');
-      abrirModal('Abrir Ordem de Serviço', `
-        <div class="rule-box"><strong>Grupo selecionado:</strong><br>${esc(eq.id)} — ${esc(eq.name)}<br>${esc(eq.local || '')}<br>Sistema ${esc(eq.systemCode)} — ${esc(eq.system)}</div>
-        ${renderComponentesAbertura8577()}
-        <label class="form-label">Setor/equipe</label><select id="osSetor" class="form-field"><option value="">Selecione</option><option>Mecânica</option><option>Elétrica</option><option>Automação</option><option>Usinagem</option><option>Caldeiraria</option><option>Instalações Mecânicas</option></select>
-        <label class="form-label">Tipo da OS</label><select id="osTipo" class="form-field"><option value="">Selecione</option><option>Corretiva</option><option>Preventiva</option><option>Preditiva</option><option>Melhoria</option></select>
-        <label class="form-label">Prioridade</label><select id="osPrioridade" class="form-field"><option>Normal</option><option>Alta</option><option>Crítica</option></select>
-        <label class="form-label">Responsável/executor principal</label><select id="osResponsavel" class="form-field">${montarOptionsResponsaveis8577()}</select>
-        <label class="form-label">Descrição da solicitação</label><textarea id="osDescricao" class="form-field" rows="4" placeholder="Descreva o problema ou serviço solicitado"></textarea>
-        <div class="warn-box">Não existe campo membros da equipe na abertura. Membros da equipe entram somente no encerramento.</div>
-        <div style="display:flex;gap:10px;justify-content:flex-end;"><button class="close-btn" id="cancelCriarOS">Cancelar</button><button class="action-btn success" id="confirmCriarOS">Criar OS</button></div>
-      `);
-      $('cancelCriarOS').addEventListener('click', fecharModal);
-      $('confirmCriarOS').addEventListener('click', async () => {
-        const setorEquipe = $('osSetor').value, tipoOs = $('osTipo').value, prioridade = $('osPrioridade').value, responsavel = $('osResponsavel').value.trim(), descricaoSolicitacao = $('osDescricao').value.trim();
-        const componentes = coletarComponentesSolicitados8577();
-        const faltam = [];
-        if(!componentes.length) faltam.push('equipamento/componente solicitado'); if(!setorEquipe) faltam.push('setor/equipe'); if(!tipoOs) faltam.push('tipo da OS'); if(!responsavel) faltam.push('responsável'); if(!descricaoSolicitacao) faltam.push('descrição');
-        if(faltam.length) return alert('Preencha: ' + faltam.join(', ') + '.');
-        const duplicada = state.ordens.find(o => osAtiva(o) && canon(o.idEquipamento) === canon(eq.id) && canon(o.responsavel) === canon(responsavel));
-        if (duplicada) return alert('Bloqueado: já existe OS ativa para este equipamento e o mesmo responsável. Use responsável diferente ou regularize a OS existente.');
-        try{
-          await apiPost('criarOS', payloadUsuario8577({
-            idEquipamento: eq.id, equipamento: eq.name, sistema: eq.systemCode, tipoLocal: eq.tipoLocal, localEstacao: eq.local,
-            setorEquipe, area: setorEquipe, responsavel, tipoOs, tipoManutencao: tipoOs, prioridade,
-            descricaoSolicitacao: descricaoSolicitacao + '\nComponentes solicitados: ' + componentes.map(k => comp8577(k).rotulo).join(', '),
-            componentesSolicitados: componentes.join(', ')
-          }));
-          alert('OS criada com sucesso.'); fecharModal(); await atualizarAgora(); abrirPainelOS('abertas');
-        } catch(e){ alert('Erro ao criar OS: ' + e.message); }
-      });
+    async function iniciarOS(id){ try{ const r=await api('iniciarOS',{idOS:id,usuario:APP.usuario?.nome||'',perfil:APP.usuario?.perfil||''}); if(!r.sucesso) throw new Error(r.erro); toast('OS iniciada.'); await carregarTudo(); }catch(e){ toast(e.message); } }
+    function abrirModalAndamento(id){ abrirModal('Atualizar andamento',id,`<div class="form-grid"><div class="field"><label>Status da OS</label><select id="a_status"><option>Em andamento</option><option>Em execução</option><option>Aguardando material</option><option>Aguardando liberação</option><option>Em teste</option></select></div><div class="field"><label>Condição operacional</label><select id="a_cond">${STATUS_EQUIP.map(s=>`<option>${s}</option>`).join('')}</select></div><div class="field full"><label>Justificativa visível</label><textarea id="a_just"></textarea></div></div><button class="btn warn" onclick="atualizarAndamento('${id}')">Salvar andamento</button>`); }
+    async function atualizarAndamento(id){ try{ const r=await api('atualizarAndamentoOS',{idOS:id,usuario:APP.usuario?.nome||'',perfil:APP.usuario?.perfil||'',statusOS:v('a_status'),condicaoOperacional:v('a_cond'),justificativa:v('a_just')}); if(!r.sucesso) throw new Error(r.erro); toast('Andamento salvo.'); fecharModal(); await carregarTudo(); }catch(e){ toast(e.message); } }
+    function camposPatrimonioConclusao(){
+      const comps=[['PAINEL','Painel'],['MOTOR','Motor'],['BOMBA','Bomba'],['VS','Válvula de Sucção'],['VR','Válvula de Recalque'],['RETENCAO','Válvula de Retenção'],['TUBULACAO','Tubulação']];
+      return `<div class="card soft full"><h3>Ficha técnica patrimonial</h3><p class="muted">Para Mecânica, Elétrica e Automação, informe o patrimônio quando ainda não existir. Se já existir na ficha do grupo, marque confirmar patrimônio correto. Tubulação não exige PAT.</p><div class="form-grid">${comps.map(c=>`<div class="field"><label>${c[1]} · PAT</label><input id="c_pat_${c[0]}" placeholder="Patrimônio ${c[1]}"><label style="margin-top:6px;text-transform:none;letter-spacing:0"><input type="checkbox" id="c_conf_${c[0]}"> Confirmar patrimônio já cadastrado</label></div><div class="field"><label>${c[1]} · descrição</label><textarea id="c_desc_${c[0]}" placeholder="Marca/modelo/condição, quando aplicável"></textarea></div>`).join('')}</div></div>`;
     }
-
-    function abrirModalIniciarOS8577(idOS){
-      const os = state.ordens.find(o => String(o.idOS) === String(idOS));
-      if (!os || !podeAlterarOS(os)) return alert('Sem permissão para iniciar esta OS.');
-      abrirModal('Iniciar OS', `
-        <div class="rule-box"><strong>Regra operacional:</strong> iniciar OS muda apenas o status da OS/grupo para <strong>Iniciada</strong>. O status operacional do equipamento permanece preservado. Para informar parado, teste, aguardando material ou manutenção, use <strong>Atualizar andamento</strong> depois de iniciar.</div>
-        <label class="form-label">Justificativa obrigatória do início</label><textarea id="iniJust" class="form-field" rows="3" placeholder="Ex.: equipe deslocada, serviço iniciado em campo, aguardando condição para intervenção"></textarea>
-        <div style="display:flex;gap:10px;justify-content:flex-end;"><button class="close-btn" id="iniCancel">Cancelar</button><button class="action-btn success" id="iniSave">Iniciar OS</button></div>`);
-      $('iniCancel').addEventListener('click', fecharModal);
-      $('iniSave').addEventListener('click', async () => {
-        const justificativa = $('iniJust').value.trim();
-        if (!justificativa) return alert('Justificativa obrigatória.');
-        try { await apiPost('iniciarOS', payloadUsuario8577({ idOs:idOS, idOS, justificativa })); alert('OS iniciada com sucesso. Status operacional preservado até atualização de andamento.'); fecharModal(); await atualizarAgora(); abrirPainelOS('abertas'); }
-        catch(e){ alert('Erro ao iniciar OS: ' + e.message); }
-      });
+    function abrirModalConcluir(id){
+      abrirModal('Concluir OS',id,`<div class="form-grid"><div class="field full"><label>Serviço realizado</label><textarea id="c_servico"></textarea></div><div class="field full"><label>Materiais</label><textarea id="c_mat"></textarea></div><div class="field"><label>Membros da equipe</label><input id="c_membros"></div><div class="field"><label>Situação final</label><select id="c_sit">${STATUS_EQUIP.map(s=>`<option>${s}</option>`).join('')}</select></div><div class="field"><label><input type="checkbox" id="c_semveic" /> Sem uso de veículo</label><input id="c_prefixo" placeholder="Prefixo veículo"></div><div class="field"><label>Motorista</label><input id="c_mot"></div><div class="field"><label>KM inicial</label><input id="c_kmi" type="number"></div><div class="field"><label>KM final</label><input id="c_kmf" type="number"></div><div class="field full"><label>Equipamentos/características adicionais</label><textarea id="c_extra"></textarea></div>${camposPatrimonioConclusao()}<div class="field full"><label>Observação final</label><textarea id="c_obs"></textarea></div></div><button class="btn ok" onclick="concluirOS('${id}')">Concluir OS</button>`);
     }
-
-    function abrirModalAndamentoOS(idOS){
-      const os = state.ordens.find(o => String(o.idOS) === String(idOS));
-      if (!os || !podeAlterarOS(os)) return alert('Sem permissão para atualizar esta OS.');
-      abrirModal(osPendente(os) ? 'Regularizar pendência / atualizar andamento' : 'Atualizar andamento da OS', `
-        <div class="warn-box">Use andamento para manter a OS aberta quando o equipamento ainda não retornou à condição final. OS pendente precisa ser regularizada antes de concluir.</div>
-        <label class="form-label">Condição operacional</label><select id="andCond" class="form-field">${STATUS_ANDAMENTO_GMAN8577.map(s => `<option>${esc(s)}</option>`).join('')}</select>
-        <label class="form-label">Justificativa da condição operacional</label><textarea id="andJust" class="form-field" rows="3"></textarea>
-        <label class="form-label">Observação do andamento</label><textarea id="andObs" class="form-field" rows="3"></textarea>
-        <div style="display:flex;gap:10px;justify-content:flex-end;"><button class="close-btn" id="andCancel">Cancelar</button><button class="action-btn success" id="andSave">Salvar andamento</button></div>`);
-      $('andCancel').addEventListener('click', fecharModal);
-      $('andSave').addEventListener('click', async () => {
-        const condicaoOperacional = $('andCond').value, justificativa = $('andJust').value.trim(), observacao = $('andObs').value.trim();
-        if (!justificativa || !observacao) return alert('Justificativa e observação são obrigatórias.');
-        try { await apiPost('atualizarAndamentoOS', payloadUsuario8577({ idOs:idOS, idOS, condicaoOperacional, justificativa, observacao })); alert('Andamento atualizado.'); fecharModal(); await atualizarAgora(); abrirPainelOS('abertas'); }
-        catch(e){ alert('Erro ao atualizar andamento: ' + e.message); }
-      });
+    function coletarPatrimonioConclusao(){
+      const comps=['PAINEL','MOTOR','BOMBA','VS','VR','RETENCAO','TUBULACAO']; const o={};
+      comps.forEach(c=>{ o['PAT_'+c]=v('c_pat_'+c); o['DESC_'+c]=v('c_desc_'+c); o['CONFIRMA_PAT_'+c]=document.getElementById('c_conf_'+c)?.checked || false; });
+      return o;
     }
+    async function concluirOS(id){ try{ const payload=Object.assign({idOS:id,usuario:APP.usuario?.nome||'',perfil:APP.usuario?.perfil||'',servicoRealizado:v('c_servico'),materiais:v('c_mat'),membrosEquipe:v('c_membros'),situacaoFinalEquipamento:v('c_sit'),semUsoVeiculo:document.getElementById('c_semveic').checked,prefixoVeiculo:v('c_prefixo'),motorista:v('c_mot'),kmInicial:v('c_kmi'),kmFinal:v('c_kmf'),equipamentosAdicionais:v('c_extra'),observacaoFinal:v('c_obs')}, coletarPatrimonioConclusao()); const r=await api('concluirOS',payload); if(!r.sucesso) throw new Error(r.erro); toast('OS concluída.'); fecharModal(); await carregarTudo(); }catch(e){ toast(e.message); } }
 
-    function abrirModalPendenteOS8577(idOS){
-      const os = state.ordens.find(o => String(o.idOS) === String(idOS));
-      if (!os || !podeAlterarOS(os)) return alert('Sem permissão para marcar pendência nesta OS.');
-      abrirModal('Marcar OS como Pendente', `
-        <div class="danger-box">OS pendente fica bloqueada para conclusão direta. Ela precisa ser regularizada por andamento antes do encerramento.</div>
-        <label class="form-label">Motivo da pendência</label><input id="pendMotivo" class="form-field" placeholder="Ex.: aguardando material">
-        <label class="form-label">Observação da pendência</label><textarea id="pendObs" class="form-field" rows="3"></textarea>
-        <div style="display:flex;gap:10px;justify-content:flex-end;"><button class="close-btn" id="pendCancel">Cancelar</button><button class="action-btn success" id="pendSave">Registrar pendência</button></div>`);
-      $('pendCancel').addEventListener('click', fecharModal);
-      $('pendSave').addEventListener('click', async () => {
-        const motivoPendencia = $('pendMotivo').value.trim(), observacaoPendencia = $('pendObs').value.trim();
-        if (!motivoPendencia || !observacaoPendencia) return alert('Motivo e observação são obrigatórios.');
-        try { await apiPost('marcarPendenteOS', payloadUsuario8577({ idOs:idOS, idOS, motivoPendencia, observacaoPendencia })); alert('Pendência registrada.'); fecharModal(); await atualizarAgora(); abrirPainelOS('abertas'); }
-        catch(e){ alert('Erro ao registrar pendência: ' + e.message); }
-      });
-    }
+    async function diagnostico(){ try{ const r=await api('diagnosticoProfundo',{usuario:APP.usuario?.nome||''}); document.getElementById('diagnosticoBox').textContent=JSON.stringify(r.diagnostico||r,null,2); }catch(e){ document.getElementById('diagnosticoBox').textContent=e.message; } }
+    async function simularQuarentena(){ try{ const r=await api('simularQuarentenaSegura',{usuario:APP.usuario?.nome||''}); document.getElementById('quarentenaBox').textContent=JSON.stringify(r,null,2); }catch(e){ document.getElementById('quarentenaBox').textContent=e.message; } }
+    async function executarQuarentena(){ try{ const r=await api('executarQuarentenaSegura',{usuario:APP.usuario?.nome||'',confirmacao:v('confirmacaoQuarentena')}); document.getElementById('quarentenaBox').textContent=JSON.stringify(r,null,2); if(!r.sucesso) throw new Error(r.erro); toast('Quarentena executada.'); await carregarTudo(); }catch(e){ toast(e.message); } }
+    async function repararStatus(){ try{ const r=await api('repararStatusAtual',{usuario:APP.usuario?.nome||'',confirmacao:'CONFIRMO REPARO STATUS GMAN 8.5.6.59'}); toast('Reparo concluído: '+JSON.stringify(r)); await carregarTudo(); }catch(e){ toast(e.message); } }
 
-    function fichaCamposHTML8577(componente, dados){
-      const c = comp8577(componente);
-      const campos = (c && c.campos) || [];
-      return campos.map(campo => `<label class="form-label">${esc(campo)}</label><input class="form-field fichaCampo8577" data-campo="${esc(campo)}" value="${esc((dados && dados[campo]) || '')}">`).join('');
-    }
-
-    function abrirFichaTecnica8577(componente, idEquipamento, idOs){
-      const c = comp8577(componente); if(!c) return;
-      const localKey = `GMAN_FICHA_LOCAL_${idEquipamento}_${componente}`;
-      let dados = {}; try { dados = JSON.parse(localStorage.getItem(localKey) || '{}'); } catch(e){}
-      abrirModal('Ficha técnica — ' + c.rotulo, `
-        <div class="rule-box">Preencha as lacunas fixas do componente. A informação será registrada na ficha técnica e reaproveitada localmente na próxima abertura desta tela.</div>
-        ${fichaCamposHTML8577(componente, dados)}
-        <label class="form-label">Observação</label><textarea id="fichaObs8577" class="form-field" rows="2"></textarea>
-        <div style="display:flex;gap:10px;justify-content:flex-end;"><button class="close-btn" id="fichaCancel8577">Cancelar</button><button class="action-btn success" id="fichaSave8577">Salvar ficha</button></div>`);
-      $('fichaCancel8577').addEventListener('click', fecharModal);
-      $('fichaSave8577').addEventListener('click', async () => {
-        const campos = {};
-        document.querySelectorAll('.fichaCampo8577').forEach(inp => { campos[inp.dataset.campo] = inp.value.trim(); });
-        localStorage.setItem(localKey, JSON.stringify(campos));
-        try { await apiPost('registrarFichaTecnica', payloadUsuario8577({ idEquipamento, idOs: idOs || '', componente, campos, observacao: $('fichaObs8577').value.trim() })); alert('Ficha técnica registrada.'); fecharModal(); }
-        catch(e){ alert('Erro ao registrar ficha técnica: ' + e.message); }
-      });
-    }
-
-    function patrValorFromConsulta8577(consulta, componente){
-      const p = consulta && consulta.patrimonios;
-      if (!p) return '';
-      if (p[componente] && typeof p[componente] === 'object') return p[componente].patrimonio || p[componente].PATRIMONIO || '';
-      return p[componente] || p['PAT_' + componente] || '';
-    }
-
-    function fichaFromConsulta8577(consulta, componente){
-      const f = consulta && consulta.fichas;
-      if (!f) return {};
-      if (f[componente] && f[componente].campos) return f[componente].campos;
-      return f[componente] || {};
-    }
-
-    function renderPatrimonioConclusao8577(os, consulta){
-      const opcionalSetor = setorPatrimonioOpcional8577(os.setorEquipe);
-      return `
-        <div class="${opcionalSetor ? 'ok-box' : 'warn-box'}"><strong>Patrimônio e ficha técnica</strong><br>${opcionalSetor ? 'Para Usinagem, Caldeiraria e Instalações Mecânicas, patrimônio e ficha técnica são opcionais.' : 'Para este setor, patrimônio dos componentes obrigatórios e confirmação de ficha técnica são exigidos antes de concluir.'}</div>
-        <div class="pat-grid">
-        ${COMPONENTES_GMAN8577.map(c => {
-          const valor = patrValorFromConsulta8577(consulta, c.chave);
-          const ficha = fichaFromConsulta8577(consulta, c.chave);
-          const fichaTexto = Object.keys(ficha || {}).length ? Object.entries(ficha).map(([k,v]) => `${k}: ${v}`).join('\n') : 'Ficha técnica ainda não exibida/preenchida nesta tela.';
-          const obrig = c.patObrigatorio && !opcionalSetor;
-          return `<div class="pat-row" data-comp-row="${c.chave}">
-            <div class="pat-row-title"><span>${esc(c.rotulo)}</span><span class="mini-chip ${obrig ? 'required':'optional'}">${obrig ? 'Obrigatório':'Opcional'}</span></div>
-            <label class="form-label">Patrimônio</label><input class="form-field patInput8577" data-componente="${c.chave}" value="${esc(valor)}" placeholder="${c.patObrigatorio ? 'Informe ou confirme o PAT' : 'PAT opcional'}">
-            <label style="display:flex;align-items:center;gap:8px;color:#1e3a5f;font-weight:900;"><input type="checkbox" class="patConf8577" data-componente="${c.chave}" ${valor ? 'checked' : ''}> Confirmo que o patrimônio está correto</label>
-            <label style="display:flex;align-items:center;gap:8px;color:#1e3a5f;font-weight:900;"><input type="checkbox" class="fichaConf8577" data-componente="${c.chave}" ${Object.keys(ficha || {}).length ? 'checked' : ''}> Confirmo ficha técnica deste componente</label>
-            <button type="button" class="btn-small" data-ficha-comp="${c.chave}">🧾 Preencher ficha técnica</button>
-            <pre class="ficha-preview">${esc(fichaTexto)}</pre>
-          </div>`;
-        }).join('')}
-        </div>`;
-    }
-
-    async function abrirModalPatrimonioFichaGrupo8577(idEquipamento){
-      const consulta = await consultarPatrimonioGrupo8577(idEquipamento);
-      const e = state.equipamentos.find(x => x.id === idEquipamento) || { id:idEquipamento, name:idEquipamento };
-      abrirModal('Patrimônio e ficha — ' + esc(idEquipamento), `
-        <div class="rule-box"><strong>${esc(e.id)} — ${esc(e.name)}</strong><br>Consulta e registro técnico por componente.</div>
-        ${consulta.aviso ? '<div class="warn-box">' + esc(consulta.aviso) + '</div>' : ''}
-        <div class="pat-grid">
-        ${COMPONENTES_GMAN8577.map(c => {
-          const valor = patrValorFromConsulta8577(consulta, c.chave);
-          const ficha = fichaFromConsulta8577(consulta, c.chave);
-          const fichaTexto = Object.keys(ficha || {}).length ? Object.entries(ficha).map(([k,v]) => `${k}: ${v}`).join('\n') : 'Sem ficha técnica retornada pela API.';
-          return `<div class="pat-row"><div class="pat-row-title"><span>${esc(c.rotulo)}</span><span class="mini-chip ${c.patObrigatorio ? 'required':'optional'}">${c.patObrigatorio ? 'PAT obrigatório em OS comum':'PAT opcional'}</span></div><label class="form-label">Patrimônio</label><input class="form-field patConsulta8577" data-componente="${c.chave}" value="${esc(valor)}" placeholder="Patrimônio"><label class="form-label">Descrição resumida</label><input class="form-field descConsulta8577" data-componente="${c.chave}" placeholder="Descrição resumida"><button class="btn-small green" data-conf-pat-grupo="${c.chave}">Confirmar patrimônio</button><button class="btn-small" data-ficha-grupo="${c.chave}">Preencher ficha técnica</button><pre class="ficha-preview">${esc(fichaTexto)}</pre></div>`;
-        }).join('')}
-        </div>`);
-      document.querySelectorAll('[data-ficha-grupo]').forEach(btn => btn.addEventListener('click', () => abrirFichaTecnica8577(btn.dataset.fichaGrupo, idEquipamento, '')));
-      document.querySelectorAll('[data-conf-pat-grupo]').forEach(btn => btn.addEventListener('click', async () => {
-        const componente = btn.dataset.confPatGrupo;
-        const input = document.querySelector(`.patConsulta8577[data-componente="${componente}"]`);
-        const desc = document.querySelector(`.descConsulta8577[data-componente="${componente}"]`);
-        if (!input || !input.value.trim()) return alert('Informe o patrimônio antes de confirmar.');
-        try { await apiPost('confirmarPatrimonio', payloadUsuario8577({ idEquipamento, componente, patrimonio: input.value.trim(), descricaoResumida: desc ? desc.value.trim() : '', observacao:'Confirmação pela tela de patrimônio/ficha do grupo.' })); alert('Patrimônio confirmado.'); }
-        catch(e){ alert('Erro ao confirmar patrimônio: ' + e.message); }
-      }));
-    }
-
-    async function confirmarPatrimoniosEFichasAntesConclusao8577(os, consulta){
-      const opcional = setorPatrimonioOpcional8577(os.setorEquipe);
-      const faltas = [];
-      for (const c of COMPONENTES_GMAN8577) {
-        const patInput = document.querySelector(`.patInput8577[data-componente="${c.chave}"]`);
-        const patConf = document.querySelector(`.patConf8577[data-componente="${c.chave}"]`);
-        const fichaConf = document.querySelector(`.fichaConf8577[data-componente="${c.chave}"]`);
-        const pat = patInput ? patInput.value.trim() : '';
-        const obrig = c.patObrigatorio && !opcional;
-        if (obrig && !pat) faltas.push('PAT ' + c.rotulo);
-        if (obrig && patConf && !patConf.checked) faltas.push('confirmação do patrimônio ' + c.rotulo);
-        if (obrig && fichaConf && !fichaConf.checked) faltas.push('confirmação da ficha técnica ' + c.rotulo);
-      }
-      if (faltas.length) throw new Error('Pendências de patrimônio/ficha: ' + faltas.join(', ') + '.');
-      for (const c of COMPONENTES_GMAN8577) {
-        const patInput = document.querySelector(`.patInput8577[data-componente="${c.chave}"]`);
-        const pat = patInput ? patInput.value.trim() : '';
-        if (pat) {
-          await apiPost('confirmarPatrimonio', payloadUsuario8577({ idEquipamento: os.idEquipamento, idOs: os.idOS, componente: c.chave, patrimonio: pat, obrigatorioNoEncerramento: c.patObrigatorio ? 'SIM' : 'NÃO', observacao:'Confirmação no encerramento da OS.' }));
-        }
-      }
-      return { patrimonioConfirmado: opcional ? 'OPCIONAL' : 'SIM', fichaTecnicaConfirmada: opcional ? 'OPCIONAL' : 'SIM' };
-    }
-
-    async function abrirModalConcluirOS(idOS){
-      const os = state.ordens.find(o => String(o.idOS) === String(idOS));
-      if (!os || !podeAlterarOS(os)) return alert('Sem permissão para concluir esta OS.');
-      if (osPendente(os)) return alert('OS pendente não pode ser concluída diretamente. Regularize o andamento antes.');
-      const consulta = await consultarPatrimonioGrupo8577(os.idEquipamento);
-      abrirModal('Concluir OS', `
-        <div class="danger-box">A conclusão só será aceita se as regras obrigatórias forem cumpridas: serviço, materiais, condição final, justificativa, membros da equipe, veículo ou sem veículo, patrimônio/ficha quando aplicável.</div>
-        <label class="form-label">Serviço realizado</label><textarea id="concServico" class="form-field" rows="3"></textarea>
-        <label class="form-label">Materiais utilizados</label><textarea id="concMateriais" class="form-field" rows="2" placeholder="Informe materiais ou Não utilizado"></textarea>
-        <label style="display:flex;align-items:center;gap:8px;color:#2d3748;font-weight:800;margin:8px 0;"><input type="checkbox" id="concSemVeiculo" checked> Sem uso de veículo</label>
-        <div class="grid-2" id="veiculoCampos"><div><label class="form-label">Motorista</label><input id="concMotorista" class="form-field"></div><div><label class="form-label">Prefixo do veículo</label><input id="concPrefixo" class="form-field"></div><div><label class="form-label">KM inicial</label><input id="concKmIni" type="number" class="form-field"></div><div><label class="form-label">KM final</label><input id="concKmFim" type="number" class="form-field"></div></div>
-        <label class="form-label">Condição operacional final</label><select id="concCond" class="form-field"><option>Operando</option></select>
-        <label class="form-label">Justificativa da condição final</label><textarea id="concJust" class="form-field" rows="2" placeholder="Explique a condição final"></textarea>
-        <label class="form-label">Observação final</label><textarea id="concObs" class="form-field" rows="2"></textarea>
-        <label class="form-label">Membros da equipe</label><textarea id="concMembros" class="form-field" rows="2" placeholder="Informe todos que participaram"></textarea>
-        <label class="form-label">Equipamentos ou características adicionais</label><textarea id="concItensAdicionais" class="form-field" rows="2" placeholder="Itens extras além de Painel, Motor, Bomba e Válvulas"></textarea>
-        ${renderPatrimonioConclusao8577(os, consulta)}
-        <div class="warn-box">Evidências não são obrigatórias, mas se selecionar foto/áudio no painel de evidências, envie antes de concluir.</div>
-        <div style="display:flex;gap:10px;justify-content:flex-end;"><button class="close-btn" id="concCancel">Cancelar</button><button class="action-btn success" id="concSave">Concluir OS</button></div>`);
-      const chk = $('concSemVeiculo'), veic = $('veiculoCampos');
-      function syncVeic(){ veic.classList.toggle('hidden', chk.checked); }
-      chk.addEventListener('change', syncVeic); syncVeic();
-      document.querySelectorAll('[data-ficha-comp]').forEach(btn => btn.addEventListener('click', () => abrirFichaTecnica8577(btn.dataset.fichaComp, os.idEquipamento, os.idOS)));
-      $('concCancel').addEventListener('click', fecharModal);
-      $('concSave').addEventListener('click', async () => {
-        const servicoRealizado = $('concServico').value.trim(), materiaisUtilizados = $('concMateriais').value.trim(), semUsoVeiculo = chk.checked;
-        const condicaoOperacionalFinal = $('concCond').value, justificativaCondicaoFinal = $('concJust').value.trim(), observacaoFinal = $('concObs').value.trim(), membrosEquipe = $('concMembros').value.trim();
-        const motorista = $('concMotorista').value.trim(), prefixoVeiculo = $('concPrefixo').value.trim(), kmInicial = $('concKmIni').value, kmFinal = $('concKmFim').value;
-        const itensAdicionaisObservados = $('concItensAdicionais').value.trim();
-        const faltam=[]; if(!servicoRealizado) faltam.push('serviço realizado'); if(!materiaisUtilizados) faltam.push('materiais utilizados'); if(!justificativaCondicaoFinal) faltam.push('justificativa final'); if(!observacaoFinal) faltam.push('observação final'); if(!membrosEquipe) faltam.push('membros da equipe');
-        if(!semUsoVeiculo){ if(!motorista) faltam.push('motorista'); if(!prefixoVeiculo) faltam.push('prefixo'); if(kmInicial==='') faltam.push('KM inicial'); if(kmFinal==='') faltam.push('KM final'); if(Number(kmFinal) < Number(kmInicial)) faltam.push('KM final maior ou igual ao inicial'); }
-        if(faltam.length) return alert('Preencha: ' + faltam.join(', ') + '.');
-        try {
-          const conf = await confirmarPatrimoniosEFichasAntesConclusao8577(os, consulta);
-          await apiPost('concluirOS', payloadUsuario8577({ idOs:idOS, idOS, servicoRealizado, materiaisUtilizados, materiais:materiaisUtilizados, semUsoVeiculo, motorista, prefixoVeiculo, kmInicial, kmFinal, condicaoOperacionalFinal, statusFinalEquipamento:condicaoOperacionalFinal, justificativaCondicaoFinal, observacaoFinal, membrosEquipe, itensAdicionaisObservados, patrimonioConfirmado: conf.patrimonioConfirmado, fichaTecnicaConfirmada: conf.fichaTecnicaConfirmada }));
-          alert('OS concluída com sucesso.'); fecharModal(); await atualizarAgora(); abrirPainelOS('encerradas');
-        } catch(e){ alert('Erro ao concluir OS: ' + e.message); }
-      });
-    }
-
-    function arquivoParaBase64GMAN8577(file){
-      return new Promise((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve(String(r.result || '').split(',')[1] || ''); r.onerror = reject; r.readAsDataURL(file); });
-    }
-
-    function abrirModalEvidenciasOS8577(idOS){
-      const os = state.ordens.find(o => String(o.idOS) === String(idOS));
-      if (!os || !podeAlterarOS(os)) return alert('Sem permissão para anexar evidências nesta OS.');
-      abrirModal('Evidências da OS', `
-        <div class="rule-box">Regra: até 2 fotos por usuário dentro da OS, áudio máximo de 1 minuto gravado na hora e vídeo bloqueado.</div>
-        <label class="form-label">Foto</label><input id="evFoto" type="file" accept="image/*" capture="environment" class="form-field"><label class="form-label">Observação da foto</label><input id="evFotoObs" class="form-field"><button class="action-btn success" id="evFotoEnviar">📷 Enviar foto</button>
-        <hr style="margin:14px 0;border:none;border-top:1px solid #e2e8f0;">
-        <div class="warn-box">Áudio deve ser gravado na hora. Não buscar arquivo pronto do aparelho.</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;"><button class="btn-small" id="evAudioIniciar">🎙️ Iniciar gravação</button><button class="btn-small orange" id="evAudioParar" disabled>⏹️ Parar</button><button class="btn-small green" id="evAudioEnviar" disabled>📤 Enviar áudio gravado</button></div>
-        <div id="evAudioStatus" style="color:#1e3a5f;font-weight:900;margin-bottom:8px;">Nenhum áudio gravado.</div><audio id="evAudioPreview" controls style="width:100%;display:none;"></audio><label class="form-label">Observação do áudio</label><input id="evAudioObs" class="form-field">`);
-      $('evFotoEnviar').addEventListener('click', async () => {
-        const input=$('evFoto'); if(!input.files || !input.files[0]) return alert('Selecione uma foto.');
-        const file=input.files[0]; if(String(file.type||'').startsWith('video/')) return alert('Vídeo bloqueado.');
-        try { const base64=await arquivoParaBase64GMAN8577(file); await apiPost('anexarEvidencia', payloadUsuario8577({ idOs: idOS, tipoEvidencia:'FOTO', nomeArquivo:file.name, mimeType:file.type || 'image/jpeg', arquivoBase64:base64, observacao:$('evFotoObs').value.trim() })); alert('Foto enviada.'); input.value=''; }
-        catch(e){ alert('Erro ao enviar foto: ' + e.message); }
-      });
-      $('evAudioIniciar').addEventListener('click', iniciarAudio8577);
-      $('evAudioParar').addEventListener('click', pararAudio8577);
-      $('evAudioEnviar').addEventListener('click', async () => {
-        if(!audioBlob8577) return alert('Grave o áudio primeiro.');
-        if(audioDuracao8577 <=0 || audioDuracao8577 > 60) return alert('Áudio deve ter até 1 minuto.');
-        try { const file = new File([audioBlob8577], 'audio_gman_' + Date.now() + '.webm', { type: audioBlob8577.type || 'audio/webm' }); const base64=await arquivoParaBase64GMAN8577(file); await apiPost('anexarEvidencia', payloadUsuario8577({ idOs:idOS, tipoEvidencia:'AUDIO', nomeArquivo:file.name, mimeType:file.type, arquivoBase64:base64, duracaoSegundos:audioDuracao8577, origemCaptura:'GRAVADO_NA_HORA', observacao:$('evAudioObs').value.trim() })); alert('Áudio enviado.'); audioBlob8577=null; $('evAudioEnviar').disabled=true; $('evAudioStatus').textContent='Áudio enviado. Grave outro se necessário.'; }
-        catch(e){ alert('Erro ao enviar áudio: ' + e.message); }
-      });
-    }
-
-    async function iniciarAudio8577(){
-      try{
-        if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return alert('Gravador não disponível neste navegador.');
-        const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
-        audioChunks8577=[]; audioBlob8577=null; audioDuracao8577=0; audioInicio8577=Date.now();
-        audioRecorder8577 = new MediaRecorder(stream);
-        audioRecorder8577.ondataavailable = e => { if(e.data && e.data.size>0) audioChunks8577.push(e.data); };
-        audioRecorder8577.onstop = () => { stream.getTracks().forEach(t => t.stop()); audioDuracao8577=Math.max(1, Math.round((Date.now()-audioInicio8577)/1000)); audioBlob8577=new Blob(audioChunks8577,{type:audioRecorder8577.mimeType || 'audio/webm'}); const prev=$('evAudioPreview'); if(prev){prev.src=URL.createObjectURL(audioBlob8577); prev.style.display='block';} $('evAudioEnviar').disabled=false; $('evAudioParar').disabled=true; $('evAudioIniciar').disabled=false; $('evAudioStatus').textContent='Áudio gravado: ' + audioDuracao8577 + 's.'; };
-        audioRecorder8577.start(); $('evAudioIniciar').disabled=true; $('evAudioParar').disabled=false; $('evAudioEnviar').disabled=true; $('evAudioStatus').textContent='Gravando... limite de 1 minuto.'; setTimeout(() => { if(audioRecorder8577 && audioRecorder8577.state === 'recording') pararAudio8577(); }, 60000);
-      } catch(e){ alert('Não foi possível iniciar o gravador: ' + e.message); }
-    }
-
-    function pararAudio8577(){ if(audioRecorder8577 && audioRecorder8577.state === 'recording') audioRecorder8577.stop(); }
-
-
-    function iniciar(){
-      configurarEventos();
-      aplicarPermissoes();
-      renderEquipamentos();
-      if (recuperarLoginSalvo()) atualizarAgora();
-      if (state.timer) clearInterval(state.timer);
-      state.timer = setInterval(() => { if (state.usuario) atualizarAgora(); }, GMAN.syncMs);
-      console.log(GMAN.versaoIndex + ' carregado sem núcleo antigo.');
-    }
-
-    window.addEventListener('load', iniciar);
-  })();
+    function abrirAba(id){ document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===id)); document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.getElementById('sec-'+id).classList.add('active'); if(id==='encerradas') renderEncerradas(); if(id==='diagnostico') diagnostico(); }
+    function abrirModal(titulo,sub,html){ document.getElementById('modalTitulo').innerHTML=titulo; document.getElementById('modalSub').textContent=sub||''; document.getElementById('modalConteudo').innerHTML=html; document.getElementById('modal').classList.add('open'); }
+    function fecharModal(){ document.getElementById('modal').classList.remove('open'); }
+    function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),4200); }
+    function v(id){ const el=document.getElementById(id); return el ? el.value.trim() : ''; }
+    function norm(s){ return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toUpperCase().replace(/\s+/g,' '); }
+    function escapeHtml(s){ return (s===undefined||s===null?'':String(s)).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+    function escapeAttr(s){ return escapeHtml(s).replace(/'/g,'&#39;'); }
   </script>
 </body>
 </html>
