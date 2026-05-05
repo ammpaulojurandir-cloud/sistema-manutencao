@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Manutenção GMAN</title>
+    <title>GMAN DMAE — Sistema de Manutenção</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -36,7 +36,6 @@
         .stat-card:hover { background: rgba(255,255,255,0.2); }
         .stat-number { font-size: 2rem; font-weight: bold; }
         .stat-label { font-size: 0.75rem; color: #a0c4e8; margin-top: 5px; font-weight: 600;}
-        .stat-percent { font-size: 0.82rem; color: #ffffff; margin-top: 6px; font-weight: 700; opacity: 0.95; }
         
         #card-all .stat-number { color: #63b3ed; }
         #card-ok { background: rgba(56, 161, 105, 0.15); border-color: rgba(56, 161, 105, 0.3); }
@@ -150,7 +149,7 @@
                     color: #333;
                 ">
 
-                <button type="submit" style="
+                <button type="submit" id="btnEntrarLogin" style="
                     width: 100%;
                     padding: 15px;
                     background: #3182ce;
@@ -163,6 +162,7 @@
                 ">Entrar</button>
             </form>
             
+            <p style="color:#a0aec0; margin-top:12px; font-size:0.68rem;">GMAN 8.5.6.70</p>
             <p id="loginErro" style="color: #e53e3e; margin-top: 15px; font-size: 0.85rem; display: none; font-weight: bold;"></p>
         </div>
     </div>
@@ -182,7 +182,7 @@
 
      <div class="systems-filter">
          <button class="system-btn active" onclick="filterSystem('all')">TODAS</button>
-         <button class="system-btn" onclick="filterSystem('moinhos de vento')">100- Moinhos De Vento</button>
+         <button class="system-btn" onclick="filterSystem('moinhos de vento')">100 - Moinhos</button>
          <button class="system-btn" onclick="filterSystem('são joao')">200 - São João</button>
          <button class="system-btn" onclick="filterSystem('menino deus')">300 - Menino Deus</button>
          <button class="system-btn" onclick="filterSystem('belem novo')">400 - Belém Novo</button>
@@ -215,7 +215,7 @@
         <button class="action-btn primary" id="btnOrdensAbertasHome" onclick="abrirPainelOS('abertas')">📋 OS Abertas <span id="totalOrdensAbertasHome">(0)</span></button>
         <button class="action-btn" id="btnOrdensNaoIniciadasHome" onclick="abrirPainelOS('naoIniciadas')" style="display:none;">⏳ OS Não Iniciadas <span id="totalOrdensNaoIniciadasHome">(0)</span></button>
         <button class="action-btn" id="btnOrdensIniciadasHome" onclick="abrirPainelOS('iniciadas')" style="display:none;">🛠️ OS Iniciadas <span id="totalOrdensIniciadasHome">(0)</span></button>
-        <button class="action-btn" id="btnOrdensEncerradasHome" onclick="abrirPainelOS('encerradas')" style="display:none;">✅ Ordens Encerradas <span id="totalOrdensEncerradasHome">(0)</span></button>
+        <button class="action-btn" id="btnOrdensEncerradasHome" onclick="abrirPainelOS('encerradas')">✅ Ordens Encerradas <span id="totalOrdensEncerradasHome">(0)</span></button>
         <button class="action-btn" id="btnPainelKPI" onclick="abrirPainelGerencial()" style="display:none;">📊 Painel Gerencial</button>
         <button class="action-btn" onclick="atualizarAgora()">🔄 Atualizar agora</button>
       </div>
@@ -241,24 +241,22 @@
             { nome: 'ANTONIO CARLOS LEAL', senha: 'dmae2026', funcao: 'lider', area: 'mecanica' },
             { nome: 'RICARDO MATHIOLA', senha: 'dmae2026', funcao: 'lider', area: 'mecanica' },
 
-            // INSTALAÇÕES MECÂNICAS
+            // INSTALAÇÕES MECÂNICAS / USINAGEM / CALDEIRARIA
             { nome: 'PAULO JURANDIR', senha: 'dmae2026', funcao: 'lider', area: 'instalações mecânicas' },
+            { nome: 'SIDNEI ROCHA', senha: 'dmae2026', funcao: 'lider', area: 'caldeiraria' },
+            { nome: 'GABRIEL STUMM', senha: 'dmae2026', funcao: 'lider', area: 'usinagem' },
 
             // LÍDERES ELÉTRICA
             { nome: 'CARLOS ALBERTO', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
             { nome: 'ANDRE MARQUES', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
             { nome: 'ROQUE BECKER', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
-            { nome: 'SAULO LOCKMAN', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' },
-
-            // USINAGEM E CALDEIRARIA
-            { nome: 'SIDNEI ROCHA', senha: 'dmae2026', funcao: 'lider', area: 'caldeiraria' },
-            { nome: 'GABRIEL STUMM', senha: 'dmae2026', funcao: 'lider', area: 'usinagem' },
+            { nome: 'SAULO LOCKMAN', senha: 'dmae2026', funcao: 'lider', area: 'eletrica' }
         ];
         
         let usuarioLogado = null;
         const API_URL = 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec';
-        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.69 — visual original restaurado';
-        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.65';
+        const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.70 — visual 8.5.6.14 restaurado, login rápido e Enter ativo';
+        const VERSAO_BACKEND_ESPERADA_GMAN = 'GMAN 8.5.6.70';
         let apiOnline = false;
         let modoPainelOSAtual = 'abertas';
 
@@ -268,11 +266,6 @@
                 .toLowerCase()
                 .normalize('NFD')
                 .replace(/[\u0300-\u036f]/g, '');
-        }
-
-        function calcularPercentualGMAN(parte, total) {
-            if (!total || total <= 0) return '0%';
-            return ((parte / total) * 100).toFixed(1).replace('.0', '') + '%';
         }
 
         function isOSEncerrada(status) {
@@ -326,8 +319,6 @@
             if (s.includes('aguardando material')) return 'Aguardando material';
             if (s.includes('aguardando liberacao')) return 'Aguardando liberação';
             if (s.includes('restricao')) return 'Operando com restrição';
-            if (s.includes('manutencao') && s.includes('operando')) return 'Em manutenção (operando)';
-            if (s.includes('manutencao') && s.includes('parado')) return 'Em manutenção (parado)';
             if (s.includes('parad')) return 'Parado';
             if (s.includes('manutencao')) return 'Em manutenção';
             if (s.includes('reabert')) return 'Reaberta';
@@ -481,8 +472,8 @@
                 .normalize('NFD')
                 .replace(/[\u0300-\u036f]/g, '');
 
-            if (texto.includes('manutencao (parado)') || texto.includes('manutenção (parado)') || texto.includes('parad') || obs.includes('condicao operacional: parado') || obs.includes('condição operacional: parado')) return 'down';
-            if (texto.includes('manutencao (operando)') || texto.includes('manutenção (operando)') || texto.includes('manut') || texto.includes('aguard') || texto.includes('restri') || obs.includes('em teste') || texto.includes('em teste') || texto.includes('alert') || texto.includes('atencao')) return 'alert';
+            if (texto.includes('parad') || obs.includes('condicao operacional: parado') || obs.includes('condição operacional: parado')) return 'down';
+            if (texto.includes('manut') || texto.includes('aguard') || texto.includes('restri') || obs.includes('em teste') || texto.includes('em teste') || texto.includes('alert') || texto.includes('atencao')) return 'alert';
             return 'ok';
         }
 
@@ -513,7 +504,7 @@
             const lower = c.toLowerCase();
 
             if (lower === 'parado') return 'parado';
-            if (lower === 'os em execução' || lower === 'os em execucao') return 'Em manutenção (operando)';
+            if (lower === 'os em execução' || lower === 'os em execucao') return 'OS em execução';
             if (lower === 'aguardando material') return 'aguardando material';
             if (lower === 'aguardando liberação' || lower === 'aguardando liberacao') return 'aguardando liberação';
             if (lower === 'em teste') return 'em teste';
@@ -544,37 +535,13 @@
 
         function formatarDataApi(valor) {
             if (!valor) return '';
-            const texto = String(valor);
-            if (/^\d{2}\/\d{2}\/\d{4}$/.test(texto)) return texto;
-            const matchISOHora = texto.match(/^1899-12-30T(\d{2}:\d{2}:\d{2})/);
-            if (matchISOHora) return matchISOHora[1];
-
             const data = new Date(valor);
-            if (isNaN(data.getTime())) return texto;
+            if (isNaN(data.getTime())) return String(valor);
 
             return data.toLocaleString('pt-BR', {
-                timeZone: 'America/Sao_Paulo',
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-        }
-
-        function formatarHoraApi(valor) {
-            if (!valor) return '';
-            const texto = String(valor);
-            if (/^\d{2}:\d{2}:\d{2}$/.test(texto)) return texto;
-            const matchISOHora = texto.match(/T(\d{2}:\d{2}:\d{2})/);
-            if (matchISOHora) return matchISOHora[1];
-
-            const data = new Date(valor);
-            if (isNaN(data.getTime())) return texto;
-
-            return data.toLocaleTimeString('pt-BR', {
-                timeZone: 'America/Sao_Paulo',
                 hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit'
@@ -632,381 +599,13 @@
             return retorno;
         }
 
-        async function apiGet(params) {
-            const query = new URLSearchParams(Object.assign({}, params || {}, { t: Date.now() })).toString();
-            const resposta = await fetch(`${API_URL}?${query}`);
-            if (!resposta.ok) throw new Error('Falha ao consultar a API GMAN.');
-            const retorno = await resposta.json();
-            if (retorno && retorno.sucesso === false) throw new Error(retorno.erro || retorno.mensagem || 'Erro desconhecido na API.');
-            return retorno;
-        }
-
-        const COMPONENTES_GRUPO_GMAN = ['PAINEL', 'MOTOR', 'BOMBA', 'VS', 'VR', 'RETENCAO', 'TUBULACAO'];
-        const COMPONENTES_PAT_OBRIGATORIO_GMAN85627 = ['PAINEL', 'MOTOR', 'BOMBA', 'VS', 'VR', 'RETENCAO'];
-
-        function escaparHTMLGMAN(valor) {
-            return String(valor === null || valor === undefined ? '' : valor)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-
-        function rotuloComponenteGMAN(componente) {
-            return {
-                PAINEL: 'PAINEL',
-                MOTOR: 'MOTOR',
-                BOMBA: 'BOMBA',
-                VS: 'Válvula de Sucção',
-                VR: 'Válvula de Recalque',
-                RETENCAO: 'Válvula de Retenção',
-                TUBULACAO: 'Tubulação'
-            }[componente] || componente;
-        }
-
-        function modeloDescricaoComponenteGMAN(componente) {
-            const modelos = {
-                PAINEL: 'Localização:\\nTipo de partida:\\nA máxima:\\nSituação da instalação:\\nCondição visual:',
-                MOTOR: 'Marca:\\nModelo:\\nPotência:\\nTensão:\\nCorrente nominal:\\nCorrente de trabalho:\\nRolamentos:\\nCondição visual:',
-                BOMBA: 'Modelo:\\nTipo:\\nDiâmetro da sucção:\\nDiâmetro do recalque:\\nRolamentos:\\nRetentores:\\nSelo:\\nGaxeta:\\nAcoplamento:\\nDiâmetro do rotor:\\nTipo de óleo:',
-                VS: 'Tipo:\\nDiâmetro:\\nAcionamento:\\nFlanges:',
-                VR: 'Tipo:\\nDiâmetro:\\nAcionamento:\\nFlanges:',
-                RETENCAO: 'Tipo:\\nDiâmetro:\\nAcionamento:\\nFlanges:',
-                TUBULACAO: 'Diâmetro:\\nMaterial:\\nSituação visual:'
-            };
-
-            return modelos[componente] || '';
-        }
-
-        function campoPatrimonioPorComponenteGMAN(componente) {
-            return {
-                PAINEL: 'PAT_PAINEL',
-                MOTOR: 'PAT_MOTOR',
-                BOMBA: 'PAT_BOMBA',
-                VS: 'PAT_VS',
-                VR: 'PAT_VR',
-                RETENCAO: 'PAT_RETENCAO',
-                TUBULACAO: 'PAT_TUBULACAO'
-            }[componente] || '';
-        }
-
-        function idCampoPatrimonioConclusaoGMAN(componente) {
-            return {
-                PAINEL: 'concluirPatPainel',
-                MOTOR: 'concluirPatMotor',
-                BOMBA: 'concluirPatBomba',
-                VS: 'concluirPatVS',
-                VR: 'concluirPatVR',
-                RETENCAO: 'concluirPatRetencao',
-                TUBULACAO: 'concluirPatTubulacao'
-            }[componente] || '';
-        }
-
-        function idCampoPatrimonioAberturaGMAN(componente) {
-            return {
-                PAINEL: 'abrirPatPainel',
-                MOTOR: 'abrirPatMotor',
-                BOMBA: 'abrirPatBomba',
-                VS: 'abrirPatVS',
-                VR: 'abrirPatVR',
-                RETENCAO: 'abrirPatRetencao',
-                TUBULACAO: 'abrirPatTubulacao'
-            }[componente] || '';
-        }
-
-        async function consultarPatrimonioGrupoFront(idGrupo, eq = null) {
-            const dados = await apiGet({
-                acao: 'consultarPatrimonioGrupo',
-                idGrupo: idGrupo,
-                idEquipamento: idGrupo,
-                sistema: eq ? eq.system : '',
-                nomeGrupo: eq ? eq.name : idGrupo
-            });
-
-            return dados;
-        }
-
-        function campoDescricaoPorComponenteGMAN(componente) {
-            return {
-                PAINEL: 'DESC_PAINEL',
-                MOTOR: 'DESC_MOTOR',
-                BOMBA: 'DESC_BOMBA',
-                VS: 'DESC_VS',
-                VR: 'DESC_VR',
-                RETENCAO: 'DESC_RETENCAO',
-                TUBULACAO: 'DESC_TUBULACAO'
-            }[componente] || '';
-        }
-
-        function idCampoDescricaoConclusaoGMAN(componente) {
-            return {
-                PAINEL: 'concluirDescPainel',
-                MOTOR: 'concluirDescMotor',
-                BOMBA: 'concluirDescBomba',
-                VS: 'concluirDescVS',
-                VR: 'concluirDescVR',
-                RETENCAO: 'concluirDescRetencao',
-                TUBULACAO: 'concluirDescTubulacao'
-            }[componente] || '';
-        }
-
-        function idCampoDescricaoAberturaGMAN(componente) {
-            return {
-                PAINEL: 'abrirDescPainel',
-                MOTOR: 'abrirDescMotor',
-                BOMBA: 'abrirDescBomba',
-                VS: 'abrirDescVS',
-                VR: 'abrirDescVR',
-                RETENCAO: 'abrirDescRetencao',
-                TUBULACAO: 'abrirDescTubulacao'
-            }[componente] || '';
-        }
-
-        function areaPatrimonioOpcionalTelaGMAN85627(os) {
-            const texto = normalizarTextoGMAN(((os && os.area) || '') + ' ' + ((os && os.equipeResponsavel) || ''));
-            return texto.includes('instalacoes mecanicas') || texto.includes('usinagem') || texto.includes('caldeiraria');
-        }
-
-        function camposFichaTecnicaGMAN(componente) {
-            const campos = {
-                PAINEL: ['Localização', 'Tipo de partida', 'A máxima', 'Situação da instalação', 'Condição visual'],
-                MOTOR: ['Marca', 'Modelo', 'Potência', 'Tensão', 'Corrente nominal', 'Corrente de trabalho', 'Rolamentos', 'Condição visual'],
-                BOMBA: ['Modelo', 'Tipo', 'Diâmetro da sucção', 'Diâmetro do recalque', 'Rolamentos', 'Retentores', 'Selo', 'Gaxeta', 'Acoplamento', 'Diâmetro do rotor', 'Tipo de óleo'],
-                VS: ['Tipo', 'Diâmetro', 'Acionamento', 'Flanges'],
-                VR: ['Tipo', 'Diâmetro', 'Acionamento', 'Flanges'],
-                RETENCAO: ['Tipo', 'Diâmetro', 'Acionamento', 'Flanges'],
-                TUBULACAO: ['Diâmetro', 'Material', 'Situação visual']
-            };
-
-            return campos[componente] || [];
-        }
-
-        function parseDescricaoFichaGMAN(texto) {
-            const resultado = {};
-            String(texto || '').split(/\n/).forEach(linha => {
-                const partes = linha.split(':');
-                if (partes.length >= 2) {
-                    const chave = partes.shift().trim();
-                    resultado[chave] = partes.join(':').trim();
-                }
-            });
-            return resultado;
-        }
-
-        function montarDescricaoFichaGMAN(componente) {
-            return camposFichaTecnicaGMAN(componente)
-                .map(campo => {
-                    const id = `ficha_${componente}_${normalizarTextoGMAN(campo).replace(/[^a-z0-9]/g, '_')}`;
-                    const el = document.getElementById(id);
-                    return `${campo}: ${el ? el.value.trim() : ''}`;
-                })
-                .join('\n');
-        }
-
-        function atualizarPreviewFichaTecnicaGMAN(componente) {
-            const descId = idCampoDescricaoConclusaoGMAN(componente);
-            const desc = document.getElementById(descId);
-            const preview = document.getElementById('previewFicha_' + componente);
-            if (preview) {
-                const texto = desc && desc.value ? desc.value : 'Ficha técnica ainda não preenchida.';
-                preview.textContent = texto;
-            }
-        }
-
-        function abrirFichaTecnicaPatrimonialGMAN(componente) {
-            const rotulo = rotuloComponenteGMAN(componente);
-            const descId = idCampoDescricaoConclusaoGMAN(componente);
-            const desc = document.getElementById(descId);
-            const valores = parseDescricaoFichaGMAN(desc ? desc.value : '');
-            const campos = camposFichaTecnicaGMAN(componente);
-
-            const existente = document.getElementById('fichaTecnicaPatrimonialModal');
-            if (existente) existente.remove();
-
-            const modal = document.createElement('div');
-            modal.id = 'fichaTecnicaPatrimonialModal';
-            modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.72); display:flex; align-items:center; justify-content:center; z-index:1800; padding:16px;';
-            modal.innerHTML = `
-                <div style="background:white; border-radius:22px; width:96%; max-width:620px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.25);">
-                    <div style="background:linear-gradient(135deg,#1e88e5,#0d47a1); color:white; padding:18px 20px; border-radius:22px 22px 0 0;">
-                        <div style="font-size:0.78rem; opacity:0.9;">Ficha Técnica Patrimonial</div>
-                        <h2 style="margin:4px 0 0; font-size:1.25rem;">${escaparHTMLGMAN(rotulo)}</h2>
-                    </div>
-
-                    <div style="padding:18px;">
-                        <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:14px; padding:12px; margin-bottom:14px; color:#1e3a5f; font-size:0.82rem;">
-                            Os requisitos abaixo são fixos. Preencha apenas as lacunas disponíveis. Ao salvar, o sistema organiza tudo na planilha.
-                        </div>
-
-                        <div style="display:grid; gap:10px;">
-                            ${campos.map(campo => {
-                                const id = `ficha_${componente}_${normalizarTextoGMAN(campo).replace(/[^a-z0-9]/g, '_')}`;
-                                return `
-                                    <label style="display:grid; gap:5px; font-weight:800; color:#1e3a5f; font-size:0.84rem;">
-                                        ${escaparHTMLGMAN(campo)}
-                                        <input id="${id}" class="form-field" value="${escaparHTMLGMAN(valores[campo] || '')}" placeholder="Preencher ${escaparHTMLGMAN(campo.toLowerCase())}">
-                                    </label>
-                                `;
-                            }).join('')}
-                        </div>
-
-                        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:18px;">
-                            <button onclick="document.getElementById('fichaTecnicaPatrimonialModal').remove();" style="padding:11px 14px; border:none; border-radius:12px; background:#718096; color:white; cursor:pointer;">Cancelar</button>
-                            <button onclick="salvarFichaTecnicaPatrimonialGMAN('${componente}')" style="padding:11px 14px; border:none; border-radius:12px; background:#38a169; color:white; cursor:pointer; font-weight:900;">Salvar ficha</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-
-        function salvarFichaTecnicaPatrimonialGMAN(componente) {
-            const descId = idCampoDescricaoConclusaoGMAN(componente);
-            const desc = document.getElementById(descId);
-            if (desc) desc.value = montarDescricaoFichaGMAN(componente);
-
-            atualizarPreviewFichaTecnicaGMAN(componente);
-
-            const modal = document.getElementById('fichaTecnicaPatrimonialModal');
-            if (modal) modal.remove();
-        }
-
-        function montarLinhasPatrimonioGrupoGMAN(patrimonios = {}, opcoes = {}) {
-            const modo = opcoes.modo || 'consulta';
-            const obrigatorio = !!opcoes.obrigatorio;
-            const descricoes = opcoes.descricoes || {};
-
-            return COMPONENTES_GRUPO_GMAN.map(componente => {
-                const rotulo = rotuloComponenteGMAN(componente);
-                const campo = campoPatrimonioPorComponenteGMAN(componente);
-                const campoDesc = campoDescricaoPorComponenteGMAN(componente);
-                const valor = patrimonios[campo] || '';
-                const descricao = descricoes[campoDesc] || '';
-                const patObrigatorio = obrigatorio && COMPONENTES_PAT_OBRIGATORIO_GMAN85627.includes(componente);
-
-                if (modo === 'abertura') {
-                    const idPat = idCampoPatrimonioAberturaGMAN(componente);
-                    const idDesc = idCampoDescricaoAberturaGMAN(componente);
-                    return `
-                        <label style="display:grid; grid-template-columns:26px 150px 1fr; gap:8px; align-items:center; padding:8px; border:1px solid #e2e8f0; border-radius:10px; background:#ffffff; margin-bottom:7px; cursor:pointer;">
-                            <input type="checkbox" class="osComponenteSolicitado" value="${componente}">
-                            <strong style="color:#1e3a5f;">${rotulo}</strong>
-                            <div style="display:grid; grid-template-columns:1fr; gap:6px;">
-                                <input id="${idPat}" class="form-field" value="${escaparHTMLGMAN(valor)}" readonly placeholder="${componente === 'TUBULACAO' ? 'PAT não obrigatório' : 'PAT ainda não informado'}" style="margin:0; background:#f7fafc;">
-                                <textarea id="${idDesc}" class="form-field" readonly placeholder="Ficha técnica ainda não informada" style="margin:0; background:#f7fafc; font-size:0.78rem; min-height:54px;">${escaparHTMLGMAN(descricao)}</textarea>
-                            </div>
-                        </label>
-                    `;
-                }
-
-                if (modo === 'conclusao') {
-                    const idPat = idCampoPatrimonioConclusaoGMAN(componente);
-                    const idDesc = idCampoDescricaoConclusaoGMAN(componente);
-                    const textoDescricao = descricao || '';
-
-                    return `
-                        <div style="display:grid; grid-template-columns:150px 1fr 1.25fr; gap:8px; align-items:start; margin-bottom:10px; padding:10px; border:1px solid #e2e8f0; border-radius:14px; background:#ffffff;">
-                            <label class="form-label" style="margin:11px 0 0;">${rotulo}</label>
-                            <div>
-                                <input id="${idPat}" class="form-field" value="${escaparHTMLGMAN(valor)}" placeholder="${componente === 'TUBULACAO' ? 'PAT opcional da Tubulação' : 'PAT do ' + rotulo}" ${patObrigatorio ? 'required' : ''}>
-                                <small style="color:#718096;">${patObrigatorio ? 'PAT obrigatório' : 'PAT opcional'}</small>
-                            </div>
-                            <div style="display:grid; gap:7px;">
-                                <textarea id="${idDesc}" style="display:none;">${escaparHTMLGMAN(textoDescricao)}</textarea>
-                                <button type="button" onclick="abrirFichaTecnicaPatrimonialGMAN('${componente}')" style="padding:10px 12px; border:none; border-radius:12px; background:#3182ce; color:white; cursor:pointer; font-weight:900;">🧾 Preencher ficha técnica</button>
-                                <pre id="previewFicha_${componente}" style="white-space:pre-wrap; min-height:42px; max-height:95px; overflow:auto; margin:0; padding:9px; border-radius:10px; background:#f7fafc; color:#2d3748; font-size:0.74rem;">${textoDescricao ? escaparHTMLGMAN(textoDescricao) : 'Ficha técnica ainda não preenchida.'}</pre>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                return `
-                    <div style="display:grid; grid-template-columns:150px 1fr 1.35fr; gap:8px; align-items:center; padding:8px; border-bottom:1px solid #e2e8f0;">
-                        <strong style="color:#1e3a5f;">${rotulo}</strong>
-                        <span style="color:#2d3748; background:#f7fafc; border-radius:8px; padding:8px;">${valor ? escaparHTMLGMAN(valor) : (componente === 'TUBULACAO' ? 'PAT não obrigatório' : 'PAT ainda não informado')}</span>
-                        <span style="color:#2d3748; background:#f7fafc; border-radius:8px; padding:8px; white-space:pre-line;">${descricao ? escaparHTMLGMAN(descricao) : 'Ficha técnica opcional não informada'}</span>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function coletarComponentesSolicitadosModalGMAN() {
-            return Array.from(document.querySelectorAll('.osComponenteSolicitado:checked')).map(item => item.value);
-        }
-
-        function coletarPatrimoniosConclusaoGMAN() {
-            return {
-                patPainel: (document.getElementById('concluirPatPainel') || {}).value ? document.getElementById('concluirPatPainel').value.trim() : '',
-                patMotor: (document.getElementById('concluirPatMotor') || {}).value ? document.getElementById('concluirPatMotor').value.trim() : '',
-                patBomba: (document.getElementById('concluirPatBomba') || {}).value ? document.getElementById('concluirPatBomba').value.trim() : '',
-                patVS: (document.getElementById('concluirPatVS') || {}).value ? document.getElementById('concluirPatVS').value.trim() : '',
-                patVR: (document.getElementById('concluirPatVR') || {}).value ? document.getElementById('concluirPatVR').value.trim() : '',
-                patRetencao: (document.getElementById('concluirPatRetencao') || {}).value ? document.getElementById('concluirPatRetencao').value.trim() : '',
-                patTubulacao: (document.getElementById('concluirPatTubulacao') || {}).value ? document.getElementById('concluirPatTubulacao').value.trim() : ''
-            };
-        }
-
-        function coletarDescricoesConclusaoGMAN() {
-            return {
-                descPainel: (document.getElementById('concluirDescPainel') || {}).value ? document.getElementById('concluirDescPainel').value.trim() : '',
-                descMotor: (document.getElementById('concluirDescMotor') || {}).value ? document.getElementById('concluirDescMotor').value.trim() : '',
-                descBomba: (document.getElementById('concluirDescBomba') || {}).value ? document.getElementById('concluirDescBomba').value.trim() : '',
-                descVS: (document.getElementById('concluirDescVS') || {}).value ? document.getElementById('concluirDescVS').value.trim() : '',
-                descVR: (document.getElementById('concluirDescVR') || {}).value ? document.getElementById('concluirDescVR').value.trim() : '',
-                descRetencao: (document.getElementById('concluirDescRetencao') || {}).value ? document.getElementById('concluirDescRetencao').value.trim() : '',
-                descTubulacao: (document.getElementById('concluirDescTubulacao') || {}).value ? document.getElementById('concluirDescTubulacao').value.trim() : ''
-            };
-        }
-
-        function validarPatrimoniosConclusaoTelaGMAN(patrimonios, patrimonioObrigatorio = true) {
-            if (!patrimonioObrigatorio) return [];
-
-            const faltantes = [];
-            if (!patrimonios.patPainel) faltantes.push('PAT PAINEL');
-            if (!patrimonios.patMotor) faltantes.push('PAT MOTOR');
-            if (!patrimonios.patBomba) faltantes.push('PAT BOMBA');
-            if (!patrimonios.patVS) faltantes.push('PAT Válvula de Sucção');
-            if (!patrimonios.patVR) faltantes.push('PAT Válvula de Recalque');
-            if (!patrimonios.patRetencao) faltantes.push('PAT Válvula de Retenção');
-            return faltantes;
-        }
-
         function podeGerenciarOS() {
             if (!usuarioLogado) return false;
             const f = String(usuarioLogado.funcao || '').toLowerCase();
             return ['administrador', 'supervisor', 'coordenador', 'gerente'].includes(f);
         }
 
-        function usuarioPodeAlterarOS(os) {
-            if (!usuarioLogado || !os) return false;
-            if (podeGerenciarOS()) return true;
-            return normalizarTextoGMAN(os.responsavel) === normalizarTextoGMAN(usuarioLogado.nome);
-        }
-
-        function podeExecutarOS(os) {
-            return usuarioPodeAlterarOS(os);
-        }
-
-        function obterOSPorId(idOS) {
-            return ordensServicoCache.find(item => String(item.idOS) === String(idOS));
-        }
-
-        function validarPermissaoTelaOS(idOS, acao) {
-            const os = obterOSPorId(idOS);
-
-            if (!os) {
-                alert('Não foi possível localizar os dados desta OS. Recarregue a lista e tente novamente.');
-                return false;
-            }
-
-            if (!usuarioPodeAlterarOS(os)) {
-                alert('Permissão bloqueada. Equipe/líder só pode ' + (acao || 'alterar') + ' OS em que seja o responsável. Responsável desta OS: ' + (os.responsavel || 'não informado') + '.');
-                return false;
-            }
-
-            return true;
-        }
+        function podeExecutarOS() { return !!usuarioLogado; }
 
         function aplicarBotoesPermissao() {
             const ehGestao = podeGerenciarOS();
@@ -1042,6 +641,18 @@
             alert('Sistema atualizado com o Banco Central GMAN.');
         }
 
+        async function atualizarAgoraSemAlerta() {
+            await carregarStatusOnline();
+            try {
+                const listaOS = await listarOSOnline();
+                ordensServicoCache = listaOS;
+                atualizarTotalizadoresOS(listaOS);
+                if (document.getElementById('osModal')) renderizarOS(listaOS);
+            } catch (erro) {
+                console.error('Erro ao carregar dados após login:', erro);
+            }
+        }
+
         async function listarOSOnline() {
             const resposta = await fetch(`${API_URL}?acao=listarOS&t=${Date.now()}`);
             if (!resposta.ok) throw new Error('Falha ao consultar Ordens de Serviço.');
@@ -1059,12 +670,11 @@
         }
 
         async function abrirPainelOS(modo = 'abertas') {
-            modoPainelOSAtual = modo || 'abertas';
-
-            if (modoPainelOSAtual === 'encerradas' && !podeGerenciarOS()) {
+            if (modo === 'encerradas' && !podeGerenciarOS()) {
                 alert('Ordens encerradas são visíveis apenas para gestão.');
                 return;
             }
+            modoPainelOSAtual = modo || 'abertas';
 
             const existingModal = document.getElementById('osModal');
             if (existingModal) existingModal.remove();
@@ -1147,15 +757,8 @@
             const modo = modoPainelOSAtual || 'abertas';
             let base = Array.isArray(lista) ? lista.slice() : [];
 
-            if (String(modo).startsWith('grupo:')) {
-                const idGrupoModo = String(modo).replace('grupo:', '');
-                base = base.filter(os => String(os.idEquipamento) === String(idGrupoModo));
-            } else if (modo === 'encerradas') {
-                if (!podeGerenciarOS()) {
-                    base = [];
-                } else {
-                    base = base.filter(os => isOSEncerrada(os.statusOS));
-                }
+            if (modo === 'encerradas') {
+                base = base.filter(os => isOSEncerrada(os.statusOS));
             } else if (modo === 'naoIniciadas') {
                 if (!podeGerenciarOS()) {
                     base = [];
@@ -1194,11 +797,10 @@
 
             container.innerHTML = resumoHTML + base.map(os => {
                 const encerrada = isOSEncerrada(os.statusOS);
-                const permissaoAlterar = usuarioPodeAlterarOS(os);
-                const podeIniciar = !encerrada && permissaoAlterar && String(os.statusOS) === 'Aberta';
-                const statusPermiteAcao = ['Em execução', 'Aguardando material', 'Aguardando liberação', 'Reaberta', 'Parado', 'Em teste', 'Em manutenção (operando)', 'Operando com restrição'].includes(String(os.statusOS));
-                const podeConcluir = !encerrada && permissaoAlterar && statusPermiteAcao;
-                const podeAtualizarAndamento = !encerrada && permissaoAlterar && statusPermiteAcao;
+                const podeIniciar = !encerrada && podeExecutarOS() && String(os.statusOS) === 'Aberta';
+                const statusPermiteAcao = ['Em execução', 'Aguardando material', 'Aguardando liberação', 'Reaberta', 'Parado', 'Em teste', 'OS em execução', 'Operando com restrição'].includes(String(os.statusOS));
+                const podeConcluir = !encerrada && podeExecutarOS() && statusPermiteAcao;
+                const podeAtualizarAndamento = !encerrada && podeExecutarOS() && statusPermiteAcao;
                 const podeCancelar = !encerrada && podeGerenciarOS();
 
                 return `
@@ -1209,17 +811,12 @@
                         <p><strong>Área:</strong> ${os.area || '-'} | <strong>Tipo:</strong> ${os.tipoManutencao || '-'}</p>
                         <p><strong>Sistema:</strong> ${os.sistema || '-'} | <strong>Equipe:</strong> ${os.equipeResponsavel || '-'}</p>
                         <p><strong>Responsável:</strong> ${os.responsavel || '-'}</p>
-                        <p><strong>Membros da equipe:</strong> ${os.membrosEquipe || '-'}</p>
-                        <p><strong>Componentes solicitados:</strong> ${os.componentesSolicitados || '-'}</p>
-                        <p><strong>PAT:</strong> Painel ${os.patPainel || '-'} | Motor ${os.patMotor || '-'} | Bomba ${os.patBomba || '-'} | Válvula de Sucção ${os.patVS || '-'} | Válvula de Recalque ${os.patVR || '-'} | Válvula de Retenção ${os.patRetencao || '-'} | Tubulação ${os.patTubulacao || 'não obrigatório'}</p>
-                        <p><strong>Descrições:</strong> Painel ${os.descPainel || '-'} | Motor ${os.descMotor || '-'} | Bomba ${os.descBomba || '-'} | Válvula de Sucção ${os.descVS || '-'} | Válvula de Recalque ${os.descVR || '-'} | Válvula de Retenção ${os.descRetencao || '-'} | Tubulação ${os.descTubulacao || '-'}</p>
                         <p><strong>Problema:</strong> ${os.descricaoProblema || '-'}</p>
-                        ${os.dataAbertura ? `<p><strong>Abertura:</strong> ${formatarDataApi(os.dataAbertura)} ${os.horaAbertura ? '| ' + formatarHoraApi(os.horaAbertura) : ''}</p>` : ''}
-                        ${os.dataConclusao ? `<p><strong>Conclusão:</strong> ${formatarDataApi(os.dataConclusao)} ${os.horaConclusao ? '| ' + formatarHoraApi(os.horaConclusao) : ''}</p>` : ''}
+                        ${os.dataAbertura ? `<p><strong>Abertura:</strong> ${formatarDataApi(os.dataAbertura)} ${os.horaAbertura ? '| ' + os.horaAbertura : ''}</p>` : ''}
+                        ${os.dataConclusao ? `<p><strong>Conclusão:</strong> ${formatarDataApi(os.dataConclusao)} ${os.horaConclusao ? '| ' + os.horaConclusao : ''}</p>` : ''}
                         ${os.servicoRealizado ? `<p><strong>Serviço realizado:</strong> ${os.servicoRealizado}</p>` : ''}
                         ${os.finalizadoPor ? `<p><strong>Finalizado por:</strong> ${os.finalizadoPor}</p>` : ''}
                         ${encerrada ? '<p style="color:#2f855a; font-weight:700;">✅ OS encerrada</p>' : ''}
-                        ${(!encerrada && !permissaoAlterar) ? '<p style="color:#744210; background:#fffaf0; border-left:4px solid #d69e2e; border-radius:10px; padding:8px; font-weight:700;">🔒 Somente o responsável ou a gestão pode alterar esta OS.</p>' : ''}
                         <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
                             ${podeIniciar ? `<button onclick="iniciarOS('${os.idOS}')" style="padding:8px 10px; border:none; border-radius:8px; background:#d69e2e; color:white; cursor:pointer;">▶️ Iniciar</button>` : ''}
                             ${podeAtualizarAndamento ? `<button onclick="abrirModalAndamentoOS('${os.idOS}')" style="padding:8px 10px; border:none; border-radius:8px; background:#3182ce; color:white; cursor:pointer;">📝 Atualizar andamento</button>` : ''}
@@ -1249,87 +846,25 @@
             return opcoes.join('');
         }
 
-                async function abrirModalCriarOS(idEquipamentoPreSelecionado = '') {
-            if (!usuarioLogado) return alert('Faça login para abrir uma OS.');
-            if (!idEquipamentoPreSelecionado) return alert('Abra a OS clicando primeiro no grupo/equipamento específico.');
-
-            const eq = equipment.find(e => String(e.id) === String(idEquipamentoPreSelecionado));
-            if (!eq) return alert('Grupo/equipamento não localizado na tela. Atualize e tente novamente.');
-
+        function abrirModalCriarOS(idEquipamentoPreSelecionado = '') {
             const existing = document.getElementById('criarOSModal');
             if (existing) existing.remove();
-
-            let patrimonioGrupo = {
-                patrimonios: {
-                    PAT_PAINEL: '',
-                    PAT_MOTOR: '',
-                    PAT_BOMBA: '',
-                    PAT_VS: '',
-                    PAT_VR: ''
-                }
-            };
-
-            try {
-                patrimonioGrupo = await consultarPatrimonioGrupoFront(eq.id, eq);
-            } catch (erro) {
-                console.warn('Não foi possível consultar patrimônio do grupo antes da abertura:', erro);
-            }
-
+            const opcoes = equipment.map(eq => `<option value="${eq.id}" ${eq.id === idEquipamentoPreSelecionado ? 'selected' : ''}>${eq.id} — ${eq.name}</option>`).join('');
             const modal = document.createElement('div');
             modal.id = 'criarOSModal';
             modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.82); z-index:1200; display:flex; align-items:center; justify-content:center; padding:18px;';
             modal.innerHTML = `
-                <div style="background:white; border-radius:20px; padding:24px; width:95%; max-width:620px; max-height:92vh; overflow-y:auto;">
+                <div style="background:white; border-radius:20px; padding:24px; width:95%; max-width:560px; max-height:92vh; overflow-y:auto;">
                     <h2 style="color:#1e3a5f; margin:0 0 8px;">Abrir Ordem de Serviço</h2>
-                    <p style="color:#718096; font-size:0.82rem; margin-bottom:14px;">A OS será aberta diretamente para o grupo selecionado. Não há escolha de outro grupo nesta tela.</p>
-
-                    <input type="hidden" id="osEquipamento" value="${escaparHTMLGMAN(eq.id)}">
-
-                    <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:14px; padding:12px; margin-bottom:14px; text-align:left;">
-                        <strong style="color:#1e3a5f;">Grupo selecionado</strong><br>
-                        <span style="color:#2d3748;">${escaparHTMLGMAN(eq.id)} — ${escaparHTMLGMAN(eq.name)}</span><br>
-                        <span style="color:#718096; font-size:0.78rem;">Sistema: ${escaparHTMLGMAN(eq.system.toUpperCase())}</span>
-                    </div>
-
-                    <label class="form-label">Equipamento solicitado dentro do grupo</label>
-                    <div style="background:#f7fafc; border:1px solid #e2e8f0; border-radius:14px; padding:10px; margin-bottom:12px;">
-                        <p style="color:#718096; font-size:0.75rem; margin:0 0 8px;">Marque o componente que precisa de manutenção/vistoria. O PAT aparece ao lado quando já estiver disponível.</p>
-                        ${montarLinhasPatrimonioGrupoGMAN(patrimonioGrupo.patrimonios || {}, { modo: 'abertura', descricoes: patrimonioGrupo.descricoes || {} })}
-                    </div>
-
-                    <label class="form-label">Área / setor</label>
-                    <select id="osArea" class="form-field">
-                        <option value="">Selecione a área/setor</option>
-                        <option value="Mecânica">Mecânica</option>
-                        <option value="Elétrica">Elétrica</option>
-                        <option value="Automação">Automação</option>
-                        <option value="Usinagem">Usinagem</option>
-                        <option value="Caldeiraria">Caldeiraria</option>
-                    </select>
-
-                    <label class="form-label">Tipo de manutenção</label>
-                    <select id="osTipo" class="form-field">
-                        <option value="">Selecione o tipo de manutenção</option>
-                        <option value="Corretiva">Corretiva</option>
-                        <option value="Preventiva">Preventiva</option>
-                        <option value="Preditiva">Preditiva</option>
-                        <option value="Melhoria">Melhoria</option>
-                    </select>
-
-                    <label class="form-label">Prioridade</label>
-                    <select id="osPrioridade" class="form-field">
-                        <option value="">Selecione a prioridade</option>
-                        <option value="Normal">Normal</option>
-                        <option value="Alta">Alta</option>
-                        <option value="Crítica">Crítica</option>
-                    </select>
-
-                    <label class="form-label">Executor principal / responsável</label>
-                    <select id="osResponsavel" class="form-field">${gerarOpcoesExecutores()}</select>
-                    <p style="color:#718096; font-size:0.75rem; margin:-6px 0 10px;">O executor principal será gravado no campo RESPONSAVEL da OS. Equipe responsável e membros da equipe não são necessários na abertura.</p>
-
-                    <label class="form-label">Descrição do problema</label>
-                    <textarea id="osDescricao" class="form-field" rows="4" placeholder="Descreva o problema informado ou a atividade solicitada"></textarea>
+                    <p style="color:#718096; font-size:0.82rem; margin-bottom:14px;">Abra a OS para o grupo/equipamento selecionado. Status do equipamento permanece bloqueado fora da OS.</p>
+                    <label class="form-label">Equipamento</label><select id="osEquipamento" class="form-field">${opcoes}</select>
+                    <label class="form-label">Área</label><select id="osArea" class="form-field"><option value="Mecânica">Mecânica</option><option value="Elétrica">Elétrica</option><option value="Automação">Automação</option></select>
+                    <label class="form-label">Tipo de manutenção</label><select id="osTipo" class="form-field"><option value="Corretiva">Corretiva</option><option value="Preventiva">Preventiva</option><option value="Preditiva">Preditiva</option><option value="Melhoria">Melhoria</option></select>
+                    <label class="form-label">Prioridade</label><select id="osPrioridade" class="form-field"><option value="Normal">Normal</option><option value="Alta">Alta</option><option value="Crítica">Crítica</option></select>
+                    <label class="form-label">Equipe responsável</label><input id="osEquipe" class="form-field" placeholder="Ex.: Mecânica Fortes, Elétrica Jeferson...">
+                    <label class="form-label">Executor principal</label><select id="osResponsavel" class="form-field">${gerarOpcoesExecutores()}</select>
+                    <p style="color:#718096; font-size:0.75rem; margin:-6px 0 10px;">O executor principal será gravado no campo RESPONSAVEL da OS.</p>
+                    <label class="form-label">Descrição do problema</label><textarea id="osDescricao" class="form-field" rows="4" placeholder="Descreva o problema informado ou a atividade solicitada"></textarea>
                     <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;">
                         <button onclick="document.getElementById('criarOSModal').remove();" style="padding:11px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Cancelar</button>
                         <button onclick="criarOSPeloModal()" style="padding:11px 14px; border:none; border-radius:10px; background:#38a169; color:white; cursor:pointer; font-weight:bold;">Criar OS</button>
@@ -1338,53 +873,19 @@
             document.body.appendChild(modal);
         }
 
-
-async function criarOSPeloModal() {
+        async function criarOSPeloModal() {
             const idEquipamento = document.getElementById('osEquipamento').value;
             const eq = equipment.find(e => e.id === idEquipamento);
-            const componentesSolicitados = coletarComponentesSolicitadosModalGMAN();
             const area = document.getElementById('osArea').value;
             const tipoManutencao = document.getElementById('osTipo').value;
             const prioridade = document.getElementById('osPrioridade').value;
-            const equipeResponsavel = '';
+            const equipeResponsavel = document.getElementById('osEquipe').value.trim();
             const responsavel = document.getElementById('osResponsavel').value.trim();
-            const membrosEquipe = '';
             const descricaoProblema = document.getElementById('osDescricao').value.trim();
-
-            const faltantes = [];
-
-            if (!usuarioLogado || !usuarioLogado.nome) faltantes.push('usuário criador');
-            if (!usuarioLogado || !usuarioLogado.funcao) faltantes.push('função do usuário');
-            if (!idEquipamento) faltantes.push('equipamento');
-            if (!componentesSolicitados.length) faltantes.push('equipamento solicitado dentro do grupo');
-            if (!area) faltantes.push('área/setor');
-            if (!tipoManutencao) faltantes.push('tipo de manutenção');
-            if (!prioridade) faltantes.push('prioridade');
-            if (!responsavel) faltantes.push('executor principal/responsável');
-            if (!descricaoProblema) faltantes.push('descrição do problema');
-
-            if (faltantes.length) {
-                return alert('Preencha todos os campos obrigatórios antes de criar a OS: ' + faltantes.join(', ') + '.');
-            }
-
+            if (!responsavel) return alert('Selecione o executor principal da OS.');
+            if (!descricaoProblema) return alert('Descreva o problema antes de criar a OS.');
             try {
-                await apiPost({
-                    acao: 'criarOS',
-                    usuario: usuarioLogado.nome,
-                    funcao: usuarioLogado.funcao,
-                    idEquipamento,
-                    equipamento: eq ? eq.name : '',
-                    sistema: eq ? eq.system : '',
-                    area,
-                    tipoManutencao,
-                    prioridade,
-                    descricaoProblema,
-                    equipeResponsavel,
-                    responsavel,
-                    membrosEquipe,
-                    componentesSolicitados: componentesSolicitados.join(', ')
-                });
-
+                await apiPost({ acao: 'criarOS', usuario: usuarioLogado.nome, funcao: usuarioLogado.funcao, idEquipamento, equipamento: eq ? eq.name : '', sistema: eq ? eq.system : '', area, tipoManutencao, prioridade, descricaoProblema, equipeResponsavel, responsavel });
                 document.getElementById('criarOSModal').remove();
                 alert('OS criada com sucesso no Banco Central.');
                 if (document.getElementById('osModal')) await recarregarPainelOS();
@@ -1392,7 +893,6 @@ async function criarOSPeloModal() {
         }
 
         async function iniciarOS(idOS) {
-            if (!validarPermissaoTelaOS(idOS, 'iniciar')) return;
             if (!confirm('Confirmar início desta OS?')) return;
             try { await apiPost({ acao: 'iniciarOS', idOS, usuario: usuarioLogado.nome, funcao: usuarioLogado.funcao }); alert('OS iniciada com sucesso.'); await recarregarPainelOS(); }
             catch (erro) { console.error(erro); alert('Erro ao iniciar OS: ' + erro.message); }
@@ -1501,8 +1001,6 @@ async function criarOSPeloModal() {
         }
 
         async function anexarArquivoOS(idOS, idEquipamento, inputId, observacaoId) {
-            if (!validarPermissaoTelaOS(idOS, 'anexar evidência na')) return;
-
             const input = document.getElementById(inputId);
             const obs = document.getElementById(observacaoId);
 
@@ -1603,8 +1101,6 @@ async function criarOSPeloModal() {
                 return;
             }
 
-            if (!validarPermissaoTelaOS(idOS, 'atualizar andamento da')) return;
-
             const existing = document.getElementById('andamentoOSModal');
             if (existing) existing.remove();
 
@@ -1621,17 +1117,16 @@ async function criarOSPeloModal() {
 
                     <label class="form-label">Condição operacional</label>
                     <select id="andamentoCondicao" class="form-field">
-                        <option value="Parado">Em manutenção (parado)</option>
-                        <option value="Aguardando material">Em manutenção (parado) — aguardando material</option>
-                        <option value="Aguardando liberação">Em manutenção (parado) — aguardando liberação</option>
-                        <option value="Em andamento">Em andamento — Usinagem/Caldeiraria</option>
-                        <option value="Em teste">Em manutenção (operando) — em teste</option>
-                        <option value="Operando com restrição">Em manutenção (operando) — com restrição</option>
-                        <option value="Em manutenção (operando)">Em manutenção (operando)</option>
+                        <option value="Parado">Manutenção (parado)</option>
+                        <option value="Aguardando material">Manutenção (aguardando material)</option>
+                        <option value="Aguardando liberação">Manutenção (aguardando liberação)</option>
+                        <option value="Em teste">Manutenção (em teste)</option>
+                        <option value="Operando com restrição">Operando com restrição</option>
+                        <option value="OS em execução">Manutenção (OS em execução)</option>
                     </select>
 
-                    <label class="form-label">Justificativa / observação obrigatória</label>
-                    <textarea id="andamentoObs" class="form-field" rows="4" placeholder="Descreva obrigatoriamente o andamento, pendência, motivo ou condição atual"></textarea>
+                    <label class="form-label">Observação</label>
+                    <textarea id="andamentoObs" class="form-field" rows="4" placeholder="Descreva o andamento, pendência ou condição atual"></textarea>
 
                     <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;">
                         <button onclick="document.getElementById('andamentoOSModal').remove();" style="padding:11px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">
@@ -1648,15 +1143,8 @@ async function criarOSPeloModal() {
         }
 
         async function atualizarAndamentoOS(idOS) {
-            if (!validarPermissaoTelaOS(idOS, 'atualizar andamento da')) return;
-
             const condicaoOperacional = document.getElementById('andamentoCondicao').value;
             const observacao = document.getElementById('andamentoObs').value.trim();
-
-            if (!observacao) {
-                alert('Informe uma justificativa/observação antes de atualizar o andamento da OS.');
-                return;
-            }
 
             try {
                 await apiPost({
@@ -1681,7 +1169,7 @@ async function criarOSPeloModal() {
             }
         }
 
-        async function abrirModalConcluirOS(idOS) {
+        function abrirModalConcluirOS(idOS) {
             const os = ordensServicoCache.find(item => String(item.idOS) === String(idOS));
 
             if (!os) {
@@ -1689,58 +1177,19 @@ async function criarOSPeloModal() {
                 return;
             }
 
-            if (!validarPermissaoTelaOS(idOS, 'concluir')) return;
-
             const existing = document.getElementById('concluirOSModal');
             if (existing) existing.remove();
-
-            let patrimonioGrupo = {
-                patrimonios: {
-                    PAT_PAINEL: os.patPainel || '',
-                    PAT_MOTOR: os.patMotor || '',
-                    PAT_BOMBA: os.patBomba || '',
-                    PAT_VS: os.patVS || '',
-                    PAT_VR: os.patVR || '',
-                    PAT_RETENCAO: os.patRetencao || '',
-                    PAT_TUBULACAO: os.patTubulacao || ''
-                },
-                descricoes: {
-                    DESC_PAINEL: os.descPainel || '',
-                    DESC_MOTOR: os.descMotor || '',
-                    DESC_BOMBA: os.descBomba || '',
-                    DESC_VS: os.descVS || '',
-                    DESC_VR: os.descVR || '',
-                    DESC_RETENCAO: os.descRetencao || '',
-                    DESC_TUBULACAO: os.descTubulacao || ''
-                }
-            };
-
-            try {
-                const eq = equipment.find(e => String(e.id) === String(os.idEquipamento));
-                const consulta = await consultarPatrimonioGrupoFront(os.idEquipamento, eq || null);
-                patrimonioGrupo = {
-                    patrimonios: Object.assign({}, patrimonioGrupo.patrimonios, consulta.patrimonios || {}),
-                    descricoes: Object.assign({}, patrimonioGrupo.descricoes, consulta.descricoes || {})
-                };
-            } catch (erro) {
-                console.warn('Não foi possível carregar patrimônio do grupo para conclusão:', erro);
-            }
 
             const modal = document.createElement('div');
             modal.id = 'concluirOSModal';
             modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.82); z-index:1300; display:flex; align-items:center; justify-content:center; padding:18px;';
 
             modal.innerHTML = `
-                <div style="background:white; border-radius:20px; padding:24px; width:95%; max-width:700px; max-height:90vh; overflow-y:auto;">
+                <div style="background:white; border-radius:20px; padding:24px; width:95%; max-width:650px; max-height:90vh; overflow-y:auto;">
                     <h2 style="color:#1e3a5f; margin:0 0 12px;">Concluir OS</h2>
                     <p style="color:#718096; font-size:0.82rem; margin:0 0 12px;">
                         A OS só encerra quando o equipamento estiver Operando. Se ainda não voltou a operar, use Atualizar andamento.
                     </p>
-
-                    <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:14px; padding:12px; margin-bottom:14px; text-align:left;">
-                        <strong style="color:#1e3a5f;">Grupo da OS:</strong> ${escaparHTMLGMAN(os.idEquipamento || '-')}<br>
-                        <span style="color:#2d3748;">Componentes solicitados: ${escaparHTMLGMAN(os.componentesSolicitados || '-')}</span>
-                    </div>
 
                     <label class="form-label">Serviço executado</label>
                     <textarea id="concluirServico" class="form-field" rows="4" placeholder="Descreva o serviço executado"></textarea>
@@ -1784,17 +1233,6 @@ async function criarOSPeloModal() {
                     <label class="form-label">Observação final</label>
                     <textarea id="concluirObservacaoFinal" class="form-field" rows="3" placeholder="Observação final da OS"></textarea>
 
-                    <label class="form-label">Membros da equipe que participaram</label>
-                    <textarea id="concluirMembrosEquipe" class="form-field" rows="2" placeholder="Informe quem trabalhou na execução. Ex.: Oliveira, Roberto, Mattos"></textarea>
-
-                    <div style="margin-top:15px; padding:12px; background:#fffaf0; border-radius:12px; border-left:4px solid #d69e2e; text-align:left;">
-                        <p style="color:#744210; font-weight:800; margin:0 0 8px;">🏷️ Patrimônio obrigatório do grupo</p>
-                        <p style="color:#744210; font-size:0.75rem; margin:0 0 10px;">
-                            Informe ou confirme os patrimônios obrigatórios antes de concluir. Tubulação não exige PAT. Para INSTALAÇÕES MECÂNICAS, USINAGEM e CALDEIRARIA, patrimônio e ficha técnica são opcionais.
-                        </p>
-                        ${montarLinhasPatrimonioGrupoGMAN(patrimonioGrupo.patrimonios || {}, { modo: 'conclusao', obrigatorio: true, descricoes: patrimonioGrupo.descricoes || {} })}
-                    </div>
-
                     <div style="margin-top:15px; padding:12px; background:#f7fafc; border-radius:12px; border-left:4px solid #3182ce;">
                         <p style="color:#1e3a5f; font-weight:700; margin:0 0 8px;">📎 Evidências da OS</p>
                         <p style="color:#718096; font-size:0.75rem; margin:0 0 10px;">
@@ -1831,8 +1269,7 @@ async function criarOSPeloModal() {
         }
 
 
-
-function atualizarPreviewKmRodado() {
+        function atualizarPreviewKmRodado() {
             const ini = document.getElementById('concluirKmInicial');
             const fim = document.getElementById('concluirKmFinal');
             const prev = document.getElementById('previewKmRodado');
@@ -1858,8 +1295,6 @@ function atualizarPreviewKmRodado() {
         }
 
         async function concluirOS(idOS) {
-            if (!validarPermissaoTelaOS(idOS, 'concluir')) return;
-
             // --- TRAVA DE SEGURANÇA DE EVIDÊNCIAS ---
             const fFoto1 = document.getElementById('anexoFoto1OS');
             const fFoto2 = document.getElementById('anexoFoto2OS');
@@ -1880,9 +1315,6 @@ function atualizarPreviewKmRodado() {
             const kmFinalTexto = document.getElementById('concluirKmFinal').value;
             const situacaoFinalEquipamento = document.getElementById('concluirSituacaoFinal').value;
             const observacaoFinal = document.getElementById('concluirObservacaoFinal').value.trim();
-            const membrosEquipe = document.getElementById('concluirMembrosEquipe').value.trim();
-            const patrimoniosConclusao = coletarPatrimoniosConclusaoGMAN();
-            const descricoesConclusao = coletarDescricoesConclusaoGMAN();
 
             const kmInicial = kmInicialTexto === '' ? '' : Number(kmInicialTexto);
             const kmFinal = kmFinalTexto === '' ? '' : Number(kmFinalTexto);
@@ -1896,11 +1328,6 @@ function atualizarPreviewKmRodado() {
             if (kmFinalTexto === '') camposFaltantes.push('KM final');
             if (!situacaoFinalEquipamento) camposFaltantes.push('situação final do equipamento');
             if (!observacaoFinal) camposFaltantes.push('observação final');
-            if (!membrosEquipe) camposFaltantes.push('membros da equipe');
-
-            const osAtualConclusao = obterOSPorId(idOS);
-            const patrimonioObrigatorioConclusao = !areaPatrimonioOpcionalTelaGMAN85627(osAtualConclusao);
-            camposFaltantes.push(...validarPatrimoniosConclusaoTelaGMAN(patrimoniosConclusao, patrimonioObrigatorioConclusao));
 
             if (camposFaltantes.length) {
                 return alert('Preencha todos os campos obrigatórios antes de concluir a OS: ' + camposFaltantes.join(', ') + '. Fotos e áudio não são obrigatórios.');
@@ -1929,22 +1356,7 @@ function atualizarPreviewKmRodado() {
                     kmRodado: (kmInicial !== '' && kmFinal !== '') ? (kmFinal - kmInicial) : '',
                     situacaoFinalEquipamento,
                     statusFinalEquipamento: situacaoFinalEquipamento,
-                    observacaoFinal,
-                    membrosEquipe,
-                    patPainel: patrimoniosConclusao.patPainel,
-                    patMotor: patrimoniosConclusao.patMotor,
-                    patBomba: patrimoniosConclusao.patBomba,
-                    patVS: patrimoniosConclusao.patVS,
-                    patVR: patrimoniosConclusao.patVR,
-                    patRetencao: patrimoniosConclusao.patRetencao,
-                    patTubulacao: patrimoniosConclusao.patTubulacao,
-                    descPainel: descricoesConclusao.descPainel,
-                    descMotor: descricoesConclusao.descMotor,
-                    descBomba: descricoesConclusao.descBomba,
-                    descVS: descricoesConclusao.descVS,
-                    descVR: descricoesConclusao.descVR,
-                    descRetencao: descricoesConclusao.descRetencao,
-                    descTubulacao: descricoesConclusao.descTubulacao
+                    observacaoFinal
                 });
 
                 document.getElementById('concluirOSModal').remove();
@@ -1995,21 +1407,6 @@ function atualizarPreviewKmRodado() {
             return null;
         }
 
-        function combinarDataHoraKPI(dataValor, horaValor) {
-            const data = parseDataKPI(dataValor);
-            if (!data) return null;
-
-            const horaTexto = String(horaValor || '').trim();
-            if (!horaTexto) return data;
-
-            const match = horaTexto.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-            if (match) {
-                data.setHours(Number(match[1] || 0), Number(match[2] || 0), Number(match[3] || 0), 0);
-            }
-
-            return data;
-        }
-
         function formatarDuracaoMinutos(minutos) {
             if (!minutos || minutos <= 0 || !isFinite(minutos)) return 'Sem dados';
             if (minutos < 60) return `${Math.round(minutos)} min`;
@@ -2018,363 +1415,44 @@ function atualizarPreviewKmRodado() {
             return `${horas}h ${mins}min`;
         }
 
-        function normalizarKPI(valor) {
-            return normalizarTextoGMAN(valor);
-        }
-
-        function statusEncerradoKPI(status) {
-            const s = normalizarKPI(status);
-            return ['concluida', 'cancelada', 'fechada', 'encerrada', 'finalizada'].includes(s);
-        }
-
-        function statusConcluidoKPI(status) {
-            return normalizarKPI(status) === 'concluida';
-        }
-
-        function ehCorretivaKPI(os) {
-            return normalizarKPI(os.tipoManutencao || os.tipoOS || '').includes('corretiva');
-        }
-
-        function ehOSTesteKPI(os) {
-            const campos = [
-                os.idOS,
-                os.numeroOS,
-                os.idEquipamento,
-                os.equipamento,
-                os.descricaoProblema,
-                os.equipeResponsavel,
-                os.responsavel,
-                os.criadoPor,
-                os.finalizadoPor
-            ].map(v => normalizarKPI(v)).join(' | ');
-
-            return (
-                campos.includes('teste') ||
-                campos.includes('gman 8.5') ||
-                campos.includes('equipamento teste') ||
-                campos.includes('bomba teste') ||
-                campos.includes('testeciclo') ||
-                campos.includes('teste_')
-            );
-        }
-
-        function nomeLiderKPI(os) {
-            const nome = String(os.responsavel || os.finalizadoPor || '').trim();
-            return nome || '';
-        }
-
-        function nomeEquipamentoKPI(os) {
-            return String(os.equipamento || os.idEquipamento || '').trim() || 'Não informado';
-        }
-
-        function contarPorLiderKPI(lista) {
-            return lista.reduce((acc, os) => {
-                const lider = nomeLiderKPI(os);
-                if (!lider) return acc;
-                acc[lider] = (acc[lider] || 0) + 1;
+        function contarPorCampo(lista, campo) {
+            return lista.reduce((acc, item) => {
+                const chave = String(item[campo] || 'Não informado').trim() || 'Não informado';
+                acc[chave] = (acc[chave] || 0) + 1;
                 return acc;
             }, {});
         }
 
-        function arredondarPercentualKPI(valor) {
-            return Math.max(0, Math.min(100, Math.round(valor)));
-        }
-
-        function formatarPercentualKPI(valor) {
-            return `${arredondarPercentualKPI(valor)}%`;
-        }
-
-        function calcularOEEKPI(disponibilidadePct, performancePct, qualidadePct) {
-            const oee = (disponibilidadePct / 100) * (performancePct / 100) * (qualidadePct / 100) * 100;
-            return arredondarPercentualKPI(oee);
-        }
-
-        function obterInfosKPIGMAN() {
-            return {
-                'Disponibilidade histórica': {
-                    icone: '✅',
-                    cor: '#38a169',
-                    titulo: 'Disponibilidade histórica',
-                    conteudo: [
-                        'Mede a disponibilidade pela lógica clássica da engenharia de manutenção.',
-                        'Fórmula: Disponibilidade = MTBF ÷ (MTBF + MTTR) × 100.',
-                        'MTBF mede o tempo médio entre falhas. MTTR mede o tempo médio para reparo.',
-                        'Quanto maior o MTBF e menor o MTTR, melhor é a disponibilidade histórica de bombas e motores.'
-                    ],
-                    legenda: [
-                        'Entra: OS corretivas concluídas válidas, com histórico suficiente para calcular intervalo entre falhas e tempo de reparo.',
-                        'Se ainda não houver histórico suficiente, este KPI aparece como Em cálculo, sem misturar com a foto instantânea do momento.'
-                    ]
-                },
-                'Disponibilidade instantânea': {
-                    icone: '📍',
-                    cor: '#319795',
-                    titulo: 'Disponibilidade instantânea',
-                    conteudo: [
-                        'Mostra a fotografia operacional do momento.',
-                        'Fórmula: equipamentos operando ÷ total de equipamentos × 100.',
-                        'É útil para saber a situação atual, mas não substitui a disponibilidade histórica por MTBF e MTTR.'
-                    ],
-                    legenda: [
-                        'Entra: equipamentos com status Operando.',
-                        'Não entra como disponível: Parado, Em manutenção, Em alerta ou similares.'
-                    ]
-                },
-                'MTTR': {
-                    icone: '⏱️',
-                    cor: '#3182ce',
-                    titulo: 'MTTR',
-                    conteudo: [
-                        'É o tempo médio de reparo.',
-                        'Fórmula usada: média entre DATA_INICIO/HORA_INICIO e DATA_CONCLUSAO/HORA_CONCLUSAO das corretivas concluídas.',
-                        'Quanto menor o MTTR, mais rápida está a recuperação das falhas.'
-                    ],
-                    legenda: [
-                        'Entra: OS corretivas concluídas com início e conclusão válidos.',
-                        'Não entra: OS sem data/hora completa ou OS não concluídas.'
-                    ]
-                },
-                'MTBF estimado': {
-                    icone: '🔁',
-                    cor: '#805ad5',
-                    titulo: 'MTBF estimado',
-                    conteudo: [
-                        'É o tempo médio estimado entre falhas do mesmo equipamento.',
-                        'No GMAN, enquanto não houver horímetro real, o cálculo usa o intervalo médio entre OS corretivas válidas do mesmo equipamento.',
-                        'Quando faltarem duas ou mais ocorrências válidas do mesmo equipamento, o sistema mostra Em cálculo.'
-                    ],
-                    legenda: [
-                        'Entra: corretivas concluídas válidas com datas suficientes do mesmo equipamento.',
-                        'Não entra: OS isoladas, OS de teste ou equipamentos sem repetição suficiente.'
-                    ]
-                },
-                'Backlog de OS': {
-                    icone: '📋',
-                    cor: '#d69e2e',
-                    titulo: 'Backlog de OS',
-                    conteudo: [
-                        'Mostra quantas OS válidas ainda estão abertas ou pendentes.',
-                        'Conta OS que ainda não foram encerradas.',
-                        'É o volume atual de trabalho pendente no sistema.'
-                    ],
-                    legenda: [
-                        'Entra: Aberta, Em execução, Em teste, Aguardando material, Aguardando liberação, Parado, Em manutenção, Operando com restrição.',
-                        'Não entra: Concluída, Cancelada, Fechada, Encerrada, Finalizada.'
-                    ]
-                },
-                'Produtividade': {
-                    icone: '🏆',
-                    cor: '#38a169',
-                    titulo: 'Produtividade',
-                    conteudo: [
-                        'Mostra a quantidade de OS concluídas válidas.',
-                        'O ranking lateral usa o RESPONSAVEL para destacar os líderes que mais atenderam OS.',
-                        'Serve para enxergar volume de atendimento concluído.'
-                    ],
-                    legenda: [
-                        'Entra: OS concluídas válidas.',
-                        'Não entra: OS de teste e OS ainda abertas.'
-                    ]
-                },
-                'Reincidência': {
-                    icone: '⚠️',
-                    cor: '#e53e3e',
-                    titulo: 'Reincidência',
-                    conteudo: [
-                        'Mostra quantos equipamentos tiveram 3 ou mais corretivas nos últimos 30 dias.',
-                        'O ranking lateral destaca os equipamentos com maior repetição de falhas.',
-                        'Quanto maior a reincidência, maior o alerta para análise de causa.'
-                    ],
-                    legenda: [
-                        'Entra: corretivas válidas dos últimos 30 dias agrupadas por equipamento.',
-                        'Não entra: OS de teste e equipamentos sem repetição suficiente.'
-                    ]
-                },
-                'OEE adaptado': {
-                    icone: '⚙️',
-                    cor: '#dd6b20',
-                    titulo: 'OEE adaptado GMAN',
-                    conteudo: [
-                        'É um indicador gerencial adaptado ao GMAN, não um OEE industrial clássico.',
-                        'Fórmula usada: OEE adaptado = Disponibilidade histórica × Performance × Qualidade.',
-                        'A Disponibilidade usada no OEE adaptado vem de MTBF ÷ (MTBF + MTTR) × 100.',
-                        'Performance = OS concluídas válidas ÷ total de OS válidas.',
-                        'Qualidade = 100% − impacto proporcional das maiores reincidências.'
-                    ],
-                    legenda: [
-                        'Se a disponibilidade histórica estiver Em cálculo, o OEE adaptado também fica Em cálculo.',
-                        'A disponibilidade instantânea permanece separada apenas como fotografia do momento.'
-                    ]
-                }
-            };
-        }
-
-        function abrirInfoKPI(chave) {
-            const infos = obterInfosKPIGMAN();
-            const info = infos[chave];
-            if (!info) return;
-
-            const modalExistente = document.getElementById('kpiInfoModal');
-            if (modalExistente) modalExistente.remove();
-
-            const modal = document.createElement('div');
-            modal.id = 'kpiInfoModal';
-            modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.78); display:flex; align-items:center; justify-content:center; z-index:1300; padding:18px;';
-            modal.innerHTML = `
-                <div style="background:linear-gradient(180deg,#ffffff,#f7fafc); width:95%; max-width:620px; border-radius:24px; box-shadow:0 18px 48px rgba(0,0,0,0.25); overflow:hidden;">
-                    <div style="background:linear-gradient(135deg,${info.cor},#1e3a5f); color:white; padding:18px 20px;">
-                        <div style="display:flex; justify-content:space-between; gap:12px; align-items:center;">
-                            <div>
-                                <div style="font-size:2rem; line-height:1;">${info.icone}</div>
-                                <h3 style="margin:8px 0 0; font-size:1.2rem;">${info.titulo}</h3>
-                                <p style="margin:6px 0 0; opacity:0.92; font-size:0.84rem;">Legenda, significado, meta mínima e regra de cálculo deste KPI.</p>
-                            </div>
-                            <button onclick="document.getElementById('kpiInfoModal').remove();" style="border:none; border-radius:12px; background:rgba(255,255,255,0.18); color:white; font-weight:800; padding:10px 14px; cursor:pointer;">Fechar</button>
-                        </div>
-                    </div>
-                    <div style="padding:18px 20px; color:#2d3748;">
-                        <div style="margin-bottom:14px; background:#f0fff4; border-left:5px solid ${info.cor}; border-radius:14px; padding:12px;">
-                            <div style="font-size:0.75rem; color:#718096; font-weight:900; text-transform:uppercase; margin-bottom:6px;">Meta mínima aceitável</div>
-                            <div style="font-size:0.92rem; color:#1e3a5f; font-weight:900;">${metaMinimaKPI(chave)}</div>
-                        </div>
-                        <div style="margin-bottom:14px;">
-                            <div style="font-size:0.75rem; color:#718096; font-weight:900; text-transform:uppercase; margin-bottom:8px;">O que significa</div>
-                            ${info.conteudo.map(item => `<div style="display:flex; gap:10px; margin-bottom:8px; font-size:0.9rem;"><span style="color:${info.cor}; font-weight:900;">•</span><span>${item}</span></div>`).join('')}
-                        </div>
-                        <div>
-                            <div style="font-size:0.75rem; color:#718096; font-weight:900; text-transform:uppercase; margin-bottom:8px;">Legenda prática</div>
-                            ${info.legenda.map(item => `<div style="display:flex; gap:10px; margin-bottom:8px; font-size:0.88rem;"><span style="color:${info.cor}; font-weight:900;">▸</span><span>${item}</span></div>`).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            document.body.appendChild(modal);
-        }
-
-        function montarRankingHTML(objeto, titulo, limite = 5, unidade = 'OS', icone = '🏆') {
+        function montarRankingHTML(objeto, titulo, limite = 5) {
             const itens = Object.entries(objeto)
-                .filter(([nome]) => normalizarKPI(nome) !== 'nao informado')
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, limite);
 
             if (!itens.length) {
-                return `
-                    <div style="background:linear-gradient(135deg,#ffffff,#edf2f7); border-radius:24px; padding:18px; border:1px solid #e2e8f0; box-shadow:0 12px 26px rgba(30,58,95,0.08);">
-                        <h4 style="color:#1e3a5f; margin:0 0 8px; display:flex; align-items:center; gap:8px;">${icone} ${titulo}</h4>
-                        <p style="color:#718096; margin:0;">Sem dados suficientes.</p>
-                    </div>
-                `;
+                return `<div style="background:#f7fafc; border-radius:12px; padding:12px;"><h4 style="color:#1e3a5f; margin:0 0 8px;">${titulo}</h4><p style="color:#718096; margin:0;">Sem dados suficientes.</p></div>`;
             }
 
-            const maior = Math.max(...itens.map(item => item[1]), 1);
-
             return `
-                <div style="background:linear-gradient(135deg,#ffffff,#f7fafc); border-radius:24px; padding:18px; border:1px solid #e2e8f0; box-shadow:0 12px 26px rgba(30,58,95,0.10); position:relative; overflow:hidden;">
-                    <div style="position:absolute; top:-12px; right:-8px; font-size:3.2rem; opacity:0.08;">${icone}</div>
-                    <h4 style="color:#1e3a5f; margin:0 0 14px; display:flex; align-items:center; gap:8px;">${icone} ${titulo}</h4>
-                    ${itens.map((item, idx) => {
-                        const percentual = Math.round((item[1] / maior) * 100);
-                        const medalha = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '🔹';
-                        return `
-                            <div style="margin-bottom:12px;">
-                                <div style="display:flex; justify-content:space-between; gap:10px; color:#2d3748; font-size:0.85rem; font-weight:800;">
-                                    <span>${medalha} ${idx + 1}. ${item[0]}</span>
-                                    <strong>${item[1]} ${unidade}</strong>
-                                </div>
-                                <div style="height:9px; background:#e2e8f0; border-radius:999px; overflow:hidden; margin-top:6px;">
-                                    <div style="height:9px; width:${percentual}%; background:linear-gradient(90deg,#3182ce,#38a169,#d69e2e); border-radius:999px;"></div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                    <div style="margin-top:8px; font-size:0.76rem; color:#718096;">Exibindo apenas as 5 maiores posições do ranking.</div>
+                <div style="background:#f7fafc; border-radius:12px; padding:12px;">
+                    <h4 style="color:#1e3a5f; margin:0 0 8px;">${titulo}</h4>
+                    ${itens.map((item, idx) => `
+                        <div style="display:flex; justify-content:space-between; gap:10px; border-bottom:1px solid #e2e8f0; padding:6px 0; color:#2d3748; font-size:0.82rem;">
+                            <span>${idx + 1}. ${item[0]}</span>
+                            <strong>${item[1]}</strong>
+                        </div>
+                    `).join('')}
                 </div>
             `;
         }
 
-                function metaMinimaKPI(chave) {
-            const metas = {
-                'Disponibilidade histórica': '≥ 90% | referência industrial 90–95%',
-                'Disponibilidade instantânea': '≥ 95% operando',
-                'MTTR': '≤ 24h ou queda contínua',
-                'MTBF estimado': '≥ 30 dias ou alta contínua',
-                'Backlog de OS': 'Controlado | alerta > 15 OS',
-                'Produtividade': 'Evolução semanal positiva',
-                'Reincidência': '≤ 2 repetições/equipamento em 30 dias',
-                'OEE adaptado': '≥ 70% | classe mundial ≥ 85%'
-            };
-            return metas[chave] || 'Acompanhar tendência';
-        }
-
-function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊') {
-            const brilho = `linear-gradient(135deg, ${cor}18, #ffffff 55%, #f7fafc)`;
+        function montarCardKPI(titulo, valor, subtitulo, cor = '#3182ce') {
             return `
-                <button onclick="abrirInfoKPI('${chave.replace(/'/g, "\\'")}')" style="width:100%; text-align:left; background:${brilho}; border:none; border-left:7px solid ${cor}; border-radius:24px; padding:17px; min-height:126px; box-shadow:0 12px 26px rgba(30,58,95,0.12); position:relative; overflow:hidden; cursor:pointer; transition:transform 0.15s ease, box-shadow 0.15s ease;">
-                    <div style="position:absolute; top:-6px; right:8px; font-size:2.4rem; opacity:0.15;">${icone}</div>
-                    <div style="position:absolute; bottom:-18px; left:-8px; font-size:3.3rem; opacity:0.07;">✨</div>
-                    <div style="font-size:0.70rem; color:#718096; font-weight:900; text-transform:uppercase; letter-spacing:0.04em;">${chave}</div>
-                    <div style="font-size:1.95rem; color:#1e3a5f; font-weight:950; margin-top:8px; line-height:1.05;">${valor}</div>
-                    <div style="font-size:0.76rem; color:#4a5568; margin-top:7px;">${subtitulo || ''}</div>
-                    <div style="font-size:0.71rem; color:#1e3a5f; font-weight:900; margin-top:8px; background:rgba(255,255,255,0.78); border-radius:999px; padding:6px 8px;">🎯 Meta mínima: ${metaMinimaKPI(chave)}</div>
-                    <div style="font-size:0.73rem; color:${cor}; font-weight:900; margin-top:9px;">Clique para entender este KPI</div>
-                </button>
+                <div style="background:#f7fafc; border-radius:14px; padding:14px; border-left:5px solid ${cor}; min-height:92px;">
+                    <div style="font-size:0.72rem; color:#718096; font-weight:700; text-transform:uppercase;">${titulo}</div>
+                    <div style="font-size:1.7rem; color:#1e3a5f; font-weight:800; margin-top:4px;">${valor}</div>
+                    <div style="font-size:0.75rem; color:#4a5568; margin-top:2px;">${subtitulo || ''}</div>
+                </div>
             `;
-        }
-
-        function calcularMTBFKPI(corretivasConcluidas) {
-            const porEquipamento = {};
-
-            corretivasConcluidas.forEach(os => {
-                const chave = os.idEquipamento || os.equipamento;
-                if (!chave) return;
-
-                const data = combinarDataHoraKPI(os.dataAbertura, os.horaAbertura) ||
-                             combinarDataHoraKPI(os.dataInicio, os.horaInicio) ||
-                             combinarDataHoraKPI(os.dataConclusao, os.horaConclusao);
-
-                if (!data) return;
-
-                const key = String(chave).trim();
-                porEquipamento[key] = porEquipamento[key] || [];
-                porEquipamento[key].push(data);
-            });
-
-            const intervalosHoras = [];
-
-            Object.values(porEquipamento).forEach(datas => {
-                if (datas.length < 2) return;
-
-                datas.sort((a, b) => a.getTime() - b.getTime());
-
-                for (let i = 1; i < datas.length; i++) {
-                    const horas = (datas[i].getTime() - datas[i - 1].getTime()) / 3600000;
-                    if (horas > 0) intervalosHoras.push(horas);
-                }
-            });
-
-            if (!intervalosHoras.length) {
-                return {
-                    horas: 0,
-                    texto: 'Em cálculo'
-                };
-            }
-
-            const media = intervalosHoras.reduce((a, b) => a + b, 0) / intervalosHoras.length;
-
-            return {
-                horas: media,
-                texto: media < 24 ? `${Math.round(media)}h` : `${Math.round(media / 24)} dias`
-            };
-        }
-
-        function calcularDisponibilidadeManutencaoKPI(mtbfHoras, mttrMinutos) {
-            if (mtbfHoras > 0 && mttrMinutos > 0) {
-                const mttrHoras = mttrMinutos / 60;
-                return arredondarPercentualKPI((mtbfHoras / (mtbfHoras + mttrHoras)) * 100);
-            }
-
-            return null;
         }
 
         async function abrirPainelGerencial() {
@@ -2415,30 +1493,30 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
             try {
                 await carregarStatusOnline();
                 const listaOS = await listarOSOnline();
-                const osValidas = listaOS.filter(os => !ehOSTesteKPI(os));
 
                 const totalEquipamentos = equipment.length;
                 const operando = equipment.filter(e => e.status === 'ok').length;
                 const indisponiveis = equipment.filter(e => e.status === 'alert' || e.status === 'down').length;
                 const parados = equipment.filter(e => e.status === 'down').length;
 
-                const disponibilidadeInstantanea = totalEquipamentos ? arredondarPercentualKPI((operando / totalEquipamentos) * 100) : 0;
+                const disponibilidade = totalEquipamentos ? Math.round((operando / totalEquipamentos) * 100) : 0;
 
-                const osBacklog = osValidas.filter(os => !statusEncerradoKPI(os.statusOS)).length;
-                const osConcluidasLista = osValidas.filter(os => statusConcluidoKPI(os.statusOS));
-                const osConcluidas = osConcluidasLista.length;
+                const osBacklog = listaOS.filter(os => !['Concluída', 'Cancelada'].includes(String(os.statusOS || ''))).length;
+                const osConcluidas = listaOS.filter(os => String(os.statusOS || '') === 'Concluída').length;
 
-                const corretivasConcluidas = osValidas.filter(os =>
-                    statusConcluidoKPI(os.statusOS) &&
-                    ehCorretivaKPI(os)
+                const corretivasConcluidas = listaOS.filter(os =>
+                    String(os.statusOS || '') === 'Concluída' &&
+                    String(os.tipoManutencao || '').toLowerCase().includes('corretiva')
                 );
 
-                const corretivasValidas = osValidas.filter(os => ehCorretivaKPI(os));
+                const corretivas = listaOS.filter(os =>
+                    String(os.tipoManutencao || '').toLowerCase().includes('corretiva')
+                );
 
                 const temposReparo = corretivasConcluidas
                     .map(os => {
-                        const inicio = combinarDataHoraKPI(os.dataInicio, os.horaInicio);
-                        const fim = combinarDataHoraKPI(os.dataConclusao, os.horaConclusao);
+                        const inicio = parseDataKPI(os.dataInicio);
+                        const fim = parseDataKPI(os.dataConclusao);
                         if (!inicio || !fim) return null;
                         const minutos = (fim.getTime() - inicio.getTime()) / 60000;
                         return minutos > 0 ? minutos : null;
@@ -2449,89 +1527,44 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                     ? temposReparo.reduce((a, b) => a + b, 0) / temposReparo.length
                     : 0;
 
-                const produtividadePorLider = contarPorLiderKPI(osConcluidasLista);
+                const porEquipeConcluidas = contarPorCampo(
+                    listaOS.filter(os => String(os.statusOS || '') === 'Concluída' && (os.equipeResponsavel || os.responsavel)),
+                    'equipeResponsavel'
+                );
 
                 const agora = new Date();
                 const trintaDiasAtras = new Date(agora.getTime() - (30 * 24 * 60 * 60 * 1000));
-
-                const corretivas30 = corretivasValidas.filter(os => {
-                    const data = combinarDataHoraKPI(os.dataAbertura, os.horaAbertura) ||
-                                 combinarDataHoraKPI(os.dataInicio, os.horaInicio) ||
-                                 combinarDataHoraKPI(os.dataConclusao, os.horaConclusao);
+                const corretivas30 = corretivas.filter(os => {
+                    const data = parseDataKPI(os.dataAbertura) || parseDataKPI(os.dataInicio) || parseDataKPI(os.dataConclusao);
                     return data && data >= trintaDiasAtras;
                 });
 
                 const reincidenciaPorEquip = {};
                 corretivas30.forEach(os => {
-                    const chave = nomeEquipamentoKPI(os);
-                    if (normalizarKPI(chave) === 'nao informado') return;
+                    const chave = os.equipamento || os.idEquipamento || 'Não informado';
                     reincidenciaPorEquip[chave] = (reincidenciaPorEquip[chave] || 0) + 1;
                 });
 
                 const reincidentes = Object.entries(reincidenciaPorEquip).filter(([_, total]) => total >= 3);
-                const mtbfCalculado = calcularMTBFKPI(corretivasConcluidas);
-                const mtbfTexto = mtbfCalculado.texto;
-                const disponibilidadeHistoricaValor = calcularDisponibilidadeManutencaoKPI(mtbfCalculado.horas, mttr);
-                const disponibilidadeHistoricaTexto = disponibilidadeHistoricaValor === null ? 'Em cálculo' : formatarPercentualKPI(disponibilidadeHistoricaValor);
-                const disponibilidadeHistoricaSubtitulo = disponibilidadeHistoricaValor === null ? 'aguardando histórico suficiente' : 'MTBF ÷ (MTBF + MTTR)';
-                const osTesteIgnoradas = listaOS.length - osValidas.length;
-
-                const performanceOEE = osValidas.length ? arredondarPercentualKPI((osConcluidas / osValidas.length) * 100) : 0;
-                const baseQualidade = totalEquipamentos ? Math.max(0, 100 - ((reincidentes.length / totalEquipamentos) * 100)) : 0;
-                const qualidadeOEE = arredondarPercentualKPI(baseQualidade);
-                const oee = disponibilidadeHistoricaValor === null ? null : calcularOEEKPI(disponibilidadeHistoricaValor, performanceOEE, qualidadeOEE);
-                const oeeTexto = oee === null ? 'Em cálculo' : formatarPercentualKPI(oee);
+                const mtbfTexto = corretivas.length >= 2 ? 'Em cálculo' : 'Dados insuficientes';
 
                 container.innerHTML = `
-                    <div style="background:linear-gradient(135deg,#1e3a5f,#2c5282,#3182ce); color:white; border-radius:26px; padding:20px; margin-bottom:16px; box-shadow:0 14px 30px rgba(30,58,95,0.24); position:relative; overflow:hidden;">
-                        <div style="position:absolute; right:18px; bottom:-12px; font-size:4.8rem; opacity:0.13;">⚙️</div>
-                        <div style="position:absolute; left:12px; top:-18px; font-size:4.5rem; opacity:0.08;">✨</div>
-                        <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; position:relative;">
-                            <div>
-                                <h3 style="margin:0; font-size:1.24rem;">📊 Painel Gerencial GMAN</h3>
-                                <p style="margin:5px 0 0; opacity:0.92; font-size:0.84rem;">KPIs clicáveis, painel mais vivo, Top 5 e OEE adaptado ao cenário do GMAN.</p>
-                            </div>
-                            <button onclick="carregarPainelGerencial()" style="border:none; border-radius:999px; padding:10px 14px; background:white; color:#1e3a5f; font-weight:900; cursor:pointer;">🔄 Recalcular</button>
-                        </div>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:10px; margin-bottom:16px;">
+                        ${montarCardKPI('Disponibilidade', disponibilidade + '%', 'Equipamentos aptos a operar', disponibilidade >= 90 ? '#38a169' : '#d69e2e')}
+                        ${montarCardKPI('MTTR', formatarDuracaoMinutos(mttr), 'Corretivas concluídas', '#3182ce')}
+                        ${montarCardKPI('MTBF', mtbfTexto, 'Mínimo 2 corretivas por equipamento', '#805ad5')}
+                        ${montarCardKPI('Backlog de OS', osBacklog, 'OS abertas e pendentes', '#d69e2e')}
+                        ${montarCardKPI('Produtividade', osConcluidas, 'OS concluídas no total', '#38a169')}
+                        ${montarCardKPI('Reincidência', reincidentes.length, '3 corretivas em 30 dias', reincidentes.length ? '#e53e3e' : '#38a169')}
                     </div>
 
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; margin-bottom:16px;">
-                        ${montarCardKPI('Disponibilidade histórica', disponibilidadeHistoricaTexto, disponibilidadeHistoricaSubtitulo, disponibilidadeHistoricaValor !== null && disponibilidadeHistoricaValor >= 90 ? '#38a169' : '#d69e2e', '✅')}
-                        ${montarCardKPI('Disponibilidade instantânea', formatarPercentualKPI(disponibilidadeInstantanea), 'foto atual por status', '#319795', '📍')}
-                        ${montarCardKPI('MTTR', formatarDuracaoMinutos(mttr), 'Tempo médio de reparo', '#3182ce', '⏱️')}
-                        ${montarCardKPI('MTBF estimado', mtbfTexto, 'Intervalo médio entre corretivas', '#805ad5', '🔁')}
-                        ${montarCardKPI('Backlog de OS', osBacklog, 'OS abertas e pendentes', '#d69e2e', '📋')}
-                        ${montarCardKPI('Produtividade', osConcluidas, 'OS concluídas válidas', '#38a169', '🏆')}
-                        ${montarCardKPI('Reincidência', reincidentes.length, 'Equipamentos com 3+ corretivas em 30 dias', reincidentes.length ? '#e53e3e' : '#38a169', '⚠️')}
-                        ${montarCardKPI('OEE adaptado', oeeTexto, 'Indicador gerencial adaptado', oee !== null && oee >= 70 ? '#dd6b20' : '#c53030', '⚙️')}
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
+                        ${montarRankingHTML(porEquipeConcluidas, 'Produtividade por equipe')}
+                        ${montarRankingHTML(reincidenciaPorEquip, 'Possíveis reincidências')}
                     </div>
 
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:14px;">
-                        ${montarRankingHTML(produtividadePorLider, 'Líderes que mais atenderam OS', 5, 'OS', '🏆')}
-                        ${montarRankingHTML(reincidenciaPorEquip, 'Maiores reincidências', 5, 'OS', '⚠️')}
-                    </div>
-
-                    <div style="margin-top:14px; display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:10px;">
-                        <div style="background:#f0fff4; border-left:5px solid #38a169; border-radius:18px; padding:13px; color:#22543d; font-size:0.82rem; box-shadow:0 8px 18px rgba(56,161,105,0.08);">
-                            <strong>✅ Base dos KPIs</strong><br>
-                            ${osValidas.length} OS válidas consideradas.
-                        </div>
-                        <div style="background:#fffaf0; border-left:5px solid #d69e2e; border-radius:18px; padding:13px; color:#744210; font-size:0.82rem; box-shadow:0 8px 18px rgba(214,158,46,0.08);">
-                            <strong>📋 Backlog</strong><br>
-                            ${osBacklog} OS ainda não encerradas.
-                        </div>
-                        <div style="background:#ebf8ff; border-left:5px solid #3182ce; border-radius:18px; padding:13px; color:#2c5282; font-size:0.82rem; box-shadow:0 8px 18px rgba(49,130,206,0.08);">
-                            <strong>🧪 Testes ignorados</strong><br>
-                            ${osTesteIgnoradas} OS de teste fora dos KPIs.
-                        </div>
-                        <div style="background:#fff5f5; border-left:5px solid #dd6b20; border-radius:18px; padding:13px; color:#7b341e; font-size:0.82rem; box-shadow:0 8px 18px rgba(221,107,32,0.08);">
-                            <strong>⚙️ OEE adaptado</strong><br>
-                            Histórica ${disponibilidadeHistoricaTexto} · Instantânea ${formatarPercentualKPI(disponibilidadeInstantanea)} · Performance ${formatarPercentualKPI(performanceOEE)} · Qualidade ${formatarPercentualKPI(qualidadeOEE)}.
-                        </div>
-                    </div>
-
-                    <div style="margin-top:14px; background:linear-gradient(135deg,#edf2f7,#ffffff); border-radius:20px; padding:14px; color:#2d3748; font-size:0.82rem; border:1px solid #e2e8f0;">
-                        <strong>📌 Regra aplicada:</strong> disponibilidade histórica usa MTBF ÷ (MTBF + MTTR) e não se mistura com a disponibilidade instantânea. MTBF é estimado pelo intervalo médio entre corretivas do mesmo equipamento. Produtividade por líder usa o campo RESPONSAVEL das OS concluídas válidas. Reincidência usa corretivas dos últimos 30 dias por equipamento. OEE é gerencial e adaptado ao GMAN. OS de teste não entram nos KPIs.
+                    <div style="margin-top:14px; background:#ebf8ff; border-left:5px solid #3182ce; border-radius:12px; padding:12px; color:#2c5282; font-size:0.82rem;">
+                        <strong>GMAN:</strong> painel com os 6 KPIs oficiais: disponibilidade, MTTR, MTBF, backlog, produtividade e reincidência.
                         <br>
                         <strong>Situação atual:</strong> ${operando} operando, ${indisponiveis} em manutenção/alerta, ${parados} parados e ${osBacklog} OS no backlog.
                     </div>
@@ -2597,6 +1630,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
             mostrarUsuarioLogado();
             aplicarPermissoes();
             aplicarBotoesPermissao();
+            setTimeout(() => atualizarAgoraSemAlerta(), 50);
         }
 
         function mostrarUsuarioLogado() {
@@ -2651,7 +1685,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
         }
 
       const equipment = [
-            // SISTEMA MOINHOS DE VENTO DE VENTO (100)
+            // SISTEMA MOINHOS DE VENTO (100)
             { id: '101-GR1', name: '101 bruta (GR1)', system: 'moinhos de vento', systemCode: '100', status: 'ok' },
             { id: '101-GR2', name: '101 bruta (GR2)', system: 'moinhos de vento', systemCode: '100', status: 'ok' },
             { id: '101-GR3', name: '101 bruta (GR3)', system: 'moinhos de vento', systemCode: '100', status: 'ok' },
@@ -2940,7 +1974,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
                 activeList = equipment.filter(e => e.system === currentSystemFilter);
             }
             
-            const totalEquipamentos = activeList.length;
+            const totalAtivos = activeList.length;
             const totalOperando = activeList.filter(e => e.status === 'ok').length;
             const totalManutencao = activeList.filter(e => e.status === 'alert' || e.status === 'down').length;
             const totalParados = activeList.filter(e => e.status === 'down').length;
@@ -2949,9 +1983,17 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
             document.getElementById('maintenanceCount').textContent = totalManutencao;
             document.getElementById('downCount').textContent = totalParados;
 
-            document.getElementById('operationalPercent').textContent = calcularPercentualGMAN(totalOperando, totalEquipamentos);
-            document.getElementById('maintenancePercent').textContent = calcularPercentualGMAN(totalManutencao, totalEquipamentos);
-            document.getElementById('downPercent').textContent = calcularPercentualGMAN(totalParados, totalEquipamentos);
+            const percentualOperando = totalAtivos > 0 ? ((totalOperando / totalAtivos) * 100).toFixed(1) : '0.0';
+            const percentualManutencao = totalAtivos > 0 ? ((totalManutencao / totalAtivos) * 100).toFixed(1) : '0.0';
+            const percentualParados = totalAtivos > 0 ? ((totalParados / totalAtivos) * 100).toFixed(1) : '0.0';
+
+            const operationalPercent = document.getElementById('operationalPercent');
+            const maintenancePercent = document.getElementById('maintenancePercent');
+            const downPercent = document.getElementById('downPercent');
+
+            if (operationalPercent) operationalPercent.textContent = percentualOperando + '%';
+            if (maintenancePercent) maintenancePercent.textContent = percentualManutencao + '%';
+            if (downPercent) downPercent.textContent = percentualParados + '%';
         }
         
         function filterSystem(system) {
@@ -3022,222 +2064,7 @@ function montarCardKPI(chave, valor, subtitulo, cor = '#3182ce', icone = '📊')
             renderEquipment(filtered);
         }
         
-                async function abrirConsultaGrupo(idGrupo) {
-            const eq = equipment.find(e => String(e.id) === String(idGrupo));
-
-            if (!eq) {
-                alert('Grupo/equipamento não localizado.');
-                return;
-            }
-
-            let consulta;
-
-            try {
-                consulta = await consultarPatrimonioGrupoFront(eq.id, eq);
-            } catch (erro) {
-                console.error(erro);
-                alert('Erro ao consultar patrimônio do grupo: ' + erro.message);
-                return;
-            }
-
-            const existente = document.getElementById('consultaGrupoModal');
-            if (existente) existente.remove();
-
-            const modal = document.createElement('div');
-            modal.id = 'consultaGrupoModal';
-            modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.78); display:flex; align-items:center; justify-content:center; z-index:1400; padding:18px;';
-            modal.innerHTML = `
-                <div style="background:white; border-radius:22px; padding:22px; width:95%; max-width:540px; max-height:90vh; overflow-y:auto;">
-                    <h2 style="color:#1e3a5f; margin:0 0 8px;">Consultar grupo</h2>
-                    <p style="color:#718096; font-size:0.82rem; margin:0 0 12px;">${escaparHTMLGMAN(eq.id)} — ${escaparHTMLGMAN(eq.name)}</p>
-
-                    <div style="background:#f7fafc; border:1px solid #e2e8f0; border-radius:14px; padding:10px; text-align:left;">
-                        ${montarLinhasPatrimonioGrupoGMAN((consulta && consulta.patrimonios) || {}, { modo: 'consulta', descricoes: (consulta && consulta.descricoes) || {} })}
-                    </div>
-
-                    <div style="background:#ebf8ff; border-left:4px solid #3182ce; border-radius:12px; padding:10px; margin-top:12px; color:#2c5282; font-size:0.78rem; text-align:left;">
-                        Os patrimônios são atualizados quando o líder/gestor conclui uma OS e confirma PAINEL, MOTOR, BOMBA, Válvula de Sucção, Válvula de Recalque, Válvula de Retenção e Tubulação.
-                    </div>
-
-                    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:14px;">
-                        <button onclick="document.getElementById('consultaGrupoModal').remove();" style="padding:11px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
-                    </div>
-                </div>
-            `;
-
-            document.body.appendChild(modal);
-        }
-
-        function dataReferenciaOSHistoricoGMAN(os) {
-            return os.ultimaMovimentacaoDataHora || os.dataConclusao || os.dataInicio || os.dataAbertura || '';
-        }
-
-        function chaveDataHistoricoGMAN(os) {
-            const data = dataReferenciaOSHistoricoGMAN(os);
-            if (!data) return 'Sem data informada';
-            return String(data).split(' ')[0];
-        }
-
-        function tempoHistoricoGMAN(os) {
-            if (os.ultimaMovimentacaoTempo) return Number(os.ultimaMovimentacaoTempo) || 0;
-            const data = String(dataReferenciaOSHistoricoGMAN(os) || '');
-            const partes = data.match(/(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}):(\d{2}))?/);
-            if (partes) {
-                return new Date(
-                    Number(partes[3]),
-                    Number(partes[2]) - 1,
-                    Number(partes[1]),
-                    Number(partes[4] || 0),
-                    Number(partes[5] || 0),
-                    Number(partes[6] || 0)
-                ).getTime();
-            }
-            const d = new Date(data);
-            return isNaN(d.getTime()) ? 0 : d.getTime();
-        }
-
-        function ordenarOSMaisRecenteGMAN(a, b) {
-            return tempoHistoricoGMAN(b) - tempoHistoricoGMAN(a);
-        }
-
-        function tituloEscopoHistoricoGMAN(total, exibidas) {
-            if (podeGerenciarOS()) {
-                return `Gestão visualiza todas as ${total} OS deste grupo, organizadas por data.`;
-            }
-            return `Líder/equipe visualiza apenas as últimas ${exibidas} OS deste grupo.`;
-        }
-
-        function linhaDetalheHistoricoGMAN(rotulo, valor) {
-            return `
-                <div style="display:grid; grid-template-columns:150px 1fr; gap:8px; padding:7px 0; border-bottom:1px solid #edf2f7;">
-                    <strong style="color:#1e3a5f;">${rotulo}</strong>
-                    <span style="color:#2d3748;">${escaparHTMLGMAN(valor || '-')}</span>
-                </div>
-            `;
-        }
-
-        async function abrirHistoricoDetalhadoGrupo(idGrupo) {
-            const eq = equipment.find(e => String(e.id) === String(idGrupo));
-
-            try {
-                const lista = await listarOSOnline();
-                const todasDoGrupo = lista
-                    .filter(os => String(os.idEquipamento) === String(idGrupo))
-                    .sort(ordenarOSMaisRecenteGMAN);
-
-                const ehGestao = podeGerenciarOS();
-                const historico = ehGestao ? todasDoGrupo : todasDoGrupo.slice(0, 3);
-
-                const gruposPorData = historico.reduce((acc, os) => {
-                    const chave = chaveDataHistoricoGMAN(os);
-                    acc[chave] = acc[chave] || [];
-                    acc[chave].push(os);
-                    return acc;
-                }, {});
-
-                const datasOrdenadas = Object.keys(gruposPorData).sort((a, b) => b.localeCompare(a, 'pt-BR', { numeric: true }));
-
-                const existente = document.getElementById('historicoDetalhadoGrupoModal');
-                if (existente) existente.remove();
-
-                const modal = document.createElement('div');
-                modal.id = 'historicoDetalhadoGrupoModal';
-                modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.78); display:flex; align-items:center; justify-content:center; z-index:1500; padding:18px;';
-                modal.innerHTML = `
-                    <div style="background:white; border-radius:22px; padding:22px; width:96%; max-width:840px; max-height:90vh; overflow-y:auto;">
-                        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:14px;">
-                            <div>
-                                <h2 style="color:#1e3a5f; margin:0;">Histórico detalhado do grupo</h2>
-                                <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">${escaparHTMLGMAN(idGrupo)} ${eq ? '— ' + escaparHTMLGMAN(eq.name) : ''}</p>
-                                <p style="color:#2c5282; margin:5px 0 0; font-size:0.78rem; font-weight:800;">${escaparHTMLGMAN(tituloEscopoHistoricoGMAN(todasDoGrupo.length, historico.length))}</p>
-                            </div>
-                            <button onclick="document.getElementById('historicoDetalhadoGrupoModal').remove();" style="padding:10px 14px; border:none; border-radius:10px; background:#718096; color:white; cursor:pointer;">Fechar</button>
-                        </div>
-
-                        ${historico.length ? datasOrdenadas.map(dataGrupo => `
-                            <div style="margin:14px 0 8px; padding:9px 12px; background:#ebf8ff; color:#1e3a5f; border-radius:12px; font-weight:900; border-left:5px solid #3182ce;">
-                                📅 ${escaparHTMLGMAN(dataGrupo)}
-                            </div>
-                            ${gruposPorData[dataGrupo].map(os => `
-                                <div style="border:1px solid #e2e8f0; border-radius:16px; padding:13px; margin-bottom:12px; background:#f7fafc; text-align:left;">
-                                    <h3 style="margin:0 0 8px; color:#1e3a5f; font-size:1rem;">OS ${escaparHTMLGMAN(os.numeroOS || os.idOS || '-')} — ${escaparHTMLGMAN(os.statusOS || '-')}</h3>
-                                    ${linhaDetalheHistoricoGMAN('Última movimentação', os.ultimaMovimentacaoDataHora)}
-                                    ${linhaDetalheHistoricoGMAN('Ação mais recente', os.ultimaMovimentacaoAcao)}
-                                    ${linhaDetalheHistoricoGMAN('Usuário da movimentação', os.ultimaMovimentacaoUsuario)}
-                                    ${linhaDetalheHistoricoGMAN('Observação da movimentação', os.ultimaMovimentacaoObservacao)}
-                                    ${linhaDetalheHistoricoGMAN('Responsável', os.responsavel)}
-                                    ${linhaDetalheHistoricoGMAN('Finalizado por', os.finalizadoPor)}
-                                    ${linhaDetalheHistoricoGMAN('Membros da equipe', os.membrosEquipe)}
-                                    ${linhaDetalheHistoricoGMAN('Componentes', os.componentesSolicitados)}
-                                    ${linhaDetalheHistoricoGMAN('Serviço realizado', os.servicoRealizado)}
-                                    ${linhaDetalheHistoricoGMAN('Materiais', os.materiais)}
-                                    ${linhaDetalheHistoricoGMAN('Situação final', os.situacaoFinalEquipamento)}
-                                    ${linhaDetalheHistoricoGMAN('Observação final', os.observacaoFinal)}
-                                    ${linhaDetalheHistoricoGMAN('Motorista', os.motorista)}
-                                    ${linhaDetalheHistoricoGMAN('Prefixo', os.prefixoVeiculo)}
-                                    ${linhaDetalheHistoricoGMAN('KM inicial', os.kmInicial)}
-                                    ${linhaDetalheHistoricoGMAN('KM final', os.kmFinal)}
-                                    ${linhaDetalheHistoricoGMAN('KM rodado', os.kmRodado)}
-                                    ${linhaDetalheHistoricoGMAN('PAT Painel', os.patPainel)}
-                                    ${linhaDetalheHistoricoGMAN('Desc. Painel', os.descPainel)}
-                                    ${linhaDetalheHistoricoGMAN('PAT Motor', os.patMotor)}
-                                    ${linhaDetalheHistoricoGMAN('Desc. Motor', os.descMotor)}
-                                    ${linhaDetalheHistoricoGMAN('PAT Bomba', os.patBomba)}
-                                    ${linhaDetalheHistoricoGMAN('Desc. Bomba', os.descBomba)}
-                                    ${linhaDetalheHistoricoGMAN('PAT Válvula de Sucção', os.patVS)}
-                                    ${linhaDetalheHistoricoGMAN('Desc. Válvula de Sucção', os.descVS)}
-                                    ${linhaDetalheHistoricoGMAN('PAT Válvula de Recalque', os.patVR)}
-                                    ${linhaDetalheHistoricoGMAN('Desc. Válvula de Recalque', os.descVR)}
-                                </div>
-                            `).join('')}
-                        `).join('') : `
-                            <div style="background:#fffaf0; border-left:5px solid #d69e2e; border-radius:14px; padding:12px; color:#744210;">
-                                Nenhuma OS encontrada para este grupo.
-                            </div>
-                        `}
-                    </div>
-                `;
-
-                document.body.appendChild(modal);
-            } catch (erro) {
-                console.error(erro);
-                alert('Erro ao abrir histórico detalhado: ' + erro.message);
-            }
-        }
-
-                async function verOSDoGrupoGMAN(idGrupo) {
-            try {
-                const lista = await listarOSOnline();
-                modoPainelOSAtual = 'grupo:' + idGrupo;
-
-                const existingModal = document.getElementById('osModal');
-                if (existingModal) existingModal.remove();
-
-                const modal = document.createElement('div');
-                modal.id = 'osModal';
-                modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.82); display: flex; align-items: center; justify-content: center; z-index: 1100; padding: 18px;';
-                modal.innerHTML = `
-                    <div style="background:linear-gradient(180deg,#ffffff,#f7fafc); border-radius:24px; padding:22px; width:96%; max-width:880px; max-height:90vh; overflow-y:auto; box-shadow:0 18px 44px rgba(0,0,0,0.22);">
-                        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:15px;">
-                            <div>
-                                <h2 style="color:#1e3a5f; margin:0; font-size:1.22rem;">📋 OS do grupo ${escaparHTMLGMAN(idGrupo)}</h2>
-                                <p style="color:#718096; margin:4px 0 0; font-size:0.82rem;">Acesso direto às OS vinculadas ao grupo selecionado.</p>
-                            </div>
-                            <button onclick="document.getElementById('osModal').remove();" style="padding:10px 14px; border:none; border-radius:12px; background:#718096; color:white; cursor:pointer;">Fechar</button>
-                        </div>
-                        <div id="osConteudo">Carregando OS do grupo...</div>
-                    </div>
-                `;
-
-                document.body.appendChild(modal);
-                renderizarOS(lista);
-            } catch (erro) {
-                console.error(erro);
-                alert('Erro ao abrir OS do grupo: ' + erro.message);
-            }
-        }
-
-function openEquipment(id) {
+        function openEquipment(id) {
             const eq = equipment.find(e => e.id === id);
             
             const existingModal = document.getElementById('qrModal');
@@ -3255,9 +2082,8 @@ function openEquipment(id) {
             const statusLabels = { 'ok': 'OPERANDO', 'alert': 'MANUTENÇÃO', 'down': 'MANUTENÇÃO — PARADO' };
             
             modal.innerHTML = `
-                <div style="background:linear-gradient(180deg,#ffffff,#f7fafc); padding: 28px; border-radius: 28px; text-align: center; max-width: 430px; width: 92%; max-height: 90vh; overflow-y: auto; box-shadow:0 24px 58px rgba(0,0,0,0.28); border:1px solid rgba(255,255,255,0.65);">
-                    <div style="font-size:2.2rem; margin-bottom:6px;">🏭</div>
-                    <h2 style="color: #1e3a5f; margin-bottom: 10px; font-size: 1.24rem;">${eq.name}</h2>
+                <div style="background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 400px; width: 90%; max-height: 90vh; overflow-y: auto;">
+                    <h2 style="color: #1e3a5f; margin-bottom: 10px; font-size: 1.2rem;">${eq.name}</h2>
                     <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">ID: ${eq.id} | Sistema: ${eq.system.toUpperCase()}</p>
                     
                     <div style="margin: 20px 0; padding: 15px; background: #f7fafc; border-radius: 10px;">
@@ -3277,8 +2103,8 @@ function openEquipment(id) {
                     ` : ''}
                     
                     ${eq.historico && eq.historico.length > 0 ? `
-                    <div onclick="abrirHistoricoDetalhadoGrupo('${eq.id}')" title="Clique para ver os detalhes completos das OS" style="margin: 15px 0; max-height: 120px; overflow-y: auto; text-align: left; background: #f9f9f9; padding: 10px; border-radius: 8px; cursor:pointer; border:1px solid #e2e8f0;">
-                        <p style="color: #666; font-size: 0.75rem; margin-bottom: 5px;"><strong>Histórico recente — últimas 3 intervenções:</strong><br><span style="color:#3182ce; font-weight:700;">Clique para abrir detalhes completos</span></p>
+                    <div style="margin: 15px 0; max-height: 100px; overflow-y: auto; text-align: left; background: #f9f9f9; padding: 10px; border-radius: 8px;">
+                        <p style="color: #666; font-size: 0.75rem; margin-bottom: 5px;"><strong>Histórico Recente:</strong></p>
                         ${eq.historico.slice(-3).map(h => `
                             <div style="font-size: 0.7rem; color: #666; padding: 3px 0; border-bottom: 1px solid #eee;">
                                 ${h.data} - <strong>${h.tecnico}</strong>: <em>${statusLabels[h.statusAnterior]} → ${statusLabels[h.statusNovo]}</em>
@@ -3292,11 +2118,7 @@ function openEquipment(id) {
                             🔒 <strong>Status bloqueado:</strong> o status do equipamento só pode ser alterado no encerramento de uma OS vinculada.
                         </p>
                     </div>
-                    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
-                        <button onclick="verOSDoGrupoGMAN('${eq.id}')" style="padding: 11px 15px; background: linear-gradient(135deg,#38a169,#2f855a); color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 0.88rem; font-weight:900; box-shadow:0 8px 18px rgba(56,161,105,0.22);">📋 Ver OS</button>
-                        <button onclick="abrirConsultaGrupo('${eq.id}')" style="padding: 10px 15px; background: #805ad5; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 0.85rem; font-weight:bold;">🔎 Consultar grupo</button>
-                        ${usuarioLogado ? `<button onclick="abrirModalCriarOS('${eq.id}')" style="padding: 10px 15px; background: #3182ce; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 0.85rem; font-weight:bold;">➕ Abrir OS deste equipamento</button>` : ''}
-                    </div>
+                    ${usuarioLogado ? `<button onclick="abrirModalCriarOS('${eq.id}')" style="padding: 10px 15px; background: #3182ce; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; margin-bottom: 12px;">➕ Abrir OS deste equipamento</button>` : ''}
 
                     <div style="margin: 20px 0;">
                         <p style="color: #666; font-size: 0.8rem; margin-bottom: 10px;">QR CODE:</p>
@@ -3318,32 +2140,17 @@ function openEquipment(id) {
         async function iniciarSistema() {
             loadData();
             renderEquipment();
-            recuperarLoginSalvo();
+            const logado = recuperarLoginSalvo();
             aplicarBotoesPermissao();
-            await carregarStatusOnline();
-
-            try {
-                const listaOS = await listarOSOnline();
-                ordensServicoCache = listaOS;
-                atualizarTotalizadoresOS(listaOS);
-            } catch (erro) {
-                console.error('Erro ao carregar totalizadores de OS:', erro);
-            }
+            if (logado) setTimeout(() => atualizarAgoraSemAlerta(), 50);
 
             setInterval(async () => {
-                await carregarStatusOnline();
-                try {
-                    const listaOS = await listarOSOnline();
-                    ordensServicoCache = listaOS;
-                    atualizarTotalizadoresOS(listaOS);
-                } catch (erro) {
-                    console.error('Erro ao atualizar totalizadores de OS:', erro);
-                }
+                if (!usuarioLogado) return;
+                await atualizarAgoraSemAlerta();
             }, 120000);
         }
 
         iniciarSistema();
       </script>
 </body>
-<!-- GMAN 8.5.6.69 — visual original 8.5.6.29 restaurado; API oficial embutida; login simples preservado -->
 </html>
