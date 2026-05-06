@@ -812,7 +812,7 @@
   </div>
 
   <div class="search-row">
-    <input type="text" class="search-box" id="searchInput" placeholder="🔍 Buscar por nome, código ou sistema..." onfocus="abrirBuscaInteligenteGMAN()" onkeyup="searchEquipment()">
+    <input type="text" class="search-box" id="searchInput" placeholder="🔍 Buscar por nome, código ou sistema..." oninput="searchEquipment()">
     <button class="advanced-filter-btn" onclick="abrirFiltroAvancadoGMAN()" title="Filtro avançado">☷</button>
   </div>
 
@@ -1578,6 +1578,221 @@
       ['btnPainelKPI','btnOrdensNaoIniciadasHome','btnOrdensIniciadasHome','btnOrdensEncerradasHome'].forEach(id=>{const el=document.getElementById(id); if(el) el.style.display=g?'inline-block':'none';});
       const stats=document.getElementById('statsGestao'); if(stats) stats.style.display='grid';
     }
+
+
+
+    /************************************************************
+     * GMAN 8.5.6.74 — FASE 3 AJUSTES CRÍTICOS DO TESTE FORTE
+     * Motivo: checklist preenchido apontou busca bloqueada, duplicidade
+     * de OS, status difícil de encontrar, horário exibido sempre 04:00,
+     * perfil/drawer sem conteúdo claro, menu Mais incompleto e ações rápidas.
+     * Regra: preservar layout novo, API e estrutura; corrigir comportamento.
+     ************************************************************/
+
+    function gmanValorCampoLista_(obj, nomes) {
+      return getCampo(obj || {}, nomes || []) || '';
+    }
+
+    function formatarDataHoraBrasilGMAN_(data, hora, fallback) {
+      const d = String(data || '').trim();
+      const h = String(hora || '').trim();
+      if (/^\d{2}\/\d{2}\/\d{4}/.test(d)) {
+        if (/^\d{1,2}:\d{2}/.test(h)) return d.replace(/[, ]+$/,'') + ' ' + h;
+        return d;
+      }
+      if (fallback) return formatarDataApi(fallback);
+      return '';
+    }
+
+    async function carregarStatusOnline() {
+      atualizarIndicadorConexao('↻ Sincronizando status com a base oficial do GMAN...', 'neutro');
+      try {
+        const retornoStatus = await apiAcao('listarStatus', { usuario: usuarioLogado?.nome || '' });
+        const statusOnline = extrairLista(retornoStatus, ['status','statusAtual','listaStatus']);
+        statusOnline.forEach(item=>{
+          const id = gmanValorCampoLista_(item,['idEquipamento','ID_EQUIPAMENTO','id','ID_GRUPO']);
+          const eq = equipment.find(e=>String(e.id)===String(id));
+          if(!eq) return;
+          const st = gmanValorCampoLista_(item,['statusAtual','STATUS_ATUAL','status','STATUS_VISUAL','statusVisual']) || 'Operando';
+          const obs = gmanValorCampoLista_(item,['observacao','OBSERVACAO','justificativa','JUSTIFICATIVA']);
+          const data = gmanValorCampoLista_(item,['dataUltimaAlteracao','DATA_ULTIMA_ALTERACAO','data','DATA']);
+          const hora = gmanValorCampoLista_(item,['horaUltimaAlteracao','HORA_ULTIMA_ALTERACAO','hora','HORA']);
+          const dataHora = gmanValorCampoLista_(item,['dataHora','DATA_HORA','atualizadoEm','ATUALIZADO_EM']);
+          eq.status = statusClasseEquip(st,obs);
+          eq.ultimoTecnico = gmanValorCampoLista_(item,['usuarioUltimaAlteracao','USUARIO_ULTIMA_ALTERACAO','usuario','USUARIO']) || eq.ultimoTecnico || '';
+          eq.ultimaAlteracao = formatarDataHoraBrasilGMAN_(data, hora, dataHora) || eq.ultimaAlteracao || '';
+          eq.observacaoStatus = obs;
+          eq.statusAtualTexto = st;
+        });
+        apiOnline=true;
+        saveData();
+        applyFilters();
+        atualizarIndicadorConexao('✓ Online: status conectado à base oficial do GMAN', 'online');
+        setTimeout(async()=>{
+          try {
+            const osOnline = await listarOSOnline();
+            ordensServicoCache=osOnline;
+            atualizarTotalizadoresOS(osOnline);
+            applyFilters();
+          } catch(e) { console.warn('OS carregará sob demanda:', e); }
+        }, 50);
+        return true;
+      } catch(erro) {
+        apiOnline=false;
+        loadData();
+        applyFilters();
+        atualizarIndicadorConexao('⚠ Modo local: falha ao listar status — '+erro.message, 'offline');
+        console.error(erro);
+        return false;
+      }
+    }
+
+    function searchEquipment() {
+      const el = document.getElementById('searchInput');
+      const termo = el ? el.value : '';
+      gmanSalvarBusca_(termo);
+      applyFilters();
+    }
+
+    function abrirBuscaInteligenteGMAN() {
+      modalPremiumGMAN('buscaGMANModal','Busca inteligente','Digite direto no campo da tela principal; este painel é apenas de atalhos rápidos.',
+        `<div class="gman-card-dark"><div class="gman-kpi-label">Atalhos de busca</div><p style="color:var(--gman-muted);margin:8px 0 12px;">O campo de busca não bloqueia mais a digitação. Escolha um atalho ou feche e digite normalmente.</p><div style="display:flex;flex-wrap:wrap;gap:8px;">${equipment.slice(0,8).map(e=>`<button class="gman-btn gman-btn-muted" onclick="document.getElementById('searchInput').value='${escaparHTMLGMAN(e.id)}'; searchEquipment(); fecharModalGMAN('buscaGMANModal');">${escaparHTMLGMAN(e.id)}</button>`).join('')}</div></div>`, '560px');
+    }
+
+    function osAtivaMesmoEquipResponsavelGMAN_(idEquipamento, responsavel) {
+      const id = String(idEquipamento || '');
+      const resp = normalizarTextoGMAN(responsavel || '');
+      if(!id || !resp) return null;
+      const lista = Array.isArray(ordensServicoCache) ? ordensServicoCache : [];
+      return lista.find(o => String(getCampo(o,['idEquipamento','ID_EQUIPAMENTO'])) === id && statusAtivo(getCampo(o,['statusOS','STATUS_OS'])) && normalizarTextoGMAN(getCampo(o,['responsavel','RESPONSAVEL'])) === resp) || null;
+    }
+
+    function componentesAberturaHTML() {
+      return COMPONENTES.map(c=>`<label style="display:inline-flex;gap:6px;align-items:center;margin:4px 10px 4px 0;color:#dbefff;font-size:.82rem;"><input type="checkbox" class="osComponenteSolicitado" value="${c[0]}"> ${c[1]}</label>`).join('') +
+      `<label style="display:inline-flex;gap:6px;align-items:center;margin:4px 10px 4px 0;color:#dbefff;font-size:.82rem;"><input type="checkbox" class="osComponenteSolicitado" value="OUTROS"> Outros equipamentos/características</label>`;
+    }
+
+    function abrirModalCriarOS(idEquipamentoPreSelecionado='') {
+      if(!usuarioLogado) return gmanToast('Faça login para abrir OS.','alerta');
+      const eq = equipment.find(e=>e.id===idEquipamentoPreSelecionado);
+      if(!idEquipamentoPreSelecionado || !eq) {
+        const opcoes = equipment.slice(0,80).map(e=>`<option value="${escaparHTMLGMAN(e.id)}">${escaparHTMLGMAN(e.id)} — ${escaparHTMLGMAN(nomeGrupoVisualGMAN(e.name))}</option>`).join('');
+        return modalPremiumGMAN('selecionarGrupoOSGMAN','Nova OS','Selecione primeiro o grupo/equipamento para abrir uma OS vinculada.',
+          `<label class="form-label">Grupo/equipamento</label><select id="grupoRapidoNovaOSGMAN" class="form-field"><option value="">Selecione</option>${opcoes}</select><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;"><button class="gman-btn gman-btn-muted" onclick="fecharModalGMAN('selecionarGrupoOSGMAN')">Cancelar</button><button class="gman-btn" onclick="const id=document.getElementById('grupoRapidoNovaOSGMAN').value; if(!id) return gmanToast('Selecione um grupo.','alerta'); fecharModalGMAN('selecionarGrupoOSGMAN'); abrirModalCriarOS(id);">Continuar</button></div>`, '620px');
+      }
+      modalPremiumGMAN('criarOSModal','Abrir Ordem de Serviço', `${escaparHTMLGMAN(eq.id)} — ${escaparHTMLGMAN(nomeGrupoVisualGMAN(eq.name))}`,
+        `<input type="hidden" id="osEquipamento" value="${escaparHTMLGMAN(idEquipamentoPreSelecionado)}">
+        <div class="gman-card-dark" style="margin-bottom:12px;"><div class="gman-kpi-label">Componentes solicitados dentro do grupo</div><div style="margin-top:8px;">${componentesAberturaHTML()}</div></div>
+        <div class="gman-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+          <div><label class="form-label">Área / setor</label><select id="osArea" class="form-field"><option value="">Selecione</option><option>Mecânica</option><option>Elétrica</option><option>Automação</option><option>Usinagem</option><option>Caldeiraria</option><option>Instalações Mecânicas</option></select></div>
+          <div><label class="form-label">Tipo de manutenção</label><select id="osTipo" class="form-field"><option value="">Selecione</option><option>Corretiva</option><option>Preventiva</option><option>Preditiva</option><option>Melhoria</option></select></div>
+          <div><label class="form-label">Prioridade</label><select id="osPrioridade" class="form-field"><option value="">Selecione</option><option>Normal</option><option>Alta</option><option>Crítica</option><option>Baixa</option></select></div>
+          <div><label class="form-label">Executor principal / responsável</label><select id="osResponsavel" class="form-field">${gerarOpcoesExecutores()}</select></div>
+        </div>
+        <p class="small-help">Membros da equipe não entram na abertura; são obrigatórios somente no encerramento.</p>
+        <label class="form-label">Descrição do problema</label><textarea id="osDescricao" class="form-field" rows="4" placeholder="Descreva a ocorrência de forma objetiva."></textarea>
+        <label class="form-label">Outros equipamentos/características adicionais</label><textarea id="osOutrosEquipamentos" class="form-field" rows="2" placeholder="Opcional: informe item extra não listado nos componentes."></textarea>
+        <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;"><button class="gman-btn gman-btn-muted" onclick="fecharModalGMAN('criarOSModal')">Cancelar</button><button class="gman-btn" onclick="criarOSPeloModal()">Criar OS</button></div>`, '780px');
+    }
+
+    async function criarOSPeloModal() {
+      const idEquipamento=document.getElementById('osEquipamento').value;
+      const eq=equipment.find(e=>e.id===idEquipamento);
+      const componentes=Array.from(document.querySelectorAll('.osComponenteSolicitado:checked')).map(x=>x.value);
+      const outros=(document.getElementById('osOutrosEquipamentos')?.value || '').trim();
+      const area=document.getElementById('osArea').value;
+      const tipoManutencao=document.getElementById('osTipo').value;
+      const prioridade=document.getElementById('osPrioridade').value;
+      const responsavel=document.getElementById('osResponsavel').value.trim();
+      const descricaoProblema=document.getElementById('osDescricao').value.trim();
+      const faltas=[];
+      if(!componentes.length && !outros) faltas.push('componente ou outros equipamentos/características');
+      if(!area) faltas.push('área/setor');
+      if(!tipoManutencao) faltas.push('tipo de manutenção');
+      if(!prioridade) faltas.push('prioridade');
+      if(!responsavel) faltas.push('executor principal');
+      if(!descricaoProblema) faltas.push('descrição do problema');
+      if(faltas.length) return gmanToast('Preencha: '+faltas.join(', ')+'.','alerta');
+      const dup = osAtivaMesmoEquipResponsavelGMAN_(idEquipamento, responsavel);
+      if(dup) return modalPremiumGMAN('duplicidadeOSGMAN','OS duplicada bloqueada','Já existe OS ativa para este equipamento com o mesmo responsável.',
+        `<div class="gman-card-dark"><div class="gman-kpi-label">OS existente</div><div class="gman-kpi-value" style="font-size:1.15rem;">${escaparHTMLGMAN(getCampo(dup,['numeroOS','NUMERO_OS','idOS','ID_OS']))}</div><div class="gman-kpi-meta">Responsável: ${escaparHTMLGMAN(responsavel)}. Use a OS existente ou selecione outro responsável.</div></div>`, '620px');
+      const componentesTexto = componentes.concat(outros ? ['OUTROS: '+outros] : []).join(', ');
+      try{
+        await apiPost({acao:'criarOS', usuario:usuarioLogado.nome, perfil:usuarioLogado.funcao, funcao:usuarioLogado.funcao, idEquipamento, equipamento:eq?.name||'', sistema:eq?.systemCode||'', area, tipoManutencao, prioridade, descricaoProblema, equipeResponsavel:area, responsavel, componentesSolicitados:componentesTexto, equipamentosAdicionais:outros});
+        fecharModalGMAN('criarOSModal');
+        gmanToast('OS criada com sucesso.');
+        ordensServicoCache = await listarOSOnline();
+        atualizarTotalizadoresOS(ordensServicoCache);
+        await carregarStatusOnline();
+      }catch(e){ modalPremiumGMAN('erroCriarOSGMAN','Erro ao criar OS','A API recusou ou não gravou a OS.',`<div class="gman-card-dark"><p style="color:var(--gman-red);font-weight:800;">${escaparHTMLGMAN(e.message)}</p></div>`,'620px'); }
+    }
+
+    function abrirMenuFABGMAN() {
+      const old=document.getElementById('fabGMANMenu'); if(old) old.remove();
+      const overlay=document.createElement('div'); overlay.id='fabGMANMenu'; overlay.className='gman-fab-overlay'; overlay.onclick=()=>overlay.remove();
+      const sheet=document.createElement('div'); sheet.className='gman-fab-sheet'; sheet.onclick=e=>e.stopPropagation();
+      sheet.innerHTML=`<div class="gman-fab-header"><div><div class="gman-fab-title">Ações rápidas</div><div style="color:var(--gman-muted);font-size:.72rem;margin-top:3px;">Atalhos operacionais do GMAN</div></div><button class="gman-btn gman-btn-muted" onclick="fecharModalGMAN('fabGMANMenu')">Fechar</button></div>
+      <div class="gman-action-list">
+        <button class="gman-action-row" onclick="fecharModalGMAN('fabGMANMenu'); abrirModalCriarOS();"><span><strong>Nova OS</strong><small>Seleciona um grupo e abre o formulário completo de OS.</small></span><span class="gman-icon-circle">＋</span></button>
+        <button class="gman-action-row" onclick="fecharModalGMAN('fabGMANMenu'); abrirPainelOS('abertas');"><span><strong>OS abertas</strong><small>Consulta rápida das ordens ativas conforme perfil.</small></span><span class="gman-icon-circle">▣</span></button>
+        <button class="gman-action-row" onclick="fecharModalGMAN('fabGMANMenu'); abrirFiltroAvancadoGMAN();"><span><strong>Atualizar status</strong><small>Escolha o grupo e use OS vinculada/andamento para status.</small></span><span class="gman-icon-circle">↻</span></button>
+        <button class="gman-action-row" onclick="fecharModalGMAN('fabGMANMenu'); gmanRecursoImplantacaoGMAN('Abrir câmera');"><span><strong>Abrir câmera</strong><small>Área preparada para foto tirada na hora.</small></span><span class="gman-icon-circle">▧</span></button>
+        <button class="gman-action-row" onclick="fecharModalGMAN('fabGMANMenu'); gmanRecursoImplantacaoGMAN('Gravar áudio');"><span><strong>Gravar áudio</strong><small>Área preparada para áudio gravado na hora, até 1 minuto.</small></span><span class="gman-icon-circle">◉</span></button>
+      </div>`;
+      overlay.appendChild(sheet); document.body.appendChild(overlay);
+    }
+
+    function abrirPerfilGMAN() {
+      if(!usuarioLogado) return gmanToast('Faça login para abrir o perfil.','alerta');
+      const perfil=String(usuarioLogado.funcao||'').toUpperCase();
+      const area=String(usuarioLogado.area||'').toUpperCase();
+      modalPremiumGMAN('perfilGMANModal','Perfil do usuário','Dados, permissões e atalhos do operador logado.',
+        `<div class="gman-card-dark"><div style="display:flex;gap:12px;align-items:center;"><div class="gman-avatar" style="width:70px;height:70px;font-size:1.8rem;">👤</div><div><div class="gman-kpi-value" style="font-size:1.25rem;">${escaparHTMLGMAN(usuarioLogado.nome)}</div><div class="gman-kpi-meta">${escaparHTMLGMAN(perfil)} | ${escaparHTMLGMAN(area)}</div></div></div></div>
+        <div class="gman-grid" style="margin-top:12px;"><div class="gman-card-dark"><div class="gman-kpi-label">Permissões</div><div class="gman-kpi-value" style="font-size:1rem;">${isGestao()?'Gestão':'Operacional'}</div><div class="gman-kpi-meta">${isGestao()?'Visualiza e gerencia recursos de gestão conforme perfil.':'Altera apenas OS sob sua responsabilidade.'}</div></div><div class="gman-card-dark"><div class="gman-kpi-label">Área</div><div class="gman-kpi-value" style="font-size:1rem;">${escaparHTMLGMAN(area)}</div></div></div>
+        <div class="gman-card-actions"><button class="gman-btn" onclick="abrirPainelOS('minhas')">Minhas OS</button><button class="gman-btn" onclick="abrirNotificacoesGMAN()">Notificações</button><button class="gman-btn gman-btn-red" onclick="fazerLogout()">Sair</button></div>`, '720px');
+    }
+
+    function abrirMenuMaisGMAN() {
+      const admin = isGestao();
+      modalPremiumGMAN('menuMaisGMAN','Menu Mais','Recursos administrativos, relatórios, segurança e módulos em implantação.',
+        `<div class="gman-grid">
+          <button class="gman-action-row" onclick="abrirPainelGerencial()"><span><strong>Dashboard / KPIs</strong><small>Indicadores, rankings e desempenho.</small></span><span class="gman-icon-circle">◈</span></button>
+          <button class="gman-action-row" onclick="abrirPainelOS('abertas')"><span><strong>Ordens de Serviço</strong><small>Abertas, iniciadas, minhas e encerradas conforme perfil.</small></span><span class="gman-icon-circle">▣</span></button>
+          <button class="gman-action-row" onclick="abrirMapaOperacionalGMAN()"><span><strong>Mapa operacional</strong><small>Preparado para estações georreferenciadas.</small></span><span class="gman-icon-circle">⌖</span></button>
+          ${admin ? `<button class="gman-action-row" onclick="abrirCentralSegurancaGMAN()"><span><strong>Central de Segurança</strong><small>Diagnóstico, quarentena segura, logs e gatilhos.</small></span><span class="gman-icon-circle">⌬</span></button><button class="gman-action-row" onclick="gmanRecursoImplantacaoGMAN('Usuários e permissões')"><span><strong>Usuários e permissões</strong><small>Recurso de gestão/administração.</small></span><span class="gman-icon-circle">◉</span></button>` : ''}
+          <button class="gman-action-row" onclick="gmanRecursoImplantacaoGMAN('Relatórios')"><span><strong>Relatórios</strong><small>Exportações e relatórios executivos.</small></span><span class="gman-icon-circle">▤</span></button>
+        </div>`, '840px');
+    }
+
+    function abrirCentralSegurancaGMAN() {
+      if(!isGestao()) return gmanToast('Central disponível apenas para gestão.','alerta');
+      modalPremiumGMAN('centralSegurancaGMAN','Central de Segurança GMAN','Ferramentas administrativas seguras. A execução real continua protegida pela API/Apps Script.',
+        `<div class="gman-grid">
+          <button class="gman-action-row" onclick="executarAcaoSegurancaGMAN('diagnosticoProfundo')"><span><strong>Diagnóstico profundo</strong><small>Audita base, OS, status, patrimônio, usuários e KPIs.</small></span><span class="gman-icon-circle">⌕</span></button>
+          <button class="gman-action-row" onclick="executarAcaoSegurancaGMAN('simularQuarentenaSegura')"><span><strong>Simular quarentena segura</strong><small>Mostra candidatos sem alterar a planilha.</small></span><span class="gman-icon-circle">◇</span></button>
+          <button class="gman-action-row" onclick="executarAcaoSegurancaGMAN('listarGatilhos')"><span><strong>Listar gatilhos</strong><small>Verifica gatilhos ativos do sincronizador.</small></span><span class="gman-icon-circle">↻</span></button>
+          <button class="gman-action-row" onclick="executarAcaoSegurancaGMAN('calcularKPIs')"><span><strong>Recalcular KPIs</strong><small>Consulta indicadores calculados pela API.</small></span><span class="gman-icon-circle">◈</span></button>
+        </div><div id="segurancaResultadoGMAN" class="gman-card-dark" style="margin-top:12px;color:var(--gman-muted);">Escolha uma ação segura para consultar.</div>`, '900px');
+    }
+
+    async function executarAcaoSegurancaGMAN(acao) {
+      const c=document.getElementById('segurancaResultadoGMAN'); if(c) c.innerHTML='Executando consulta segura...';
+      try { const r=await apiAcao(acao,{usuario:usuarioLogado?.nome||'', perfil:usuarioLogado?.funcao||''}); if(c) c.innerHTML=`<pre style="white-space:pre-wrap;max-height:300px;overflow:auto;color:#dbefff;font-size:.76rem;">${escaparHTMLGMAN(JSON.stringify(r,null,2))}</pre>`; }
+      catch(e) { if(c) c.innerHTML=`<span style="color:var(--gman-red);font-weight:800;">${escaparHTMLGMAN(e.message)}</span>`; }
+    }
+
+    function abrirNotificacoesGMAN() {
+      const abertas=(ordensServicoCache||[]).filter(o=>statusAtivo(getCampo(o,['statusOS','STATUS_OS'])));
+      const criticas=equipment.filter(e=>e.status==='down');
+      const itens=[];
+      abertas.slice(0,8).forEach(o=>itens.push({tipo:'OS ativa',titulo:getCampo(o,['numeroOS','NUMERO_OS','idOS','ID_OS']),detalhe:`${getCampo(o,['equipamento','EQUIPAMENTO','idEquipamento','ID_EQUIPAMENTO'])} — ${getCampo(o,['statusOS','STATUS_OS'])}`}));
+      criticas.slice(0,8).forEach(e=>itens.push({tipo:'Equipamento crítico',titulo:e.id,detalhe:nomeGrupoVisualGMAN(e.name)}));
+      document.querySelectorAll('.notify-badge').forEach(b=>{ b.textContent=String(itens.length||0); b.style.display=itens.length?'inline-flex':'none'; });
+      modalPremiumGMAN('notificacoesGMAN','Notificações','Ao abrir esta central, o contador visual é considerado lido nesta sessão.',
+        itens.length ? `<div class="gman-action-list">${itens.map((n,i)=>`<div class="gman-card-dark" style="border-left:4px solid ${i%2?'var(--gman-orange)':'var(--gman-red)'};"><div class="gman-kpi-label">${escaparHTMLGMAN(n.tipo)}</div><div class="gman-kpi-value" style="font-size:1rem;">${escaparHTMLGMAN(n.titulo||'Sem título')}</div><div class="gman-kpi-meta">${escaparHTMLGMAN(n.detalhe||'')}</div></div>`).join('')}</div>` : `<div class="gman-card-dark"><span class="gman-status-pill gman-pill-ok">Sem alertas ativos</span><p style="color:var(--gman-muted);margin-top:8px;">Não há OS ativa ou equipamento crítico carregado no momento.</p></div>`, '760px');
+      document.querySelectorAll('.notify-badge').forEach(b=>{ b.textContent='0'; b.style.display='none'; });
+    }
+
 
     iniciarSistema();
   </script>
