@@ -5,105 +5,513 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GMAN DMAE — Sistema de Manutenção</title>
   <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
-            min-height: 100vh;
-            color: white;
-            padding: 20px;
-        }
-        
-        h1 { text-align: center; margin-bottom: 5px; font-size: 1.6rem; }
-        .subtitle { text-align: center; color: #a0c4e8; margin-bottom: 10px; font-size: 0.85rem; }
-        
-        .systems-filter { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px; }
-        .system-btn {
-            padding: 8px 16px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1);
-            color: white; border-radius: 20px; cursor: pointer; font-size: 0.8rem; transition: all 0.3s;
-        }
-        .system-btn:hover, .system-btn.active { background: #3182ce; border-color: #3182ce; }
-        
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-bottom: 20px; }
-        .stat-card {
-            backdrop-filter: blur(10px); border-radius: 12px;
-            padding: 15px; text-align: center; 
-            cursor: pointer; transition: all 0.3s;
-            border: 1px solid rgba(255,255,255,0.2);
-            background: rgba(255,255,255,0.1);
-        }
-        .stat-card:hover { background: rgba(255,255,255,0.2); }
-        .stat-number { font-size: 2rem; font-weight: bold; }
-        .stat-label { font-size: 0.75rem; color: #a0c4e8; margin-top: 5px; font-weight: 600;}
-        
-        #card-all .stat-number { color: #63b3ed; }
-        #card-ok { background: rgba(56, 161, 105, 0.15); border-color: rgba(56, 161, 105, 0.3); }
-        #card-ok:hover { background: rgba(56, 161, 105, 0.25); }
-        #card-ok .stat-number { color: #48bb78; }
-        #card-alert { background: rgba(214, 158, 46, 0.15); border-color: rgba(214, 158, 46, 0.3); }
-        #card-alert:hover { background: rgba(214, 158, 46, 0.25); }
-        #card-alert .stat-number { color: #ecc94b; }
-        #card-down { background: rgba(229, 62, 62, 0.15); border-color: rgba(229, 62, 62, 0.3); }
-        #card-down:hover { background: rgba(229, 62, 62, 0.25); }
-        #card-down .stat-number { color: #f56565; }
+    :root {
+      --gman-bg-0:#071525;
+      --gman-bg-1:#0a2138;
+      --gman-bg-2:#0d2f4d;
+      --gman-card:#0f2740;
+      --gman-card-2:#123452;
+      --gman-line:rgba(110,193,255,.24);
+      --gman-line-strong:rgba(40,169,255,.55);
+      --gman-blue:#1f9cff;
+      --gman-blue-2:#00c2ff;
+      --gman-green:#35d07f;
+      --gman-yellow:#ffd166;
+      --gman-orange:#ff9f1c;
+      --gman-red:#ff4d5e;
+      --gman-text:#f5fbff;
+      --gman-muted:#9fc0d9;
+      --gman-soft:#d8efff;
+      --gman-shadow:0 18px 45px rgba(0,0,0,.38);
+      --gman-radius:22px;
+    }
 
-        .search-box {
-            width: 100%; padding: 12px; border: none; border-radius: 10px; margin-bottom: 15px;
-            font-size: 0.95rem; background: rgba(255,255,255,0.15); color: white;
-        }
-        .search-box::placeholder { color: #a0c4e8; }
-        
-        .equipment-list {
-            background: rgba(255,255,255,0.05); border-radius: 15px; overflow: hidden;
-            max-height: 60vh; overflow-y: auto;
-        }
-        .equipment-item {
-            padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); display: grid;
-            grid-template-columns: 45px 1fr auto; gap: 12px; align-items: center; transition: background 0.3s; cursor: pointer;
-        }
-        .equipment-item:hover { background: rgba(255,255,255,0.1); }
-        
-        .status-icon { width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
-        .status-ok { background: #38a169; }
-        .status-alert { background: #d69e2e; }
-        .status-down { background: #e53e3e; }
-        
-        .equipment-name { font-weight: 600; font-size: 0.9rem; }
-        .equipment-system { font-size: 0.75rem; color: #a0c4e8; margin-top: 2px; }
-        
-        .status-badge { padding: 4px 10px; border-radius: 15px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
-        .badge-ok { background: #38a169; }
-        .badge-alert { background: #d69e2e; }
-        .badge-down { background: #e53e3e; }
-        
-        .system-tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; margin-top: 3px; }
-        .tag-100 { background: #e53e3e; } .tag-200 { background: #dd6b20; } .tag-300 { background: #d69e2e; }
-        .tag-400 { background: #38a169; } .tag-600 { background: #3182ce; } .tag-700 { background: #805ad5; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html { min-height:100%; background:#071525; }
+    body {
+      font-family:'Segoe UI', Arial, sans-serif;
+      min-height:100vh;
+      color:var(--gman-text);
+      padding:14px 14px 86px;
+      background:
+        radial-gradient(circle at 18% 0%, rgba(0,194,255,.24), transparent 34%),
+        radial-gradient(circle at 92% 16%, rgba(53,208,127,.11), transparent 32%),
+        linear-gradient(145deg, var(--gman-bg-0) 0%, var(--gman-bg-1) 48%, #050b14 100%);
+      overflow-x:hidden;
+    }
+    body:before {
+      content:'';
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:.18;
+      background-image:
+        linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+      background-size:32px 32px;
+      mask-image:linear-gradient(to bottom, #000 0%, rgba(0,0,0,.65) 44%, transparent 100%);
+      z-index:-1;
+    }
 
-        .main-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 0 0 18px 0; }
-        .action-btn { padding: 10px 16px; border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.12); color: white; border-radius: 12px; cursor: pointer; font-size: 0.85rem; font-weight: 700; transition: all 0.25s; }
-        .action-btn:hover { background: rgba(255,255,255,0.22); transform: translateY(-1px); }
-        .action-btn.primary { background: #3182ce; border-color: #3182ce; }
-        .action-btn.success { background: #38a169; border-color: #38a169; }
-        .os-card { background: #f7fafc; border-radius: 12px; padding: 12px; margin-bottom: 10px; border-left: 5px solid #3182ce; color: #1a202c; text-align: left; }
-        .os-card h4 { margin: 0 0 6px 0; color: #1e3a5f; font-size: 0.95rem; }
-        .os-card p { margin: 4px 0; color: #4a5568; font-size: 0.78rem; }
-        .os-badge { display: inline-block; padding: 4px 8px; border-radius: 999px; color: white; font-size: 0.68rem; font-weight: 700; margin: 2px 4px 2px 0; }
-        .os-aberta { background: #3182ce; }
-        .os-execucao { background: #d69e2e; }
-        .os-concluida { background: #38a169; }
-        .os-cancelada { background: #718096; }
-        .form-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e0; border-radius: 9px; color: #1a202c; font-size: 0.9rem; }
-        .form-label { display: block; color: #2d3748; font-size: 0.78rem; font-weight: 700; margin: 8px 0 5px; text-align: left; }
-     
-    .loading-note { text-align:center; color:#a0c4e8; font-size:.82rem; margin:8px 0 14px; min-height:22px; }
+    h1 { text-align:center; margin:0; font-size:1.12rem; letter-spacing:.11em; text-transform:uppercase; font-weight:850; }
+    .subtitle { text-align:center; color:var(--gman-muted); margin-top:4px; margin-bottom:0; font-size:.78rem; letter-spacing:.04em; }
+
+    #loginScreen { background:linear-gradient(135deg,#0b253d 0%,#123d63 100%) !important; }
+    #loginScreen > div { border:1px solid rgba(31,156,255,.22); }
+
+    .gman-app-shell { max-width:940px; margin:0 auto; }
+    .gman-topbar {
+      display:grid;
+      grid-template-columns:1fr auto 1fr;
+      align-items:center;
+      gap:10px;
+      margin-bottom:12px;
+    }
+    .gman-user-chip {
+      min-height:54px;
+      border:1px solid rgba(110,193,255,.22);
+      background:linear-gradient(145deg, rgba(15,39,64,.78), rgba(9,26,44,.72));
+      border-radius:18px;
+      display:flex;
+      align-items:center;
+      gap:9px;
+      padding:8px 10px;
+      box-shadow:0 10px 26px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.05);
+      overflow:hidden;
+    }
+    .gman-avatar {
+      width:34px;
+      height:34px;
+      min-width:34px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1rem;
+      background:radial-gradient(circle at 35% 30%, #e8f7ff 0%, #49b6ff 32%, #0b5d9b 100%);
+      box-shadow:0 0 18px rgba(0,194,255,.34);
+      position:relative;
+    }
+    .gman-avatar:after {
+      content:'';
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:var(--gman-green);
+      border:2px solid #0d2238;
+      position:absolute;
+      right:-1px;
+      bottom:0;
+      box-shadow:0 0 8px rgba(53,208,127,.85);
+    }
+    .gman-user-lines { line-height:1.1; min-width:0; }
+    .gman-user-name { font-weight:850; font-size:.68rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.03em; }
+    .gman-user-role { color:var(--gman-muted); font-size:.58rem; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-transform:uppercase; }
+    .gman-level-badge { display:inline-block; margin-top:5px; padding:2px 7px; border-radius:999px; background:rgba(31,156,255,.18); color:#cceeff; border:1px solid rgba(31,156,255,.35); font-weight:800; font-size:.52rem; letter-spacing:.05em; }
+
+    .gman-brand {
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      min-width:118px;
+      min-height:58px;
+      border-radius:20px;
+      background:linear-gradient(145deg, rgba(17,55,88,.82), rgba(7,20,34,.92));
+      border:1px solid rgba(80,185,255,.28);
+      box-shadow:0 0 30px rgba(0,174,255,.24), inset 0 1px 0 rgba(255,255,255,.08);
+      text-transform:uppercase;
+    }
+    .gman-brand .brand-top { font-size:.95rem; font-weight:950; letter-spacing:.14em; color:#f5fbff; text-shadow:0 0 12px rgba(0,194,255,.75); }
+    .gman-brand .brand-bottom { font-size:.62rem; font-weight:850; letter-spacing:.2em; color:#5fd6ff; margin-top:1px; }
+    .gman-logout-top {
+      justify-self:end;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      border:1px solid rgba(255,77,94,.52);
+      background:linear-gradient(145deg, rgba(255,77,94,.16), rgba(255,77,94,.07));
+      color:#ffdce1;
+      border-radius:16px;
+      padding:10px 13px;
+      font-size:.72rem;
+      font-weight:850;
+      cursor:pointer;
+      box-shadow:0 0 18px rgba(255,77,94,.15);
+    }
+    .gman-title-block {
+      border:1px solid rgba(110,193,255,.18);
+      background:linear-gradient(145deg, rgba(9,26,44,.76), rgba(12,36,60,.62));
+      border-radius:22px;
+      padding:13px 12px 14px;
+      margin-bottom:12px;
+      box-shadow:var(--gman-shadow), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    .systems-filter { display:flex; flex-wrap:nowrap; gap:8px; justify-content:flex-start; margin:0 auto 12px; overflow-x:auto; padding:2px 2px 7px; scrollbar-width:none; }
+    .systems-filter::-webkit-scrollbar { display:none; }
+    .system-btn {
+      padding:10px 14px;
+      border:1px solid rgba(110,193,255,.24);
+      background:linear-gradient(145deg, rgba(15,39,64,.78), rgba(10,28,46,.76));
+      color:#dbefff;
+      border-radius:999px;
+      cursor:pointer;
+      font-size:.73rem;
+      font-weight:850;
+      letter-spacing:.02em;
+      transition:all .22s ease;
+      white-space:nowrap;
+      box-shadow:0 8px 18px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    .system-btn:hover, .system-btn.active {
+      background:linear-gradient(145deg, rgba(31,156,255,.95), rgba(0,96,170,.86));
+      border-color:rgba(0,194,255,.82);
+      color:white;
+      box-shadow:0 0 24px rgba(31,156,255,.32), inset 0 1px 0 rgba(255,255,255,.18);
+      transform:translateY(-1px);
+    }
+
+
+    .quick-view-btn {
+      min-width:42px;
+      height:38px;
+      border:1px solid rgba(110,193,255,.24);
+      background:linear-gradient(145deg, rgba(15,39,64,.82), rgba(7,20,34,.86));
+      color:#dbefff;
+      border-radius:14px;
+      cursor:pointer;
+      font-size:1rem;
+      font-weight:950;
+      box-shadow:0 8px 18px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.06);
+      transition:all .22s ease;
+      flex:0 0 auto;
+    }
+    .quick-view-btn:hover {
+      border-color:rgba(0,194,255,.82);
+      box-shadow:0 0 24px rgba(31,156,255,.3), inset 0 1px 0 rgba(255,255,255,.16);
+      transform:translateY(-1px);
+    }
+
+    .search-row {
+      display:grid;
+      grid-template-columns:1fr 46px;
+      gap:9px;
+      align-items:center;
+      margin-bottom:12px;
+    }
+    .search-row .search-box { margin-bottom:0; }
+    .advanced-filter-btn {
+      width:46px;
+      height:46px;
+      border:none;
+      border-radius:16px;
+      cursor:pointer;
+      color:white;
+      font-size:1.08rem;
+      font-weight:950;
+      background:linear-gradient(145deg, rgba(31,156,255,.95), rgba(0,96,170,.9));
+      border:1px solid rgba(0,194,255,.55);
+      box-shadow:0 12px 26px rgba(31,156,255,.25), inset 0 1px 0 rgba(255,255,255,.14);
+    }
+    .advanced-filter-btn:active { transform:scale(.98); }
+    body.gman-view-grade .equipment-list {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(270px, 1fr));
+      gap:10px;
+      background:transparent;
+      border:none;
+      max-height:none;
+      overflow:visible;
+    }
+    body.gman-view-grade .equipment-item { height:100%; }
+
+    .loading-note {
+      text-align:left;
+      color:var(--gman-muted);
+      font-size:.76rem;
+      margin:4px 0 12px;
+      min-height:22px;
+      border:1px solid rgba(53,208,127,.24);
+      border-radius:16px;
+      background:linear-gradient(145deg, rgba(53,208,127,.11), rgba(15,39,64,.7));
+      padding:11px 74px 11px 14px;
+      position:relative;
+      box-shadow:0 12px 26px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    .loading-note:before { content:'⟳'; color:var(--gman-blue-2); font-weight:900; margin-right:7px; }
+    .loading-note:after {
+      content:'ONLINE';
+      position:absolute;
+      right:10px;
+      top:50%;
+      transform:translateY(-50%);
+      padding:4px 8px;
+      border-radius:999px;
+      color:#052215;
+      font-size:.58rem;
+      font-weight:950;
+      background:linear-gradient(145deg, #6bffab, #26c875);
+      box-shadow:0 0 14px rgba(53,208,127,.55);
+    }
+
+    .stats { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:9px; margin-bottom:12px; }
+    .stat-card {
+      backdrop-filter:blur(10px);
+      border-radius:18px;
+      padding:12px 8px;
+      text-align:center;
+      cursor:pointer;
+      transition:all .22s ease;
+      border:1px solid rgba(110,193,255,.18);
+      background:linear-gradient(145deg, rgba(15,39,64,.78), rgba(10,28,46,.78));
+      box-shadow:0 12px 26px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    .stat-card:hover { transform:translateY(-1px); border-color:var(--gman-line-strong); }
+    .stat-number { font-size:1.42rem; font-weight:950; line-height:1; }
+    .stat-label { font-size:.62rem; color:var(--gman-muted); margin-top:6px; font-weight:850; letter-spacing:.04em; }
+    #card-ok { background:linear-gradient(145deg, rgba(53,208,127,.18), rgba(15,39,64,.78)); border-color:rgba(53,208,127,.28); }
+    #card-ok .stat-number { color:var(--gman-green); }
+    #card-alert { background:linear-gradient(145deg, rgba(255,159,28,.18), rgba(15,39,64,.78)); border-color:rgba(255,159,28,.28); }
+    #card-alert .stat-number { color:var(--gman-orange); }
+    #card-down { background:linear-gradient(145deg, rgba(255,77,94,.18), rgba(15,39,64,.78)); border-color:rgba(255,77,94,.28); }
+    #card-down .stat-number { color:var(--gman-red); }
+
+    .search-box {
+      width:100%;
+      padding:13px 14px;
+      border:1px solid rgba(110,193,255,.22);
+      border-radius:17px;
+      margin-bottom:11px;
+      font-size:.86rem;
+      background:linear-gradient(145deg, rgba(15,39,64,.76), rgba(8,24,41,.76));
+      color:white;
+      outline:none;
+      box-shadow:0 12px 26px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    .search-box:focus { border-color:rgba(0,194,255,.72); box-shadow:0 0 22px rgba(0,194,255,.18), inset 0 1px 0 rgba(255,255,255,.08); }
+    .search-box::placeholder { color:#8eb3cf; }
+
+    .main-actions { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:9px; justify-content:center; margin:0 0 12px; }
+    .action-btn {
+      padding:12px 12px;
+      border:1px solid rgba(110,193,255,.22);
+      background:linear-gradient(145deg, rgba(15,39,64,.8), rgba(8,24,41,.8));
+      color:#edf8ff;
+      border-radius:17px;
+      cursor:pointer;
+      font-size:.76rem;
+      font-weight:900;
+      transition:all .22s ease;
+      box-shadow:0 12px 26px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    .action-btn:hover { background:linear-gradient(145deg, rgba(31,156,255,.34), rgba(8,24,41,.86)); transform:translateY(-1px); }
+    .action-btn.primary { background:linear-gradient(145deg, rgba(31,156,255,.95), rgba(14,88,150,.92)); border-color:rgba(0,194,255,.56); }
+    .action-btn.success { background:linear-gradient(145deg, rgba(53,208,127,.88), rgba(13,117,66,.88)); border-color:rgba(53,208,127,.5); }
+
+    .equipment-list { background:transparent; border-radius:0; overflow:visible; max-height:none; }
+    .equipment-item {
+      margin-bottom:12px;
+      padding:14px;
+      border:1px solid var(--gman-line);
+      display:grid;
+      grid-template-columns:52px 1fr auto;
+      gap:12px;
+      align-items:center;
+      transition:all .24s ease;
+      cursor:pointer;
+      border-radius:22px;
+      background:linear-gradient(145deg, rgba(14,38,63,.92), rgba(7,21,36,.94));
+      box-shadow:0 16px 35px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.05);
+      position:relative;
+      overflow:hidden;
+    }
+    .equipment-item:before {
+      content:'';
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background:linear-gradient(100deg, rgba(255,255,255,.08), transparent 30%, transparent 70%, rgba(31,156,255,.07));
+      opacity:.68;
+    }
+    .equipment-item:hover { transform:translateY(-2px); border-color:var(--gman-line-strong); box-shadow:0 20px 45px rgba(0,0,0,.42), 0 0 28px rgba(31,156,255,.15); }
+    .equipment-item.status-card-ok { border-left:4px solid var(--gman-green); }
+    .equipment-item.status-card-alert { border-left:4px solid var(--gman-orange); }
+    .equipment-item.status-card-down { border-left:4px solid var(--gman-red); }
+
+    .status-icon {
+      width:48px;
+      height:48px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.15rem;
+      font-weight:950;
+      color:white;
+      z-index:1;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.28), 0 0 22px rgba(255,255,255,.12);
+    }
+    .status-ok { background:radial-gradient(circle at 35% 25%, #bfffe0 0%, var(--gman-green) 38%, #0f7a43 100%); box-shadow:0 0 22px rgba(53,208,127,.42); }
+    .status-alert { background:radial-gradient(circle at 35% 25%, #fff0bd 0%, var(--gman-orange) 40%, #935400 100%); box-shadow:0 0 22px rgba(255,159,28,.42); }
+    .status-down { background:radial-gradient(circle at 35% 25%, #ffd4da 0%, var(--gman-red) 40%, #8b0d1b 100%); box-shadow:0 0 22px rgba(255,77,94,.45); }
+    .equipment-main { z-index:1; min-width:0; }
+    .equipment-name { font-weight:950; font-size:.98rem; letter-spacing:.035em; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .equipment-system { font-size:.70rem; color:var(--gman-muted); margin-top:5px; line-height:1.35; }
+    .equipment-responsavel { margin-top:8px; display:flex; flex-wrap:wrap; gap:8px; color:#c5e3f7; font-size:.67rem; font-weight:750; }
+    .equipment-actions { z-index:1; display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
+
+    .status-badge {
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:.58rem;
+      font-weight:950;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      white-space:nowrap;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.2);
+    }
+    .badge-ok { background:linear-gradient(145deg, #40df8b, #159657); color:#062c19; }
+    .badge-alert { background:linear-gradient(145deg, #ffc76b, #ff8f13); color:#3f2500; }
+    .badge-down { background:linear-gradient(145deg, #ff7b88, #dd2337); color:#fff5f6; }
+
+    .system-tag {
+      display:inline-block;
+      padding:3px 8px;
+      border-radius:999px;
+      font-size:.58rem;
+      margin-right:4px;
+      color:white;
+      font-weight:950;
+      box-shadow:0 0 14px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.18);
+    }
+    .tag-100 { background:linear-gradient(145deg,#ff5b6a,#b81224); }
+    .tag-200 { background:linear-gradient(145deg,#ff9f1c,#b45a00); }
+    .tag-300 { background:linear-gradient(145deg,#ffd166,#b08400); color:#241a00; }
+    .tag-400 { background:linear-gradient(145deg,#35d07f,#0c8246); }
+    .tag-600 { background:linear-gradient(145deg,#1f9cff,#095a9c); }
+    .tag-700 { background:linear-gradient(145deg,#a78bfa,#6042b8); }
+
+    .equipment-meta {
+      grid-column:1 / -1;
+      z-index:1;
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0,1fr));
+      gap:8px;
+      padding-top:11px;
+      border-top:1px solid rgba(110,193,255,.13);
+      margin-top:0;
+    }
+    .meta-chip {
+      border:1px solid rgba(110,193,255,.16);
+      background:rgba(255,255,255,.045);
+      border-radius:15px;
+      padding:8px 9px;
+      min-width:0;
+    }
+    .meta-label { display:block; color:#7fa8c6; font-size:.56rem; text-transform:uppercase; font-weight:900; letter-spacing:.05em; margin-bottom:3px; }
+    .meta-value { display:block; color:#f3fbff; font-size:.70rem; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .meta-value.priority-alta { color:#ffb9c0; }
+    .meta-value.priority-normal { color:#aeefff; }
+    .card-mini-btn {
+      width:30px;
+      height:30px;
+      border-radius:50%;
+      border:1px solid rgba(110,193,255,.22);
+      background:rgba(255,255,255,.06);
+      color:#dcefff;
+      cursor:pointer;
+      font-weight:950;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .os-card { background:#f7fafc; border-radius:12px; padding:12px; margin-bottom:10px; border-left:5px solid #3182ce; color:#1a202c; text-align:left; }
+    .os-card h4 { margin:0 0 6px 0; color:#1e3a5f; font-size:.95rem; }
+    .os-card p { margin:4px 0; color:#4a5568; font-size:.78rem; }
+    .os-badge { display:inline-block; padding:4px 8px; border-radius:999px; color:white; font-size:.68rem; font-weight:700; margin:2px 4px 2px 0; }
+    .os-aberta { background:#3182ce; }
+    .os-execucao { background:#d69e2e; }
+    .os-concluida { background:#38a169; }
+    .os-cancelada { background:#718096; }
+    .form-field { width:100%; padding:10px; margin-bottom:10px; border:1px solid #cbd5e0; border-radius:9px; color:#1a202c; font-size:.9rem; }
+    .form-label { display:block; color:#2d3748; font-size:.78rem; font-weight:700; margin:8px 0 5px; text-align:left; }
     .hidden { display:none !important; }
     .modal-panel { background:white; border-radius:20px; padding:24px; width:95%; max-width:760px; max-height:92vh; overflow-y:auto; color:#1a202c; }
     .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.82); z-index:1200; display:flex; align-items:center; justify-content:center; padding:18px; }
     .small-help { color:#718096; font-size:.75rem; margin:-6px 0 10px; text-align:left; }
     .rule-box { background:#fffaf0; border-left:4px solid #d69e2e; border-radius:12px; padding:10px; color:#744210; font-size:.8rem; margin:10px 0; text-align:left; }
     .info-box { background:#ebf8ff; border-left:5px solid #3182ce; border-radius:14px; padding:12px; margin:10px 0; text-align:left; color:#1e3a5f; }
+
+    .bottom-nav {
+      position:fixed;
+      left:50%;
+      bottom:10px;
+      transform:translateX(-50%);
+      width:min(94vw, 620px);
+      z-index:950;
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:5px;
+      padding:8px;
+      border-radius:24px;
+      border:1px solid rgba(110,193,255,.22);
+      background:linear-gradient(145deg, rgba(9,26,44,.94), rgba(5,15,27,.94));
+      box-shadow:0 18px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+      backdrop-filter:blur(14px);
+    }
+    .bottom-nav button {
+      border:none;
+      background:transparent;
+      color:#9fc0d9;
+      border-radius:17px;
+      padding:8px 4px;
+      font-size:.58rem;
+      font-weight:850;
+      cursor:pointer;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:3px;
+      position:relative;
+    }
+    .bottom-nav button strong { font-size:1rem; line-height:1; }
+    .bottom-nav button.active, .bottom-nav button.center {
+      color:#fff;
+      background:linear-gradient(145deg, rgba(31,156,255,.35), rgba(0,194,255,.12));
+      box-shadow:0 0 18px rgba(31,156,255,.18);
+    }
+    .bottom-nav .notify-badge {
+      position:absolute;
+      top:4px;
+      right:20%;
+      width:16px;
+      height:16px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:var(--gman-red);
+      color:white;
+      font-size:.52rem;
+      font-weight:950;
+      box-shadow:0 0 12px rgba(255,77,94,.56);
+    }
+
+    @media (max-width:560px) {
+      body { padding:10px 10px 84px; }
+      .gman-topbar { grid-template-columns:1fr auto 54px; gap:7px; }
+      .gman-brand { min-width:104px; }
+      .gman-logout-top { width:54px; padding:10px 0; font-size:0; }
+      .gman-logout-top span { font-size:1rem; }
+      .gman-user-name { font-size:.63rem; }
+      .equipment-item { grid-template-columns:48px 1fr auto; padding:12px; gap:10px; }
+      .equipment-meta { grid-template-columns:repeat(3, minmax(0,1fr)); gap:6px; }
+      .meta-chip { padding:7px 7px; }
+      .meta-value { font-size:.63rem; }
+    }
   </style>
   <link rel="icon" type="image/png" href="./logo.png">
   <link rel="apple-touch-icon" href="./logo.png">
@@ -124,21 +532,38 @@
     </div>
   </div>
 
-  <div style="text-align:center;margin-bottom:20px;">
-    <img src="./logo.png" alt="Logo" style="width:100px;height:100px;object-fit:contain;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.3);margin-bottom:10px;">
-    <h1>Sistema de Manutenção</h1>
-    <p class="subtitle">GMAN DMAE — Bombeamento e Reservação</p>
+  <main class="gman-app-shell">
+  <div class="gman-topbar">
+    <div id="userInfo" class="gman-user-chip">
+      <div class="gman-avatar">👤</div>
+      <div class="gman-user-lines">
+        <div class="gman-user-name">AGUARDANDO LOGIN</div>
+        <div class="gman-user-role">USUÁRIO | PERFIL</div>
+        <span class="gman-level-badge">NÍVEL —</span>
+      </div>
+    </div>
+    <div class="gman-brand" aria-label="DMAE GMAN">
+      <div class="brand-top">DMAE</div>
+      <div class="brand-bottom">GMAN</div>
+    </div>
+    <button class="gman-logout-top" onclick="fazerLogout()"><span>⎋</span> Sair</button>
+  </div>
+
+  <div class="gman-title-block">
+    <h1>SISTEMA DE MANUTENÇÃO</h1>
+    <p class="subtitle">Bombeamento e Reservação</p>
   </div>
 
   <div class="systems-filter">
     <button class="system-btn active" onclick="filterSystem('all')">TODAS</button>
-    <button class="system-btn" onclick="filterSystem('moinhos de vento')">100 - Moinhos de Vento</button>
-    <button class="system-btn" onclick="filterSystem('são joao')">200 - São João</button>
-    <button class="system-btn" onclick="filterSystem('menino deus')">300 - Menino Deus</button>
-    <button class="system-btn" onclick="filterSystem('belem novo')">400 - Belém Novo</button>
-    <button class="system-btn" onclick="filterSystem('ilha da pintada')">600 - Ilhas</button>
-    <button class="system-btn" onclick="filterSystem('tristeza')">700 - Tristeza</button>
+    <button class="system-btn" onclick="filterSystem('moinhos de vento')">100 — MOINHOS DE VENTO</button>
+    <button class="system-btn" onclick="filterSystem('são joao')">200 — SÃO JOÃO</button>
+    <button class="system-btn" onclick="filterSystem('menino deus')">300 — MENINO DEUS</button>
+    <button class="system-btn" onclick="filterSystem('belem novo')">400 — BELÉM NOVO</button>
+    <button class="system-btn" onclick="filterSystem('ilha da pintada')">600 — ILHAS</button>
+    <button class="system-btn" onclick="filterSystem('tristeza')">700 — TRISTEZA</button>
     <button class="system-btn" onclick="filterSystem('brutas')">BRUTAS</button>
+    <button class="quick-view-btn" onclick="alternarVisualizacaoGMAN()" title="Alternar visualização">▦</button>
   </div>
 
   <div id="apiStatus" class="loading-note">Aguardando login.</div>
@@ -149,7 +574,10 @@
     <div class="stat-card" id="card-down" onclick="filterByStatus('down')"><div class="stat-number" id="downCount">0</div><div class="stat-label">PARADOS</div></div>
   </div>
 
-  <input type="text" class="search-box" id="searchInput" placeholder="🔍 Buscar por nome, código ou sistema..." onkeyup="searchEquipment()">
+  <div class="search-row">
+    <input type="text" class="search-box" id="searchInput" placeholder="🔍 Buscar por nome, código ou sistema..." onkeyup="searchEquipment()">
+    <button class="advanced-filter-btn" onclick="abrirFiltroAvancadoGMAN()" title="Filtro avançado">☷</button>
+  </div>
 
   <div class="main-actions">
     <button class="action-btn primary" id="btnOrdensAbertasHome" onclick="abrirPainelOS('abertas')">📋 OS Abertas <span id="totalOrdensAbertasHome">(0)</span></button>
@@ -164,7 +592,7 @@
 
   <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec';
-    const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.74 — visual original restaurado com regras operacionais consolidadas';
+    const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.74 — novo layout obrigatório preservando regras operacionais consolidadas';
     const usuarios = [
       { nome:'PAULO JURANDIR', senha:'dmae2026', funcao:'administrador', area:'todos' },
       { nome:'RAFAEL SPIES', senha:'dmae2026', funcao:'supervisor', area:'todos' },
@@ -464,7 +892,7 @@
     function loadData() { try{ const saved=JSON.parse(localStorage.getItem('manutencao_equipment')||'[]'); saved.forEach(s=>{ const eq=equipment.find(e=>e.id===s.id); if(eq) Object.assign(eq,{status:s.status||eq.status, ultimoTecnico:s.ultimoTecnico||'', ultimaAlteracao:s.ultimaAlteracao||'', observacaoStatus:s.observacaoStatus||''}); }); }catch(e){} }
 
     async function carregarStatusOnline() {
-      atualizarIndicadorConexao('🔄 Sincronizando status com a base oficial GMAN...', 'neutro');
+      atualizarIndicadorConexao('🔄 Sincronizando status com a base oficial do GMAN...', 'neutro');
       try {
         const retornoStatus = await apiAcao('listarStatus', { usuario: usuarioLogado?.nome || '' });
         const statusOnline = extrairLista(retornoStatus, ['status','statusAtual','listaStatus']);
@@ -473,7 +901,7 @@
           const st=getCampo(item,['statusAtual','STATUS_ATUAL','status','STATUS_VISUAL','statusVisual'])||'Operando'; const obs=getCampo(item,['observacao','OBSERVACAO','justificativa','JUSTIFICATIVA']);
           eq.status=statusClasseEquip(st,obs); eq.ultimoTecnico=getCampo(item,['usuarioUltimaAlteracao','USUARIO_ULTIMA_ALTERACAO','usuario','USUARIO']); eq.ultimaAlteracao=formatarDataApi(getCampo(item,['dataUltimaAlteracao','DATA_ULTIMA_ALTERACAO','dataHora','DATA_HORA'])); eq.observacaoStatus=obs;
         });
-        apiOnline=true; saveData(); applyFilters(); atualizarIndicadorConexao('✅ Online: status conectado à base oficial GMAN', 'online');
+        apiOnline=true; saveData(); applyFilters(); atualizarIndicadorConexao('✅ Online: status conectado à base oficial do GMAN', 'online');
         setTimeout(async()=>{ try { const osOnline = await listarOSOnline(); ordensServicoCache=osOnline; atualizarTotalizadoresOS(osOnline); } catch(e) { console.warn('OS carregará sob demanda:', e); } }, 50);
         return true;
       } catch(erro) { apiOnline=false; loadData(); applyFilters(); atualizarIndicadorConexao('⚠️ Modo local: falha ao listar status — '+erro.message, 'offline'); console.error(erro); return false; }
@@ -484,13 +912,26 @@
     function aplicarBotoesPermissao() { const g=isGestao(); ['btnPainelKPI','btnOrdensNaoIniciadasHome','btnOrdensIniciadasHome','btnOrdensEncerradasHome'].forEach(id=>{const el=document.getElementById(id); if(el) el.style.display=g?'inline-block':'none';}); const stats=document.getElementById('statsGestao'); if(stats) stats.style.display=g?'grid':'none'; }
     function fazerLogin() { const user=document.getElementById('loginUser').value.trim(); const pass=document.getElementById('loginPass').value; const erro=document.getElementById('loginErro'); erro.style.display='none'; const encontrado=usuarios.find(u=>normalizarTextoGMAN(u.nome)===normalizarTextoGMAN(user)&&u.senha===pass); if(!encontrado){erro.textContent='Usuário ou senha incorretos!';erro.style.display='block';return;} usuarioLogado=encontrado; localStorage.setItem('manutencao_usuario_logado',JSON.stringify({nome:encontrado.nome,funcao:encontrado.funcao,area:encontrado.area})); document.getElementById('loginScreen').style.display='none'; mostrarUsuarioLogado(); aplicarBotoesPermissao(); setTimeout(()=>carregarStatusOnline(),50); }
     function recuperarLoginSalvo() { try{const dados=JSON.parse(localStorage.getItem('manutencao_usuario_logado')||'null'); if(!dados) return false; const u=usuarios.find(x=>x.nome===dados.nome&&x.funcao===dados.funcao&&x.area===dados.area); if(!u) return false; usuarioLogado=u; document.getElementById('loginScreen').style.display='none'; mostrarUsuarioLogado(); aplicarBotoesPermissao(); return true;}catch(e){return false;} }
-    function mostrarUsuarioLogado() { const old=document.getElementById('userInfo'); if(old) old.remove(); const header=document.querySelector('h1'); const info=document.createElement('div'); info.id='userInfo'; info.style.cssText='text-align:center;color:#a0c4e8;font-size:.85rem;margin-bottom:15px;font-weight:500;'; info.innerHTML=`👤 ${usuarioLogado.nome} | ${usuarioLogado.funcao.toUpperCase()} | ${usuarioLogado.area.toUpperCase()} <button onclick="fazerLogout()" style="margin-left:10px;padding:4px 10px;background:rgba(255,255,255,.1);color:white;border:1px solid rgba(255,255,255,.3);border-radius:5px;cursor:pointer;font-size:.75rem;">Sair</button>`; header.parentNode.insertBefore(info, header.nextSibling); }
-    function fazerLogout() { localStorage.removeItem('manutencao_usuario_logado'); usuarioLogado=null; document.getElementById('loginScreen').style.display='flex'; document.getElementById('loginUser').value=''; document.getElementById('loginPass').value=''; const info=document.getElementById('userInfo'); if(info) info.remove(); aplicarBotoesPermissao(); atualizarIndicadorConexao('Aguardando login.','neutro'); }
+    function mostrarUsuarioLogado() { const info=document.getElementById('userInfo'); if(!info) return; const perfil=String(usuarioLogado.funcao||'').toUpperCase(); const area=String(usuarioLogado.area||'').toUpperCase(); const nivel = ['ADMINISTRADOR','SUPERVISOR','GERENTE','COORDENADOR'].includes(perfil) ? 'NÍVEL GESTÃO' : 'NÍVEL 3'; info.innerHTML=`<div class="gman-avatar">👤</div><div class="gman-user-lines"><div class="gman-user-name">${escaparHTMLGMAN(usuarioLogado.nome)}</div><div class="gman-user-role">${escaparHTMLGMAN(perfil)} | ${escaparHTMLGMAN(area)}</div><span class="gman-level-badge">${nivel}</span></div>`; }
+    function fazerLogout() { localStorage.removeItem('manutencao_usuario_logado'); usuarioLogado=null; document.getElementById('loginScreen').style.display='flex'; document.getElementById('loginUser').value=''; document.getElementById('loginPass').value=''; const info=document.getElementById('userInfo'); if(info) info.innerHTML='<div class="gman-avatar">👤</div><div class="gman-user-lines"><div class="gman-user-name">AGUARDANDO LOGIN</div><div class="gman-user-role">USUÁRIO | PERFIL</div><span class="gman-level-badge">NÍVEL —</span></div>'; aplicarBotoesPermissao(); atualizarIndicadorConexao('Aguardando login.','neutro'); }
 
-    function renderEquipment(list=equipment) { const container=document.getElementById('equipmentList'); container.innerHTML=list.map(eq=>`<div class="equipment-item" onclick="openEquipment('${eq.id}')"><div class="status-icon status-${eq.status}">${eq.status==='ok'?'✓':eq.status==='alert'?'!':'✕'}</div><div><div class="equipment-name">${escaparHTMLGMAN(eq.name)}</div><div class="equipment-system"><span class="system-tag ${getSystemTagClass(eq.systemCode)}">${eq.systemCode}</span> ${escaparHTMLGMAN(eq.system.toUpperCase())} | ID: ${escaparHTMLGMAN(eq.id)} ${eq.ultimoTecnico?`<br><span style="font-size:.7rem;color:#63b3ed;">👤 ${escaparHTMLGMAN(eq.ultimoTecnico)} | 🕐 ${escaparHTMLGMAN(eq.ultimaAlteracao)}</span>`:''}</div></div><span class="status-badge badge-${eq.status}">${labelStatusEquipamento(eq.status,eq.observacaoStatus)}</span></div>`).join(''); let active=currentSystemFilter==='brutas'?equipment.filter(isEquipamentoBrutaGMAN):(currentSystemFilter!=='all'?equipment.filter(e=>e.system===currentSystemFilter):equipment); document.getElementById('operationalCount').textContent=active.filter(e=>e.status==='ok').length; document.getElementById('maintenanceCount').textContent=active.filter(e=>e.status==='alert'||e.status==='down').length; document.getElementById('downCount').textContent=active.filter(e=>e.status==='down').length; }
+    function nomeGrupoVisualGMAN(nome) { return String(nome||'').replace(/\bbruta\b/gi,'BRUTA').toLocaleUpperCase('pt-BR'); }
+    function numeroOSVisualGMAN(valor) { const txt=String(valor||'').trim(); return /^\d{4}\.\d{2}\/\d{2}$/.test(txt) ? txt : '—'; }
+    function buscarUltimaOSVisualGMAN(idEquip) { const lista=Array.isArray(ordensServicoCache)?ordensServicoCache:[]; const itens=lista.filter(o=>String(getCampo(o,['idEquipamento','ID_EQUIPAMENTO']))===String(idEquip)); if(!itens.length) return null; return itens[0]; }
+    function prioridadeClasseGMAN(valor) { return normalizarTextoGMAN(valor).includes('alta') || normalizarTextoGMAN(valor).includes('crit') ? 'priority-alta' : 'priority-normal'; }
+    function renderEquipment(list=equipment) { const container=document.getElementById('equipmentList'); container.innerHTML=list.map(eq=>{ const ult=buscarUltimaOSVisualGMAN(eq.id); const numeroOS=numeroOSVisualGMAN(getCampo(ult||{},['numeroOS','NUMERO_OS','idOS','ID_OS'])); const prioridade=getCampo(ult||{},['prioridade','PRIORIDADE'])||'Normal'; const patrimonio=eq.patrimonio||eq.patrimonioPrincipal||'—'; const responsavel=eq.ultimoTecnico||getCampo(ult||{},['responsavel','RESPONSAVEL'])||'Sem responsável'; const atualizacao=eq.ultimaAlteracao||formatarDataApi(getCampo(ult||{},['dataAbertura','DATA_ABERTURA']))||'Sem atualização'; const icone=eq.status==='ok'?'✓':eq.status==='alert'?'!':'✕'; return `<div class="equipment-item status-card-${eq.status}" onclick="openEquipment('${eq.id}')"><div class="status-icon status-${eq.status}">${icone}</div><div class="equipment-main"><div class="equipment-name">${escaparHTMLGMAN(nomeGrupoVisualGMAN(eq.name))}</div><div class="equipment-system"><span class="system-tag ${getSystemTagClass(eq.systemCode)}">${eq.systemCode}</span>${escaparHTMLGMAN(eq.system.toLocaleUpperCase('pt-BR'))} | ID: ${escaparHTMLGMAN(eq.id)}</div><div class="equipment-responsavel"><span>👤 ${escaparHTMLGMAN(String(responsavel).toLocaleUpperCase('pt-BR'))}</span><span>🕐 ${escaparHTMLGMAN(atualizacao)}</span></div></div><div class="equipment-actions"><span class="status-badge badge-${eq.status}">${labelStatusEquipamentoMaiusculo(eq.status,eq.observacaoStatus)}</span><button class="card-mini-btn" onclick="event.stopPropagation(); openEquipment('${eq.id}')">⋯</button><button class="card-mini-btn" onclick="event.stopPropagation(); openEquipment('${eq.id}')">›</button></div><div class="equipment-meta"><div class="meta-chip"><span class="meta-label">Última OS</span><span class="meta-value">${escaparHTMLGMAN(numeroOS)}</span></div><div class="meta-chip"><span class="meta-label">Patrimônio</span><span class="meta-value">${escaparHTMLGMAN(patrimonio)}</span></div><div class="meta-chip"><span class="meta-label">Prioridade</span><span class="meta-value ${prioridadeClasseGMAN(prioridade)}">${escaparHTMLGMAN(String(prioridade).toLocaleUpperCase('pt-BR'))}</span></div></div></div>`; }).join(''); let active=currentSystemFilter==='brutas'?equipment.filter(isEquipamentoBrutaGMAN):(currentSystemFilter!=='all'?equipment.filter(e=>e.system===currentSystemFilter):equipment); document.getElementById('operationalCount').textContent=active.filter(e=>e.status==='ok').length; document.getElementById('maintenanceCount').textContent=active.filter(e=>e.status==='alert'||e.status==='down').length; document.getElementById('downCount').textContent=active.filter(e=>e.status==='down').length; }
     function filterSystem(system) { currentSystemFilter=system; document.querySelectorAll('.system-btn').forEach(btn=>btn.classList.remove('active')); if(event) event.target.classList.add('active'); applyFilters(); }
     function filterByStatus(status) { currentStatusFilter=status; applyFilters(); }
     function searchEquipment() { applyFilters(); }
+
+    function alternarVisualizacaoGMAN() { document.body.classList.toggle('gman-view-grade'); }
+    function abrirFiltroAvancadoGMAN() {
+      const old=document.getElementById('filtroAvancadoModal'); if(old) old.remove();
+      const modal=document.createElement('div'); modal.id='filtroAvancadoModal'; modal.className='modal-overlay';
+      modal.innerHTML=`<div class="modal-panel" style="max-width:430px;"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;"><div><h2 style="color:#1e3a5f;margin:0;font-size:1.15rem;">Filtro avançado</h2><p style="color:#718096;margin:4px 0 0;font-size:.8rem;">Filtragem visual sem alterar regras, API ou base oficial.</p></div><button onclick="document.getElementById('filtroAvancadoModal').remove();" style="padding:9px 12px;border:none;border-radius:10px;background:#718096;color:white;cursor:pointer;">Fechar</button></div><div style="display:grid;gap:8px;"><button onclick="currentStatusFilter='all'; applyFilters(); document.getElementById('filtroAvancadoModal').remove();" style="padding:12px;border:none;border-radius:12px;background:#3182ce;color:white;font-weight:800;">TODOS OS STATUS</button><button onclick="filterByStatus('ok'); document.getElementById('filtroAvancadoModal').remove();" style="padding:12px;border:none;border-radius:12px;background:#38a169;color:white;font-weight:800;">OPERANDO</button><button onclick="filterByStatus('alert'); document.getElementById('filtroAvancadoModal').remove();" style="padding:12px;border:none;border-radius:12px;background:#d69e2e;color:white;font-weight:800;">MANUTENÇÃO / ATENÇÃO</button><button onclick="filterByStatus('down'); document.getElementById('filtroAvancadoModal').remove();" style="padding:12px;border:none;border-radius:12px;background:#e53e3e;color:white;font-weight:800;">PARADOS</button></div></div>`;
+      document.body.appendChild(modal);
+    }
+
     function applyFilters() { const term=normalizarTextoGMAN(document.getElementById('searchInput').value); let filtered=equipment; if(currentSystemFilter==='brutas') filtered=filtered.filter(isEquipamentoBrutaGMAN); else if(currentSystemFilter!=='all') filtered=filtered.filter(eq=>eq.system===currentSystemFilter); if(currentStatusFilter!=='all') filtered=filtered.filter(eq=> currentStatusFilter==='alert' ? (eq.status==='alert'||eq.status==='down') : eq.status===currentStatusFilter); if(term) filtered=filtered.filter(eq=>normalizarTextoGMAN([eq.name,eq.system,eq.id,eq.systemCode].join(' ')).includes(term)); renderEquipment(filtered); }
 
     function atualizarTotalizadoresOS(lista=ordensServicoCache) { const dados=Array.isArray(lista)?lista:[]; const abertas=dados.filter(o=>statusAtivo(getCampo(o,['statusOS','STATUS_OS']))); const nao=dados.filter(o=>statusAberto(getCampo(o,['statusOS','STATUS_OS']))); const iniciadas=dados.filter(o=>statusIniciado(getCampo(o,['statusOS','STATUS_OS']))); const encerradas=dados.filter(o=>statusEncerrado(getCampo(o,['statusOS','STATUS_OS']))); const minhas=abertas.filter(osResponsavelUsuario); const set=(id,n)=>{const el=document.getElementById(id); if(el) el.textContent='('+n+')';}; set('totalOrdensAbertasHome',abertas.length); set('totalOrdensNaoIniciadasHome',nao.length); set('totalOrdensIniciadasHome',iniciadas.length); set('totalOrdensEncerradasHome',encerradas.length); set('totalOrdensAbertasPainel',abertas.length); set('totalOrdensNaoIniciadasPainel',nao.length); set('totalOrdensIniciadasPainel',iniciadas.length); set('totalMinhasOSPainel',minhas.length); set('totalOrdensEncerradasPainel',encerradas.length); return {abertas:abertas.length,naoIniciadas:nao.length,iniciadas:iniciadas.length,encerradas:encerradas.length,minhas:minhas.length}; }
@@ -548,5 +989,13 @@
     async function iniciarSistema() { loadData(); renderEquipment(); const logado=recuperarLoginSalvo(); aplicarBotoesPermissao(); if(logado) setTimeout(()=>carregarStatusOnline(),50); setInterval(()=>{ if(usuarioLogado && !usuarioEstaPreenchendoGMAN()) carregarStatusOnline(); },120000); }
     iniciarSistema();
   </script>
+  </main>
+  <nav class="bottom-nav" aria-label="Navegação principal GMAN">
+    <button class="active" onclick="window.scrollTo({top:0,behavior:'smooth'});"><strong>⌂</strong>Início</button>
+    <button onclick="abrirPainelGerencial();"><strong>◈</strong>Dashboard</button>
+    <button class="center" onclick="alert('Selecione um grupo/equipamento para abrir uma nova OS vinculada.');"><strong>＋</strong>Nova OS</button>
+    <button onclick="abrirPainelOS('abertas');"><strong>🔔</strong>Notificações<span class="notify-badge">3</span></button>
+    <button onclick="isGestao()?abrirPainelGerencial():abrirPainelOS('minhas');"><strong>☰</strong>Mais</button>
+  </nav>
 </body>
 </html>
