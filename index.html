@@ -327,23 +327,6 @@
       position:relative;
       overflow:hidden;
     }
-
-    /* GMAN 8.5.6.99 — micro-interação: entrada em cascata dos cards de equipamentos */
-    .equipment-item.gman-stagger-card {
-      opacity:0;
-      transform:translateY(18px) scale(.985);
-      animation:gmanCascadeEntrada .46s cubic-bezier(.22,.82,.24,1) forwards;
-      will-change:opacity, transform;
-    }
-    @keyframes gmanCascadeEntrada {
-      0% { opacity:0; transform:translateY(18px) scale(.985); filter:brightness(.88); }
-      70% { opacity:1; transform:translateY(-1px) scale(1.002); filter:brightness(1.05); }
-      100% { opacity:1; transform:translateY(0) scale(1); filter:brightness(1); }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .equipment-item.gman-stagger-card { opacity:1; transform:none; animation:none !important; }
-    }
-
     .equipment-item:before {
       content:'';
       position:absolute;
@@ -532,25 +515,21 @@
 
 
     /* =========================================================
-       GMAN 8.5.6.99 — CAMADA FINAL OBRIGATÓRIA
+       GMAN 8.5.6.100 — CAMADA FINAL OBRIGATÓRIA
        Novo layout aplicado em TODAS as telas internas existentes.
        Preserva lógica, IDs, API e regras. Altera apenas visual e texto.
        ========================================================= */
     .gman-login-logo {
-      width:108px;
-      height:108px;
+      width:96px;
+      height:96px;
       margin-bottom:20px;
       object-fit:contain;
-      border-radius:30px;
-      padding:8px;
-      background:transparent;
-      border:0;
-      box-shadow:none;
-      filter:brightness(1.14) contrast(1.18) saturate(1.12) drop-shadow(0 18px 26px rgba(0,90,150,.28)) drop-shadow(0 0 18px rgba(0,194,255,.20));
-      transform-style:preserve-3d;
-      backface-visibility:hidden;
-      will-change:transform, filter;
-      animation:gmanLogoLoginGiro3D 7.5s ease-in-out infinite;
+      border-radius:28px;
+      padding:10px;
+      background:radial-gradient(circle at 35% 25%, rgba(255,255,255,.92), rgba(255,255,255,.54) 45%, rgba(225,244,255,.28) 100%);
+      border:1px solid rgba(0,190,255,.25);
+      box-shadow:0 22px 42px rgba(0,98,155,.24), inset 0 1px 0 rgba(255,255,255,.95), 0 0 34px rgba(0,210,255,.18);
+      filter:drop-shadow(0 10px 22px rgba(0,115,180,.28));
     }
     #loginScreen > div {
       background:linear-gradient(145deg, rgba(255,255,255,.98), rgba(230,247,255,.93)) !important;
@@ -574,28 +553,17 @@
     .gman-brand-image {
       border:none;
       padding:0;
-      min-width:174px;
-      width:186px;
-      min-height:68px;
-      background:transparent;
-      box-shadow:none;
+      min-width:142px;
+      width:154px;
+      min-height:64px;
+      background:linear-gradient(145deg, rgba(5,16,28,.72), rgba(13,42,68,.62));
       cursor:pointer;
-      overflow:visible;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      transform:translateZ(0);
     }
     .gman-brand-image img {
-      width:172px;
+      width:142px;
       max-width:100%;
-      height:auto;
       object-fit:contain;
-      image-rendering:auto;
-      filter:brightness(1.22) contrast(1.34) saturate(1.22) drop-shadow(0 1px 0 rgba(255,255,255,.18)) drop-shadow(0 0 10px rgba(80,190,255,.55)) drop-shadow(0 10px 18px rgba(0,0,0,.38));
-      transform:perspective(520px) rotateX(2deg) rotateY(-4deg) translateZ(0);
-      backface-visibility:hidden;
-      will-change:filter, transform;
+      filter:drop-shadow(0 0 16px rgba(0,166,255,.50)) drop-shadow(0 8px 14px rgba(0,0,0,.35));
     }
     .gman-user-chip { cursor:pointer; }
     .gman-user-chip:hover, .gman-brand-image:hover, .loading-note:hover {
@@ -739,26 +707,16 @@
     }
     .gman-drawer-backdrop { position:fixed; inset:0; z-index:1299; background:rgba(0,0,0,.72); backdrop-filter:blur(8px); }
     @media (max-width:560px) {
-      .gman-brand-image {
-      border:none;
-      padding:0;
-      min-width:174px;
-      width:186px;
-      min-height:68px;
-      background:transparent;
-      box-shadow:none;
-      cursor:pointer;
-      overflow:visible;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      transform:translateZ(0);
+      .gman-brand-image { min-width:120px; width:128px; min-height:54px; }
+      .gman-brand-image img { width:120px; }
+      .modal-overlay { padding:12px !important; }
+      .modal-panel { width:100% !important; max-height:88vh !important; padding:18px !important; }
     }
 
 
 
     /************************************************************
-     * GMAN 8.5.6.99 — FASE 2 VISUAL/FUNCIONAL
+     * GMAN 8.5.6.100 — FASE 2 VISUAL/FUNCIONAL
      * Completa a camada visual preservando layout e integrando correções do Apps Script/API desta versão.
      ************************************************************/
     .gman-fab-overlay { position:fixed; inset:0; z-index:1500; background:rgba(0,0,0,.62); backdrop-filter:blur(8px); display:flex; align-items:flex-end; justify-content:center; padding:18px 14px 94px; }
@@ -794,7 +752,7 @@
 
   
 
-    /* GMAN 8.5.6.99 — ajuste funcional da barra de sistemas no notebook/desktop.
+    /* GMAN 8.5.6.100 — ajuste funcional da barra de sistemas no notebook/desktop.
        Mantém celular com rolagem horizontal; no notebook permite quebra organizada para não cortar botões. */
     @media (min-width:768px) {
       .systems-filter {
@@ -814,14 +772,14 @@
     }
 
 
-    /* GMAN 8.5.6.99 — alerta funcional forte para OS nova/notificação */
+    /* GMAN 8.5.6.100 — alerta funcional forte para OS nova/notificação */
     @keyframes gmanPiscarForte { 0%,100% { box-shadow:0 0 0 rgba(255,209,102,0); transform:translateY(0) scale(1); } 50% { box-shadow:0 0 24px rgba(255,209,102,.95), 0 0 42px rgba(255,77,94,.45); transform:translateY(-1px) scale(1.025); } }
     .gman-alerta-forte { animation:gmanPiscarForte .85s infinite; border-color:rgba(255,209,102,.95) !important; }
     .notify-badge { display:none !important; }
 
 
 
-    /* GMAN 8.5.6.99 — bloqueio funcional por usuário */
+    /* GMAN 8.5.6.100 — bloqueio funcional por usuário */
     .gman-bloqueado-usuario {
       display:inline-flex;
       align-items:center;
@@ -840,7 +798,7 @@
     }
 
 
-    /* GMAN 8.5.6.99 — indicador obrigatório de processamento */
+    /* GMAN 8.5.6.100 — indicador obrigatório de processamento */
     .gman-processando-overlay {
       position:fixed;
       inset:0;
@@ -884,11 +842,48 @@
     .gman-processando-msg { color:#bfe8ff; font-size:.86rem; font-weight:750; line-height:1.35; }
     @keyframes gmanGirarLoading { to { transform:rotate(360deg); } }
 
-    @keyframes gmanLogoLoginGiro3D {
-      0% { transform:perspective(720px) rotateY(-10deg) rotateX(4deg) scale(1); filter:brightness(1.10) contrast(1.16) saturate(1.10) drop-shadow(0 16px 24px rgba(0,90,150,.24)) drop-shadow(0 0 14px rgba(0,194,255,.18)); }
-      38% { transform:perspective(720px) rotateY(178deg) rotateX(5deg) scale(1.035); filter:brightness(1.22) contrast(1.24) saturate(1.16) drop-shadow(0 20px 30px rgba(0,90,150,.30)) drop-shadow(0 0 22px rgba(0,194,255,.28)); }
-      72% { transform:perspective(720px) rotateY(358deg) rotateX(3deg) scale(1.02); }
-      100% { transform:perspective(720px) rotateY(350deg) rotateX(4deg) scale(1); }
+
+    /* GMAN 8.5.6.100 — recuperação visual segura pós-99
+       Preserva as imagens originais dos logos e restaura AGUARDE sem trocar base64. */
+    .gman-login-logo {
+      animation:gmanLoginLogoGiro100 5.8s linear infinite;
+      transform-style:preserve-3d;
+      backface-visibility:visible;
+      will-change:transform;
+      filter:drop-shadow(0 12px 20px rgba(0,115,180,.32)) drop-shadow(0 0 18px rgba(0,194,255,.20));
+    }
+    @keyframes gmanLoginLogoGiro100 {
+      0% { transform:perspective(620px) rotateY(0deg) translateZ(0); }
+      50% { transform:perspective(620px) rotateY(180deg) translateZ(0); }
+      100% { transform:perspective(620px) rotateY(360deg) translateZ(0); }
+    }
+    .gman-brand-image.gman-logo-preservado-100 {
+      background:transparent !important;
+      border-color:rgba(0,194,255,.22) !important;
+      box-shadow:none !important;
+      overflow:visible !important;
+    }
+    .gman-brand-image.gman-logo-preservado-100 img {
+      display:block !important;
+      object-fit:contain;
+      image-rendering:auto;
+      filter:drop-shadow(0 0 14px rgba(0,194,255,.55)) drop-shadow(0 10px 16px rgba(0,0,0,.38)) saturate(1.12) contrast(1.06) brightness(1.06);
+      transform:perspective(520px) rotateX(4deg) rotateY(-5deg);
+      transform-origin:center;
+    }
+    .equipment-item.gman-stagger-card-100 {
+      opacity:0;
+      transform:translateY(16px);
+      animation:gmanEntradaCascata100 .42s cubic-bezier(.2,.8,.2,1) forwards;
+      animation-delay:var(--gman-stagger-delay,0s);
+    }
+    @keyframes gmanEntradaCascata100 {
+      from { opacity:0; transform:translateY(16px); }
+      to { opacity:1; transform:translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .gman-login-logo,
+      .equipment-item.gman-stagger-card-100 { animation:none !important; opacity:1 !important; transform:none !important; }
     }
 
   </style>
@@ -906,7 +901,7 @@
         <input type="password" id="loginPass" placeholder="Senha" autocomplete="current-password" style="width:100%;padding:12px;margin-bottom:20px;border:2px solid #e2e8f0;border-radius:10px;font-size:1rem;color:#333;">
         <button type="submit" id="btnEntrarLogin" style="width:100%;padding:15px;background:#3182ce;color:white;border:none;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;">Entrar</button>
       </form>
-      <p style="color:#a0aec0;margin-top:12px;font-size:.68rem;">GMAN 8.5.6.99</p>
+      <p style="color:#a0aec0;margin-top:12px;font-size:.68rem;">GMAN 8.5.6.100</p>
       <p id="loginErro" style="color:#e53e3e;margin-top:15px;font-size:.85rem;display:none;font-weight:bold;"></p>
     </div>
   </div>
@@ -971,7 +966,7 @@
   <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec';
     const SENHA_GMAN_OFICIAL = 'gman2026';
-    const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.99 — Logo 3D, login girando e cards em cascata';
+    const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.100 — Recuperação pós-99, logos preservados e AGUARDE restaurado';
     const usuarios = [
       { nome:'PAULO JURANDIR', senha:SENHA_GMAN_OFICIAL, funcao:'administrador', area:'todos' },
       { nome:'RAFAEL SPIES', senha:SENHA_GMAN_OFICIAL, funcao:'supervisor', area:'todos' },
@@ -1065,8 +1060,8 @@ function isEquipamentoBrutaGMAN(eq) { const prefixo = String(eq?.id || '').toUpp
     }
 
     function atualizarIndicadorConexao(msg,tipo='neutro') { const el=document.getElementById('apiStatus'); el.textContent=msg; el.style.color= tipo==='online'?'#9ae6b4': tipo==='offline'?'#feb2b2':'#a0c4e8'; }
-    function saveData() { try { localStorage.setItem('gman_ultima_sincronizacao_85698','gman_ultima_sincronizacao_85699', gmanDataHoraBrasilTexto()); } catch(e){} }
-    function loadData() { try { ['manutencao_equipment_gman_85675','manutencao_equipment_gman_85683','manutencao_equipment_gman_85685','manutencao_equipment_gman_85686','manutencao_equipment_gman_85687','manutencao_equipment_gman_85688','manutencao_equipment_gman_85689','manutencao_equipment_gman_85690','manutencao_equipment_gman_85691','manutencao_equipment_gman_85692','manutencao_equipment_gman_85694','manutencao_equipment_gman_85695','manutencao_equipment_gman_85698','manutencao_equipment_gman_85699','gman_ultima_sincronizacao_85686','gman_ultima_sincronizacao_85687','gman_ultima_sincronizacao_85688','gman_ultima_sincronizacao_85689','gman_ultima_sincronizacao_85690','gman_ultima_sincronizacao_85691','gman_ultima_sincronizacao_85692','gman_ultima_sincronizacao_85694','gman_ultima_sincronizacao_85695','gman_ultima_sincronizacao_85698','gman_ultima_sincronizacao_85699'].forEach(k=>localStorage.removeItem(k)); } catch(e){} }
+    function saveData() { try { localStorage.setItem('gman_ultima_sincronizacao_85696','gman_ultima_sincronizacao_85697','gman_ultima_sincronizacao_85698','gman_ultima_sincronizacao_85699','gman_ultima_sincronizacao_856100', gmanDataHoraBrasilTexto()); } catch(e){} }
+    function loadData() { try { ['manutencao_equipment_gman_85675','manutencao_equipment_gman_85683','manutencao_equipment_gman_85685','manutencao_equipment_gman_85686','manutencao_equipment_gman_85687','manutencao_equipment_gman_85688','manutencao_equipment_gman_85689','manutencao_equipment_gman_85690','manutencao_equipment_gman_85691','manutencao_equipment_gman_85692','manutencao_equipment_gman_85694','manutencao_equipment_gman_85695','manutencao_equipment_gman_85696','manutencao_equipment_gman_85697','manutencao_equipment_gman_85698','manutencao_equipment_gman_85699','manutencao_equipment_gman_856100','gman_ultima_sincronizacao_85686','gman_ultima_sincronizacao_85687','gman_ultima_sincronizacao_85688','gman_ultima_sincronizacao_85689','gman_ultima_sincronizacao_85690','gman_ultima_sincronizacao_85691','gman_ultima_sincronizacao_85692','gman_ultima_sincronizacao_85694','gman_ultima_sincronizacao_85695','gman_ultima_sincronizacao_85696','gman_ultima_sincronizacao_85697','gman_ultima_sincronizacao_85698','gman_ultima_sincronizacao_85699','gman_ultima_sincronizacao_856100'].forEach(k=>localStorage.removeItem(k)); } catch(e){} }
 async function listarOSOnline() { const r=await apiAcao('listarOS',{incluirEncerradas:true, usuario:usuarioLogado?.nome||'', perfil:usuarioLogado?.funcao||'', funcao:usuarioLogado?.funcao||'', area:usuarioLogado?.area||''}); return extrairLista(r,['ordens','os','listaOS','ordensServico']); }
     async function apiPost(payload) { return apiAcao(payload.acao, payload); }
 function fazerLogin() { const user=document.getElementById('loginUser').value.trim(); const pass=document.getElementById('loginPass').value; const erro=document.getElementById('loginErro'); erro.style.display='none'; const encontrado=usuarios.find(u=>normalizarTextoGMAN(u.nome)===normalizarTextoGMAN(user)&&u.senha===pass); if(!encontrado){erro.textContent='Usuário ou senha incorretos!';erro.style.display='block';return;} usuarioLogado=encontrado; localStorage.setItem('manutencao_usuario_logado',JSON.stringify({nome:encontrado.nome,funcao:encontrado.funcao,area:encontrado.area})); document.getElementById('loginScreen').style.display='none'; mostrarUsuarioLogado(); aplicarBotoesPermissao(); setTimeout(()=>carregarStatusOnline(),50); }
@@ -1262,7 +1257,7 @@ async function atualizarAgora() { await carregarStatusOnline(); gmanToast('Siste
 
 
     /************************************************************
-     * GMAN 8.5.6.99 — FASE 2 FUNÇÕES VISÍVEIS
+     * GMAN 8.5.6.100 — FASE 2 FUNÇÕES VISÍVEIS
      * Complementa os 20 itens do modelo: perfil, visualização,
      * busca, sincronização, FAB, card, abas, status, filtro,
      * indicadores, notificações e mapa preparado.
@@ -1304,7 +1299,7 @@ function gmanRecursoImplantacaoGMAN(nome) {
       const total = equipment.length;
       modalPremiumGMAN('sistemaGMANModal', 'Sobre o GMAN', 'Informações do sistema, API, versão e sincronização.',
       `<div class="gman-grid">
-        <div class="gman-card-dark"><div class="gman-kpi-label">Versão</div><div class="gman-kpi-value" style="font-size:1rem;">GMAN 8.5.6.99</div><div class="gman-kpi-meta">Logo nítido 3D, login girando e regras preservadas</div></div>
+        <div class="gman-card-dark"><div class="gman-kpi-label">Versão</div><div class="gman-kpi-value" style="font-size:1rem;">GMAN 8.5.6.100</div><div class="gman-kpi-meta">Recuperação pós-99 com logos preservados e AGUARDE restaurado</div></div>
         <div class="gman-card-dark"><div class="gman-kpi-label">API</div><div class="gman-kpi-value" style="font-size:1rem;">${apiOnline?'ONLINE':'AGUARDANDO'}</div><div class="gman-kpi-meta">Apps Script /exec preservado</div></div>
         <div class="gman-card-dark"><div class="gman-kpi-label">Sincronização</div><div class="gman-kpi-value" style="font-size:1rem;">120 s</div><div class="gman-kpi-meta">Padrão operacional atual</div></div>
         <div class="gman-card-dark"><div class="gman-kpi-label">Grupos carregados</div><div class="gman-kpi-value" style="font-size:1rem;">${total}</div><div class="gman-kpi-meta">Lista visual do Index + base oficial</div></div>
@@ -1404,7 +1399,7 @@ function abrirFiltroAvancadoGMAN() {
         const icone=eq.status==='ok'?'✓':eq.status==='alert'?'!':'✕';
         const statusPill=eq.status==='ok'?'gman-pill-ok':eq.status==='down'?'gman-pill-red':'gman-pill-warn';
         const gestaoInfo=isAdministradorTotal()&&listaGrupo.length?`<span>▣ ${listaGrupo.length} OS aberta(s) no grupo</span><span>👷 ${escaparHTMLGMAN([...new Set(listaGrupo.map(o=>getCampo(o,['responsavel','RESPONSAVEL'])).filter(Boolean))].join(', '))}</span>`:'';
-        return `<div class="equipment-item gman-stagger-card status-card-${eq.status}" style="animation-delay:${Math.min(idx*0.05,1.2).toFixed(2)}s" onclick="openEquipment('${eq.id}')"><div class="status-icon status-${eq.status}" onclick="event.stopPropagation(); abrirStatusViaOSGMAN('${eq.id}')">${icone}</div><div class="equipment-main"><div class="equipment-name">${escaparHTMLGMAN(nomeGrupoVisualGMAN(eq.name))}</div><div class="equipment-system"><span class="system-tag ${getSystemTagClass(eq.systemCode)}" onclick="event.stopPropagation(); filterSystem('${eq.system}', event)">${eq.systemCode}</span>${escaparHTMLGMAN(eq.system.toLocaleUpperCase('pt-BR'))} | ID: ${escaparHTMLGMAN(eq.id)}</div><div class="equipment-responsavel"><span>◉ ${escaparHTMLGMAN(String(responsavel).toLocaleUpperCase('pt-BR'))}</span><span>◷ ${escaparHTMLGMAN(atualizacao)}</span>${gestaoInfo}</div>${justificativa?`<div class="equipment-system">Justificativa: ${escaparHTMLGMAN(justificativa)}</div>`:''}</div><div class="equipment-actions"><button class="status-badge badge-${eq.status}" onclick="event.stopPropagation(); abrirStatusViaOSGMAN('${eq.id}')">${labelStatusEquipamentoMaiusculo(eq.status,statusTextoEquipamentoGMAN(eq))}</button><button class="card-mini-btn" onclick="event.stopPropagation(); abrirAcoesCardGMAN('${eq.id}')">⋯</button><button class="card-mini-btn" onclick="event.stopPropagation(); openEquipment('${eq.id}')">›</button></div><div class="equipment-meta"><div class="meta-chip"><span class="meta-label">Última OS</span><span class="meta-value">${escaparHTMLGMAN(numeroOS)}</span></div><div class="meta-chip"><span class="meta-label">Patrimônio</span><span class="meta-value">${escaparHTMLGMAN(patrimonio)}</span></div><div class="meta-chip"><span class="meta-label">Prioridade</span><span class="meta-value ${prioridadeClasseGMAN(prioridade)}">${escaparHTMLGMAN(String(prioridade).toLocaleUpperCase('pt-BR'))}</span></div></div></div>`;
+        return `<div class="equipment-item gman-stagger-card-100 status-card-${eq.status}" style="--gman-stagger-delay:${Math.min(idx*0.05,1.2).toFixed(2)}s" onclick="openEquipment('${eq.id}')"><div class="status-icon status-${eq.status}" onclick="event.stopPropagation(); abrirStatusViaOSGMAN('${eq.id}')">${icone}</div><div class="equipment-main"><div class="equipment-name">${escaparHTMLGMAN(nomeGrupoVisualGMAN(eq.name))}</div><div class="equipment-system"><span class="system-tag ${getSystemTagClass(eq.systemCode)}" onclick="event.stopPropagation(); filterSystem('${eq.system}', event)">${eq.systemCode}</span>${escaparHTMLGMAN(eq.system.toLocaleUpperCase('pt-BR'))} | ID: ${escaparHTMLGMAN(eq.id)}</div><div class="equipment-responsavel"><span>◉ ${escaparHTMLGMAN(String(responsavel).toLocaleUpperCase('pt-BR'))}</span><span>◷ ${escaparHTMLGMAN(atualizacao)}</span>${gestaoInfo}</div>${justificativa?`<div class="equipment-system">Justificativa: ${escaparHTMLGMAN(justificativa)}</div>`:''}</div><div class="equipment-actions"><button class="status-badge badge-${eq.status}" onclick="event.stopPropagation(); abrirStatusViaOSGMAN('${eq.id}')">${labelStatusEquipamentoMaiusculo(eq.status,statusTextoEquipamentoGMAN(eq))}</button><button class="card-mini-btn" onclick="event.stopPropagation(); abrirAcoesCardGMAN('${eq.id}')">⋯</button><button class="card-mini-btn" onclick="event.stopPropagation(); openEquipment('${eq.id}')">›</button></div><div class="equipment-meta"><div class="meta-chip"><span class="meta-label">Última OS</span><span class="meta-value">${escaparHTMLGMAN(numeroOS)}</span></div><div class="meta-chip"><span class="meta-label">Patrimônio</span><span class="meta-value">${escaparHTMLGMAN(patrimonio)}</span></div><div class="meta-chip"><span class="meta-label">Prioridade</span><span class="meta-value ${prioridadeClasseGMAN(prioridade)}">${escaparHTMLGMAN(String(prioridade).toLocaleUpperCase('pt-BR'))}</span></div></div></div>`;
       }).join('');
       let active=currentSystemFilter==='brutas'?equipment.filter(isEquipamentoBrutaGMAN):(currentSystemFilter!=='all'?equipment.filter(e=>e.system===currentSystemFilter):equipment);
       document.getElementById('operationalCount').textContent=active.filter(e=>e.status==='ok').length; document.getElementById('maintenanceCount').textContent=active.filter(e=>e.status==='alert'||e.status==='down').length; document.getElementById('downCount').textContent=active.filter(e=>e.status==='down').length;
@@ -1464,7 +1459,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
       catch(e) { c.innerHTML='<p style="color:var(--gman-red);font-weight:bold;">Erro ao carregar KPIs: '+escaparHTMLGMAN(e.message)+'</p>'; }
     }
 /************************************************************
-     * GMAN 8.5.6.99 — RESET ÚNICO E AJUSTES FUNCIONAIS PÓS-TESTE
+     * GMAN 8.5.6.100 — RESET ÚNICO E AJUSTES FUNCIONAIS PÓS-TESTE
      * Motivo: checklist preenchido apontou busca bloqueada, duplicidade
      * de OS, status difícil de encontrar, horário exibido sempre 04:00,
      * perfil/drawer sem conteúdo claro, menu Mais incompleto e ações rápidas.
@@ -1727,7 +1722,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
   
 
     /************************************************************
-     * GMAN 8.5.6.99 — CAMADA FUNCIONAL REVISADA PROFUNDAMENTE
+     * GMAN 8.5.6.100 — CAMADA FUNCIONAL REVISADA PROFUNDAMENTE
      * Escopo: apenas regras funcionais. Não altera layout/CSS.
      ************************************************************/
     const GMAN_85694_FUNCIONAL = Object.freeze({
@@ -1963,7 +1958,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
 
 
     /*****
-     * GMAN 8.5.6.99 — AUDITORIA FUNCIONAL FINAL
+     * GMAN 8.5.6.100 — AUDITORIA FUNCIONAL FINAL
      * Ver detalhes robusto, bloqueio de clique duplo, cache não-oficial
      * e abertura de histórico/OS pela API quando não estiver no cache.
      ************************************************************/
@@ -2065,7 +2060,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
 
 
     /************************************************************
-     * GMAN 8.5.6.99 — CAMADA FINAL CONSOLIDADA
+     * GMAN 8.5.6.100 — CAMADA FINAL CONSOLIDADA
      * Não substitui o app: reforça fluxo sem travar o trabalho.
      ************************************************************/
     (function instalarGMAN85696(){
@@ -2110,11 +2105,13 @@ function abrirPainelCompletoGrupoGMAN(id) {
     };
 
     function aplicarLogo3DGMAN85696(){
+      /* GMAN 8.5.6.100 — recuperação visual:
+         NÃO troca a imagem oficial do logo interno.
+         Apenas sinaliza que a correção segura está ativa. */
       const brand=document.querySelector('.gman-brand-image');
-      if(!brand || brand.dataset.gman3d==='sim') return;
-      brand.dataset.gman3d='sim';
-      brand.classList.add('gman-logo-3d');
-      brand.innerHTML='<div class="gman-logo-orb"></div><div class="gman-logo-name"><strong>GMAN</strong><span>DMAE</span></div>';
+      if(!brand) return;
+      brand.dataset.gman3d='preservado';
+      brand.classList.add('gman-logo-preservado-100');
     }
 
     function minhasOSNaoIniciadas85696(){
