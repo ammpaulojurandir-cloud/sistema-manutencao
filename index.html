@@ -515,7 +515,7 @@
 
 
     /* =========================================================
-       GMAN 8.5.6.85 — CAMADA FINAL OBRIGATÓRIA
+       GMAN 8.5.6.88 — CAMADA FINAL OBRIGATÓRIA
        Novo layout aplicado em TODAS as telas internas existentes.
        Preserva lógica, IDs, API e regras. Altera apenas visual e texto.
        ========================================================= */
@@ -716,7 +716,7 @@
 
 
     /************************************************************
-     * GMAN 8.5.6.85 — FASE 2 VISUAL/FUNCIONAL
+     * GMAN 8.5.6.88 — FASE 2 VISUAL/FUNCIONAL
      * Completa os 20 itens do modelo sem alterar Apps Script/API.
      ************************************************************/
     .gman-fab-overlay { position:fixed; inset:0; z-index:1500; background:rgba(0,0,0,.62); backdrop-filter:blur(8px); display:flex; align-items:flex-end; justify-content:center; padding:18px 14px 94px; }
@@ -752,7 +752,7 @@
 
   
 
-    /* GMAN 8.5.6.85 — ajuste funcional da barra de sistemas no notebook/desktop.
+    /* GMAN 8.5.6.88 — ajuste funcional da barra de sistemas no notebook/desktop.
        Mantém celular com rolagem horizontal; no notebook permite quebra organizada para não cortar botões. */
     @media (min-width:768px) {
       .systems-filter {
@@ -772,14 +772,14 @@
     }
 
 
-    /* GMAN 8.5.6.85 — alerta funcional forte para OS nova/notificação */
+    /* GMAN 8.5.6.88 — alerta funcional forte para OS nova/notificação */
     @keyframes gmanPiscarForte { 0%,100% { box-shadow:0 0 0 rgba(255,209,102,0); transform:translateY(0) scale(1); } 50% { box-shadow:0 0 24px rgba(255,209,102,.95), 0 0 42px rgba(255,77,94,.45); transform:translateY(-1px) scale(1.025); } }
     .gman-alerta-forte { animation:gmanPiscarForte .85s infinite; border-color:rgba(255,209,102,.95) !important; }
     .notify-badge { display:none !important; }
 
 
 
-    /* GMAN 8.5.6.85 — bloqueio funcional por usuário */
+    /* GMAN 8.5.6.88 — bloqueio funcional por usuário */
     .gman-bloqueado-usuario {
       display:inline-flex;
       align-items:center;
@@ -812,7 +812,7 @@
         <input type="password" id="loginPass" placeholder="Senha" autocomplete="current-password" style="width:100%;padding:12px;margin-bottom:20px;border:2px solid #e2e8f0;border-radius:10px;font-size:1rem;color:#333;">
         <button type="submit" id="btnEntrarLogin" style="width:100%;padding:15px;background:#3182ce;color:white;border:none;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;">Entrar</button>
       </form>
-      <p style="color:#a0aec0;margin-top:12px;font-size:.68rem;">GMAN 8.5.6.85</p>
+      <p style="color:#a0aec0;margin-top:12px;font-size:.68rem;">GMAN 8.5.6.88</p>
       <p id="loginErro" style="color:#e53e3e;margin-top:15px;font-size:.85rem;display:none;font-weight:bold;"></p>
     </div>
   </div>
@@ -877,7 +877,7 @@
   <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec';
     const SENHA_GMAN_OFICIAL = 'gman2026';
-    const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.85 — auditoria pericial de regras, obrigações, horário e privilégios';
+    const VERSAO_FRONTEND_GMAN = 'GMAN 8.5.6.88 — correção do encerramento real, status referência, evidências opcionais e retorno';
     const usuarios = [
       { nome:'PAULO JURANDIR', senha:SENHA_GMAN_OFICIAL, funcao:'administrador', area:'todos' },
       { nome:'RAFAEL SPIES', senha:SENHA_GMAN_OFICIAL, funcao:'supervisor', area:'todos' },
@@ -1177,8 +1177,8 @@ function isEquipamentoBrutaGMAN(eq) { const prefixo = String(eq?.id || '').toUpp
     async function apiAcao(acao,dados={}) { const resp=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({acao},dados||{}))}); const txt=await resp.text(); let json; try{json=JSON.parse(txt)}catch(e){throw new Error('API não retornou JSON.')} if(!resp.ok||json.sucesso===false) throw new Error(json.erro||json.mensagem||('Falha na ação '+acao)); return json; }
 
     function atualizarIndicadorConexao(msg,tipo='neutro') { const el=document.getElementById('apiStatus'); el.textContent=msg; el.style.color= tipo==='online'?'#9ae6b4': tipo==='offline'?'#feb2b2':'#a0c4e8'; }
-    function saveData() { try { localStorage.setItem('gman_ultima_sincronizacao_85685', gmanDataHoraBrasilTexto()); } catch(e){} }
-    function loadData() { try { ['manutencao_equipment_gman_85675','manutencao_equipment_gman_85683','manutencao_equipment_gman_85685'].forEach(k=>localStorage.removeItem(k)); } catch(e){} }
+    function saveData() { try { localStorage.setItem('gman_ultima_sincronizacao_85688', gmanDataHoraBrasilTexto()); } catch(e){} }
+    function loadData() { try { ['manutencao_equipment_gman_85675','manutencao_equipment_gman_85683','manutencao_equipment_gman_85685','manutencao_equipment_gman_85686','manutencao_equipment_gman_85687','manutencao_equipment_gman_85688','gman_ultima_sincronizacao_85686','gman_ultima_sincronizacao_85687'].forEach(k=>localStorage.removeItem(k)); } catch(e){} }
 async function listarOSOnline() { const r=await apiAcao('listarOS',{incluirEncerradas:true, usuario:usuarioLogado?.nome||'', perfil:usuarioLogado?.funcao||'', funcao:usuarioLogado?.funcao||'', area:usuarioLogado?.area||''}); return extrairLista(r,['ordens','os','listaOS','ordensServico']); }
     async function apiPost(payload) { return apiAcao(payload.acao, payload); }
 function fazerLogin() { const user=document.getElementById('loginUser').value.trim(); const pass=document.getElementById('loginPass').value; const erro=document.getElementById('loginErro'); erro.style.display='none'; const encontrado=usuarios.find(u=>normalizarTextoGMAN(u.nome)===normalizarTextoGMAN(user)&&u.senha===pass); if(!encontrado){erro.textContent='Usuário ou senha incorretos!';erro.style.display='block';return;} usuarioLogado=encontrado; localStorage.setItem('manutencao_usuario_logado',JSON.stringify({nome:encontrado.nome,funcao:encontrado.funcao,area:encontrado.area})); document.getElementById('loginScreen').style.display='none'; mostrarUsuarioLogado(); aplicarBotoesPermissao(); setTimeout(()=>carregarStatusOnline(),50); }
@@ -1222,7 +1222,7 @@ let gmanBuscaTimer = null;
 function alternarVisualizacaoGMAN() { document.body.classList.toggle('gman-view-grade'); }
 function applyFilters() { const term=normalizarTextoGMAN(document.getElementById('searchInput').value); let filtered=equipment; if(currentSystemFilter==='brutas') filtered=filtered.filter(isEquipamentoBrutaGMAN); else if(currentSystemFilter!=='all') filtered=filtered.filter(eq=>String(eq.systemCode||'')===String(currentSystemFilter)); if(currentStatusFilter!=='all') filtered=filtered.filter(eq=> currentStatusFilter==='alert' ? (eq.status==='alert'||eq.status==='down') : eq.status===currentStatusFilter); if(term) filtered=filtered.filter(eq=>normalizarTextoGMAN([eq.name,eq.system,eq.id,eq.systemCode].join(' ')).includes(term)); renderEquipment(filtered); }
 
-    function atualizarTotalizadoresOS(lista=ordensServicoCache) { const dados=Array.isArray(lista)?lista:[]; const abertas=dados.filter(o=>statusAtivo(getCampo(o,['statusOS','STATUS_OS']))); const nao=dados.filter(o=>statusAberto(getCampo(o,['statusOS','STATUS_OS']))); const iniciadas=dados.filter(o=>statusIniciado(getCampo(o,['statusOS','STATUS_OS']))); const encerradas=dados.filter(o=>statusEncerrado(getCampo(o,['statusOS','STATUS_OS']))); const minhas=abertas.filter(osResponsavelUsuario); const alvoAlerta=isAdministradorTotal()?abertas:minhas; const set=(id,n)=>{const el=document.getElementById(id); if(el) el.textContent='('+n+')';}; set('totalOrdensAbertasHome',abertas.length); set('totalOrdensNaoIniciadasHome',nao.length); set('totalOrdensIniciadasHome',iniciadas.length); set('totalOrdensEncerradasHome',encerradas.length); set('totalOrdensAbertasPainel',abertas.length); set('totalOrdensNaoIniciadasPainel',nao.length); set('totalOrdensIniciadasPainel',iniciadas.length); set('totalMinhasOSPainel',minhas.length); set('totalOrdensEncerradasPainel',encerradas.length); if(alvoAlerta.length!==gmanUltimoTotalAbertas85685){ gmanOSAlertasVisualizados85685=false; gmanUltimoTotalAbertas85685=alvoAlerta.length; } atualizarAlertaOS85685(alvoAlerta.length); return {abertas:abertas.length,naoIniciadas:nao.length,iniciadas:iniciadas.length,encerradas:encerradas.length,minhas:minhas.length}; }
+    function atualizarTotalizadoresOS(lista=ordensServicoCache) { const dados=Array.isArray(lista)?lista:[]; const abertas=dados.filter(o=>statusAtivo(getCampo(o,['statusOS','STATUS_OS']))); const nao=dados.filter(o=>statusAberto(getCampo(o,['statusOS','STATUS_OS']))); const iniciadas=dados.filter(o=>statusIniciado(getCampo(o,['statusOS','STATUS_OS']))); const encerradas=dados.filter(o=>statusEncerrado(getCampo(o,['statusOS','STATUS_OS']))); const minhas=abertas.filter(osResponsavelUsuario); const alvoAlerta=isAdministradorTotal()?abertas:minhas; const set=(id,n)=>{const el=document.getElementById(id); if(el) el.textContent='('+n+')';}; set('totalOrdensAbertasHome',abertas.length); set('totalOrdensNaoIniciadasHome',nao.length); set('totalOrdensIniciadasHome',iniciadas.length); set('totalOrdensEncerradasHome',encerradas.length); set('totalOrdensAbertasPainel',abertas.length); set('totalOrdensNaoIniciadasPainel',nao.length); set('totalOrdensIniciadasPainel',iniciadas.length); set('totalMinhasOSPainel',minhas.length); set('totalOrdensEncerradasPainel',encerradas.length); if(alvoAlerta.length!==gmanUltimoTotalAbertas85688){ gmanOSAlertasVisualizados85688=false; gmanUltimoTotalAbertas85688=alvoAlerta.length; } atualizarAlertaOS85688(alvoAlerta.length); return {abertas:abertas.length,naoIniciadas:nao.length,iniciadas:iniciadas.length,encerradas:encerradas.length,minhas:minhas.length}; }
     function classificarStatusOS(status) { const s=normalizarTextoGMAN(status); if(s.includes('execucao')) return 'Em execução'; if(s.includes('andamento')) return 'Em andamento'; if(s.includes('teste')) return 'Em teste'; if(s.includes('material')) return 'Aguardando material'; if(s.includes('liberacao')) return 'Aguardando liberação'; if(s.includes('parad')) return 'Parado'; if(s.includes('manutencao')) return 'Em manutenção'; if(s.includes('concluid')) return 'Concluída'; if(s.includes('cancel')) return 'Cancelada'; if(s.includes('abert')) return 'Aberta'; return status||'Sem status'; }
     function classeStatusOS(status) { const s=normalizarTextoGMAN(status); if(s.includes('exec')||s.includes('andamento')||s.includes('teste')) return 'os-execucao'; if(s.includes('concl')) return 'os-concluida'; if(s.includes('cancel')) return 'os-cancelada'; return 'os-aberta'; }
 function mudarModoPainelOS(modo) { modoPainelOSAtual=modo; const t=document.getElementById('tituloPainelOS'); if(t) t.textContent=tituloPainelOS(modo); renderizarOS(ordensServicoCache); }
@@ -1284,7 +1284,7 @@ async function atualizarAgora() { await carregarStatusOnline(); gmanToast('Siste
 
 
     /************************************************************
-     * GMAN 8.5.6.85 — FASE 2 FUNÇÕES VISÍVEIS
+     * GMAN 8.5.6.88 — FASE 2 FUNÇÕES VISÍVEIS
      * Complementa os 20 itens do modelo: perfil, visualização,
      * busca, sincronização, FAB, card, abas, status, filtro,
      * indicadores, notificações e mapa preparado.
@@ -1319,14 +1319,14 @@ function setModoVisualGMAN(modo) {
         </div>`, '460px');
     }
 function gmanRecursoImplantacaoGMAN(nome) {
-      modalPremiumGMAN('implantacaoGMANModal', nome, 'Recurso previsto no novo layout.', `<div class="gman-card-dark"><span class="gman-status-pill gman-pill-warn">Em implantação controlada</span><p style="color:var(--gman-muted);margin-top:10px;line-height:1.45;">Este recurso já está previsto na experiência nova do GMAN. A ativação funcional completa depende da etapa de evidências/API, sem alterar agora as regras obrigatórias da versão 8.5.6.85.</p></div>`, '520px');
+      modalPremiumGMAN('implantacaoGMANModal', nome, 'Recurso previsto no novo layout.', `<div class="gman-card-dark"><span class="gman-status-pill gman-pill-warn">Em implantação controlada</span><p style="color:var(--gman-muted);margin-top:10px;line-height:1.45;">Este recurso já está previsto na experiência nova do GMAN. A ativação funcional completa depende da etapa de evidências/API, sem alterar agora as regras obrigatórias da versão 8.5.6.88.</p></div>`, '520px');
     }
 
     function abrirPainelSistemaGMAN() {
       const total = equipment.length;
       modalPremiumGMAN('sistemaGMANModal', 'Sobre o GMAN', 'Informações do sistema, API, versão e sincronização.',
       `<div class="gman-grid">
-        <div class="gman-card-dark"><div class="gman-kpi-label">Versão</div><div class="gman-kpi-value" style="font-size:1rem;">GMAN 8.5.6.85</div><div class="gman-kpi-meta">Horário Brasil, privilégios blindados e bloqueios por usuário</div></div>
+        <div class="gman-card-dark"><div class="gman-kpi-label">Versão</div><div class="gman-kpi-value" style="font-size:1rem;">GMAN 8.5.6.88</div><div class="gman-kpi-meta">Encerramento corrigido, OS no topo, status referência e evidências opcionais</div></div>
         <div class="gman-card-dark"><div class="gman-kpi-label">API</div><div class="gman-kpi-value" style="font-size:1rem;">${apiOnline?'ONLINE':'AGUARDANDO'}</div><div class="gman-kpi-meta">Apps Script /exec preservado</div></div>
         <div class="gman-card-dark"><div class="gman-kpi-label">Sincronização</div><div class="gman-kpi-value" style="font-size:1rem;">120 s</div><div class="gman-kpi-meta">Padrão operacional atual</div></div>
         <div class="gman-card-dark"><div class="gman-kpi-label">Grupos carregados</div><div class="gman-kpi-value" style="font-size:1rem;">${total}</div><div class="gman-kpi-meta">Lista visual do Index + base oficial</div></div>
@@ -1474,7 +1474,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
       const c=document.getElementById('kpiConteudo'); if(!c) return;
       c.innerHTML='<p style="color:var(--gman-muted);">Calculando indicadores...</p>';
       if(!isGestao()) {
-        if(!gmanUsuarioEhLiderKPI85685()) { c.innerHTML='<div class="gman-card-dark"><span class="gman-status-pill gman-pill-warn">KPI individual indisponível</span><p style="color:var(--gman-muted);margin-top:8px;">KPI individual é exibido apenas para líderes. Gestão superior mantém visão completa.</p></div>'; return; }
+        if(!gmanUsuarioEhLiderKPI85688()) { c.innerHTML='<div class="gman-card-dark"><span class="gman-status-pill gman-pill-warn">KPI individual indisponível</span><p style="color:var(--gman-muted);margin-top:8px;">KPI individual é exibido apenas para líderes. Gestão superior mantém visão completa.</p></div>'; return; }
         const lista=(ordensServicoCache||[]).filter(o=>normalizarTextoGMAN(getCampo(o,['responsavel','RESPONSAVEL']))===normalizarTextoGMAN(usuarioLogado?.nome||''));
         const recebidas=lista.length;
         const iniciadas=lista.filter(o=>statusIniciado(getCampo(o,['statusOS','STATUS_OS']))||getCampo(o,['dataInicio','DATA_INICIO'])).length;
@@ -1486,7 +1486,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
       catch(e) { c.innerHTML='<p style="color:var(--gman-red);font-weight:bold;">Erro ao carregar KPIs: '+escaparHTMLGMAN(e.message)+'</p>'; }
     }
 /************************************************************
-     * GMAN 8.5.6.85 — RESET ÚNICO E AJUSTES FUNCIONAIS PÓS-TESTE
+     * GMAN 8.5.6.88 — RESET ÚNICO E AJUSTES FUNCIONAIS PÓS-TESTE
      * Motivo: checklist preenchido apontou busca bloqueada, duplicidade
      * de OS, status difícil de encontrar, horário exibido sempre 04:00,
      * perfil/drawer sem conteúdo claro, menu Mais incompleto e ações rápidas.
@@ -1526,7 +1526,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
       });
     }
 
-    async function sincronizarEquipamentosOficiaisGMAN85685_() {
+    async function sincronizarEquipamentosOficiaisGMAN85688_() {
       const retornoEq = await apiAcao('listarEquipamentos', { usuario: usuarioLogado?.nome || '', perfil: usuarioLogado?.funcao || '', funcao: usuarioLogado?.funcao || '', area: usuarioLogado?.area || '' });
       const listaEq = extrairLista(retornoEq, ['equipamentos','listaEquipamentos','equipment','dados']);
       if (!Array.isArray(listaEq) || !listaEq.length) return false;
@@ -1550,7 +1550,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
     async function carregarStatusOnline() {
       atualizarIndicadorConexao('↻ Sincronizando status com a base oficial do GMAN...', 'neutro');
       try {
-        await sincronizarEquipamentosOficiaisGMAN85685_();
+        await sincronizarEquipamentosOficiaisGMAN85688_();
         const retornoStatus = await apiAcao('listarStatus', { usuario: usuarioLogado?.nome || '', perfil: usuarioLogado?.funcao || '', funcao: usuarioLogado?.funcao || '', area: usuarioLogado?.area || '' });
         const statusOnline = extrairLista(retornoStatus, ['status','statusAtual','listaStatus']);
         statusOnline.forEach(item=>{
@@ -1737,52 +1737,52 @@ function abrirPainelCompletoGrupoGMAN(id) {
       const itens=[];
       abertas.slice(0,8).forEach(o=>itens.push({tipo:'OS ativa',titulo:getCampo(o,['numeroOS','NUMERO_OS','idOS','ID_OS']),detalhe:`${getCampo(o,['equipamento','EQUIPAMENTO','idEquipamento','ID_EQUIPAMENTO'])} — ${getCampo(o,['statusOS','STATUS_OS'])}`}));
       criticas.slice(0,8).forEach(e=>itens.push({tipo:'Equipamento crítico',titulo:e.id,detalhe:nomeGrupoVisualGMAN(e.name)}));
-      gmanOSAlertasVisualizados85685=true; atualizarAlertaOS85685(0); document.querySelectorAll('.notify-badge').forEach(b=>{ b.textContent=''; b.style.display='none'; });
+      gmanOSAlertasVisualizados85688=true; atualizarAlertaOS85688(0); document.querySelectorAll('.notify-badge').forEach(b=>{ b.textContent=''; b.style.display='none'; });
       modalPremiumGMAN('notificacoesGMAN','Notificações','Ao abrir esta central, o contador visual é considerado lido nesta sessão.',
         itens.length ? `<div class="gman-action-list">${itens.map((n,i)=>`<div class="gman-card-dark" style="border-left:4px solid ${i%2?'var(--gman-orange)':'var(--gman-red)'};"><div class="gman-kpi-label">${escaparHTMLGMAN(n.tipo)}</div><div class="gman-kpi-value" style="font-size:1rem;">${escaparHTMLGMAN(n.titulo||'Sem título')}</div><div class="gman-kpi-meta">${escaparHTMLGMAN(n.detalhe||'')}</div></div>`).join('')}</div>` : `<div class="gman-card-dark"><span class="gman-status-pill gman-pill-ok">Sem alertas ativos</span><p style="color:var(--gman-muted);margin-top:8px;">Não há OS ativa ou equipamento crítico carregado no momento.</p></div>`, '760px');
       document.querySelectorAll('.notify-badge').forEach(b=>{ b.textContent=''; b.style.display='none'; });
     }
 
 
-    /* inicialização deslocada para depois da camada funcional 8.5.6.85 */
+    /* inicialização deslocada para depois da camada funcional 8.5.6.88 */
   
 
     /************************************************************
-     * GMAN 8.5.6.85 — CAMADA FUNCIONAL REVISADA PROFUNDAMENTE
+     * GMAN 8.5.6.88 — CAMADA FUNCIONAL REVISADA PROFUNDAMENTE
      * Escopo: apenas regras funcionais. Não altera layout/CSS.
      ************************************************************/
-    const GMAN_85685_FUNCIONAL = Object.freeze({
+    const GMAN_85688_FUNCIONAL = Object.freeze({
       acessoTotal:['administrador','supervisor','gerente'],
       coordenacao:['coordenador'],
       patrimonioOpcional:['usinagem','caldeiraria','instalacoes mecanicas','instalações mecanicas','instalacoes mecânicas','instalações mecânicas']
     });
 
-    const gmanPerfilAtual85685 = () => normalizarTextoGMAN(usuarioLogado?.funcao || usuarioLogado?.perfil || '');
-    const gmanAreaAtual85685 = () => normalizarTextoGMAN(usuarioLogado?.area || '');
-    const gmanAreaOS85685 = (os) => normalizarTextoGMAN(getCampo(os,['area','AREA','equipeResponsavel','EQUIPE_RESPONSAVEL','setorEquipe','SETOR_EQUIPE']));
-    const gmanIdOS85685 = (os) => getCampo(os,['idOS','ID_OS','numeroOS','NUMERO_OS']);
-    const gmanIdEquipOS85685 = (os) => String(getCampo(os,['idEquipamento','ID_EQUIPAMENTO','idGrupo','ID_GRUPO']));
+    const gmanPerfilAtual85688 = () => normalizarTextoGMAN(usuarioLogado?.funcao || usuarioLogado?.perfil || '');
+    const gmanAreaAtual85688 = () => normalizarTextoGMAN(usuarioLogado?.area || '');
+    const gmanAreaOS85688 = (os) => normalizarTextoGMAN(getCampo(os,['area','AREA','equipeResponsavel','EQUIPE_RESPONSAVEL','setorEquipe','SETOR_EQUIPE']));
+    const gmanIdOS85688 = (os) => getCampo(os,['idOS','ID_OS','numeroOS','NUMERO_OS']);
+    const gmanIdEquipOS85688 = (os) => String(getCampo(os,['idEquipamento','ID_EQUIPAMENTO','idGrupo','ID_GRUPO']));
 
 
-    function gmanUsuarioEhLiderKPI85685(){
-      const p = gmanPerfilAtual85685();
+    function gmanUsuarioEhLiderKPI85688(){
+      const p = gmanPerfilAtual85688();
       if(isGestao() || isCoordenadorGMAN()) return false;
       return p.includes('lider') || p.includes('equipe') || p.includes('operacional');
     }
 
-    window.isAdministradorTotal = function() { return GMAN_85685_FUNCIONAL.acessoTotal.includes(gmanPerfilAtual85685()); };
-    window.isCoordenadorGMAN = function() { return GMAN_85685_FUNCIONAL.coordenacao.includes(gmanPerfilAtual85685()); };
+    window.isAdministradorTotal = function() { return GMAN_85688_FUNCIONAL.acessoTotal.includes(gmanPerfilAtual85688()); };
+    window.isCoordenadorGMAN = function() { return GMAN_85688_FUNCIONAL.coordenacao.includes(gmanPerfilAtual85688()); };
     window.isGestao = function() { return isAdministradorTotal(); }; /* Gestão total = administrador, supervisor e gerente. Coordenador mantém visão por área, sem poderes totais. */
     window.usuarioPodeVerEncerradasGMAN = function(os=null) { return isAdministradorTotal(); };
-    window.coordenadorPodeAtuarOS85685 = function(os) { const a=gmanAreaAtual85685(); return !!a && a!=='todos' && gmanAreaOS85685(os).includes(a); };
+    window.coordenadorPodeAtuarOS85688 = function(os) { const a=gmanAreaAtual85688(); return !!a && a!=='todos' && gmanAreaOS85688(os).includes(a); };
     window.osResponsavelUsuario = function(os) { return normalizarTextoGMAN(getCampo(os,['responsavel','RESPONSAVEL'])) === normalizarTextoGMAN(usuarioLogado?.nome||''); };
     window.usuarioPodeVisualizarOS = function(os) {
-      return isAdministradorTotal() || coordenadorPodeAtuarOS85685(os) || osResponsavelUsuario(os) || normalizarTextoGMAN(getCampo(os,['criadoPor','ABERTO_POR','abertoPor']))===normalizarTextoGMAN(usuarioLogado?.nome||'');
+      return isAdministradorTotal() || coordenadorPodeAtuarOS85688(os) || osResponsavelUsuario(os) || normalizarTextoGMAN(getCampo(os,['criadoPor','ABERTO_POR','abertoPor']))===normalizarTextoGMAN(usuarioLogado?.nome||'');
     };
-    window.usuarioPodeAlterarOS = function(os) { return isAdministradorTotal() || coordenadorPodeAtuarOS85685(os) || osResponsavelUsuario(os); };
+    window.usuarioPodeAlterarOS = function(os) { return isAdministradorTotal() || coordenadorPodeAtuarOS85688(os) || osResponsavelUsuario(os); };
     window.usuarioPodeEditarOS = window.usuarioPodeAlterarOS;
     window.usuarioPodeCancelarOS = function(os) { return isAdministradorTotal(); };
-    window.areaPatrimonioOpcional = function(os) { const a=gmanAreaOS85685(os); return a.includes('instalacoes mecanicas') || a.includes('instalações mecanicas') || a.includes('instalacoes mecânicas') || a.includes('instalações mecânicas') || a.includes('usinagem') || a.includes('caldeiraria'); };
+    window.areaPatrimonioOpcional = function(os) { const a=gmanAreaOS85688(os); return a.includes('instalacoes mecanicas') || a.includes('instalações mecanicas') || a.includes('instalacoes mecânicas') || a.includes('instalações mecânicas') || a.includes('usinagem') || a.includes('caldeiraria'); };
 
     window.aplicarBotoesPermissao = function() {
       const superior = isAdministradorTotal();
@@ -1798,7 +1798,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
       const montar = (lista) => lista.map(u=>`<option value="${escaparHTMLGMAN(u.nome)}">${escaparHTMLGMAN(u.nome)} — ${u.funcao.toUpperCase()} / ${u.area.toUpperCase()}</option>`).join('');
       if(isAdministradorTotal()) return montar(usuarios.filter(u=>['lider','administrador','supervisor','coordenador','gerente'].includes(u.funcao)));
       if(isCoordenadorGMAN()) {
-        const areaAtual = gmanAreaAtual85685();
+        const areaAtual = gmanAreaAtual85688();
         const listaArea = usuarios.filter(u => normalizarTextoGMAN(u.area) === areaAtual || normalizarTextoGMAN(u.nome) === normalizarTextoGMAN(usuarioLogado?.nome||''));
         return montar(listaArea.length ? listaArea : [usuarioLogado]);
       }
@@ -1815,7 +1815,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
       const c=document.getElementById('osConteudo'); if(!c) return;
       let base=Array.isArray(lista)?lista.slice():[];
       const modo=modoPainelOSAtual;
-      if(String(modo).startsWith('grupo:')) base=base.filter(o=>gmanIdEquipOS85685(o)===String(modo).replace('grupo:',''));
+      if(String(modo).startsWith('grupo:')) base=base.filter(o=>gmanIdEquipOS85688(o)===String(modo).replace('grupo:',''));
       else if(modo==='encerradas') base=base.filter(o=>statusEncerrado(getCampo(o,['statusOS','STATUS_OS'])) && usuarioPodeVerEncerradasGMAN(o));
       else if(modo==='naoIniciadas') base=base.filter(o=>statusAberto(getCampo(o,['statusOS','STATUS_OS'])) && isGestao());
       else if(modo==='iniciadas') base=base.filter(o=>statusIniciado(getCampo(o,['statusOS','STATUS_OS'])) && isGestao());
@@ -1828,7 +1828,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
     };
 
     window.abrirPainelOS = async function(modo='abertas') {
-      if(modo==='abertas'){ gmanOSAlertasVisualizados85685 = true; atualizarAlertaOS85685(0); }
+      if(modo==='abertas'){ gmanOSAlertasVisualizados85688 = true; atualizarAlertaOS85688(0); }
       if(modo==='encerradas'&&!usuarioPodeVerEncerradasGMAN()) return gmanToast('Ordens encerradas são visíveis apenas para gestão.','alerta');
       modoPainelOSAtual=modo;
       const old=document.getElementById('osModal'); if(old) old.remove();
@@ -1838,27 +1838,39 @@ function abrirPainelCompletoGrupoGMAN(id) {
     };
 
     window.cardOS = function(os) {
-      const id=gmanIdOS85685(os); const status=getCampo(os,['statusOS','STATUS_OS']); const encerrada=statusEncerrado(status);
+      const id=gmanIdOS85688(os); const status=getCampo(os,['statusOS','STATUS_OS']); const encerrada=statusEncerrado(status);
       const permissao=usuarioPodeAlterarOS(os); const podeIniciar=!encerrada&&permissao&&statusAberto(status);
       const podeAcoes=!encerrada&&permissao&&(statusIniciado(status)||!statusAberto(status));
       const podeCancelar=!encerrada&&usuarioPodeCancelarOS(os); const podeSolicitar=!encerrada&&!podeCancelar&&permissao;
       const somenteLeitura=!permissao || encerrada;
       const bloqueadoUsuario=!permissao && !encerrada && !isAdministradorTotal() && !osResponsavelUsuario(os);
       const avisoBloqueio=bloqueadoUsuario?'<div class="gman-bloqueado-usuario">🔒 BLOQUEADO POR USUÁRIO</div>':(somenteLeitura?'<p class="rule-box">🔒 SOMENTE LEITURA conforme perfil/status.</p>':'');
-      return `<div class="os-card"><h4>${escaparHTMLGMAN(getCampo(os,['numeroOS','NUMERO_OS','idOS','ID_OS'])||id)} — ${escaparHTMLGMAN(getCampo(os,['equipamento','EQUIPAMENTO','idEquipamento','ID_EQUIPAMENTO']))}</h4><span class="os-badge ${classeStatusOS(status)}">${escaparHTMLGMAN(status||'Sem status')}</span><span class="os-badge os-aberta">${escaparHTMLGMAN(getCampo(os,['prioridade','PRIORIDADE'])||'Normal')}</span><p><strong>Área:</strong> ${escaparHTMLGMAN(getCampo(os,['area','AREA']))} | <strong>Tipo:</strong> ${escaparHTMLGMAN(getCampo(os,['tipoManutencao','TIPO_MANUTENCAO']))}</p><p><strong>Responsável:</strong> ${escaparHTMLGMAN(getCampo(os,['responsavel','RESPONSAVEL']))}</p><p><strong>Problema:</strong> ${escaparHTMLGMAN(getCampo(os,['descricaoProblema','DESCRICAO_PROBLEMA']))}</p>${avisoBloqueio}<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;"><button onclick="abrirDetalheOS85685('${id}')" style="padding:8px 10px;border:none;border-radius:8px;background:#2c5282;color:white;">Abrir detalhes</button>${podeIniciar?`<button onclick="iniciarOS('${id}')" style="padding:8px 10px;border:none;border-radius:8px;background:#d69e2e;color:white;">Iniciar</button>`:''}${podeAcoes?`<button onclick="abrirModalAndamentoOS('${id}')" style="padding:8px 10px;border:none;border-radius:8px;background:#3182ce;color:white;">Atualizar andamento</button><button onclick="abrirModalConcluirOS('${id}')" style="padding:8px 10px;border:none;border-radius:8px;background:#38a169;color:white;">Concluir</button>`:''}${podeCancelar?`<button onclick="cancelarOS('${id}')" style="padding:8px 10px;border:none;border-radius:8px;background:#718096;color:white;">Cancelar</button>`:''}${podeSolicitar?`<button onclick="cancelarOS('${id}')" style="padding:8px 10px;border:none;border-radius:8px;background:#718096;color:white;">Solicitar cancelamento</button><button onclick="solicitarRedistribuicaoOS('${id}')" style="padding:8px 10px;border:none;border-radius:8px;background:#805ad5;color:white;">Solicitar redistribuição</button>`:''}</div></div>`;
+      return `<div class="os-card"><h4>${escaparHTMLGMAN(getCampo(os,['numeroOS','NUMERO_OS','idOS','ID_OS'])||id)} — ${escaparHTMLGMAN(getCampo(os,['equipamento','EQUIPAMENTO','idEquipamento','ID_EQUIPAMENTO']))}</h4><span class="os-badge ${classeStatusOS(status)}">${escaparHTMLGMAN(status||'Sem status')}</span><span class="os-badge os-aberta">${escaparHTMLGMAN(getCampo(os,['prioridade','PRIORIDADE'])||'Normal')}</span><p><strong>Área:</strong> ${escaparHTMLGMAN(getCampo(os,['area','AREA']))} | <strong>Tipo:</strong> ${escaparHTMLGMAN(getCampo(os,['tipoManutencao','TIPO_MANUTENCAO']))}</p><p><strong>Responsável:</strong> ${escaparHTMLGMAN(getCampo(os,['responsavel','RESPONSAVEL']))}</p><p><strong>Problema:</strong> ${escaparHTMLGMAN(getCampo(os,['descricaoProblema','DESCRICAO_PROBLEMA']))}</p>${avisoBloqueio}<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;"><button onclick="abrirDetalheOS85688('${id}')" style="padding:8px 10px;border:none;border-radius:8px;background:#2c5282;color:white;">Abrir detalhes</button>${podeIniciar?`<button onclick="iniciarOS('${id}')" style="padding:8px 10px;border:none;border-radius:8px;background:#d69e2e;color:white;">Iniciar</button>`:''}${podeAcoes?`<button onclick="abrirModalAndamentoOS('${id}')" style="padding:8px 10px;border:none;border-radius:8px;background:#3182ce;color:white;">Atualizar andamento</button><button onclick="abrirModalConcluirOS('${id}')" style="padding:8px 10px;border:none;border-radius:8px;background:#38a169;color:white;">Concluir</button>`:''}${podeCancelar?`<button onclick="cancelarOS('${id}')" style="padding:8px 10px;border:none;border-radius:8px;background:#718096;color:white;">Cancelar</button>`:''}${podeSolicitar?`<button onclick="cancelarOS('${id}')" style="padding:8px 10px;border:none;border-radius:8px;background:#718096;color:white;">Solicitar cancelamento</button><button onclick="solicitarRedistribuicaoOS('${id}')" style="padding:8px 10px;border:none;border-radius:8px;background:#805ad5;color:white;">Solicitar redistribuição</button>`:''}</div></div>`;
     };
 
     window.abrirModalConcluirOS = function(idOS) {
-      const os=(ordensServicoCache||[]).find(o=>String(gmanIdOS85685(o))===String(idOS));
+      const os=(ordensServicoCache||[]).find(o=>String(gmanIdOS85688(o))===String(idOS));
       if(!os) return gmanToast('OS não localizada.','alerta');
       if(!usuarioPodeAlterarOS(os)) return gmanToast('Permissão bloqueada.','alerta');
       const old=document.getElementById('concluirOSModal'); if(old) old.remove();
-      modalPremiumGMAN('concluirOSModal','Concluir OS','Conclusão com condição operacional final obrigatória. A API reavalia OS vinculadas e só retorna Operando quando houver concordância.',
-      `<label class="form-label">Serviço executado</label><textarea id="concluirServico" class="form-field" rows="4"></textarea><label class="form-label">Materiais utilizados</label><textarea id="concluirMateriais" class="form-field" rows="3"></textarea><label class="form-label">Membros da equipe que participaram</label><textarea id="concluirMembrosEquipe" class="form-field" rows="2"></textarea><div class="info-box"><strong>Conclusão:</strong> informe a condição operacional final real. Operando só será consolidado pela API quando todas as OS vinculadas estiverem concluídas e concordantes.</div><label class="form-label">Condição operacional final do equipamento</label><select id="concluirCondicaoFinal" class="form-field"><option value="">Selecione</option><option>Operando</option><option>Em manutenção (operando)</option><option>Em manutenção (parado)</option></select><label class="form-label">Observação final / justificativa final</label><textarea id="concluirObservacaoFinal" class="form-field" rows="3"></textarea><div class="info-box"><label style="font-weight:800;"><input type="checkbox" id="concluirSemUsoVeiculo" onchange="toggleVeiculo()"> Sem uso de veículo</label></div><div id="camposVeiculo"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;"><div><label class="form-label">Motorista</label><input id="concluirMotorista" class="form-field"></div><div><label class="form-label">Prefixo do veículo</label><input id="concluirPrefixoVeiculo" class="form-field"></div><div><label class="form-label">KM inicial</label><input id="concluirKmInicial" class="form-field" type="number" min="0"></div><div><label class="form-label">KM final</label><input id="concluirKmFinal" class="form-field" type="number" min="0" oninput="atualizarKMRodadoGMAN()"></div><div><label class="form-label">KM rodado</label><input id="concluirKmRodado" class="form-field" readonly></div></div></div><label class="form-label">Equipamentos/características adicionais</label><textarea id="concluirExtras" class="form-field" rows="2"></textarea><div class="rule-box"><strong>Patrimônio e ficha técnica</strong><br>PAT obrigatório por componente, exceto Usinagem, Caldeiraria e Instalações Mecânicas. Patrimônio já cadastrado pode ser confirmado.</div>${camposPatrimonioHTML(os)}<div class="info-box"><p style="margin-bottom:8px;">Evidências: até 2 fotos por usuário e 1 áudio de até 1 minuto. Vídeo bloqueado.</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="gman-btn" onclick="tirarFotoEvidenciaGMAN(1)" type="button">📷 Tirar foto 1</button><button class="gman-btn" onclick="tirarFotoEvidenciaGMAN(2)" type="button">📷 Tirar foto 2</button><button class="gman-btn" onclick="gravarAudioEvidenciaGMAN()" type="button">🎙️ Gravar áudio</button></div><div id="evidenciaStatusGMAN" class="small-help">Somente captura na hora. Arquivo da memória bloqueado.</div><input id="anexoObsOS" class="form-field" placeholder="Observação da evidência"></div><div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;"><button class="gman-btn gman-btn-muted" onclick="fecharModalGMAN('concluirOSModal')">Voltar</button><button class="gman-btn" onclick="concluirOS('${idOS}')">Concluir OS</button></div>`, '760px');
+      gmanEvidenciasCapturadas85688 = [];
+      const numero=escaparHTMLGMAN(getCampo(os,['numeroOS','NUMERO_OS','idOS','ID_OS'])||idOS);
+      const equipamento=escaparHTMLGMAN(getCampo(os,['equipamento','EQUIPAMENTO','idEquipamento','ID_EQUIPAMENTO'])||'—');
+      const statusAtual=escaparHTMLGMAN(getCampo(os,['statusOS','STATUS_OS'])||'—');
+      const statusReferencia=statusIniciado(getCampo(os,['statusOS','STATUS_OS']))?'Em execução':(statusEncerrado(getCampo(os,['statusOS','STATUS_OS']))?'Concluída':'Aberta');
+      const prioridade=escaparHTMLGMAN(getCampo(os,['prioridade','PRIORIDADE'])||'Normal');
+      const responsavel=escaparHTMLGMAN(getCampo(os,['responsavel','RESPONSAVEL'])||'—');
+      const area=escaparHTMLGMAN(getCampo(os,['area','AREA'])||'—');
+      const pedido=escaparHTMLGMAN(getCampo(os,['descricaoProblema','DESCRICAO_PROBLEMA','descricao','DESCRICAO_SOLICITACAO'])||'Sem descrição do pedido.');
+      const componentes=escaparHTMLGMAN(getCampo(os,['componentesSolicitados','COMPONENTES_SOLICITADOS'])||'Não informado');
+      const modalConcluir = modalPremiumGMAN('concluirOSModal','Concluir OS','Confira o pedido no topo antes de encerrar. Evidências são opcionais; se faltar item obrigatório, volte e corrija sem perder o preenchimento.',
+      `<div class="info-box"><strong>Pedido da OS</strong><br><strong>Número:</strong> ${numero}<br><strong>Equipamento/grupo:</strong> ${equipamento}<br><strong>Status referência da OS:</strong> Em execução → Concluída <span class="os-badge ${classeStatusOS(statusAtual)}">Atual: ${statusAtual}</span><br><strong>Área:</strong> ${area} | <strong>Responsável:</strong> ${responsavel} | <strong>Prioridade:</strong> ${prioridade}<br><strong>Componentes solicitados:</strong> ${componentes}<br><strong>O que foi pedido:</strong> ${pedido}</div><label class="form-label">Serviço executado</label><textarea id="concluirServico" class="form-field" rows="4" placeholder="Descreva o que foi feito na OS"></textarea><label class="form-label">Materiais utilizados</label><textarea id="concluirMateriais" class="form-field" rows="3" placeholder="Se não houve material, escreva: Sem material utilizado"></textarea><label class="form-label">Membros da equipe que participaram</label><textarea id="concluirMembrosEquipe" class="form-field" rows="2"></textarea><div class="info-box"><strong>Status da OS:</strong> ao iniciar fica em <strong>Em execução</strong>; ao encerrar fica em <strong>Concluída</strong>. O status do equipamento é reavaliado pela API conforme as OS vinculadas. Se todas estiverem concluídas, o retorno operacional pode consolidar como Operando.</div><label class="form-label">Condição operacional final do equipamento</label><select id="concluirCondicaoFinal" class="form-field"><option selected>Operando</option><option>Em manutenção (operando)</option><option>Em manutenção (parado)</option></select><p class="small-help">Para serviços que não foram exclusivos do equipamento, mantenha Operando. A API ainda confere as OS vinculadas antes de liberar o status final.</p><label class="form-label">Observação final / justificativa final</label><textarea id="concluirObservacaoFinal" class="form-field" rows="3" placeholder="Informe uma observação final. Ex.: serviço concluído e área liberada."></textarea><div class="info-box"><label style="font-weight:800;"><input type="checkbox" id="concluirSemUsoVeiculo" onchange="toggleVeiculo()"> Sem uso de veículo</label><p class="small-help" style="margin:6px 0 0;">Se não houve deslocamento com veículo, marque esta opção para não exigir motorista, prefixo e KM.</p></div><div id="camposVeiculo"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;"><div><label class="form-label">Motorista</label><input id="concluirMotorista" class="form-field"></div><div><label class="form-label">Prefixo do veículo</label><input id="concluirPrefixoVeiculo" class="form-field"></div><div><label class="form-label">KM inicial</label><input id="concluirKmInicial" class="form-field" type="number" min="0"></div><div><label class="form-label">KM final</label><input id="concluirKmFinal" class="form-field" type="number" min="0" oninput="atualizarKMRodadoGMAN()"></div><div><label class="form-label">KM rodado</label><input id="concluirKmRodado" class="form-field" readonly></div></div></div><label class="form-label">Equipamentos/características adicionais</label><textarea id="concluirExtras" class="form-field" rows="2"></textarea><div class="rule-box"><strong>Patrimônio e ficha técnica</strong><br>PAT obrigatório por componente, exceto Usinagem, Caldeiraria e Instalações Mecânicas. Patrimônio já cadastrado pode ser confirmado.</div>${camposPatrimonioHTML(os)}<div class="info-box"><p style="margin-bottom:8px;"><strong>Evidências opcionais:</strong> a OS pode ser concluída sem foto ou áudio. Quando usar evidência, o limite é até 2 fotos por usuário e 1 áudio de até 1 minuto. Vídeo bloqueado.</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="gman-btn" onclick="tirarFotoEvidenciaGMAN(1)" type="button">📷 Tirar foto 1</button><button class="gman-btn" onclick="tirarFotoEvidenciaGMAN(2)" type="button">📷 Tirar foto 2</button><button class="gman-btn" onclick="gravarAudioEvidenciaGMAN()" type="button">🎙️ Gravar áudio</button></div><div id="evidenciaStatusGMAN" class="small-help">Somente captura na hora. Arquivo da memória bloqueado. Evidência não é obrigatória.</div><input id="anexoObsOS" class="form-field" placeholder="Observação da evidência, se houver"></div><div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;"><button class="gman-btn gman-btn-muted" onclick="fecharModalGMAN('concluirOSModal')">Voltar</button><button class="gman-btn" onclick="concluirOS('${idOS}')">Concluir OS</button></div>`, '760px');
+      if(modalConcluir) modalConcluir.classList.add('gman-preservar-overlay');
+      toggleVeiculo();
     };
 
 
-    window.obterDuracaoAudio85685 = function(file) {
+    window.obterDuracaoAudio85688 = function(file) {
       return new Promise((resolve, reject)=>{
         try {
           const audio=document.createElement('audio');
@@ -1870,20 +1882,21 @@ function abrirPainelCompletoGrupoGMAN(id) {
       });
     };
 
-    window.coletarEvidenciasOS85685 = async function() {
-      const evidencias = (gmanEvidenciasCapturadas85685 || []).slice();
+    window.coletarEvidenciasOS85688 = async function() {
+      const evidencias = (gmanEvidenciasCapturadas85688 || []).slice();
       const fotos=evidencias.filter(e=>e.tipo==='FOTO');
       const audios=evidencias.filter(e=>e.tipo==='AUDIO');
-      if(fotos.length>2) throw new Error('Limite de 2 fotos por usuário na OS.');
-      if(audios.length>1) throw new Error('Limite de 1 áudio por usuário na OS.');
-      audios.forEach(a=>{ if(Number(a.duracaoSegundos||0)>60) throw new Error('Áudio excede 1 minuto.'); });
+      if(fotos.length>2) throw new Error('Limite de 2 fotos por usuário na OS. Evidência não é obrigatória; remova a excedente ou conclua sem evidência.');
+      if(audios.length>1) throw new Error('Limite de 1 áudio por usuário na OS. Evidência não é obrigatória; remova o excedente ou conclua sem evidência.');
+      audios.forEach(a=>{ if(Number(a.duracaoSegundos||0)>60) throw new Error('Áudio excede 1 minuto. Evidência não é obrigatória; grave novamente ou conclua sem áudio.'); });
       return evidencias;
     };
 
-    window.validarPatrimonioFrontend85685 = function(os) {
+    window.validarPatrimonioFrontend85688 = function(os) {
       if(areaPatrimonioOpcional(os)) return [];
       const solicitados=normalizarTextoGMAN(getCampo(os,['componentesSolicitados','COMPONENTES_SOLICITADOS'])||'');
-      const validarTodosObrigatorios=!solicitados || solicitados==='outros' || solicitados.startsWith('outros');
+      if(solicitados==='outros' || solicitados.startsWith('outros') || solicitados.includes('servico geral') || solicitados.includes('serviço geral') || solicitados.includes('nao exclusivo') || solicitados.includes('não exclusivo') || solicitados.includes('sem componente')) return [];
+      const validarTodosObrigatorios=!solicitados;
       const faltas=[];
       COMPONENTES.forEach(c=>{
         if(!c[4]) return;
@@ -1900,22 +1913,23 @@ function abrirPainelCompletoGrupoGMAN(id) {
       const chave='concluirOS:'+idOS;
       if(gmanExecutando_(chave)) return gmanToast('Conclusão de OS já em andamento.','alerta');
       try {
-      const os=(ordensServicoCache||[]).find(o=>String(gmanIdOS85685(o))===String(idOS));
+      const os=(ordensServicoCache||[]).find(o=>String(gmanIdOS85688(o))===String(idOS));
       const servico=document.getElementById('concluirServico')?.value.trim()||'';
       const materiais=document.getElementById('concluirMateriais')?.value.trim()||'';
       const membros=document.getElementById('concluirMembrosEquipe')?.value.trim()||'';
-      const condicaoFinal=document.getElementById('concluirCondicaoFinal')?.value||'';
+      const condicaoFinal=document.getElementById('concluirCondicaoFinal')?.value||'Operando';
       const observacao=document.getElementById('concluirObservacaoFinal')?.value.trim()||'';
       const semVeic=document.getElementById('concluirSemUsoVeiculo')?.checked||false;
       const faltas=[];
-      if(!servico) faltas.push('serviço executado'); if(!materiais) faltas.push('materiais utilizados'); if(!membros) faltas.push('membros da equipe'); if(!condicaoFinal) faltas.push('condição operacional final'); if(!observacao) faltas.push('observação final');
+      if(!servico) faltas.push('serviço executado'); if(!materiais) faltas.push('materiais utilizados'); if(!membros) faltas.push('membros da equipe'); if(!observacao) faltas.push('observação final');
       if(!semVeic){ if(!document.getElementById('concluirMotorista')?.value.trim()) faltas.push('motorista'); if(!document.getElementById('concluirPrefixoVeiculo')?.value.trim()) faltas.push('prefixo do veículo'); if((document.getElementById('concluirKmInicial')?.value||'')==='') faltas.push('KM inicial'); if((document.getElementById('concluirKmFinal')?.value||'')==='') faltas.push('KM final'); }
-      const faltasPat=validarPatrimonioFrontend85685(os||{}); if(faltasPat.length) faltas.push('patrimônio: '+faltasPat.join(', '));
-      if(faltas.length) return gmanToast('Preencha: '+faltas.join('; ')+'.','alerta');
-      let evidencias=[]; try { evidencias=await coletarEvidenciasOS85685(); } catch(err) { return gmanToast(err.message,'alerta'); }
+      const faltasPat=validarPatrimonioFrontend85688(os||{}); if(faltasPat.length) faltas.push('patrimônio: '+faltasPat.join(', '));
+      if(faltas.length) return modalPremiumGMAN('pendenciasConcluirOS85688','Itens obrigatórios pendentes','A OS não foi enviada. Volte para corrigir sem perder o preenchimento.',`<div class="gman-card-dark"><p style="color:var(--gman-yellow);font-weight:850;margin-bottom:8px;">Preencha ou confirme os itens abaixo:</p><ul style="margin-left:18px;line-height:1.55;">${faltas.map(f=>`<li>${escaparHTMLGMAN(f)}</li>`).join('')}</ul><p class="small-help" style="margin-top:10px;">Evidências não são obrigatórias e não entram nesta lista.</p><button class="gman-btn" onclick="fecharModalGMAN('pendenciasConcluirOS85688')">Voltar para conclusão</button></div>`,'620px');
+      let evidencias=[]; try { evidencias=await coletarEvidenciasOS85688(); } catch(err) { return modalPremiumGMAN('pendenciasEvidenciaOS85688','Evidência fora da regra','A OS não foi enviada. A evidência é opcional; corrija/remova a evidência ou volte e conclua sem ela.',`<div class="gman-card-dark"><p style="color:var(--gman-yellow);font-weight:850;">${escaparHTMLGMAN(err.message)}</p><button class="gman-btn" onclick="fecharModalGMAN('pendenciasEvidenciaOS85688')">Voltar para conclusão</button></div>`,'620px'); }
       const payload=Object.assign({acao:'concluirOS', idOS, usuario:usuarioLogado.nome, perfil:usuarioLogado.funcao, funcao:usuarioLogado.funcao, area:usuarioLogado.area, servicoRealizado:servico, materiais, membrosEquipe:membros, condicaoFinalEquipamento:condicaoFinal, observacaoFinal:observacao, semUsoVeiculo:semVeic, motorista:document.getElementById('concluirMotorista')?.value.trim()||'', prefixoVeiculo:document.getElementById('concluirPrefixoVeiculo')?.value.trim()||'', kmInicial:document.getElementById('concluirKmInicial')?.value||'', kmFinal:document.getElementById('concluirKmFinal')?.value||'', kmRodado:document.getElementById('concluirKmRodado')?.value||'', equipamentosAdicionais:document.getElementById('concluirExtras')?.value.trim()||'', evidencias:evidencias, observacaoEvidencia:document.getElementById('anexoObsOS')?.value.trim()||''}, coletarPatrimonios(os||{}));
-      try{ await apiPost(payload); fecharModalGMAN('concluirOSModal'); gmanToast('OS concluída com sucesso. Status reavaliado pela API.'); await recarregarPainelOS(); await carregarStatusOnline(); }
-      catch(e){ modalPremiumGMAN('erroConcluirOS85685','Erro ao concluir OS','A API recusou a conclusão.',`<div class="gman-card-dark"><p style="color:var(--gman-red);font-weight:800;">${escaparHTMLGMAN(e.message)}</p></div>`,'620px'); }
+      if(!confirm('Confirmar encerramento da OS?\n\nStatus da OS: Concluída.\nEvidências: opcionais.\nCondição do equipamento: será reavaliada pela API conforme as OS vinculadas.\n\nCancelar = voltar para a tela de conclusão.')) return;
+      try{ const retornoConclusao=await apiPost(payload); fecharModalGMAN('concluirOSModal'); const evInfo=retornoConclusao&&retornoConclusao.evidencias; const avisoEv=(evInfo&&Number(evInfo.pendentes||0)>0)?' Evidência registrada como pendente de autorização do Drive.':' '; gmanToast('OS concluída com sucesso. Status reavaliado pela API.'+avisoEv); await recarregarPainelOS(); await carregarStatusOnline(); }
+      catch(e){ modalPremiumGMAN('erroConcluirOS85688','Erro ao concluir OS','A API recusou a conclusão. Volte para a tela de conclusão, ajuste o item indicado e tente novamente.',`<div class="gman-card-dark"><p style="color:var(--gman-red);font-weight:800;">${escaparHTMLGMAN(e.message)}</p><p class="small-help">A tela de conclusão ficou preservada para você não perder o preenchimento.</p><button class="gman-btn" onclick="fecharModalGMAN('erroConcluirOS85688')">Voltar para conclusão</button></div>`,'620px'); }
       } finally { gmanLiberarExecucao_(chave); }
     };
 
@@ -1923,7 +1937,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
       const chave='cancelarOS:'+idOS;
       if(gmanExecutando_(chave)) return gmanToast('Cancelamento/solicitação já em andamento.','alerta');
       try {
-      const os=(ordensServicoCache||[]).find(o=>String(gmanIdOS85685(o))===String(idOS));
+      const os=(ordensServicoCache||[]).find(o=>String(gmanIdOS85688(o))===String(idOS));
       const direto=usuarioPodeCancelarOS(os||{});
       const motivo=prompt(direto?'Motivo do cancelamento:':'Motivo da solicitação de cancelamento:')||'';
       if(!motivo) return gmanToast('Motivo obrigatório.','alerta');
@@ -1940,48 +1954,48 @@ function abrirPainelCompletoGrupoGMAN(id) {
       try {
         const r=await apiAcao('listarHistoricoGrupo',{idEquipamento:id, usuario:usuarioLogado?.nome||'', perfil:usuarioLogado?.funcao||'', funcao:usuarioLogado?.funcao||'', area:usuarioLogado?.area||''});
         const hist=Array.isArray(r.historico)?r.historico:[];
-        c.innerHTML=hist.length?`<div class="gman-card-dark" style="margin-bottom:10px;"><div class="gman-kpi-label">Regra aplicada</div><div class="gman-kpi-meta">${escaparHTMLGMAN(r.regra||'Histórico conforme perfil')}</div></div><div class="gman-timeline">${hist.map((h,i)=>{ const idOS=escaparHTMLGMAN(h.idOS||h.numeroOS||''); const click=(h.idOS||h.numeroOS)?`onclick="abrirHistoricoOS85685('${idOS}')" style="cursor:pointer;"`:''; return `<div class="gman-timeline-item ${normalizarTextoGMAN(h.statusNovo||h.acao).includes('parado')?'red':i===0?'green':''}" ${click}><div class="gman-timeline-date">${escaparHTMLGMAN(h.dataHora||'Sem data')} — ${escaparHTMLGMAN(h.acao||'Movimentação')}</div><div class="gman-timeline-text">${escaparHTMLGMAN(h.usuario||'Sistema')} | ${escaparHTMLGMAN(h.statusAnterior||'')} → ${escaparHTMLGMAN(h.statusNovo||'')}<br>${escaparHTMLGMAN(h.observacao||'')}<br>${idOS?'<strong>Abrir OS/intervenção</strong>':'Registro sem OS vinculada'}</div></div>`; }).join('')}</div>`:'<div class="gman-card-dark">Sem histórico disponível para este grupo.</div>';
+        c.innerHTML=hist.length?`<div class="gman-card-dark" style="margin-bottom:10px;"><div class="gman-kpi-label">Regra aplicada</div><div class="gman-kpi-meta">${escaparHTMLGMAN(r.regra||'Histórico conforme perfil')}</div></div><div class="gman-timeline">${hist.map((h,i)=>{ const idOS=escaparHTMLGMAN(h.idOS||h.numeroOS||''); const click=(h.idOS||h.numeroOS)?`onclick="abrirHistoricoOS85688('${idOS}')" style="cursor:pointer;"`:''; return `<div class="gman-timeline-item ${normalizarTextoGMAN(h.statusNovo||h.acao).includes('parado')?'red':i===0?'green':''}" ${click}><div class="gman-timeline-date">${escaparHTMLGMAN(h.dataHora||'Sem data')} — ${escaparHTMLGMAN(h.acao||'Movimentação')}</div><div class="gman-timeline-text">${escaparHTMLGMAN(h.usuario||'Sistema')} | ${escaparHTMLGMAN(h.statusAnterior||'')} → ${escaparHTMLGMAN(h.statusNovo||'')}<br>${escaparHTMLGMAN(h.observacao||'')}<br>${idOS?'<strong>Abrir OS/intervenção</strong>':'Registro sem OS vinculada'}</div></div>`; }).join('')}</div>`:'<div class="gman-card-dark">Sem histórico disponível para este grupo.</div>';
       } catch(e) { c.innerHTML=`<div class="gman-card-dark"><span class="gman-status-pill gman-pill-warn">Histórico indisponível</span><p style="color:var(--gman-muted);margin-top:8px;">${escaparHTMLGMAN(e.message)}</p></div>`; }
     };
 
-    window.abrirHistoricoOS85685 = async function(idOS) {
-      let os=(ordensServicoCache||[]).find(o=>String(gmanIdOS85685(o))===String(idOS));
+    window.abrirHistoricoOS85688 = async function(idOS) {
+      let os=(ordensServicoCache||[]).find(o=>String(gmanIdOS85688(o))===String(idOS));
       if(!os) {
         try {
           const r=await apiAcao('listarOS',{incluirEncerradas:true, usuario:usuarioLogado?.nome||'', perfil:usuarioLogado?.funcao||'', funcao:usuarioLogado?.funcao||'', area:usuarioLogado?.area||''});
           const lista=extrairLista(r,['ordens','os','listaOS','ordensServico']);
-          os=lista.find(o=>String(gmanIdOS85685(o))===String(idOS));
-          if(os && !ordensServicoCache.some(x=>String(gmanIdOS85685(x))===String(idOS))) ordensServicoCache.push(os);
+          os=lista.find(o=>String(gmanIdOS85688(o))===String(idOS));
+          if(os && !ordensServicoCache.some(x=>String(gmanIdOS85688(x))===String(idOS))) ordensServicoCache.push(os);
         } catch(e) {}
       }
-      if(os) return modalPremiumGMAN('historicoOSDetalhe85685','OS / intervenção selecionada', getCampo(os,['numeroOS','NUMERO_OS','idOS','ID_OS']), cardOS(os), '760px');
-      modalPremiumGMAN('historicoOSDetalhe85685','OS / intervenção selecionada', idOS, '<div class="gman-card-dark">Registro histórico localizado, mas a OS não está disponível para este perfil ou não foi encontrada pela API.</div>', '620px');
+      if(os) return modalPremiumGMAN('historicoOSDetalhe85688','OS / intervenção selecionada', getCampo(os,['numeroOS','NUMERO_OS','idOS','ID_OS']), cardOS(os), '760px');
+      modalPremiumGMAN('historicoOSDetalhe85688','OS / intervenção selecionada', idOS, '<div class="gman-card-dark">Registro histórico localizado, mas a OS não está disponível para este perfil ou não foi encontrada pela API.</div>', '620px');
     };
 
 
     /************************************************************
-     * GMAN 8.5.6.85 — AUDITORIA FUNCIONAL FINAL
+     * GMAN 8.5.6.88 — AUDITORIA FUNCIONAL FINAL
      * Ver detalhes robusto, bloqueio de clique duplo, cache não-oficial
      * e abertura de histórico/OS pela API quando não estiver no cache.
      ************************************************************/
-    function formatarDetalheDataGMAN85685(v){
+    function formatarDetalheDataGMAN85688(v){
       const s=String(v||'').trim();
       if(!s) return '';
       if(s.includes('1899') || /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\b/i.test(s) || /GMT-0306/i.test(s)) return '';
       return formatarDataApi(s);
     }
 
-    window.montarDetalheOS85685 = function(os) {
-      const id=gmanIdOS85685(os); const status=getCampo(os,['statusOS','STATUS_OS']); const encerrada=statusEncerrado(status);
+    window.montarDetalheOS85688 = function(os) {
+      const id=gmanIdOS85688(os); const status=getCampo(os,['statusOS','STATUS_OS']); const encerrada=statusEncerrado(status);
       const permissao=usuarioPodeAlterarOS(os); const podeIniciar=!encerrada&&permissao&&statusAberto(status);
       const podeAcoes=!encerrada&&permissao&&(statusIniciado(status)||!statusAberto(status));
       const podeCancelar=!encerrada&&usuarioPodeCancelarOS(os); const podeSolicitar=!encerrada&&!podeCancelar&&permissao;
-      const abertura=formatarDetalheDataGMAN85685(getCampo(os,['dataHoraAbertura','DATA_HORA_ABERTURA']) || `${getCampo(os,['dataAbertura','DATA_ABERTURA'])||''} ${getCampo(os,['horaAbertura','HORA_ABERTURA'])||''}`.trim()); const conclusao=formatarDetalheDataGMAN85685(getCampo(os,['dataHoraConclusao','DATA_HORA_CONCLUSAO']) || `${getCampo(os,['dataConclusao','DATA_CONCLUSAO'])||''} ${getCampo(os,['horaConclusao','HORA_CONCLUSAO'])||''}`.trim());
+      const abertura=formatarDetalheDataGMAN85688(getCampo(os,['dataHoraAbertura','DATA_HORA_ABERTURA']) || `${getCampo(os,['dataAbertura','DATA_ABERTURA'])||''} ${getCampo(os,['horaAbertura','HORA_ABERTURA'])||''}`.trim()); const conclusao=formatarDetalheDataGMAN85688(getCampo(os,['dataHoraConclusao','DATA_HORA_CONCLUSAO']) || `${getCampo(os,['dataConclusao','DATA_CONCLUSAO'])||''} ${getCampo(os,['horaConclusao','HORA_CONCLUSAO'])||''}`.trim());
       const linhas=[['Número',getCampo(os,['numeroOS','NUMERO_OS','idOS','ID_OS'])],['Equipamento',getCampo(os,['equipamento','EQUIPAMENTO','idEquipamento','ID_EQUIPAMENTO'])],['Status da OS',status],['Área',getCampo(os,['area','AREA'])],['Responsável',getCampo(os,['responsavel','RESPONSAVEL'])],['Prioridade',getCampo(os,['prioridade','PRIORIDADE'])],['Problema',getCampo(os,['descricaoProblema','DESCRICAO_PROBLEMA'])],['Abertura',abertura],['Conclusão',conclusao],['Membros da equipe',getCampo(os,['membrosEquipe','MEMBROS_EQUIPE'])]];
       return `<div class="gman-card-dark">${linhas.map(l=>`<p><strong>${escaparHTMLGMAN(l[0])}:</strong> ${escaparHTMLGMAN(l[1]||'—')}</p>`).join('')}${(!permissao||encerrada)?'<p class="rule-box">🔒 Visualização somente leitura conforme perfil/status.</p>':''}<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">${podeIniciar?`<button class="gman-btn" onclick="iniciarOS('${id}')">Iniciar</button>`:''}${podeAcoes?`<button class="gman-btn" onclick="abrirModalAndamentoOS('${id}')">Atualizar andamento</button><button class="gman-btn" onclick="abrirModalConcluirOS('${id}')">Concluir</button>`:''}${podeCancelar?`<button class="gman-btn gman-btn-muted" onclick="cancelarOS('${id}')">Cancelar</button>`:''}${podeSolicitar?`<button class="gman-btn gman-btn-muted" onclick="cancelarOS('${id}')">Solicitar cancelamento</button><button class="gman-btn" onclick="solicitarRedistribuicaoOS('${id}')">Solicitar redistribuição</button>`:''}</div></div>`;
     };
 
-    window.abrirDetalheOS85685 = async function(idOS) {
+    window.abrirDetalheOS85688 = async function(idOS) {
       const chave='detalheOS:'+idOS;
       if(gmanExecutando_(chave)) return;
       try {
@@ -1990,31 +2004,31 @@ function abrirPainelCompletoGrupoGMAN(id) {
           const r=await apiAcao('detalharOS',{idOS, usuario:usuarioLogado?.nome||'', perfil:usuarioLogado?.funcao||'', funcao:usuarioLogado?.funcao||'', area:usuarioLogado?.area||''});
           os=r.os || r.detalhe || null;
           if(os) {
-            const idAtual=String(gmanIdOS85685(os));
-            const idx=(ordensServicoCache||[]).findIndex(x=>String(gmanIdOS85685(x))===idAtual);
+            const idAtual=String(gmanIdOS85688(os));
+            const idx=(ordensServicoCache||[]).findIndex(x=>String(gmanIdOS85688(x))===idAtual);
             if(idx>=0) ordensServicoCache[idx]=os; else ordensServicoCache.push(os);
           }
         } catch(err) {
-          os=(ordensServicoCache||[]).find(o=>String(gmanIdOS85685(o))===String(idOS));
+          os=(ordensServicoCache||[]).find(o=>String(gmanIdOS85688(o))===String(idOS));
           if(!os) throw err;
         }
         if(!os) return gmanToast('OS não encontrada ou sem permissão para este perfil.','alerta');
-        modalPremiumGMAN('detalheOS85685','Detalhe da OS', getCampo(os,['numeroOS','NUMERO_OS','idOS','ID_OS']), montarDetalheOS85685(os), '760px');
+        modalPremiumGMAN('detalheOS85688','Detalhe da OS', getCampo(os,['numeroOS','NUMERO_OS','idOS','ID_OS']), montarDetalheOS85688(os), '760px');
       } catch(e) { gmanToast('Erro ao abrir detalhes: '+e.message,'alerta'); }
       finally { gmanLiberarExecucao_(chave); }
     };
 
-    const gmanOriginalConfirmarInicioOS85685 = window.confirmarInicioOS || confirmarInicioOS;
-    window.confirmarInicioOS = confirmarInicioOS = async function(idOS) { const chave='iniciarOS:'+idOS; if(gmanExecutando_(chave)) return gmanToast('Início de OS já em andamento.','alerta'); try { return await gmanOriginalConfirmarInicioOS85685(idOS); } finally { gmanLiberarExecucao_(chave); } };
-    const gmanOriginalAtualizarAndamentoOS85685 = window.atualizarAndamentoOS || atualizarAndamentoOS;
-    window.atualizarAndamentoOS = atualizarAndamentoOS = async function(idOS) { const chave='andamentoOS:'+idOS; if(gmanExecutando_(chave)) return gmanToast('Atualização já em andamento.','alerta'); try { return await gmanOriginalAtualizarAndamentoOS85685(idOS); } finally { gmanLiberarExecucao_(chave); } };
-    const gmanOriginalAtualizarAgora85685 = atualizarAgora;
-    window.atualizarAgora = atualizarAgora = async function() { const chave='atualizarAgora'; if(gmanExecutando_(chave)) return gmanToast('Atualização já em andamento.','alerta'); try { return await gmanOriginalAtualizarAgora85685(); } finally { gmanLiberarExecucao_(chave); } };
+    const gmanOriginalConfirmarInicioOS85688 = window.confirmarInicioOS || confirmarInicioOS;
+    window.confirmarInicioOS = confirmarInicioOS = async function(idOS) { const chave='iniciarOS:'+idOS; if(gmanExecutando_(chave)) return gmanToast('Início de OS já em andamento.','alerta'); try { return await gmanOriginalConfirmarInicioOS85688(idOS); } finally { gmanLiberarExecucao_(chave); } };
+    const gmanOriginalAtualizarAndamentoOS85688 = window.atualizarAndamentoOS || atualizarAndamentoOS;
+    window.atualizarAndamentoOS = atualizarAndamentoOS = async function(idOS) { const chave='andamentoOS:'+idOS; if(gmanExecutando_(chave)) return gmanToast('Atualização já em andamento.','alerta'); try { return await gmanOriginalAtualizarAndamentoOS85688(idOS); } finally { gmanLiberarExecucao_(chave); } };
+    const gmanOriginalAtualizarAgora85688 = atualizarAgora;
+    window.atualizarAgora = atualizarAgora = async function() { const chave='atualizarAgora'; if(gmanExecutando_(chave)) return gmanToast('Atualização já em andamento.','alerta'); try { return await gmanOriginalAtualizarAgora85688(); } finally { gmanLiberarExecucao_(chave); } };
 
 
-    let gmanEvidenciasCapturadas85685 = [];
-    let gmanOSAlertasVisualizados85685 = false;
-    let gmanUltimoTotalAbertas85685 = 0;
+    let gmanEvidenciasCapturadas85688 = [];
+    let gmanOSAlertasVisualizados85688 = false;
+    let gmanUltimoTotalAbertas85688 = 0;
     function atualizarKMRodadoGMAN(){ const a=Number(document.getElementById('concluirKmInicial')?.value||0); const b=Number(document.getElementById('concluirKmFinal')?.value||0); const el=document.getElementById('concluirKmRodado'); if(el) el.value=(b>=a && (a||b)) ? String(b-a) : ''; }
     async function tirarFotoEvidenciaGMAN(indice){
       const st=document.getElementById('evidenciaStatusGMAN');
@@ -2025,8 +2039,8 @@ function abrirPainelCompletoGrupoGMAN(id) {
         canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);
         stream.getTracks().forEach(t=>t.stop());
         const dataUrl=canvas.toDataURL('image/jpeg',0.78);
-        gmanEvidenciasCapturadas85685 = gmanEvidenciasCapturadas85685.filter(e=>!(e.tipo==='FOTO'&&e.indice===indice));
-        gmanEvidenciasCapturadas85685.push({tipo:'FOTO', indice, nome:'foto_capturada_'+indice+'.jpg', mime:'image/jpeg', tamanhoBytes:dataUrl.length, origem:'CAMERA', conteudoBase64:dataUrl});
+        gmanEvidenciasCapturadas85688 = gmanEvidenciasCapturadas85688.filter(e=>!(e.tipo==='FOTO'&&e.indice===indice));
+        gmanEvidenciasCapturadas85688.push({tipo:'FOTO', indice, nome:'foto_capturada_'+indice+'.jpg', mime:'image/jpeg', tamanhoBytes:dataUrl.length, origem:'CAMERA', conteudoBase64:dataUrl});
         if(st) st.textContent='Foto '+indice+' capturada na hora.';
       } catch(e){ if(st) st.textContent='Não foi possível abrir a câmera: '+e.message; }
     }
@@ -2036,14 +2050,14 @@ function abrirPainelCompletoGrupoGMAN(id) {
         const stream=await navigator.mediaDevices.getUserMedia({audio:true, video:false});
         const rec=new MediaRecorder(stream); const chunks=[]; const inicio=Date.now();
         rec.ondataavailable=e=>{ if(e.data && e.data.size) chunks.push(e.data); };
-        rec.onstop=()=>{ const dur=Math.min(60, Math.round((Date.now()-inicio)/1000)); const blob=new Blob(chunks,{type:'audio/webm'}); stream.getTracks().forEach(t=>t.stop()); const reader=new FileReader(); reader.onloadend=()=>{ gmanEvidenciasCapturadas85685=gmanEvidenciasCapturadas85685.filter(e=>e.tipo!=='AUDIO'); gmanEvidenciasCapturadas85685.push({tipo:'AUDIO', nome:'audio_gravado.webm', mime:'audio/webm', tamanhoBytes:blob.size, duracaoSegundos:dur, origem:'GRAVADOR', conteudoBase64:String(reader.result||'')}); if(st) st.textContent='Áudio gravado na hora: '+dur+' segundos.'; }; reader.readAsDataURL(blob); };
+        rec.onstop=()=>{ const dur=Math.min(60, Math.round((Date.now()-inicio)/1000)); const blob=new Blob(chunks,{type:'audio/webm'}); stream.getTracks().forEach(t=>t.stop()); const reader=new FileReader(); reader.onloadend=()=>{ gmanEvidenciasCapturadas85688=gmanEvidenciasCapturadas85688.filter(e=>e.tipo!=='AUDIO'); gmanEvidenciasCapturadas85688.push({tipo:'AUDIO', nome:'audio_gravado.webm', mime:'audio/webm', tamanhoBytes:blob.size, duracaoSegundos:dur, origem:'GRAVADOR', conteudoBase64:String(reader.result||'')}); if(st) st.textContent='Áudio gravado na hora: '+dur+' segundos.'; }; reader.readAsDataURL(blob); };
         rec.start(); if(st) st.textContent='Gravando áudio... máximo 60 segundos.'; setTimeout(()=>{ if(rec.state!=='inactive') rec.stop(); },60000);
       } catch(e){ if(st) st.textContent='Não foi possível abrir o gravador: '+e.message; }
     }
-    function atualizarAlertaOS85685(totalAbertas){
+    function atualizarAlertaOS85688(totalAbertas){
       const btn=document.getElementById('btnOrdensAbertasHome');
       const nav=[...document.querySelectorAll('.bottom-nav button')].find(b=>normalizarTextoGMAN(b.textContent).includes('notific'));
-      const ativo=Number(totalAbertas||0)>0 && !gmanOSAlertasVisualizados85685;
+      const ativo=Number(totalAbertas||0)>0 && !gmanOSAlertasVisualizados85688;
       [btn,nav].forEach(el=>{ if(!el) return; el.classList.toggle('gman-alerta-forte', !!ativo); });
       document.querySelectorAll('.notify-badge').forEach(b=>{ b.textContent=''; b.style.display='none'; });
     }
