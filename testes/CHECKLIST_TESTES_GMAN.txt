@@ -1,0 +1,20 @@
+CHECKLIST OFICIAL DE TESTES - GMAN 8.5.6.106
+
+1. Confirmar que a branch usada para testes é desenvolvimento.
+2. Confirmar que a branch main não foi alterada diretamente.
+3. Confirmar que o index.html abre sem erro.
+4. Confirmar que os botões dos sistemas aparecem corretamente: 100, 200, 300, 400, 600 e 700.
+5. Confirmar que o sistema 500 não aparece.
+6. Confirmar que o botão TODAS aparece antes dos sistemas.
+7. Confirmar que o botão BRUTAS aparece como filtro visual.
+8. Confirmar que os totalizadores das estações NÃO aparecem dentro dos botões.
+9. Confirmar que as estações/grupos não zeraram.
+10. Confirmar que os grupos do sistema 200 aparecem corretamente.
+11. Confirmar que as OS abertas aparecem corretamente.
+12. Confirmar que as OS encerradas permanecem separadas conforme perfil.
+13. Confirmar que KPIs carregam sem zerar indevidamente.
+14. Confirmar que ranking de líderes carrega corretamente.
+15. Confirmar que ranking de reincidência carrega corretamente.
+16. Confirmar horário Brasil em abertura, andamento e encerramento de OS.
+17. Confirmar que Apps Script oficial está salvo na pasta apps_script.
+18. Confirmar que nenhuma alteração foi enviada ao main sem teste.

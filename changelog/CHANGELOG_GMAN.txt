@@ -1,0 +1,1 @@
+GMAN 8.5.6.106 - Organização inicial do repositório: criação da branch desenvolvimento, inclusão do Apps Script oficial em apps_script e preparação do controle de versões do sistema de manutenção GMAN.
