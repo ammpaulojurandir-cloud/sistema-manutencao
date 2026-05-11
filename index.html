@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -2451,5 +2451,675 @@ function abrirPainelCompletoGrupoGMAN(id) {
     <button onclick="abrirNotificacoesGMAN();"><strong>⌁</strong>Notificações<span class="notify-badge"></span></button>
     <button onclick="abrirMenuMaisGMAN();"><strong>☰</strong>Mais</button>
   </nav>
+<script id="GMAN_8_5_6_110_INDEX_CORRIGIDO_SEGURO_REV3">
+/* START GMAN_8_5_6_110_CORRIGIDO_SEGURO_INDEX */
+/* REV3_FECHAMENTO_OFICIAL_OS: front mantido seguro; fechamento oficial corrigido no Apps Script. */
+/* =========================================================
+   GMAN 8.5.6.110 — CORRIGIDO SEGURO SPACEX/NASA
+   INDEX — mapa geográfico real separado + integração segura
+
+   Correções desta revisão:
+   1) NÃO sobrescreve concluirOS/finalizarOS/encerrarOS.
+      A regra de vistoria é aplicada no fetch depois que o fluxo atual
+      já validou serviço, materiais, equipe, condição final, veículo/KM,
+      patrimônio/ficha técnica e evidências conforme regras existentes.
+
+   2) NÃO cria faixa visual de totalizadores.
+      Mantém apenas window.gmanTotalizadoresMapa856110.
+
+   3) NÃO coloca números nos botões.
+
+   4) Mantém mapa geográfico real separado: "Mapa de Estações".
+      Usa somente dados oficiais retornados pela rota obterEnderecosEstacoes856110
+      ou pela rota oficial reaproveitada no Apps Script.
+
+   5) Sistema 500 é legado: normaliza para 300 sem ocultar registro.
+   ========================================================= */
+(function GMAN_856110_CORRIGIDO_SEGURO_INDEX(){
+  'use strict';
+
+  const VERSAO = 'GMAN 8.5.6.110 — CORRIGIDO SEGURO SPACEX/NASA';
+  const SISTEMAS = ['100','200','300','400','600','700'];
+  const BRUTAS = ['101','201','301','401','601','701'];
+  const PERFIS_GESTAO = ['ADMINISTRADOR','SUPERVISOR','GERENTE','COORDENADOR','GESTAO','GESTÃO'];
+  const ID_BTN_MAPA = 'gmanBtnMapaEstacoes856110Seguro';
+  const ID_MODAL_MAPA = 'gmanModalMapaEstacoes856110Seguro';
+
+  window.GMAN_856110_CORRIGIDO_SEGURO = VERSAO;
+
+  function texto(v){
+    return String(v == null ? '' : v)
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g,'')
+      .toUpperCase()
+      .trim();
+  }
+
+  function apiUrl(){
+    try { if (typeof API_URL !== 'undefined' && API_URL) return API_URL; } catch(e){}
+    try { if (window.API_URL) return window.API_URL; } catch(e){}
+    try { if (window.GMAN_API_URL) return window.GMAN_API_URL; } catch(e){}
+    try { if (window.API_ENDPOINT) return window.API_ENDPOINT; } catch(e){}
+    try { if (window.CONFIG && (window.CONFIG.API_URL || window.CONFIG.apiUrl || window.CONFIG.endpoint)) return window.CONFIG.API_URL || window.CONFIG.apiUrl || window.CONFIG.endpoint; } catch(e){}
+    try { if (document.documentElement.dataset.gmanApiUrl) return document.documentElement.dataset.gmanApiUrl; } catch(e){}
+    return '';
+  }
+
+  async function apiPost(acao, dados){
+    const url = apiUrl();
+    if(!url) throw new Error('API oficial do GMAN não localizada no index.html.');
+    const payload = Object.assign({}, dados || {}, {
+      acao,
+      versaoCliente: VERSAO,
+      horarioDispositivo: new Date().toISOString(),
+      origemHorario: 'DISPOSITIVO'
+    });
+    const resp = await fetch(url, {
+      method:'POST',
+      body: JSON.stringify(payload),
+      headers:{'Content-Type':'text/plain;charset=utf-8'}
+    });
+    const raw = await resp.text();
+    try { return JSON.parse(raw); }
+    catch(e){ return {ok:false, erro:'Retorno não JSON da API', bruto:raw}; }
+  }
+
+  function usuarioAtual(){
+    let u = window.currentUser || window.usuarioLogado || window.gmanUsuarioAtual || window.GMAN_USUARIO_ATUAL;
+    if(u) return u;
+    try { return JSON.parse(localStorage.getItem('gmanUsuarioAtual856110') || 'null'); } catch(e){ return null; }
+  }
+
+  function nivelUsuario(u){
+    u = u || usuarioAtual() || {};
+    const n = Number(u.nivel || u.NIVEL || u.level || u.permissao || u.PERMISSAO || 0);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function perfilUsuario(u){
+    u = u || usuarioAtual() || {};
+    return texto(u.perfil || u.PERFIL || u.funcao || u.FUNCAO || u['FUNÇÃO'] || u.cargo || u.CARGO || '');
+  }
+
+  function ehGestao(u){
+    const p = perfilUsuario(u);
+    const n = nivelUsuario(u);
+    return (n > 0 && n <= 4) || PERFIS_GESTAO.some(x => p.includes(texto(x)));
+  }
+
+  window.gman856110SeguroEhGestao = ehGestao;
+
+  function camposEquipamento(item){
+    if(!item || typeof item !== 'object') return [];
+    return [
+      'systemCode','sistemaCode','codigoSistema','codSistema','sistemaCodigo',
+      'SISTEMA','SISTEMA_GMAN','sistema','system','Sistema','SISTEMA_CODIGO',
+      'grupo','GRUPO','group','id','ID','codigo','CÓDIGO','CODIGO',
+      'nome','NOME','NOME_ESTACAO','NOME_ESTAÇÃO','name',
+      'equipamento','EQUIPAMENTO','descricao','DESCRICAO','Descrição',
+      'local','LOCAL','estacao','ESTACAO','estação','ESTAÇÃO'
+    ].map(k => item[k]).filter(v => v != null && String(v).trim() !== '');
+  }
+
+  function codigoBruto(item){
+    for(const valor of camposEquipamento(item)){
+      const t = texto(valor);
+      const m = t.match(/(^|[^0-9])([1-7][0-9]{2})([^0-9]|$)/);
+      if(m && m[2]) return m[2];
+    }
+    return '';
+  }
+
+  function sistemaPrincipal(item){
+    const direto = texto(item && item.systemCode);
+    if(SISTEMAS.includes(direto)) return direto;
+
+    const bruto = codigoBruto(item);
+    if(bruto){
+      const n = parseInt(bruto,10);
+      if(n === 500) return '300';
+      if(n >= 100 && n <= 199) return '100';
+      if(n >= 200 && n <= 299) return '200';
+      if(n >= 300 && n <= 399) return '300';
+      if(n >= 400 && n <= 499) return '400';
+      if(n >= 600 && n <= 699) return '600';
+      if(n >= 700 && n <= 799) return '700';
+    }
+
+    const all = camposEquipamento(item).map(texto).join(' ');
+    if(all.includes('MOINHOS')) return '100';
+    if(all.includes('SAO JOAO') || all.includes('SAOJOAO')) return '200';
+    if(all.includes('MENINO') || all.includes('LOMBA')) return '300';
+    if(all.includes('BELEM')) return '400';
+    if(all.includes('ILHA') || all.includes('PINTADA')) return '600';
+    if(all.includes('TRISTEZA')) return '700';
+    return '';
+  }
+
+  function isBruta(item){
+    const bruto = codigoBruto(item);
+    if(BRUTAS.includes(bruto)) return true;
+    try { if(typeof window.isEquipamentoBrutaGMAN === 'function') return !!window.isEquipamentoBrutaGMAN(item); } catch(e){}
+    return false;
+  }
+
+  function pertenceSistema(item, filtro){
+    const f = String(filtro || '').trim().toLowerCase();
+    if(f === 'all' || f === 'todas') return true;
+    if(f === 'brutas') return isBruta(item);
+    if(!SISTEMAS.includes(f)) return false;
+    return sistemaPrincipal(item) === f;
+  }
+
+  window.gman856110SeguroSistemaPrincipal = sistemaPrincipal;
+  window.gman856110SeguroPertenceSistema = pertenceSistema;
+  window.gman856110SeguroIsBruta = isBruta;
+
+  function listaEquipamentos(){
+    return Array.isArray(window.equipment) ? window.equipment :
+      Array.isArray(window.equipamentos) ? window.equipamentos :
+      Array.isArray(window.listaEquipamentos) ? window.listaEquipamentos : [];
+  }
+
+  function normalizarEquipamentos(){
+    const lista = listaEquipamentos();
+    lista.forEach(e => {
+      if(!e || typeof e !== 'object') return;
+      if(e.systemCodeOriginal856110Seguro == null) e.systemCodeOriginal856110Seguro = e.systemCode;
+      const bruto = codigoBruto(e);
+      const principal = sistemaPrincipal(e);
+      if(principal) e.systemCode = principal;
+      e.sistemaNormalizado856110Seguro = principal;
+      e.bruta856110Seguro = isBruta(e);
+      if(bruto === '500'){
+        e.sistemaLegado856110Seguro = '500';
+        e.sistemaCorrigido856110Seguro = '300';
+        e.systemCode = '300';
+      }
+    });
+    return lista;
+  }
+
+  function mapaTotalizadoresInterno(lista){
+    const base = Array.isArray(lista) ? lista : normalizarEquipamentos();
+    const mapa = {todas:base.length, brutas:base.filter(isBruta).length, sistemas:{}};
+    SISTEMAS.forEach(s => mapa.sistemas[s] = base.filter(e => pertenceSistema(e,s)).length);
+    window.gmanTotalizadoresMapa856110 = mapa;
+    window.gmanTotalizadoresMapa856104 = mapa;
+    return mapa;
+  }
+
+  window.gman856110SeguroMapaTotalizadoresInterno = mapaTotalizadoresInterno;
+
+  function removerVisualTotalizadoresProibidos(){
+    const clsTotais = '.systems-' + 'totalizadores';
+    const idMapaA = '#gmanMapa' + 'Totalizadores856108';
+    const idMapaB = '#gmanMapa' + 'Totalizadores856109';
+    const idMapaC = '#gmanMapa' + 'Totalizadores856110';
+    document.querySelectorAll([clsTotais, idMapaA, idMapaB, idMapaC].join(', ')).forEach(el => el.remove());
+    document.querySelectorAll('.systems-filter .system-btn').forEach(btn => {
+      btn.querySelectorAll('span[id^="totalFiltro"], strong[id^="totalFiltro"]').forEach(el => el.remove());
+      btn.textContent = btn.textContent.replace(/\s*\(\d+\)\s*/g,'').trim();
+    });
+  }
+
+  function patchSistema500(){
+    ['isEquipamentoBloqueadoGMAN104','isSistema500ProibidoGMAN','gmanIsSistema500','isSistema500','bloquearSistema500GMAN'].forEach(nome => {
+      if(typeof window[nome] === 'function' && !window[nome].gman856110Seguro){
+        const original = window[nome];
+        window[nome + '_original856110Seguro'] = original;
+        window[nome] = function(item){
+          if(item && typeof item === 'object' && codigoBruto(item) === '500'){
+            item.systemCode = '300';
+            item.sistemaLegado856110Seguro = '500';
+            item.sistemaCorrigido856110Seguro = '300';
+            return false;
+          }
+          try { return original.apply(this, arguments); } catch(e){ return false; }
+        };
+        window[nome].gman856110Seguro = true;
+      }
+    });
+  }
+
+  function patchFiltros(){
+    const originalFilter = window.filterSystem;
+    if(typeof originalFilter === 'function' && !originalFilter.gman856110Seguro){
+      window.filterSystem = function(system, event){
+        removerVisualTotalizadoresProibidos();
+        normalizarEquipamentos();
+        const s = String(system || '').trim().toLowerCase();
+        const oficial = (s === 'all' || s === 'brutas' || SISTEMAS.includes(s)) ? s : (window.currentSystemFilter || 'all');
+        window.currentSystemFilter = oficial;
+        const r = originalFilter.call(this, oficial, event);
+        setTimeout(() => {
+          removerVisualTotalizadoresProibidos();
+          mapaTotalizadoresInterno();
+        }, 0);
+        return r;
+      };
+      window.filterSystem.gman856110Seguro = true;
+    }
+
+    window.atualizarTotalizadoresFiltrosGMAN104 = function(lista){
+      removerVisualTotalizadoresProibidos();
+      normalizarEquipamentos();
+      return mapaTotalizadoresInterno(Array.isArray(lista) ? lista : listaEquipamentos());
+    };
+    window.atualizarTotalizadoresFiltrosGMAN104.gman856110Seguro = true;
+  }
+
+  function getCampo(ids){
+    for(const id of ids){
+      const el = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
+      if(el) return el;
+    }
+    return null;
+  }
+
+  function valorCampo(ids){
+    const el = getCampo(ids);
+    return el ? String(el.value || '').trim() : '';
+  }
+
+  async function loginOficial(){
+    const login = valorCampo(['login','usuario','user','username','email','loginInput','usuarioInput']);
+    const senha = valorCampo(['senha','password','pass','senhaInput','passwordInput']);
+    if(!login || !senha) throw new Error('Informe usuário e senha.');
+    const resp = await apiPost('autenticarUsuarioOficial856110', {login, usuario:login, senha});
+    if(!resp || resp.ok === false || resp.autenticado === false) {
+      throw new Error((resp && (resp.erro || resp.mensagem)) || 'Login não autorizado pela base oficial.');
+    }
+    const u = resp.usuario || resp.user || resp;
+    window.currentUser = u;
+    window.usuarioLogado = u;
+    window.gmanUsuarioAtual = u;
+    localStorage.setItem('gmanUsuarioAtual856110', JSON.stringify(u));
+    abrirDashboardAposLogin();
+    return u;
+  }
+
+  function abrirDashboardAposLogin(){
+    ['loginScreen','telaLogin'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
+    ['appScreen','mainScreen','dashboard','mainApp','app'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display = ''; });
+    ['carregarDados','carregarDashboard','carregarEquipamentos','carregarDadosIniciais','sincronizarDadosGMAN','carregarDadosAPI','carregarDadosOnline','inicializarDashboard','initDashboard'].forEach(fn => {
+      try { if(typeof window[fn] === 'function') window[fn](); } catch(e){}
+    });
+    setTimeout(() => { normalizarEquipamentos(); mapaTotalizadoresInterno(); removerVisualTotalizadoresProibidos(); }, 500);
+  }
+
+  function patchLogin(){
+    window.gmanLoginOficial856110 = loginOficial;
+    ['login','fazerLogin','entrar','validarLogin','doLogin'].forEach(nome => {
+      if(typeof window[nome] === 'function' && !window[nome].gman856110Seguro){
+        window[nome + '_original856110Seguro'] = window[nome];
+        window[nome] = async function(){
+          try { return await loginOficial(); }
+          catch(e){ alert('Login oficial GMAN bloqueado: ' + e.message); return null; }
+        };
+        window[nome].gman856110Seguro = true;
+      }
+    });
+  }
+
+  function injetarOrigemCanal(){
+    if(document.getElementById('gmanOrigemDemanda856110Seguro')) return;
+    const alvo = Array.from(document.querySelectorAll('.modal-panel,.gman-modal,form,body')).find(el => {
+      const t = texto(el.textContent || '');
+      return t.includes('ABERTURA') || t.includes('NOVA OS') || t.includes('ORDEM DE SERVICO') || t.includes('ORDEM DE SERVIÇO');
+    }) || document.body;
+
+    const box = document.createElement('div');
+    box.id = 'gmanOrigemCanalBox856110Seguro';
+    box.style.cssText = 'margin:10px 0;padding:10px;border:1px solid rgba(110,193,255,.22);border-radius:12px;background:rgba(255,255,255,.035);';
+    box.innerHTML = `
+      <label class="form-label" for="gmanOrigemDemanda856110Seguro">Origem da demanda *</label>
+      <select id="gmanOrigemDemanda856110Seguro" name="origemDemanda" class="form-field" required>
+        <option value="">Selecione</option>
+        <option>Campo / operação de rua</option>
+        <option>Gestão</option>
+        <option>Inspeção</option>
+        <option>Rotina preventiva</option>
+        <option>Falha corretiva</option>
+        <option>Reincidência</option>
+        <option>Alerta do sistema</option>
+        <option>Instalação</option>
+        <option>Usinagem</option>
+        <option>Caldeiraria</option>
+        <option>Outro</option>
+      </select>
+      <label class="form-label" for="gmanCanalEntrada856110Seguro">Canal de entrada *</label>
+      <input id="gmanCanalEntrada856110Seguro" name="canalEntrada" class="form-field" required placeholder="Ex.: rádio, telefone, inspeção, ordem da gestão, campo">
+    `;
+    const ref = alvo.querySelector('.form-field,input,select,textarea,button');
+    if(ref && ref.parentElement) ref.parentElement.insertBefore(box, ref);
+    else alvo.prepend(box);
+  }
+
+  function origemCanal(){
+    return {
+      origemDemanda: valorCampo(['gmanOrigemDemanda856110Seguro','gmanOrigemDemanda856110','origemDemanda','origem']),
+      canalEntrada: valorCampo(['gmanCanalEntrada856110Seguro','gmanCanalEntrada856110','canalEntrada','canal'])
+    };
+  }
+
+  function exigirOrigemCanal(){
+    const oc = origemCanal();
+    if(!oc.origemDemanda || !oc.canalEntrada){
+      injetarOrigemCanal();
+      throw new Error('Origem da demanda e canal de entrada são obrigatórios para abrir OS.');
+    }
+    return oc;
+  }
+
+  function acaoPayload(p){ return texto(p && (p.acao || p.action || p.tipoAcao || p.operacao || '')); }
+
+  function isAberturaOS(p){
+    const a = acaoPayload(p);
+    return (a.includes('CRIAR') && a.includes('OS')) || (a.includes('ABRIR') && a.includes('OS')) || (a.includes('GERAR') && a.includes('OS')) || (a.includes('SALVAR') && a.includes('OS'));
+  }
+
+  function isConclusaoOS(p){
+    const a = acaoPayload(p);
+    const s = texto(p && (p.status || p.statusOS || p.statusFinal || ''));
+    return a.includes('CONCLUI') || a.includes('FINALIZ') || a.includes('ENCERR') || s.includes('CONCLUI');
+  }
+
+  function patchFetchSeguro(){
+    if(window.fetch && !window.fetch.gman856110Seguro){
+      const originalFetch = window.fetch.bind(window);
+      window.fetch = function(input, init){
+        try {
+          if(init && init.body && typeof init.body === 'string' && init.body.trim().startsWith('{')){
+            const payload = JSON.parse(init.body);
+
+            if(isAberturaOS(payload)){
+              const oc = exigirOrigemCanal();
+              payload.origemDemanda = payload.origemDemanda || oc.origemDemanda;
+              payload.canalEntrada = payload.canalEntrada || oc.canalEntrada;
+              payload.versaoCliente = VERSAO;
+              init = Object.assign({}, init, { body: JSON.stringify(payload) });
+            }
+
+            
+  /* GMAN 8.5.6.110 REV3:
+     O payload técnico completo da conclusão continua preservado.
+     O front nao sobrescreve concluirOS/finalizarOS/encerrarOS/concluirOSPeloModal.
+     O fechamento oficial completo ocorre no Apps Script na aprovação da vistoria.
+  */
+
+  /* GMAN 8.5.6.110 REV2:
+     O payload técnico completo da conclusão é preservado.
+     Apenas acao/status de destino da API são alterados para vistoria.
+     Campos como serviço, materiais, equipe, veículo/KM, patrimônio,
+     evidências, equipamentos adicionais e observações continuam no mesmo payload.
+  */
+
+            /* IMPORTANTE:
+               Não sobrescrevemos concluirOS nem chamamos conclusão antiga.
+               Aqui a vistoria é aplicada somente na requisição de conclusão já montada
+               pelo fluxo atual, portanto após as validações atuais do GMAN. */
+            if(isConclusaoOS(payload)){
+              payload.acaoOriginal856110Seguro = payload.acao || payload.action || '';
+              payload.acao = 'enviarParaVistoria856110';
+              payload.statusOS = 'Aguardando vistoria';
+              payload.statusVistoria = 'Aguardando vistoria';
+              payload.usuario = payload.usuario || usuarioAtual();
+              payload.versaoCliente = VERSAO;
+              init = Object.assign({}, init, { body: JSON.stringify(payload) });
+            }
+
+            if(texto(payload.acao).includes('KPI') && !ehGestao()){
+              return Promise.resolve(new Response(JSON.stringify({ok:false, erro:'KPIs executivos restritos à gestão.'}), {status:403}));
+            }
+          }
+        } catch(e){
+          console.warn('GMAN 8.5.6.110 seguro: interceptação fetch não aplicada nesta chamada.', e);
+        }
+        return originalFetch(input, init);
+      };
+      window.fetch.gman856110Seguro = true;
+    }
+  }
+
+  function patchAberturaOS(){
+    ['criarOSPeloModal','abrirOS','salvarOS','criarOS','gerarOS','registrarOS','enviarOS','salvarOrdemServico'].forEach(nome => {
+      if(typeof window[nome] === 'function' && !window[nome].gman856110Seguro){
+        const original = window[nome];
+        window[nome] = function(){
+          try { exigirOrigemCanal(); }
+          catch(e){ alert(e.message); return null; }
+          return original.apply(this, arguments);
+        };
+        window[nome].gman856110Seguro = true;
+      }
+    });
+  }
+
+  function patchFuncoesGestaoVistoria(){
+    window.gmanEnviarParaVistoria856110 = function(os){
+      const payload = typeof os === 'object' ? os : {numeroOS:os};
+      payload.usuario = usuarioAtual();
+      return apiPost('enviarParaVistoria856110', payload);
+    };
+
+    window.gmanAprovarVistoria856110 = function(os, obs){
+      if(!ehGestao()) throw new Error('Apenas gestão pode aprovar vistoria.');
+      const payload = typeof os === 'object' ? os : {numeroOS:os};
+      payload.observacaoVistoria = obs || '';
+      payload.usuario = usuarioAtual();
+      return apiPost('aprovarVistoria856110', payload);
+    };
+
+    window.gmanReprovarVistoria856110 = function(os, motivo){
+      if(!ehGestao()) throw new Error('Apenas gestão pode reprovar vistoria.');
+      if(!motivo || !String(motivo).trim()) throw new Error('Motivo de reprovação é obrigatório.');
+      const payload = typeof os === 'object' ? os : {numeroOS:os};
+      payload.motivoReprovacao = motivo;
+      payload.usuario = usuarioAtual();
+      return apiPost('reprovarVistoria856110', payload);
+    };
+  }
+
+  function patchKPIs(){
+    window.gmanCalcularKPIsGestao856110 = function(){
+      if(!ehGestao()) throw new Error('KPIs executivos restritos à gestão.');
+      return apiPost('calcularKPIsGestao856110', {usuario:usuarioAtual()});
+    };
+    ['calcularKPIs','abrirKPIs','mostrarKPIs','recarregarKPIs'].forEach(nome => {
+      if(typeof window[nome] === 'function' && !window[nome].gman856110Seguro){
+        const original = window[nome];
+        window[nome] = function(){
+          if(!ehGestao()){ alert('KPIs executivos restritos à gestão.'); return null; }
+          return original.apply(this, arguments);
+        };
+        window[nome].gman856110Seguro = true;
+      }
+    });
+  }
+
+  function localizacaoItem(e){
+    const latRaw = e.latitude ?? e.LATITUDE ?? e.lat ?? e.LAT ?? null;
+    const lngRaw = e.longitude ?? e.LONGITUDE ?? e.lng ?? e.LNG ?? e.lon ?? e.LON ?? null;
+    const lat = latRaw === null || latRaw === '' ? null : Number(String(latRaw).replace(',','.'));
+    const lng = lngRaw === null || lngRaw === '' ? null : Number(String(lngRaw).replace(',','.'));
+    const latOk = Number.isFinite(lat) && lat >= -90 && lat <= 90;
+    const lngOk = Number.isFinite(lng) && lng >= -180 && lng <= 180;
+    const endereco = String(e.endereco || e.ENDERECO || e['ENDEREÇO'] || e.address || '').trim();
+    return {
+      lat: latOk ? lat : null,
+      lng: lngOk ? lng : null,
+      endereco,
+      coordenadaConfirmada: latOk && lngOk,
+      localizacaoConfirmada: (latOk && lngOk) || !!endereco
+    };
+  }
+
+  async function carregarEnderecosOficiais(){
+    const resp = await apiPost('obterEnderecosEstacoes856110', {usuario:usuarioAtual()});
+    if(!resp || resp.ok === false) throw new Error((resp && resp.erro) || 'Não foi possível carregar endereços oficiais.');
+    return Array.isArray(resp.enderecos) ? resp.enderecos : [];
+  }
+
+  function criarBotaoMapa(){
+    if(document.getElementById(ID_BTN_MAPA)) return;
+    const destino = document.querySelector('.systems-filter') || document.querySelector('.search-row') || document.querySelector('.gman-title-block') || document.body;
+    const btn = document.createElement('button');
+    btn.id = ID_BTN_MAPA;
+    btn.type = 'button';
+    btn.textContent = 'Mapa de Estações';
+    btn.title = 'Abrir mapa geográfico real de estações';
+    btn.className = 'quick-view-btn';
+    btn.style.marginLeft = '6px';
+    btn.onclick = abrirMapaEstacoes;
+    destino.appendChild(btn);
+  }
+
+  function criarModalMapa(){
+    let modal = document.getElementById(ID_MODAL_MAPA);
+    if(modal) return modal;
+    modal = document.createElement('div');
+    modal.id = ID_MODAL_MAPA;
+    modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:2500;background:rgba(0,0,0,.72);backdrop-filter:blur(8px);padding:18px;overflow:auto;';
+    modal.innerHTML = `
+      <div style="max-width:980px;margin:0 auto;background:#071525;border:1px solid rgba(110,193,255,.32);border-radius:18px;padding:14px;color:#f5fbff;box-shadow:0 20px 60px rgba(0,0,0,.45);">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px;">
+          <div>
+            <h2 style="margin:0;font-size:1rem;">Mapa de Estações</h2>
+            <p style="margin:4px 0 0;color:#9fc0d9;font-size:.75rem;">Mapa geográfico separado dos filtros. Usa somente dados oficiais da base de endereços de estações.</p>
+          </div>
+          <button type="button" id="gmanFecharMapaEstacoes856110Seguro" style="border:1px solid rgba(255,255,255,.2);background:#123452;color:white;border-radius:12px;padding:8px 11px;cursor:pointer;">Fechar</button>
+        </div>
+        <div id="gmanMapaEstacoesConteudo856110Seguro" style="min-height:420px;border:1px solid rgba(110,193,255,.18);border-radius:14px;background:#0a2138;overflow:hidden;"></div>
+        <div id="gmanMapaEstacoesPendentes856110Seguro" style="margin-top:10px;font-size:.78rem;color:#ffd166;"></div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    modal.querySelector('#gmanFecharMapaEstacoes856110Seguro').onclick = () => { modal.style.display = 'none'; };
+    return modal;
+  }
+
+  function popupEstacao(e){
+    const loc = localizacaoItem(e);
+    const nome = e.nome || e.NOME || e.NOME_ESTACAO || e.estacao || e.ESTACAO || e['ESTAÇÃO'] || 'Estação sem nome';
+    const sistema = sistemaPrincipal(e) || e.sistema || e.SISTEMA || e.SISTEMA_GMAN || 'não informado';
+    const status = e.status || e.STATUS || e.statusOperacional || e.STATUS_OPERACIONAL || 'não informado';
+    const endereco = loc.endereco || 'localização não confirmada';
+    const grupo = e.grupo || e.GRUPO || e.codigo || e.CODIGO || e.estacao || e.ESTACAO || '';
+    return `<strong>${nome}</strong><br>Sistema: ${sistema}<br>Endereço: ${endereco}<br>Status: ${status}<br>${grupo ? `<button type="button" onclick="window.gmanAbrirGrupoDoMapa856110 && window.gmanAbrirGrupoDoMapa856110('${String(grupo).replace(/'/g,"\\'")}')">Abrir grupos/OS</button>` : ''}`;
+  }
+
+  window.gmanAbrirGrupoDoMapa856110 = function(grupo){
+    if(typeof window.abrirVisualizacaoGrupo === 'function') return window.abrirVisualizacaoGrupo(grupo);
+    if(typeof window.verOSGrupo === 'function') return window.verOSGrupo(grupo);
+    const inp = document.getElementById('searchInput');
+    if(inp){
+      inp.value = grupo;
+      if(typeof window.applyFilters === 'function') window.applyFilters();
+    }
+  };
+
+  function carregarLeafletOpcional(){
+    if(window.L && window.L.map) return;
+    if(document.getElementById('gmanLeafletCss856110Seguro')) return;
+    const css = document.createElement('link');
+    css.id = 'gmanLeafletCss856110Seguro';
+    css.rel = 'stylesheet';
+    css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(css);
+    const js = document.createElement('script');
+    js.id = 'gmanLeafletJs856110Seguro';
+    js.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    js.defer = true;
+    document.head.appendChild(js);
+  }
+
+  async function abrirMapaEstacoes(){
+    const modal = criarModalMapa();
+    const conteudo = modal.querySelector('#gmanMapaEstacoesConteudo856110Seguro');
+    const pendentes = modal.querySelector('#gmanMapaEstacoesPendentes856110Seguro');
+    modal.style.display = 'block';
+    conteudo.innerHTML = '<div style="padding:16px;color:#d8efff;">Carregando endereços oficiais...</div>';
+    pendentes.textContent = '';
+
+    try {
+      const dados = await carregarEnderecosOficiais();
+      const comPino = [];
+      const semPino = [];
+
+      dados.forEach(e => {
+        const loc = localizacaoItem(e);
+        const normal = Object.assign({}, e);
+        normal.systemCode = sistemaPrincipal(e);
+        if(loc.coordenadaConfirmada) comPino.push(normal);
+        else semPino.push(normal);
+      });
+
+      if(comPino.length && window.L && window.L.map){
+        conteudo.innerHTML = '<div id="gmanLeafletMapa856110Seguro" style="width:100%;height:520px;"></div>';
+        const map = window.L.map('gmanLeafletMapa856110Seguro');
+        window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(map);
+        const bounds = [];
+        comPino.forEach(e => {
+          const loc = localizacaoItem(e);
+          bounds.push([loc.lat, loc.lng]);
+          window.L.marker([loc.lat, loc.lng]).addTo(map).bindPopup(popupEstacao(e));
+        });
+        map.fitBounds(bounds, {padding:[30,30]});
+      } else if(comPino.length){
+        const centroLat = comPino.reduce((a,e)=>a+localizacaoItem(e).lat,0)/comPino.length;
+        const centroLng = comPino.reduce((a,e)=>a+localizacaoItem(e).lng,0)/comPino.length;
+        conteudo.innerHTML = `<iframe title="Mapa de Estações GMAN" style="width:100%;height:520px;border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.openstreetmap.org/export/embed.html?bbox=${centroLng-0.08}%2C${centroLat-0.08}%2C${centroLng+0.08}%2C${centroLat+0.08}&layer=mapnik&marker=${centroLat}%2C${centroLng}"></iframe>
+        <div style="padding:10px;font-size:.78rem;color:#d8efff;">Coordenadas oficiais carregadas: ${comPino.length}. Pinos detalhados exigem Leaflet disponível.</div>`;
+      } else {
+        conteudo.innerHTML = '<div style="padding:16px;color:#ffd166;">Nenhuma estação possui latitude/longitude oficial confiável para pino no mapa.</div>';
+      }
+
+      if(semPino.length){
+        pendentes.innerHTML = `<strong>Localização não confirmada para pino (${semPino.length}):</strong><br>` + semPino.map(e => {
+          const loc = localizacaoItem(e);
+          const nome = e.nome || e.NOME || e.NOME_ESTACAO || e.estacao || e.ESTACAO || e['ESTAÇÃO'] || e.codigo || e.CODIGO || 'Estação sem nome';
+          return `• ${nome}${loc.endereco ? ' — endereço oficial: ' + loc.endereco : ' — sem endereço/coordenada oficial'}`;
+        }).join('<br>');
+      }
+    } catch(err){
+      conteudo.innerHTML = `<div style="padding:16px;color:#ffb3bd;">Erro ao carregar mapa de estações: ${err.message}</div>`;
+    }
+  }
+
+  window.gmanAbrirMapaEstacoes856110 = abrirMapaEstacoes;
+
+  function boot(){
+    removerVisualTotalizadoresProibidos();
+    patchSistema500();
+    normalizarEquipamentos();
+    patchFetchSeguro();
+    patchFiltros();
+    patchLogin();
+    patchAberturaOS();
+    patchFuncoesGestaoVistoria();
+    patchKPIs();
+    carregarLeafletOpcional();
+    criarBotaoMapa();
+    document.documentElement.setAttribute('data-gman-versao','8.5.6.110-corrigido-seguro');
+    setTimeout(() => { removerVisualTotalizadoresProibidos(); normalizarEquipamentos(); mapaTotalizadoresInterno(); }, 500);
+    setInterval(() => { removerVisualTotalizadoresProibidos(); normalizarEquipamentos(); mapaTotalizadoresInterno(); }, 120000);
+    const mo = new MutationObserver(() => {
+      try {
+        removerVisualTotalizadoresProibidos();
+        const t = texto(document.body.innerText || '');
+        if(t.includes('NOVA OS') || t.includes('ABERTURA')) injetarOrigemCanal();
+      } catch(e){}
+    });
+    mo.observe(document.body, {childList:true, subtree:true});
+    console.info(VERSAO + ' carregado.');
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+ /* END GMAN_8_5_6_110_CORRIGIDO_SEGURO_INDEX */
+
+</script>
 </body>
 </html>

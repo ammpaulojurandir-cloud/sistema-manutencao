@@ -191,7 +191,19 @@ function doGet(e) {
   }
   return responder_(rotear_(p));
 }
-function doPost(e) { const p = parametros_(e); return responder_(executarComConfiabilidadeIndustrial_(p)); }
+function doPost(e) {
+  // GMAN_856110_REV3_DISPATCHER_INJETADO_NO_DOPOST
+  try {
+    var payload856110Rev3 = {};
+    if (e && e.postData && e.postData.contents) {
+      payload856110Rev3 = JSON.parse(e.postData.contents);
+    }
+    var rota856110Rev3 = gman856110Rev3_dispatcher_(payload856110Rev3);
+    if (rota856110Rev3) return gman856110Rev3_json_(rota856110Rev3);
+  } catch (err856110Rev3) {
+    // Keep old flow if request is not REV3.
+  }
+ const p = parametros_(e); return responder_(executarComConfiabilidadeIndustrial_(p)); }
 
 function parametros_(e) {
   const p = (e && e.parameter) ? Object.assign({}, e.parameter) : {};
@@ -1856,3 +1868,1161 @@ function responderSolicitacaoOS_(p) {
     return { sucesso:true, mensagem:'Solicitação de redistribuição negada. OS permanece com o responsável atual.' };
   }
 }
+
+
+/* START GMAN_8_5_6_110_CORRIGIDO_SEGURO_REV3_APPS_SCRIPT */
+/* =========================================================
+   GMAN 8.5.6.110 - CORRIGIDO SEGURO REV3 SPACEX/NASA
+   APPS SCRIPT - fechamento oficial da OS apos aprovacao de vistoria
+
+   Escopo REV3:
+   - Preservar payload tecnico completo da conclusao.
+   - Aprovar vistoria consolidando campos finais oficiais.
+   - Atualizar equipamento e limpar bloqueio quando seguro.
+   - Registrar historico oficial de conclusao.
+   - Recalcular/registrar KPI.
+   - Manter mapa/endereco oficial e login compativel.
+   ========================================================= */
+
+var GMAN_856110_REV3_VERSAO = 'GMAN 8.5.6.110 - CORRIGIDO SEGURO REV3 SPACEX/NASA';
+
+function gman856110Rev3_json_(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj || {})).setMimeType(ContentService.MimeType.JSON);
+}
+
+function gman856110Rev3_texto_(v) {
+  return String(v == null ? '' : v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
+}
+
+function gman856110Rev3_ss_() {
+  if (typeof SPREADSHEET_ID !== 'undefined' && SPREADSHEET_ID) return SpreadsheetApp.openById(SPREADSHEET_ID);
+  if (typeof CONFIG !== 'undefined' && CONFIG && CONFIG.SPREADSHEET_ID) return SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (ss) return ss;
+  throw new Error('SPREADSHEET_ID da planilha oficial GMAN nao localizado.');
+}
+
+function gman856110Rev3_aba_(nomes) {
+  var ss = gman856110Rev3_ss_();
+  for (var i=0;i<nomes.length;i++) {
+    var sh = ss.getSheetByName(nomes[i]);
+    if (sh) return sh;
+  }
+  throw new Error('Aba nao encontrada: ' + nomes.join(' / '));
+}
+
+function gman856110Rev3_abaOuCria_(nome) {
+  var ss = gman856110Rev3_ss_();
+  var sh = ss.getSheetByName(nome);
+  return sh || ss.insertSheet(nome);
+}
+
+function gman856110Rev3_headers_(sh) {
+  var lastCol = sh.getLastColumn();
+  var h = lastCol ? sh.getRange(1,1,1,lastCol).getValues()[0] : [];
+  var map = {};
+  h.forEach(function(v,i){ var k = gman856110Rev3_texto_(v); if(k) map[k] = i; });
+  return map;
+}
+
+function gman856110Rev3_idx_(h, aliases) {
+  for (var i=0;i<aliases.length;i++) {
+    var k = gman856110Rev3_texto_(aliases[i]);
+    if (h.hasOwnProperty(k)) return h[k];
+  }
+  return -1;
+}
+
+function gman856110Rev3_val_(row,h,aliases) {
+  var i = gman856110Rev3_idx_(h, aliases);
+  return i >= 0 ? row[i] : '';
+}
+
+function gman856110Rev3_ensureCol_(sh, nome) {
+  var h = gman856110Rev3_headers_(sh);
+  var i = gman856110Rev3_idx_(h,[nome]);
+  if (i >= 0) return i + 1;
+  var col = sh.getLastColumn() + 1;
+  sh.getRange(1,col).setValue(nome);
+  return col;
+}
+
+function gman856110Rev3_colExistenteOuNova_(sh, aliases, nomeNovo) {
+  var h = gman856110Rev3_headers_(sh);
+  var i = gman856110Rev3_idx_(h, aliases || []);
+  if (i >= 0) return i + 1;
+  return gman856110Rev3_ensureCol_(sh, nomeNovo);
+}
+
+function gman856110Rev3_set_(sh, rowIndex, aliases, nomeNovo, valor) {
+  var col = gman856110Rev3_colExistenteOuNova_(sh, aliases || [nomeNovo], nomeNovo);
+  sh.getRange(rowIndex, col).setValue(valor);
+}
+
+function gman856110Rev3_get_(sh, rowIndex, aliases) {
+  var row = sh.getRange(rowIndex,1,1,sh.getLastColumn()).getValues()[0];
+  var h = gman856110Rev3_headers_(sh);
+  return gman856110Rev3_val_(row,h,aliases);
+}
+
+function gman856110Rev3_parseNumero_(v) {
+  if (v === null || v === undefined || String(v).trim() === '') return null;
+  var n = Number(String(v).trim().replace(',','.'));
+  return isFinite(n) ? n : null;
+}
+
+function gman856110Rev3_jsonSeguro_(obj) {
+  try { return JSON.stringify(obj || {}); }
+  catch (e) { return JSON.stringify({erro:'payload nao serializavel', versao:GMAN_856110_REV3_VERSAO}); }
+}
+
+function gman856110Rev3_valorPayload_(p, aliases) {
+  p = p || {};
+  for (var i=0;i<aliases.length;i++) {
+    var k = aliases[i];
+    if (p[k] !== undefined && p[k] !== null && String(p[k]).trim() !== '') return p[k];
+  }
+  return '';
+}
+
+function gman856110Rev3_bool_(v) {
+  var t = gman856110Rev3_texto_(v);
+  return v === true || t === 'SIM' || t === 'TRUE' || t === '1' || t.indexOf('SEM USO') >= 0;
+}
+
+function gman856110Rev3_dataBrasil_() {
+  if (typeof dataBrasilEvento_ === 'function') {
+    try { return dataBrasilEvento_(); } catch(e) {}
+  }
+  return Utilities.formatDate(new Date(),'America/Sao_Paulo','dd/MM/yyyy');
+}
+
+function gman856110Rev3_horaBrasil_() {
+  if (typeof horaBrasilEvento_ === 'function') {
+    try { return horaBrasilEvento_(); } catch(e) {}
+  }
+  return Utilities.formatDate(new Date(),'America/Sao_Paulo','HH:mm:ss');
+}
+
+function gman856110Rev3_dataHoraBrasil_() {
+  return Utilities.formatDate(new Date(),'America/Sao_Paulo','dd/MM/yyyy HH:mm:ss');
+}
+
+function gman856110Rev3_ehGestao_(u) {
+  u = u || {};
+  var perfil = gman856110Rev3_texto_(u.perfil || u.PERFIL || u.funcao || u.FUNCAO || u['FUNCAO'] || u.cargo || u.CARGO || '');
+  var nivel = Number(u.nivel || u.NIVEL || u.level || u.PERMISSAO || u['PERMISSAO'] || 0);
+  if (nivel > 0 && nivel <= 4) return true;
+  return ['ADMINISTRADOR','SUPERVISOR','GERENTE','COORDENADOR','GESTAO'].some(function(p){
+    return perfil.indexOf(gman856110Rev3_texto_(p)) >= 0;
+  });
+}
+
+function gman856110Rev3_autenticarUsuarioOficial_(p) {
+  var sh = gman856110Rev3_aba_(['USUARIOS','USUARIOS','Usuarios','LOGIN','USERS']);
+  var data = sh.getDataRange().getValues();
+  var h = gman856110Rev3_headers_(sh);
+  var login = gman856110Rev3_texto_(p.login || p.usuario || p.email);
+  var senha = String(p.senha || p.password || '');
+
+  if (!login || !senha) return {ok:false, autenticado:false, erro:'Login e senha obrigatorios.'};
+
+  for (var r=1;r<data.length;r++) {
+    var row = data[r];
+    var rowLogin = gman856110Rev3_texto_(gman856110Rev3_val_(row,h,['LOGIN','USUARIO','EMAIL','E-MAIL']));
+    var rowSenha = String(gman856110Rev3_val_(row,h,['SENHA','PASSWORD','PASS']));
+    var status = gman856110Rev3_texto_(gman856110Rev3_val_(row,h,['STATUS','ATIVO','SITUACAO']));
+    if (rowLogin === login && rowSenha === senha) {
+      if (['INATIVO','BLOQUEADO','NAO','FALSE','0'].indexOf(status) >= 0) {
+        return {ok:false, autenticado:false, erro:'Usuario inativo ou bloqueado.'};
+      }
+
+      var nome = gman856110Rev3_val_(row,h,['NOME','USUARIO']);
+      var funcao = gman856110Rev3_val_(row,h,['FUNCAO','CARGO','PERFIL']);
+      var perfil = gman856110Rev3_val_(row,h,['PERFIL','CARGO','FUNCAO']);
+      var area = gman856110Rev3_val_(row,h,['AREA','SETOR']);
+      var equipe = gman856110Rev3_val_(row,h,['EQUIPE','AREA','SETOR']);
+      var nivel = gman856110Rev3_val_(row,h,['NIVEL','PERMISSAO']);
+
+      return {
+        ok:true,
+        autenticado:true,
+        usuario:{
+          nome:nome,
+          login:rowLogin,
+          funcao:funcao,
+          perfil:perfil,
+          area:area,
+          equipe:equipe,
+          nivel:nivel,
+          ativo:true,
+          versaoAutenticacao:GMAN_856110_REV3_VERSAO
+        }
+      };
+    }
+  }
+
+  return {ok:false, autenticado:false, erro:'Usuario ou senha invalidos na base oficial.'};
+}
+
+function gman856110Rev3_abaOS_() {
+  return gman856110Rev3_aba_(['OS','ORDENS','ORDENS_SERVICO','ORDENS DE SERVICO']);
+}
+
+function gman856110Rev3_idPayload_(p) {
+  return String(
+    p.idOS || p.ID_OS || p.numeroOS || p.NUMERO_OS || p.numero || p.os || p.OS || ''
+  ).trim();
+}
+
+function gman856110Rev3_localizarOS_(payloadOuId) {
+  var p = (typeof payloadOuId === 'object') ? payloadOuId : {numeroOS:payloadOuId};
+  var alvo = gman856110Rev3_idPayload_(p);
+  if (!alvo) throw new Error('Identificador da OS obrigatorio: idOS, ID_OS, numeroOS, NUMERO_OS, numero ou os.');
+
+  var sh = gman856110Rev3_abaOS_();
+  var data = sh.getDataRange().getValues();
+  var h = gman856110Rev3_headers_(sh);
+
+  var colunas = [
+    gman856110Rev3_idx_(h,['ID_OS','IDOS','ID']),
+    gman856110Rev3_idx_(h,['NUMERO_OS','NUMERO','OS'])
+  ].filter(function(i, pos, arr){ return i >= 0 && arr.indexOf(i) === pos; });
+
+  if (!colunas.length) throw new Error('Nenhuma coluna ID_OS/NUMERO_OS encontrada na aba OS.');
+
+  for (var r=1;r<data.length;r++) {
+    for (var c=0;c<colunas.length;c++) {
+      if (String(data[r][colunas[c]]).trim() === alvo) {
+        return {sheet:sh,rowIndex:r+1,row:data[r],headers:h};
+      }
+    }
+  }
+
+  throw new Error('OS nao encontrada por ID_OS/NUMERO_OS: ' + alvo);
+}
+
+function gman856110Rev3_evento_(tipo,p) {
+  var ss = gman856110Rev3_ss_();
+  var sh = ss.getSheetByName('AUDITORIA_GMAN') || ss.insertSheet('AUDITORIA_GMAN');
+  if (sh.getLastRow() === 0) sh.appendRow(['DATA_HORA_BRASIL','TIPO','ID_OS','NUMERO_OS','USUARIO','PERFIL','OBSERVACAO','VERSAO']);
+  var u = p.usuario || {};
+  sh.appendRow([
+    gman856110Rev3_dataHoraBrasil_(),
+    tipo,
+    p.idOS || p.ID_OS || '',
+    p.numeroOS || p.NUMERO_OS || p.numero || p.os || '',
+    u.nome || u.login || p.usuarioNome || '',
+    u.perfil || u.funcao || '',
+    p.observacaoVistoria || p.motivoReprovacao || p.observacao || '',
+    GMAN_856110_REV3_VERSAO
+  ]);
+}
+
+function gman856110Rev3_validarOrigem_(p) {
+  var origem = String(p.origemDemanda || '').trim();
+  var canal = String(p.canalEntrada || '').trim();
+  if (!origem || !canal) return {ok:false, erro:'Origem da demanda e canal de entrada sao obrigatorios.'};
+  return {ok:true, origemDemanda:origem, canalEntrada:canal};
+}
+
+function gman856110Rev3_mapaCamposConclusao_() {
+  return [
+    {pendente:'SERVICO_REALIZADO_VISTORIA', final:'SERVICO_REALIZADO', aliasesPayload:['servicoRealizado','servicoExecutado','servico','descricaoServico','SERVICO_REALIZADO','SERVICO_EXECUTADO'], aliasesPendente:['SERVICO_REALIZADO_VISTORIA','SERVICO_EXECUTADO_VISTORIA'], aliasesFinal:['SERVICO_REALIZADO','SERVICO_EXECUTADO','DESCRICAO_SERVICO']},
+    {pendente:'MATERIAIS_VISTORIA', final:'MATERIAIS_UTILIZADOS', aliasesPayload:['materiais','materiaisUtilizados','materiaisAplicados','MATERIAIS','MATERIAIS_UTILIZADOS'], aliasesPendente:['MATERIAIS_VISTORIA','MATERIAIS_UTILIZADOS_VISTORIA'], aliasesFinal:['MATERIAIS_UTILIZADOS','MATERIAIS','MATERIAIS_APLICADOS']},
+    {pendente:'MEMBROS_EQUIPE_VISTORIA', final:'MEMBROS_EQUIPE', aliasesPayload:['membrosEquipe','membros_da_equipe','membros','equipeExecutora','MEMBROS_EQUIPE'], aliasesPendente:['MEMBROS_EQUIPE_VISTORIA','MEMBROS_DA_EQUIPE_VISTORIA'], aliasesFinal:['MEMBROS_EQUIPE','MEMBROS_DA_EQUIPE','EQUIPE_EXECUTORA']},
+    {pendente:'CONDICAO_FINAL_VISTORIA', final:'CONDICAO_OPERACIONAL_FINAL', aliasesPayload:['condicaoFinal','condicaoOperacionalFinal','statusFinal','CONDICAO_FINAL','CONDICAO_OPERACIONAL_FINAL'], aliasesPendente:['CONDICAO_FINAL_VISTORIA','CONDICAO_OPERACIONAL_FINAL_VISTORIA','STATUS_FINAL_VISTORIA'], aliasesFinal:['CONDICAO_OPERACIONAL_FINAL','CONDICAO_FINAL','STATUS_FINAL']},
+    {pendente:'JUSTIFICATIVA_CONDICAO_FINAL_VISTORIA', final:'JUSTIFICATIVA_CONDICAO_FINAL', aliasesPayload:['justificativaCondicaoFinal','justificativa','motivoCondicaoFinal','JUSTIFICATIVA_CONDICAO_FINAL'], aliasesPendente:['JUSTIFICATIVA_CONDICAO_FINAL_VISTORIA'], aliasesFinal:['JUSTIFICATIVA_CONDICAO_FINAL','JUSTIFICATIVA_STATUS_FINAL']},
+    {pendente:'OBSERVACAO_FINAL_VISTORIA', final:'OBSERVACAO_FINAL', aliasesPayload:['observacaoFinal','observacao','OBSERVACAO_FINAL'], aliasesPendente:['OBSERVACAO_FINAL_VISTORIA'], aliasesFinal:['OBSERVACAO_FINAL','OBSERVACAO']},
+    {pendente:'SEM_USO_VEICULO_VISTORIA', final:'SEM_USO_VEICULO', aliasesPayload:['semUsoVeiculo','sem_uso_veiculo','semUsoDeVeiculo','SEM_USO_VEICULO'], aliasesPendente:['SEM_USO_VEICULO_VISTORIA'], aliasesFinal:['SEM_USO_VEICULO']},
+    {pendente:'MOTORISTA_VISTORIA', final:'MOTORISTA', aliasesPayload:['motorista','MOTORISTA'], aliasesPendente:['MOTORISTA_VISTORIA'], aliasesFinal:['MOTORISTA']},
+    {pendente:'PREFIXO_VEICULO_VISTORIA', final:'PREFIXO_VEICULO', aliasesPayload:['prefixoVeiculo','prefixo_veiculo','veiculo','prefixo','PREFIXO_VEICULO'], aliasesPendente:['PREFIXO_VEICULO_VISTORIA'], aliasesFinal:['PREFIXO_VEICULO','VEICULO','PREFIXO']},
+    {pendente:'KM_INICIAL_VISTORIA', final:'KM_INICIAL', aliasesPayload:['kmInicial','km_inicial','KM_INICIAL'], aliasesPendente:['KM_INICIAL_VISTORIA'], aliasesFinal:['KM_INICIAL']},
+    {pendente:'KM_FINAL_VISTORIA', final:'KM_FINAL', aliasesPayload:['kmFinal','km_final','KM_FINAL'], aliasesPendente:['KM_FINAL_VISTORIA'], aliasesFinal:['KM_FINAL']},
+    {pendente:'KM_RODADO_VISTORIA', final:'KM_RODADO', aliasesPayload:['kmRodado','km_rodado','KM_RODADO'], aliasesPendente:['KM_RODADO_VISTORIA'], aliasesFinal:['KM_RODADO']},
+    {pendente:'ITENS_ADICIONAIS_OBSERVADOS_VISTORIA', final:'ITENS_ADICIONAIS_OBSERVADOS', aliasesPayload:['itensAdicionaisObservados','equipamentosAdicionais','equipamentos_adicionais','itensAdicionais','EQUIPAMENTOS_ADICIONAIS'], aliasesPendente:['ITENS_ADICIONAIS_OBSERVADOS_VISTORIA','EQUIPAMENTOS_ADICIONAIS_VISTORIA','ITENS_ADICIONAIS_VISTORIA'], aliasesFinal:['ITENS_ADICIONAIS_OBSERVADOS','EQUIPAMENTOS_ADICIONAIS','ITENS_ADICIONAIS']},
+    {pendente:'PATRIMONIO_FICHA_TECNICA_VISTORIA', final:'PATRIMONIO_FICHA_TECNICA', aliasesPayload:['patrimonio','patrimonios','fichaTecnica','ficha_tecnica','patrimonioFichaTecnica','PATRIMONIO_FICHA_TECNICA'], aliasesPendente:['PATRIMONIO_FICHA_TECNICA_VISTORIA','PATRIMONIO_VISTORIA','FICHA_TECNICA_VISTORIA'], aliasesFinal:['PATRIMONIO_FICHA_TECNICA','PATRIMONIO','PATRIMONIOS','FICHA_TECNICA']},
+    {pendente:'EVIDENCIAS_VISTORIA', final:'EVIDENCIAS', aliasesPayload:['evidencias','evidenciasJson','anexos','fotos','audios','EVIDENCIAS'], aliasesPendente:['EVIDENCIAS_VISTORIA','ANEXOS_VISTORIA'], aliasesFinal:['EVIDENCIAS','ANEXOS','FOTOS','AUDIOS']}
+  ];
+}
+
+function gman856110Rev3_valorTecnicoDoPayload_(p, campo) {
+  var v = gman856110Rev3_valorPayload_(p, campo.aliasesPayload || []);
+  if (v !== '') {
+    if (typeof v === 'object') return gman856110Rev3_jsonSeguro_(v);
+    return v;
+  }
+  return '';
+}
+
+function gman856110Rev3_preservarPayloadConclusaoVistoria_(loc, p) {
+  var sh = loc.sheet;
+  var campos = gman856110Rev3_mapaCamposConclusao_();
+
+  campos.forEach(function(campo){
+    var valor = gman856110Rev3_valorTecnicoDoPayload_(p, campo);
+    if (valor !== '') {
+      gman856110Rev3_set_(sh, loc.rowIndex, campo.aliasesPendente, campo.pendente, valor);
+    }
+  });
+
+  gman856110Rev3_set_(sh, loc.rowIndex, ['PAYLOAD_CONCLUSAO_VISTORIA_JSON'], 'PAYLOAD_CONCLUSAO_VISTORIA_JSON', gman856110Rev3_jsonSeguro_(p));
+  gman856110Rev3_set_(sh, loc.rowIndex, ['DATA_HORA_PAYLOAD_CONCLUSAO_VISTORIA'], 'DATA_HORA_PAYLOAD_CONCLUSAO_VISTORIA', gman856110Rev3_dataHoraBrasil_());
+}
+
+function gman856110Rev3_lerPayloadPendente_(loc) {
+  var raw = gman856110Rev3_get_(loc.sheet, loc.rowIndex, ['PAYLOAD_CONCLUSAO_VISTORIA_JSON']);
+  if (!raw) return {};
+  try { return JSON.parse(raw); } catch(e) { return {}; }
+}
+
+function gman856110Rev3_lerValorPendente_(loc, campo, payloadPendente) {
+  var valor = gman856110Rev3_get_(loc.sheet, loc.rowIndex, campo.aliasesPendente || []);
+  if (valor === '') valor = gman856110Rev3_valorTecnicoDoPayload_(payloadPendente, campo);
+  return valor;
+}
+
+function gman856110Rev3_validarEPreencherKM_(loc, payloadPendente) {
+  var sh = loc.sheet;
+  var semUsoCampo = {aliasesPendente:['SEM_USO_VEICULO_VISTORIA'], aliasesPayload:['semUsoVeiculo','sem_uso_veiculo','semUsoDeVeiculo','SEM_USO_VEICULO']};
+  var semUsoValor = gman856110Rev3_get_(sh, loc.rowIndex, semUsoCampo.aliasesPendente);
+  if (semUsoValor === '') semUsoValor = gman856110Rev3_valorPayload_(payloadPendente, semUsoCampo.aliasesPayload);
+  var semUso = gman856110Rev3_bool_(semUsoValor);
+
+  if (semUso) {
+    gman856110Rev3_set_(sh, loc.rowIndex, ['SEM_USO_VEICULO'], 'SEM_USO_VEICULO', 'SIM');
+    gman856110Rev3_set_(sh, loc.rowIndex, ['MOTORISTA'], 'MOTORISTA', '');
+    gman856110Rev3_set_(sh, loc.rowIndex, ['PREFIXO_VEICULO','VEICULO','PREFIXO'], 'PREFIXO_VEICULO', '');
+    gman856110Rev3_set_(sh, loc.rowIndex, ['KM_INICIAL'], 'KM_INICIAL', '');
+    gman856110Rev3_set_(sh, loc.rowIndex, ['KM_FINAL'], 'KM_FINAL', '');
+    gman856110Rev3_set_(sh, loc.rowIndex, ['KM_RODADO'], 'KM_RODADO', '');
+    gman856110Rev3_set_(sh, loc.rowIndex, ['VALIDACAO_KM'], 'VALIDACAO_KM', 'SEM USO DE VEICULO');
+    return {ok:true, semUso:true, kmRodado:''};
+  }
+
+  var kmInicialRaw = gman856110Rev3_get_(sh, loc.rowIndex, ['KM_INICIAL_VISTORIA']);
+  var kmFinalRaw = gman856110Rev3_get_(sh, loc.rowIndex, ['KM_FINAL_VISTORIA']);
+  if (kmInicialRaw === '') kmInicialRaw = gman856110Rev3_valorPayload_(payloadPendente, ['kmInicial','km_inicial','KM_INICIAL']);
+  if (kmFinalRaw === '') kmFinalRaw = gman856110Rev3_valorPayload_(payloadPendente, ['kmFinal','km_final','KM_FINAL']);
+
+  var kmInicial = gman856110Rev3_parseNumero_(kmInicialRaw);
+  var kmFinal = gman856110Rev3_parseNumero_(kmFinalRaw);
+
+  if (kmInicial === null || kmFinal === null) {
+    gman856110Rev3_set_(sh, loc.rowIndex, ['VALIDACAO_KM'], 'VALIDACAO_KM', 'ERRO - KM OBRIGATORIO');
+    return {ok:false, erro:'KM_INICIAL e KM_FINAL sao obrigatorios quando houve uso de veiculo.'};
+  }
+  if (kmFinal < kmInicial) {
+    gman856110Rev3_set_(sh, loc.rowIndex, ['VALIDACAO_KM'], 'VALIDACAO_KM', 'ERRO - KM FINAL MENOR QUE KM INICIAL');
+    return {ok:false, erro:'KM_FINAL nao pode ser menor que KM_INICIAL.'};
+  }
+
+  var rodado = kmFinal - kmInicial;
+  gman856110Rev3_set_(sh, loc.rowIndex, ['SEM_USO_VEICULO'], 'SEM_USO_VEICULO', 'NAO');
+  gman856110Rev3_set_(sh, loc.rowIndex, ['KM_INICIAL'], 'KM_INICIAL', kmInicial);
+  gman856110Rev3_set_(sh, loc.rowIndex, ['KM_FINAL'], 'KM_FINAL', kmFinal);
+  gman856110Rev3_set_(sh, loc.rowIndex, ['KM_RODADO'], 'KM_RODADO', rodado);
+  gman856110Rev3_set_(sh, loc.rowIndex, ['VALIDACAO_KM'], 'VALIDACAO_KM', 'OK');
+  return {ok:true, semUso:false, kmRodado:rodado};
+}
+
+function gman856110Rev3_consolidarCamposFinais_(loc, p) {
+  var sh = loc.sheet;
+  var payloadPendente = gman856110Rev3_lerPayloadPendente_(loc);
+  var campos = gman856110Rev3_mapaCamposConclusao_();
+
+  campos.forEach(function(campo){
+    var valor = gman856110Rev3_lerValorPendente_(loc, campo, payloadPendente);
+    if (valor !== '') {
+      gman856110Rev3_set_(sh, loc.rowIndex, campo.aliasesFinal, campo.final, valor);
+    }
+  });
+
+  var validacaoKM = gman856110Rev3_validarEPreencherKM_(loc, payloadPendente);
+  if (!validacaoKM.ok) return validacaoKM;
+
+  var aprovador = (p.usuario && (p.usuario.nome || p.usuario.login)) || p.usuarioNome || 'GESTAO';
+  var justificativa = gman856110Rev3_get_(sh, loc.rowIndex, ['JUSTIFICATIVA_CONDICAO_FINAL']);
+  var obsFinal = gman856110Rev3_get_(sh, loc.rowIndex, ['OBSERVACAO_FINAL','OBSERVACAO']);
+  if (!justificativa) {
+    justificativa = obsFinal || 'Conclusao aprovada em vistoria.';
+    gman856110Rev3_set_(sh, loc.rowIndex, ['JUSTIFICATIVA_CONDICAO_FINAL'], 'JUSTIFICATIVA_CONDICAO_FINAL', justificativa);
+  }
+
+  gman856110Rev3_set_(sh, loc.rowIndex, ['DATA_CONCLUSAO'], 'DATA_CONCLUSAO', gman856110Rev3_dataBrasil_());
+  gman856110Rev3_set_(sh, loc.rowIndex, ['HORA_CONCLUSAO'], 'HORA_CONCLUSAO', gman856110Rev3_horaBrasil_());
+  gman856110Rev3_set_(sh, loc.rowIndex, ['FINALIZADO_POR'], 'FINALIZADO_POR', aprovador);
+  gman856110Rev3_set_(sh, loc.rowIndex, ['BLOQUEIO_RETORNO'], 'BLOQUEIO_RETORNO', 'NAO');
+  gman856110Rev3_set_(sh, loc.rowIndex, ['PAYLOAD_CONCLUSAO_APROVADA_JSON'], 'PAYLOAD_CONCLUSAO_APROVADA_JSON', gman856110Rev3_jsonSeguro_(payloadPendente));
+
+  return {ok:true, payload:payloadPendente, finalizadoPor:aprovador};
+}
+
+function gman856110Rev3_enviarParaVistoria_(p) {
+  var loc = gman856110Rev3_localizarOS_(p);
+  var sh = loc.sheet;
+
+  gman856110Rev3_preservarPayloadConclusaoVistoria_(loc, p);
+
+  gman856110Rev3_set_(sh, loc.rowIndex, ['STATUS_OS'], 'STATUS_OS', 'Aguardando vistoria');
+  gman856110Rev3_set_(sh, loc.rowIndex, ['STATUS_VISTORIA'], 'STATUS_VISTORIA', 'Aguardando vistoria');
+  gman856110Rev3_set_(sh, loc.rowIndex, ['DATA_HORA_ENVIO_VISTORIA'], 'DATA_HORA_ENVIO_VISTORIA', gman856110Rev3_dataHoraBrasil_());
+
+  gman856110Rev3_evento_('ENVIAR_PARA_VISTORIA_COM_PAYLOAD_COMPLETO', p);
+
+  return {
+    ok:true,
+    statusOS:'Aguardando vistoria',
+    statusVistoria:'Aguardando vistoria',
+    payloadPreservado:true,
+    mensagem:'Payload completo da conclusao preservado para vistoria.'
+  };
+}
+
+function gman856110Rev3_identificarEquipamentoOS_(loc, payload) {
+  payload = payload || {};
+  var sh = loc.sheet;
+  var row = sh.getRange(loc.rowIndex,1,1,sh.getLastColumn()).getValues()[0];
+  var h = gman856110Rev3_headers_(sh);
+
+  return {
+    grupo: String(payload.grupo || payload.GRUPO || payload.equipamento || payload.EQUIPAMENTO || gman856110Rev3_val_(row,h,['GRUPO','EQUIPAMENTO','ID_EQUIPAMENTO','CODIGO']) || '').trim(),
+    idEquipamento: String(payload.idEquipamento || payload.ID_EQUIPAMENTO || gman856110Rev3_val_(row,h,['ID_EQUIPAMENTO','CODIGO','EQUIPAMENTO','GRUPO']) || '').trim()
+  };
+}
+
+function gman856110Rev3_statusAberto_(status) {
+  var s = gman856110Rev3_texto_(status);
+  if (!s) return false;
+  if (s.indexOf('CONCL') >= 0) return false;
+  if (s.indexOf('CANCEL') >= 0) return false;
+  if (s.indexOf('ENCERR') >= 0) return false;
+  return true;
+}
+
+function gman856110Rev3_outraOSAbertaMesmoEquipamento_(loc, equip) {
+  if (!equip || (!equip.grupo && !equip.idEquipamento)) return null;
+
+  var sh = gman856110Rev3_abaOS_();
+  var data = sh.getDataRange().getValues();
+  var h = gman856110Rev3_headers_(sh);
+
+  var idxStatus = gman856110Rev3_idx_(h,['STATUS_OS','STATUS']);
+  var idxGrupo = gman856110Rev3_idx_(h,['GRUPO','EQUIPAMENTO','ID_EQUIPAMENTO','CODIGO']);
+  var idxId = gman856110Rev3_idx_(h,['ID_OS','IDOS','ID']);
+  var idxNum = gman856110Rev3_idx_(h,['NUMERO_OS','NUMERO','OS']);
+
+  for (var r=1;r<data.length;r++) {
+    if (r + 1 === loc.rowIndex) continue;
+    var status = idxStatus >= 0 ? data[r][idxStatus] : '';
+    if (!gman856110Rev3_statusAberto_(status)) continue;
+
+    var chave = idxGrupo >= 0 ? String(data[r][idxGrupo]).trim() : '';
+    if (chave && (chave === equip.grupo || chave === equip.idEquipamento)) {
+      return {
+        idOS: idxId >= 0 ? data[r][idxId] : '',
+        numeroOS: idxNum >= 0 ? data[r][idxNum] : '',
+        status: status
+      };
+    }
+  }
+  return null;
+}
+
+function gman856110Rev3_atualizarEquipamentoAposConclusao_(loc, payloadPendente, p) {
+  var equip = gman856110Rev3_identificarEquipamentoOS_(loc, payloadPendente);
+  if (!equip.grupo && !equip.idEquipamento) return {ok:false, motivo:'Equipamento/grupo nao identificado.'};
+
+  var condicaoFinal = gman856110Rev3_get_(loc.sheet, loc.rowIndex, ['CONDICAO_OPERACIONAL_FINAL','CONDICAO_FINAL','STATUS_FINAL']);
+  if (!condicaoFinal) condicaoFinal = gman856110Rev3_valorPayload_(payloadPendente, ['condicaoFinal','condicaoOperacionalFinal','statusFinal']) || 'Operando';
+
+  var outra = gman856110Rev3_outraOSAbertaMesmoEquipamento_(loc, equip);
+
+  if (typeof reavaliarStatusEquipamentoAposFechamento_ === 'function') {
+    try {
+      reavaliarStatusEquipamentoAposFechamento_({
+        idOS: p.idOS || p.ID_OS || payloadPendente.idOS || payloadPendente.ID_OS,
+        numeroOS: p.numeroOS || p.NUMERO_OS || payloadPendente.numeroOS || payloadPendente.NUMERO_OS,
+        grupo: equip.grupo,
+        idEquipamento: equip.idEquipamento,
+        condicaoFinal: condicaoFinal,
+        usuario: p.usuario || {},
+        versao: GMAN_856110_REV3_VERSAO
+      });
+    } catch(e) {}
+  }
+
+  var shEq;
+  try {
+    shEq = gman856110Rev3_aba_(['EQUIPAMENTOS','Equipamentos','EQUIPAMENTO']);
+  } catch(e) {
+    return {ok:false, motivo:'Aba EQUIPAMENTOS nao encontrada.'};
+  }
+
+  var data = shEq.getDataRange().getValues();
+  var h = gman856110Rev3_headers_(shEq);
+  var idxChaves = [
+    gman856110Rev3_idx_(h,['GRUPO','EQUIPAMENTO','ID_EQUIPAMENTO','CODIGO']),
+    gman856110Rev3_idx_(h,['ID_EQUIPAMENTO','CODIGO']),
+    gman856110Rev3_idx_(h,['NOME','DESCRICAO'])
+  ].filter(function(i,pos,arr){ return i >= 0 && arr.indexOf(i) === pos; });
+
+  for (var r=1;r<data.length;r++) {
+    var achou = false;
+    for (var c=0;c<idxChaves.length;c++) {
+      var v = String(data[r][idxChaves[c]] || '').trim();
+      if (v && (v === equip.grupo || v === equip.idEquipamento)) achou = true;
+    }
+    if (!achou) continue;
+
+    var rowIndex = r + 1;
+
+    if (outra) {
+      gman856110Rev3_set_(shEq, rowIndex, ['ID_OS_BLOQUEADORA'], 'ID_OS_BLOQUEADORA', outra.idOS);
+      gman856110Rev3_set_(shEq, rowIndex, ['NUMERO_OS_BASE_ATIVA'], 'NUMERO_OS_BASE_ATIVA', outra.numeroOS);
+      gman856110Rev3_set_(shEq, rowIndex, ['JUSTIFICATIVA_STATUS','JUSTIFICATIVA_CONDICAO_ATUAL'], 'JUSTIFICATIVA_STATUS', 'Mantido bloqueio por outra OS aberta: ' + (outra.numeroOS || outra.idOS || 'sem numero'));
+    } else {
+      gman856110Rev3_set_(shEq, rowIndex, ['STATUS_ATUAL','STATUS_OPERACIONAL','STATUS'], 'STATUS_ATUAL', condicaoFinal);
+      gman856110Rev3_set_(shEq, rowIndex, ['ID_OS_BLOQUEADORA'], 'ID_OS_BLOQUEADORA', '');
+      gman856110Rev3_set_(shEq, rowIndex, ['NUMERO_OS_BASE_ATIVA'], 'NUMERO_OS_BASE_ATIVA', '');
+      gman856110Rev3_set_(shEq, rowIndex, ['JUSTIFICATIVA_STATUS','JUSTIFICATIVA_CONDICAO_ATUAL'], 'JUSTIFICATIVA_STATUS', 'Status atualizado apos aprovacao de vistoria/conclusao da OS.');
+    }
+
+    gman856110Rev3_set_(shEq, rowIndex, ['DATA_ULTIMA_ATUALIZACAO','DATA_ATUALIZACAO'], 'DATA_ULTIMA_ATUALIZACAO', gman856110Rev3_dataBrasil_());
+    gman856110Rev3_set_(shEq, rowIndex, ['HORA_ULTIMA_ATUALIZACAO','HORA_ATUALIZACAO'], 'HORA_ULTIMA_ATUALIZACAO', gman856110Rev3_horaBrasil_());
+    gman856110Rev3_set_(shEq, rowIndex, ['USUARIO_ULTIMA_ATUALIZACAO','ATUALIZADO_POR'], 'USUARIO_ULTIMA_ATUALIZACAO', (p.usuario && (p.usuario.nome || p.usuario.login)) || 'GESTAO');
+
+    return {ok:true, outraOSAberta:!!outra, condicaoFinal:condicaoFinal};
+  }
+
+  return {ok:false, motivo:'Equipamento nao localizado na aba EQUIPAMENTOS.'};
+}
+
+function gman856110Rev3_registrarHistoricoConclusao_(loc, payloadPendente, p) {
+  var executor = (payloadPendente.usuario && (payloadPendente.usuario.nome || payloadPendente.usuario.login)) || payloadPendente.responsavel || payloadPendente.executor || '';
+  var aprovador = (p.usuario && (p.usuario.nome || p.usuario.login)) || p.usuarioNome || 'GESTAO';
+  var numeroOS = p.numeroOS || p.NUMERO_OS || payloadPendente.numeroOS || payloadPendente.NUMERO_OS || gman856110Rev3_get_(loc.sheet, loc.rowIndex, ['NUMERO_OS','NUMERO','OS']);
+  var idOS = p.idOS || p.ID_OS || payloadPendente.idOS || payloadPendente.ID_OS || gman856110Rev3_get_(loc.sheet, loc.rowIndex, ['ID_OS','ID']);
+  var grupo = payloadPendente.grupo || payloadPendente.GRUPO || gman856110Rev3_get_(loc.sheet, loc.rowIndex, ['GRUPO','EQUIPAMENTO','ID_EQUIPAMENTO']);
+  var condicao = gman856110Rev3_get_(loc.sheet, loc.rowIndex, ['CONDICAO_OPERACIONAL_FINAL','CONDICAO_FINAL','STATUS_FINAL']);
+  var servico = gman856110Rev3_get_(loc.sheet, loc.rowIndex, ['SERVICO_REALIZADO','SERVICO_EXECUTADO']);
+  var dataHora = gman856110Rev3_dataHoraBrasil_();
+
+  if (typeof registrarHistorico_ === 'function') {
+    try {
+      registrarHistorico_({
+        acao:'APROVACAO_VISTORIA_CONCLUSAO_OS',
+        tipo:'CONCLUSAO_OS',
+        idOS:idOS,
+        numeroOS:numeroOS,
+        grupo:grupo,
+        executor:executor,
+        aprovador:aprovador,
+        condicaoFinal:condicao,
+        servicoRealizado:servico,
+        dataHora:dataHora,
+        versao:GMAN_856110_REV3_VERSAO
+      });
+    } catch(e) {}
+  }
+
+  ['HISTORICO_OS','HISTORICO'].forEach(function(nomeAba){
+    var sh = gman856110Rev3_abaOuCria_(nomeAba);
+    if (sh.getLastRow() === 0) {
+      sh.appendRow(['DATA_HORA','ACAO','ID_OS','NUMERO_OS','GRUPO','EXECUTOR','GESTOR_APROVADOR','CONDICAO_FINAL','SERVICO_REALIZADO','VERSAO']);
+    }
+    sh.appendRow([dataHora,'APROVACAO_VISTORIA_CONCLUSAO_OS',idOS,numeroOS,grupo,executor,aprovador,condicao,servico,GMAN_856110_REV3_VERSAO]);
+  });
+
+  gman856110Rev3_evento_('CONCLUSAO_OS', {
+    idOS:idOS,
+    numeroOS:numeroOS,
+    usuario:p.usuario || {},
+    observacao:'Conclusao oficial apos aprovacao de vistoria.'
+  });
+}
+
+function gman856110Rev3_recalcularKPIs_(loc, payloadPendente, p) {
+  if (typeof calcularKPIs_ === 'function') {
+    try { return calcularKPIs_({gravar:true, origem:'APROVACAO_VISTORIA_CONCLUSAO_OS', versao:GMAN_856110_REV3_VERSAO}); } catch(e) {}
+  }
+  if (typeof calcularKPIs === 'function') {
+    try { return calcularKPIs({gravar:true, origem:'APROVACAO_VISTORIA_CONCLUSAO_OS', versao:GMAN_856110_REV3_VERSAO}); } catch(e) {}
+  }
+
+  var sh = gman856110Rev3_abaOuCria_('KPIS');
+  if (sh.getLastRow() === 0) {
+    sh.appendRow(['DATA_HORA','EVENTO','ID_OS','NUMERO_OS','GRUPO','STATUS_OS','RESPONSAVEL','VERSAO']);
+  }
+  sh.appendRow([
+    gman856110Rev3_dataHoraBrasil_(),
+    'CONCLUSAO_OS',
+    p.idOS || p.ID_OS || payloadPendente.idOS || payloadPendente.ID_OS || '',
+    p.numeroOS || p.NUMERO_OS || payloadPendente.numeroOS || payloadPendente.NUMERO_OS || '',
+    payloadPendente.grupo || payloadPendente.GRUPO || '',
+    'Concluida',
+    (p.usuario && (p.usuario.nome || p.usuario.login)) || '',
+    GMAN_856110_REV3_VERSAO
+  ]);
+  return {ok:true, fallback:true};
+}
+
+function gman856110Rev3_aprovarVistoria_(p) {
+  if (!gman856110Rev3_ehGestao_(p.usuario || {})) return {ok:false, erro:'Apenas gestao pode aprovar vistoria.'};
+
+  var loc = gman856110Rev3_localizarOS_(p);
+  var sh = loc.sheet;
+
+  var consolidacao = gman856110Rev3_consolidarCamposFinais_(loc, p);
+  if (!consolidacao.ok) return {ok:false, erro:consolidacao.erro || 'Falha na consolidacao dos campos finais.'};
+
+  var payloadPendente = consolidacao.payload || gman856110Rev3_lerPayloadPendente_(loc);
+
+  gman856110Rev3_set_(sh, loc.rowIndex, ['STATUS_OS'], 'STATUS_OS', 'Concluida');
+  gman856110Rev3_set_(sh, loc.rowIndex, ['STATUS_VISTORIA'], 'STATUS_VISTORIA', 'Aprovada');
+  gman856110Rev3_set_(sh, loc.rowIndex, ['DATA_HORA_APROVACAO_VISTORIA'], 'DATA_HORA_APROVACAO_VISTORIA', gman856110Rev3_dataHoraBrasil_());
+  gman856110Rev3_set_(sh, loc.rowIndex, ['OBSERVACAO_VISTORIA'], 'OBSERVACAO_VISTORIA', p.observacaoVistoria || '');
+
+  var equipamento = gman856110Rev3_atualizarEquipamentoAposConclusao_(loc, payloadPendente, p);
+  gman856110Rev3_registrarHistoricoConclusao_(loc, payloadPendente, p);
+  var kpi = gman856110Rev3_recalcularKPIs_(loc, payloadPendente, p);
+
+  gman856110Rev3_evento_('APROVAR_VISTORIA_E_CONCLUIR_OS_OFICIALMENTE', p);
+
+  return {
+    ok:true,
+    statusOS:'Concluida',
+    statusVistoria:'Aprovada',
+    dadosConsolidados:true,
+    equipamento:equipamento,
+    kpi:kpi
+  };
+}
+
+function gman856110Rev3_reprovarVistoria_(p) {
+  if (!gman856110Rev3_ehGestao_(p.usuario || {})) return {ok:false, erro:'Apenas gestao pode reprovar vistoria.'};
+
+  var motivo = String(p.motivoReprovacao || p.motivo || '').trim();
+  if (!motivo) return {ok:false, erro:'Motivo de reprovacao obrigatorio.'};
+
+  var loc = gman856110Rev3_localizarOS_(p);
+  var sh = loc.sheet;
+
+  /* Nao apaga PAYLOAD_CONCLUSAO_VISTORIA_JSON nem campos *_VISTORIA.
+     Os dados pendentes permanecem preservados para ajuste/correcao. */
+  gman856110Rev3_set_(sh, loc.rowIndex, ['STATUS_OS'], 'STATUS_OS', 'Em andamento');
+  gman856110Rev3_set_(sh, loc.rowIndex, ['STATUS_VISTORIA'], 'STATUS_VISTORIA', 'Reprovada');
+  gman856110Rev3_set_(sh, loc.rowIndex, ['MOTIVO_REPROVACAO_VISTORIA'], 'MOTIVO_REPROVACAO_VISTORIA', motivo);
+  gman856110Rev3_set_(sh, loc.rowIndex, ['DATA_HORA_REPROVACAO_VISTORIA'], 'DATA_HORA_REPROVACAO_VISTORIA', gman856110Rev3_dataHoraBrasil_());
+
+  gman856110Rev3_evento_('REPROVAR_VISTORIA_PRESERVAR_PAYLOAD', p);
+
+  return {
+    ok:true,
+    statusOS:'Em andamento',
+    statusVistoria:'Reprovada',
+    motivo:motivo,
+    payloadPreservado:true
+  };
+}
+
+function gman856110Rev3_calcularKPIsGestao_(p) {
+  if (!gman856110Rev3_ehGestao_(p.usuario || {})) return {ok:false, erro:'KPIs executivos restritos a gestao.'};
+  var sh = gman856110Rev3_abaOS_();
+  var data = sh.getDataRange().getValues();
+  var h = gman856110Rev3_headers_(sh);
+  var idxStatus = gman856110Rev3_idx_(h,['STATUS_OS','STATUS']);
+  var idxA = gman856110Rev3_idx_(h,['DATA_ABERTURA','ABERTURA','DATA_HORA_ABERTURA']);
+  var idxC = gman856110Rev3_idx_(h,['DATA_CONCLUSAO','CONCLUSAO','DATA_HORA_CONCLUSAO']);
+  var idxEquip = gman856110Rev3_idx_(h,['EQUIPAMENTO','GRUPO','ID_EQUIPAMENTO','CODIGO']);
+  var tempos = [];
+  var falhas = {};
+  for (var r=1;r<data.length;r++) {
+    var row = data[r];
+    var status = gman856110Rev3_texto_(idxStatus >= 0 ? row[idxStatus] : '');
+    var equip = idxEquip >= 0 ? String(row[idxEquip] || '').trim() : '';
+    if (equip) falhas[equip] = (falhas[equip] || 0) + 1;
+    if (status.indexOf('CONCL') >= 0 && idxA >= 0 && idxC >= 0) {
+      var a = new Date(row[idxA]);
+      var c = new Date(row[idxC]);
+      if (!isNaN(a.getTime()) && !isNaN(c.getTime()) && c >= a) tempos.push((c-a)/3600000);
+    }
+  }
+  var mttr = tempos.length ? tempos.reduce(function(a,b){return a+b;},0)/tempos.length : null;
+  var totalFalhas = Object.keys(falhas).reduce(function(acc,k){ return acc + falhas[k]; },0);
+  var qtdEquip = Math.max(Object.keys(falhas).length,1);
+  var mtbf = totalFalhas > qtdEquip ? (30*24*qtdEquip)/totalFalhas : null;
+  return {ok:true,kpis:{totalOS:Math.max(data.length-1,0),osConcluidas:tempos.length,mttrHoras:mttr,mtbfHoras:mtbf,calculadoEm:gman856110Rev3_dataHoraBrasil_(),versao:GMAN_856110_REV3_VERSAO}};
+}
+
+function gman856110Rev3_sistemaNormalizado_(v) {
+  var t = gman856110Rev3_texto_(v);
+  var m = t.match(/(^|[^0-9])([1-7][0-9]{2})([^0-9]|$)/);
+  if (m && m[2]) {
+    var n = parseInt(m[2],10);
+    if (n === 500) return '300';
+    if (n >= 100 && n <= 199) return '100';
+    if (n >= 200 && n <= 299) return '200';
+    if (n >= 300 && n <= 399) return '300';
+    if (n >= 400 && n <= 499) return '400';
+    if (n >= 600 && n <= 699) return '600';
+    if (n >= 700 && n <= 799) return '700';
+  }
+  return String(v || '').trim();
+}
+
+function gman856110Rev3_normalizarEndereco_(row, h) {
+  var lat = gman856110Rev3_parseNumero_(gman856110Rev3_val_(row,h,['LATITUDE','LAT']));
+  var lng = gman856110Rev3_parseNumero_(gman856110Rev3_val_(row,h,['LONGITUDE','LON','LNG']));
+  var latOk = lat !== null && lat >= -90 && lat <= 90;
+  var lngOk = lng !== null && lng >= -180 && lng <= 180;
+  var endereco = String(gman856110Rev3_val_(row,h,['ENDERECO','ADDRESS','LOCALIZACAO']) || '').trim();
+  var municipio = String(gman856110Rev3_val_(row,h,['MUNICIPIO','CIDADE']) || '').trim();
+  var sistema = gman856110Rev3_sistemaNormalizado_(gman856110Rev3_val_(row,h,['SISTEMA_GMAN','SISTEMA','SYSTEM','SYSTEMCODE']));
+  return {
+    codigo: gman856110Rev3_val_(row,h,['CODIGO','ID','ESTACAO']),
+    estacao: gman856110Rev3_val_(row,h,['ESTACAO']),
+    nome: gman856110Rev3_val_(row,h,['NOME_ESTACAO','NOME','ESTACAO','LOCAL']),
+    sistema: sistema,
+    endereco: endereco,
+    municipio: municipio,
+    latitude: latOk ? lat : null,
+    longitude: lngOk ? lng : null,
+    coordenadaConfirmada: latOk && lngOk,
+    localizacaoConfirmada: (latOk && lngOk) || !!endereco,
+    localizacaoConfirmadaParaPino: latOk && lngOk,
+    fonte: 'ENDERECOS_ESTACOES',
+    versao: GMAN_856110_REV3_VERSAO
+  };
+}
+
+function gman856110Rev3_normalizarListaEnderecosOficial_(lista) {
+  if (!Array.isArray(lista)) return [];
+  return lista.map(function(item){
+    var lat = gman856110Rev3_parseNumero_(item.latitude || item.LATITUDE || item.lat || item.LAT);
+    var lng = gman856110Rev3_parseNumero_(item.longitude || item.LONGITUDE || item.lng || item.LNG || item.lon || item.LON);
+    var latOk = lat !== null && lat >= -90 && lat <= 90;
+    var lngOk = lng !== null && lng >= -180 && lng <= 180;
+    var endereco = String(item.endereco || item.ENDERECO || item.address || '').trim();
+    return {
+      codigo: item.codigo || item.CODIGO || item.id || item.ID || item.estacao || item.ESTACAO || '',
+      estacao: item.estacao || item.ESTACAO || '',
+      nome: item.nome || item.NOME || item.NOME_ESTACAO || item.estacao || item.ESTACAO || '',
+      sistema: gman856110Rev3_sistemaNormalizado_(item.SISTEMA_GMAN || item.sistema || item.SISTEMA || item.systemCode || ''),
+      endereco: endereco,
+      municipio: item.municipio || item.MUNICIPIO || '',
+      latitude: latOk ? lat : null,
+      longitude: lngOk ? lng : null,
+      coordenadaConfirmada: latOk && lngOk,
+      localizacaoConfirmada: (latOk && lngOk) || !!endereco,
+      localizacaoConfirmadaParaPino: latOk && lngOk,
+      fonte: item.fonte || 'listarEnderecosEstacoes',
+      versao: GMAN_856110_REV3_VERSAO
+    };
+  });
+}
+
+function gman856110Rev3_obterEnderecosEstacoes_(p) {
+  var oficial = null;
+
+  if (typeof listarEnderecosEstacoes === 'function') {
+    oficial = listarEnderecosEstacoes(p);
+  } else if (typeof listarEnderecosEstacoesGMAN === 'function') {
+    oficial = listarEnderecosEstacoesGMAN(p);
+  } else if (typeof obterEnderecosEstacoes === 'function') {
+    oficial = obterEnderecosEstacoes(p);
+  } else if (typeof listarEnderecosEstacoes_ === 'function') {
+    oficial = listarEnderecosEstacoes_(p);
+  }
+
+  if (oficial) {
+    var listaOficial = Array.isArray(oficial) ? oficial : (oficial.enderecos || oficial.dados || oficial.lista || []);
+    return {
+      ok:true,
+      enderecos:gman856110Rev3_normalizarListaEnderecosOficial_(listaOficial),
+      total:listaOficial.length,
+      fonte:'rota_oficial_reaproveitada',
+      versao:GMAN_856110_REV3_VERSAO
+    };
+  }
+
+  var sh = gman856110Rev3_aba_(['ENDERECOS_ESTACOES','ENDERECOS ESTACOES','ENDERECOS']);
+  var data = sh.getDataRange().getValues();
+  var h = gman856110Rev3_headers_(sh);
+  var out = [];
+  for (var r=1;r<data.length;r++) out.push(gman856110Rev3_normalizarEndereco_(data[r],h));
+
+  return {ok:true,enderecos:out,total:out.length,fonte:'ENDERECOS_ESTACOES',versao:GMAN_856110_REV3_VERSAO};
+}
+
+function gman856110Rev3_dispatcher_(payload) {
+  payload = payload || {};
+  var acao = String(payload.acao || payload.action || '').trim();
+  if (acao === 'autenticarUsuarioOficial856110') return gman856110Rev3_autenticarUsuarioOficial_(payload);
+  if (acao === 'registrarOrigemDemanda856110') return gman856110Rev3_validarOrigem_(payload);
+  if (acao === 'enviarParaVistoria856110') return gman856110Rev3_enviarParaVistoria_(payload);
+  if (acao === 'aprovarVistoria856110') return gman856110CodexRev3_aprovarVistoriaCorrigida_(payload);
+  if (acao === 'reprovarVistoria856110') return gman856110Rev3_reprovarVistoria_(payload);
+  if (acao === 'calcularKPIsGestao856110') return gman856110Rev3_calcularKPIsGestao_(payload);
+  if (acao === 'obterEnderecosEstacoes856110') return gman856110Rev3_obterEnderecosEstacoes_(payload);
+  return null;
+}
+/* END GMAN_8_5_6_110_CORRIGIDO_SEGURO_REV3_APPS_SCRIPT */
+/* START GMAN_8_5_6_110_REV3A_CODEX_PATCH_STATUS_ATUAL */
+var GMAN_856110_CODEX_REV3_PATCH_VERSION = 'GMAN 8.5.6.110 REV3A CODEX PATCH STATUS_ATUAL 2026-05-11';
+
+function gman856110CodexRev3_chr_(code) {
+  return String.fromCharCode(code);
+}
+
+function gman856110CodexRev3_statusConcluida_() {
+  return 'Conclu' + gman856110CodexRev3_chr_(0x00ED) + 'da';
+}
+
+function gman856110CodexRev3_nao_() {
+  return 'N' + gman856110CodexRev3_chr_(0x00C3) + 'O';
+}
+
+function gman856110CodexRev3_texto_(v) {
+  return v === null || v === undefined ? '' : String(v).trim();
+}
+
+function gman856110CodexRev3_canon_(v) {
+  var s = gman856110CodexRev3_texto_(v).toUpperCase();
+  try { s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch(e) {}
+  return s.replace(/[^A-Z0-9]+/g, ' ').trim();
+}
+
+function gman856110CodexRev3_ss_() {
+  try {
+    if (typeof ss_ === 'function') return ss_();
+  } catch(e) {}
+  return SpreadsheetApp.getActiveSpreadsheet();
+}
+
+function gman856110CodexRev3_sheet_(nomes, criar) {
+  var ss = gman856110CodexRev3_ss_();
+  for (var i = 0; i < nomes.length; i++) {
+    var sh = ss.getSheetByName(nomes[i]);
+    if (sh) return sh;
+  }
+  if (criar) return ss.insertSheet(nomes[0]);
+  return null;
+}
+
+function gman856110CodexRev3_headers_(sh) {
+  if (!sh || sh.getLastColumn() < 1) return [];
+  return sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(function(h) {
+    return gman856110CodexRev3_texto_(h);
+  });
+}
+
+function gman856110CodexRev3_idx_(headers, aliases) {
+  var canonHeaders = headers.map(gman856110CodexRev3_canon_);
+  for (var i = 0; i < aliases.length; i++) {
+    var idx = canonHeaders.indexOf(gman856110CodexRev3_canon_(aliases[i]));
+    if (idx >= 0) return idx;
+  }
+  return -1;
+}
+
+function gman856110CodexRev3_ensureCol_(sh, nome) {
+  var h = gman856110CodexRev3_headers_(sh);
+  var idx = gman856110CodexRev3_idx_(h, [nome]);
+  if (idx >= 0) return idx + 1;
+  var col = sh.getLastColumn() + 1;
+  sh.getRange(1, col).setValue(nome);
+  return col;
+}
+
+function gman856110CodexRev3_get_(sh, rowIndex, aliases) {
+  var h = gman856110CodexRev3_headers_(sh);
+  var idx = gman856110CodexRev3_idx_(h, aliases);
+  if (idx < 0) return '';
+  return sh.getRange(rowIndex, idx + 1).getValue();
+}
+
+function gman856110CodexRev3_set_(sh, rowIndex, aliases, fallback, value) {
+  var h = gman856110CodexRev3_headers_(sh);
+  var idx = gman856110CodexRev3_idx_(h, aliases);
+  var col = idx >= 0 ? idx + 1 : gman856110CodexRev3_ensureCol_(sh, fallback);
+  sh.getRange(rowIndex, col).setValue(value);
+}
+
+function gman856110CodexRev3_payloadPendente_(loc) {
+  try {
+    if (typeof gman856110Rev3_lerPayloadPendente_ === 'function') {
+      return gman856110Rev3_lerPayloadPendente_(loc) || {};
+    }
+  } catch(e) {}
+  var raw = gman856110CodexRev3_get_(loc.sheet, loc.rowIndex, ['PAYLOAD_CONCLUSAO_VISTORIA_JSON', 'PAYLOAD_CONCLUSÃO_VISTORIA_JSON']);
+  if (!raw) return {};
+  try { return JSON.parse(raw); } catch(e2) { return {}; }
+}
+
+function gman856110CodexRev3_payloadVal_(obj, aliases) {
+  obj = obj || {};
+  for (var i = 0; i < aliases.length; i++) {
+    if (obj[aliases[i]] !== undefined && obj[aliases[i]] !== null && String(obj[aliases[i]]).trim() !== '') return obj[aliases[i]];
+  }
+  return '';
+}
+
+function gman856110CodexRev3_data_() {
+  try {
+    if (typeof gman856110Rev3_dataBrasil_ === 'function') return gman856110Rev3_dataBrasil_();
+  } catch(e) {}
+  return Utilities.formatDate(new Date(), 'America/Sao_Paulo', 'dd/MM/yyyy');
+}
+
+function gman856110CodexRev3_hora_() {
+  try {
+    if (typeof gman856110Rev3_horaBrasil_ === 'function') return gman856110Rev3_horaBrasil_();
+  } catch(e) {}
+  return Utilities.formatDate(new Date(), 'America/Sao_Paulo', 'HH:mm:ss');
+}
+
+function gman856110CodexRev3_usuarioNome_(p) {
+  var u = p && p.usuario ? p.usuario : {};
+  return gman856110CodexRev3_texto_(u.nome || u.login || p.usuarioNome || p.usuario || 'GESTAO');
+}
+
+function gman856110CodexRev3_idOS_(loc, payload, p) {
+  return gman856110CodexRev3_texto_(
+    (p && (p.idOS || p.ID_OS)) ||
+    (payload && (payload.idOS || payload.ID_OS)) ||
+    gman856110CodexRev3_get_(loc.sheet, loc.rowIndex, ['ID_OS', 'ID'])
+  );
+}
+
+function gman856110CodexRev3_numeroOS_(loc, payload, p) {
+  return gman856110CodexRev3_texto_(
+    (p && (p.numeroOS || p.NUMERO_OS)) ||
+    (payload && (payload.numeroOS || payload.NUMERO_OS)) ||
+    gman856110CodexRev3_get_(loc.sheet, loc.rowIndex, ['NUMERO_OS', 'NUMERO', 'OS'])
+  );
+}
+
+function gman856110CodexRev3_idEquipamento_(loc, payload) {
+  return gman856110CodexRev3_texto_(
+    (payload && (payload.idEquipamento || payload.ID_EQUIPAMENTO || payload.grupo || payload.GRUPO)) ||
+    gman856110CodexRev3_get_(loc.sheet, loc.rowIndex, ['ID_EQUIPAMENTO', 'GRUPO', 'EQUIPAMENTO', 'CODIGO'])
+  );
+}
+
+function gman856110CodexRev3_statusFechado_(status) {
+  var c = gman856110CodexRev3_canon_(status);
+  return ['CONCLUIDA', 'CANCELADA', 'ENCERRADA', 'FECHADA', 'FINALIZADA'].indexOf(c) >= 0;
+}
+
+function gman856110CodexRev3_outraOSAtiva_(loc, idEquip, idOSAtual) {
+  var sh = loc.sheet;
+  var data = sh.getDataRange().getValues();
+  var h = gman856110CodexRev3_headers_(sh);
+  var idxId = gman856110CodexRev3_idx_(h, ['ID_OS', 'ID']);
+  var idxNum = gman856110CodexRev3_idx_(h, ['NUMERO_OS', 'NUMERO', 'OS']);
+  var idxEquip = gman856110CodexRev3_idx_(h, ['ID_EQUIPAMENTO', 'GRUPO', 'EQUIPAMENTO', 'CODIGO']);
+  var idxStatus = gman856110CodexRev3_idx_(h, ['STATUS_OS', 'STATUS']);
+  if (idxEquip < 0 || idxStatus < 0) return null;
+
+  for (var r = 1; r < data.length; r++) {
+    var rowId = idxId >= 0 ? gman856110CodexRev3_texto_(data[r][idxId]) : '';
+    if (rowId && rowId === idOSAtual) continue;
+    var eq = gman856110CodexRev3_texto_(data[r][idxEquip]);
+    if (!eq || eq !== idEquip) continue;
+    var st = gman856110CodexRev3_texto_(data[r][idxStatus]);
+    if (!gman856110CodexRev3_statusFechado_(st)) {
+      return {
+        idOS: rowId,
+        numeroOS: idxNum >= 0 ? gman856110CodexRev3_texto_(data[r][idxNum]) : '',
+        status: st || 'Em manutencao (operando)'
+      };
+    }
+  }
+  return null;
+}
+
+function gman856110CodexRev3_condicaoFinal_(loc, payload) {
+  return gman856110CodexRev3_texto_(
+    gman856110CodexRev3_get_(loc.sheet, loc.rowIndex, ['CONDICAO_OPERACIONAL_FINAL', 'CONDICAO_FINAL', 'STATUS_FINAL']) ||
+    gman856110CodexRev3_payloadVal_(payload, ['condicaoFinal', 'condicaoOperacionalFinal', 'statusFinal']) ||
+    'Operando'
+  );
+}
+
+function gman856110CodexRev3_justificativaFinal_(loc, payload) {
+  return gman856110CodexRev3_texto_(
+    gman856110CodexRev3_get_(loc.sheet, loc.rowIndex, ['JUSTIFICATIVA_CONDICAO_FINAL', 'OBSERVACAO_FINAL', 'OBSERVACAO']) ||
+    gman856110CodexRev3_payloadVal_(payload, ['justificativaCondicaoFinal', 'observacaoFinal', 'observacao', 'justificativa']) ||
+    'Conclusao aprovada em vistoria.'
+  );
+}
+
+function gman856110CodexRev3_parseKM_(v) {
+  if (v === null || v === undefined || String(v).trim() === '') return null;
+  var n = Number(String(v).trim().replace(',', '.'));
+  return isFinite(n) ? n : null;
+}
+
+function gman856110CodexRev3_semUsoVeiculo_(loc, payload) {
+  var sh = loc.sheet;
+  var semUso = gman856110CodexRev3_canon_(
+    gman856110CodexRev3_get_(sh, loc.rowIndex, ['SEM_USO_VEICULO']) ||
+    gman856110CodexRev3_payloadVal_(payload, ['semUsoVeiculo', 'semUsoDeVeiculo', 'SEM_USO_VEICULO'])
+  );
+  return semUso === 'TRUE' || semUso === 'SIM' || semUso === 'S' || semUso === '1' || semUso.indexOf('SEM USO') >= 0;
+}
+
+function gman856110CodexRev3_validarKM_(loc, payload) {
+  var sh = loc.sheet;
+  var semUsoBool = gman856110CodexRev3_semUsoVeiculo_(loc, payload);
+
+  if (semUsoBool) {
+    return { ok:true, semUso:true, kmInicial:null, kmFinal:null, kmRodado:'' };
+  }
+
+  var kmIniRaw = gman856110CodexRev3_get_(sh, loc.rowIndex, ['KM_INICIAL']) ||
+                 gman856110CodexRev3_payloadVal_(payload, ['kmInicial', 'km_inicial', 'KM_INICIAL']);
+  var kmFimRaw = gman856110CodexRev3_get_(sh, loc.rowIndex, ['KM_FINAL']) ||
+                 gman856110CodexRev3_payloadVal_(payload, ['kmFinal', 'km_final', 'KM_FINAL']);
+
+  var kmIni = gman856110CodexRev3_parseKM_(kmIniRaw);
+  var kmFim = gman856110CodexRev3_parseKM_(kmFimRaw);
+
+  if (kmIni === null || kmFim === null) {
+    return { ok:false, erro:'KM_INICIAL e KM_FINAL sao obrigatorios quando houve uso de veiculo.' };
+  }
+
+  if (kmFim < kmIni) {
+    return { ok:false, erro:'KM_FINAL nao pode ser menor que KM_INICIAL.' };
+  }
+
+  return { ok:true, semUso:false, kmInicial:kmIni, kmFinal:kmFim, kmRodado:(kmFim - kmIni) };
+}
+
+function gman856110CodexRev3_reforcarCamposFinais_(loc, payload, p) {
+  var sh = loc.sheet;
+  var km = gman856110CodexRev3_validarKM_(loc, payload);
+  if (!km.ok) {
+    gman856110CodexRev3_set_(sh, loc.rowIndex, ['VALIDACAO_KM'], 'VALIDACAO_KM', 'ERRO - ' + km.erro);
+    return km;
+  }
+
+  gman856110CodexRev3_set_(sh, loc.rowIndex, ['STATUS_OS'], 'STATUS_OS', gman856110CodexRev3_statusConcluida_());
+  gman856110CodexRev3_set_(sh, loc.rowIndex, ['STATUS_VISTORIA'], 'STATUS_VISTORIA', 'Aprovada');
+  gman856110CodexRev3_set_(sh, loc.rowIndex, ['FINALIZADO_POR'], 'FINALIZADO_POR', gman856110CodexRev3_usuarioNome_(p));
+  gman856110CodexRev3_set_(sh, loc.rowIndex, ['DATA_CONCLUSAO', 'DATA_CONCLUSÃO'], 'DATA_CONCLUSAO', gman856110CodexRev3_data_());
+  gman856110CodexRev3_set_(sh, loc.rowIndex, ['HORA_CONCLUSAO', 'HORA_CONCLUSÃO'], 'HORA_CONCLUSAO', gman856110CodexRev3_hora_());
+  gman856110CodexRev3_set_(sh, loc.rowIndex, ['BLOQUEIO_RETORNO'], 'BLOQUEIO_RETORNO', gman856110CodexRev3_nao_());
+
+  if (km.semUso) {
+    gman856110CodexRev3_set_(sh, loc.rowIndex, ['SEM_USO_VEICULO'], 'SEM_USO_VEICULO', 'SIM');
+    gman856110CodexRev3_set_(sh, loc.rowIndex, ['MOTORISTA'], 'MOTORISTA', '');
+    gman856110CodexRev3_set_(sh, loc.rowIndex, ['PREFIXO_VEICULO'], 'PREFIXO_VEICULO', '');
+    gman856110CodexRev3_set_(sh, loc.rowIndex, ['KM_INICIAL'], 'KM_INICIAL', '');
+    gman856110CodexRev3_set_(sh, loc.rowIndex, ['KM_FINAL'], 'KM_FINAL', '');
+    gman856110CodexRev3_set_(sh, loc.rowIndex, ['KM_RODADO'], 'KM_RODADO', '');
+    gman856110CodexRev3_set_(sh, loc.rowIndex, ['VALIDACAO_KM'], 'VALIDACAO_KM', 'SEM USO DE VEICULO');
+  } else {
+    gman856110CodexRev3_set_(sh, loc.rowIndex, ['SEM_USO_VEICULO'], 'SEM_USO_VEICULO', gman856110CodexRev3_nao_());
+    gman856110CodexRev3_set_(sh, loc.rowIndex, ['KM_INICIAL'], 'KM_INICIAL', km.kmInicial);
+    gman856110CodexRev3_set_(sh, loc.rowIndex, ['KM_FINAL'], 'KM_FINAL', km.kmFinal);
+    gman856110CodexRev3_set_(sh, loc.rowIndex, ['KM_RODADO'], 'KM_RODADO', km.kmRodado);
+    gman856110CodexRev3_set_(sh, loc.rowIndex, ['VALIDACAO_KM'], 'VALIDACAO_KM', 'OK');
+  }
+
+  return { ok:true, km:km };
+}
+
+function gman856110CodexRev3_atualizarStatusAtualOficial_(loc, payload, p) {
+  var idEquip = gman856110CodexRev3_idEquipamento_(loc, payload);
+  var idOS = gman856110CodexRev3_idOS_(loc, payload, p);
+  var numeroOS = gman856110CodexRev3_numeroOS_(loc, payload, p);
+  var condicaoFinal = gman856110CodexRev3_condicaoFinal_(loc, payload);
+  var justificativa = gman856110CodexRev3_justificativaFinal_(loc, payload);
+  var usuarioNome = gman856110CodexRev3_usuarioNome_(p);
+  if (!idEquip) return { ok:false, motivo:'ID_EQUIPAMENTO nao identificado.' };
+
+  try {
+    if (typeof reavaliarStatusEquipamentoAposFechamento_ === 'function') {
+      reavaliarStatusEquipamentoAposFechamento_(idEquip, idOS, justificativa, { nome:usuarioNome, perfil:'GESTAO', area:'TODOS' });
+    }
+  } catch(e) {}
+
+  var shStatus = gman856110CodexRev3_sheet_(['STATUS_ATUAL', 'STATUS ATUAL'], false);
+  if (!shStatus) return { ok:false, motivo:'Aba STATUS_ATUAL nao encontrada.' };
+
+  var data = shStatus.getDataRange().getValues();
+  var h = gman856110CodexRev3_headers_(shStatus);
+  var idxEquip = gman856110CodexRev3_idx_(h, ['ID_EQUIPAMENTO', 'GRUPO', 'EQUIPAMENTO', 'CODIGO']);
+  if (idxEquip < 0) return { ok:false, motivo:'Coluna ID_EQUIPAMENTO nao encontrada em STATUS_ATUAL.' };
+
+  var outra = gman856110CodexRev3_outraOSAtiva_(loc, idEquip, idOS);
+  for (var r = 1; r < data.length; r++) {
+    if (gman856110CodexRev3_texto_(data[r][idxEquip]) !== idEquip) continue;
+    var rowIndex = r + 1;
+    if (outra) {
+      gman856110CodexRev3_set_(shStatus, rowIndex, ['STATUS_OPERACIONAL', 'STATUS_ATUAL'], 'STATUS_OPERACIONAL', outra.status || 'Em manutencao (operando)');
+      gman856110CodexRev3_set_(shStatus, rowIndex, ['STATUS_VISUAL_GRUPO', 'STATUS_VISUAL'], 'STATUS_VISUAL_GRUPO', outra.status || 'Em manutencao (operando)');
+      gman856110CodexRev3_set_(shStatus, rowIndex, ['ID_OS_BLOQUEADORA'], 'ID_OS_BLOQUEADORA', outra.idOS || '');
+      gman856110CodexRev3_set_(shStatus, rowIndex, ['NUMERO_OS_BASE_ATIVA'], 'NUMERO_OS_BASE_ATIVA', outra.numeroOS || '');
+      gman856110CodexRev3_set_(shStatus, rowIndex, ['JUSTIFICATIVA_STATUS', 'JUSTIFICATIVA'], 'JUSTIFICATIVA_STATUS', 'Mantido bloqueio por outra OS ativa: ' + (outra.numeroOS || outra.idOS || 'sem numero'));
+    } else {
+      gman856110CodexRev3_set_(shStatus, rowIndex, ['STATUS_OPERACIONAL', 'STATUS_ATUAL'], 'STATUS_OPERACIONAL', condicaoFinal);
+      gman856110CodexRev3_set_(shStatus, rowIndex, ['STATUS_VISUAL_GRUPO', 'STATUS_VISUAL'], 'STATUS_VISUAL_GRUPO', condicaoFinal);
+      gman856110CodexRev3_set_(shStatus, rowIndex, ['ID_OS_BLOQUEADORA'], 'ID_OS_BLOQUEADORA', '');
+      gman856110CodexRev3_set_(shStatus, rowIndex, ['NUMERO_OS_BASE_ATIVA'], 'NUMERO_OS_BASE_ATIVA', '');
+      gman856110CodexRev3_set_(shStatus, rowIndex, ['JUSTIFICATIVA_STATUS', 'JUSTIFICATIVA'], 'JUSTIFICATIVA_STATUS', justificativa);
+    }
+    gman856110CodexRev3_set_(shStatus, rowIndex, ['DATA_ULTIMA_ALTERACAO', 'DATA_ULTIMA_ATUALIZACAO', 'DATA'], 'DATA_ULTIMA_ALTERACAO', gman856110CodexRev3_data_());
+    gman856110CodexRev3_set_(shStatus, rowIndex, ['HORA_ULTIMA_ALTERACAO', 'HORA_ULTIMA_ATUALIZACAO', 'HORA'], 'HORA_ULTIMA_ALTERACAO', gman856110CodexRev3_hora_());
+    gman856110CodexRev3_set_(shStatus, rowIndex, ['USUARIO_ULTIMA_ALTERACAO', 'USUARIO_ULTIMA_ATUALIZACAO', 'USUARIO'], 'USUARIO_ULTIMA_ALTERACAO', usuarioNome);
+    gman856110CodexRev3_set_(shStatus, rowIndex, ['VERSAO_REGRA', 'VERSAO'], 'VERSAO_REGRA', GMAN_856110_CODEX_REV3_PATCH_VERSION);
+    return { ok:true, rowIndex:rowIndex, idEquipamento:idEquip, condicaoFinal:condicaoFinal, outraOSAtiva:!!outra };
+  }
+
+  return { ok:false, motivo:'Equipamento nao localizado em STATUS_ATUAL: ' + idEquip };
+}
+
+function gman856110CodexRev3_recalcularKpisAposStatusAtual_() {
+  try {
+    if (typeof calcularKPIs_ === 'function') return calcularKPIs_({ gravar:true, origem:'CODEX_PATCH_STATUS_ATUAL', versao:GMAN_856110_CODEX_REV3_PATCH_VERSION });
+  } catch(e) {
+    return { ok:false, erro:String(e && e.message ? e.message : e) };
+  }
+  return { ok:false, motivo:'calcularKPIs_ nao disponivel.' };
+}
+
+function gman856110CodexRev3_aprovarVistoriaCorrigida_(p) {
+  if (typeof gman856110Rev3_aprovarVistoria_ !== 'function') {
+    return { ok:false, erro:'Funcao REV3 original nao encontrada.' };
+  }
+
+  var locPre = gman856110Rev3_localizarOS_(p);
+  var payloadPre = gman856110CodexRev3_payloadPendente_(locPre);
+  var kmPre = gman856110CodexRev3_validarKM_(locPre, payloadPre);
+  if (!kmPre.ok) {
+    gman856110CodexRev3_set_(locPre.sheet, locPre.rowIndex, ['VALIDACAO_KM'], 'VALIDACAO_KM', 'ERRO - ' + kmPre.erro);
+    return { ok:false, erro:kmPre.erro, validacaoKM:'ERRO' };
+  }
+
+  var res = gman856110Rev3_aprovarVistoria_(p);
+  if (!res || res.ok === false) return res;
+
+  var loc = gman856110Rev3_localizarOS_(p);
+  var payload = gman856110CodexRev3_payloadPendente_(loc);
+  var campos = gman856110CodexRev3_reforcarCamposFinais_(loc, payload, p);
+  if (!campos.ok) {
+    return { ok:false, erro:campos.erro, validacaoKM:'ERRO' };
+  }
+
+  var statusAtual = gman856110CodexRev3_atualizarStatusAtualOficial_(loc, payload, p);
+  var kpi2 = gman856110CodexRev3_recalcularKpisAposStatusAtual_();
+
+  res.statusOS = gman856110CodexRev3_statusConcluida_();
+  res.codexPatchCamposFinais = campos;
+  res.codexPatchStatusAtual = statusAtual;
+  res.codexPatchKpi = kpi2;
+  return res;
+}
+/* END GMAN_8_5_6_110_REV3A_CODEX_PATCH_STATUS_ATUAL */
