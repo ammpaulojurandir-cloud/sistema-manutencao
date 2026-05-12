@@ -165,6 +165,10 @@
       white-space:nowrap;
       box-shadow:0 8px 18px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.05);
     }
+    .system-btn[data-system-filter="reservatorios"] {
+      border-color:rgba(53,208,127,.34);
+      color:#e7fff2;
+    }
     .system-btn:hover, .system-btn.active {
       background:linear-gradient(145deg, rgba(31,156,255,.95), rgba(0,96,170,.86));
       border-color:rgba(0,194,255,.82);
@@ -957,6 +961,7 @@
     <button class="system-btn" data-system-filter="600" onclick="filterSystem('600', event)">600 — ILHAS</button>
     <button class="system-btn" data-system-filter="700" onclick="filterSystem('700', event)">700 — TRISTEZA</button>
     <button class="system-btn" data-system-filter="brutas" onclick="filterSystem('brutas', event)">BRUTAS</button>
+    <button class="system-btn" data-system-filter="reservatorios" onclick="filterSystem('reservatorios', event)">RESERVATÓRIOS</button>
     <button class="quick-view-btn" onclick="abrirVisualizacaoGMAN()" title="Alterar visualização">▦</button>
   </div>
   <div id="apiStatus" class="loading-note" onclick="abrirSincronizacaoDetalhesGMAN()" role="button" tabindex="0">Aguardando login.</div>
@@ -983,6 +988,7 @@
 
   <div class="equipment-list" id="equipmentList"></div>
 
+  <script src="dados_unidades_hidraulicas_gman.js"></script>
   <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec';
     const SENHA_GMAN_OFICIAL = 'gman2026';
@@ -1184,11 +1190,12 @@ let gmanBuscaTimer = null;
       if (m) return new Date(Number(m[1]), Number(m[2])-1, Number(m[3]), Number(m[4]||0), Number(m[5]||0), Number(m[6]||0)).getTime();
       return 0;
     }
+    function marcarFiltroSistemaAtivoGMAN(filtro) {
+      document.querySelectorAll('.system-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.systemFilter === String(filtro)));
+    }
     function filterSystem(system, ev) {
       currentSystemFilter = system;
-      document.querySelectorAll('.system-btn').forEach(btn => btn.classList.remove('active'));
-      const alvo = ev && (ev.currentTarget || ev.target);
-      if (alvo && alvo.classList) alvo.classList.add('active');
+      marcarFiltroSistemaAtivoGMAN(system);
       applyFilters();
     }
     function filterByStatus(status, ev) {
@@ -1200,17 +1207,68 @@ let gmanBuscaTimer = null;
     }
 function alternarVisualizacaoGMAN() { document.body.classList.toggle('gman-view-grade'); }
 function listaEquipamentosVisiveisGMAN104(lista=equipment) { return (Array.isArray(lista)?lista:[]).filter(e=>e && e.id && !isEquipamentoBloqueadoGMAN104(e) && ['100','200','300','400','600','700'].includes(String(e.systemCode||''))); }
-function applyFilters() { const term=normalizarTextoGMAN(document.getElementById('searchInput').value); let filtered=listaEquipamentosVisiveisGMAN104(equipment); if(currentSystemFilter==='brutas') filtered=filtered.filter(isEquipamentoBrutaGMAN); else if(currentSystemFilter!=='all') filtered=filtered.filter(eq=>String(eq.systemCode||'')===String(currentSystemFilter)); if(currentStatusFilter!=='all') filtered=filtered.filter(eq=> currentStatusFilter==='alert' ? (eq.status==='alert'||eq.status==='down') : eq.status===currentStatusFilter); if(term) filtered=filtered.filter(eq=>normalizarTextoGMAN([eq.name,eq.system,eq.id,eq.systemCode].join(' ')).includes(term)); renderEquipment(filtered); atualizarTotalizadoresFiltrosGMAN104(equipment); }
+function baseUnidadesHidraulicasGMAN(){ return window.GMAN_UNIDADES_HIDRAULICAS_BASE || {reservatorios:[], resumoPorSistema:[]}; }
+function listaReservatoriosGMAN104(){
+  const base=baseUnidadesHidraulicasGMAN();
+  return (Array.isArray(base.reservatorios)?base.reservatorios:[])
+    .filter(r=>r && String(r.TIPO_UNIDADE||'')==='RES' && !/\bVRP\b/i.test([r.NOME_UNIDADE,r.NOME_BASE,r.ORIGEM_DESENHO].join(' ')))
+    .map(r=>({
+      id:r.ID_UNIDADE,
+      name:r.NOME_UNIDADE || r.NOME_BASE || r.ID_UNIDADE,
+      system:nomeSistemaCodigoGMAN_(r.SISTEMA),
+      systemCode:String(r.SISTEMA||''),
+      status:'ok',
+      statusAtualTexto:'Cadastro técnico',
+      patrimonio:'Ficha técnica hidráulica',
+      tipoUnidade:'RES',
+      origemDesenho:r.ORIGEM_DESENHO || '',
+      capacidade:r.CAPACIDADE_M3 || '',
+      cota:r.COTA || '',
+      codigoDesenho:r.CODIGO_DESENHO || '',
+      conjunto:r.ID_CONJUNTO_HIDRAULICO || '',
+      confianca:r.CONFIANCA_LEITURA || '',
+      observacaoTecnica:r.OBSERVACAO_TECNICA || '',
+      isReservatorioGMAN:true
+    }));
+}
+function applyFilters() {
+  const term=normalizarTextoGMAN(document.getElementById('searchInput').value);
+  marcarFiltroSistemaAtivoGMAN(currentSystemFilter);
+  if(currentSystemFilter==='reservatorios') {
+    let reservatorios=listaReservatoriosGMAN104();
+    if(currentStatusFilter!=='all') reservatorios=reservatorios.filter(eq=>eq.status===currentStatusFilter);
+    if(term) reservatorios=reservatorios.filter(eq=>normalizarTextoGMAN([eq.name,eq.system,eq.id,eq.systemCode,eq.capacidade,eq.cota,eq.codigoDesenho].join(' ')).includes(term));
+    renderReservatoriosGMAN104(reservatorios);
+    atualizarTotalizadoresFiltrosGMAN104(equipment);
+    return;
+  }
+  let filtered=listaEquipamentosVisiveisGMAN104(equipment);
+  if(currentSystemFilter==='brutas') filtered=filtered.filter(isEquipamentoBrutaGMAN);
+  else if(currentSystemFilter!=='all') filtered=filtered.filter(eq=>String(eq.systemCode||'')===String(currentSystemFilter));
+  if(currentStatusFilter!=='all') filtered=filtered.filter(eq=> currentStatusFilter==='alert' ? (eq.status==='alert'||eq.status==='down') : eq.status===currentStatusFilter);
+  if(term) filtered=filtered.filter(eq=>normalizarTextoGMAN([eq.name,eq.system,eq.id,eq.systemCode].join(' ')).includes(term));
+  renderEquipment(filtered);
+  atualizarTotalizadoresFiltrosGMAN104(equipment);
+}
 
     function atualizarTotalizadoresFiltrosGMAN104(lista=equipment) {
       const base=listaEquipamentosVisiveisGMAN104(lista);
+      const reservatorios=listaReservatoriosGMAN104();
+      const labels={'all':'TODAS','100':'100 — MOINHOS DE VENTO','200':'200 — SÃO JOÃO','300':'300 — MENINO DEUS','400':'400 — BELÉM NOVO','600':'600 — ILHAS','700':'700 — TRISTEZA','brutas':'BRUTAS','reservatorios':'RESERVATÓRIOS'};
       const set=(id,n)=>{ const el=document.getElementById(id); if(el) el.textContent='('+n+')'; };
+      const setBtn=(filtro,n)=>{ const btn=document.querySelector(`.system-btn[data-system-filter="${filtro}"]`); if(btn) { btn.textContent=(labels[filtro]||filtro)+' — '+n; btn.title=(labels[filtro]||filtro)+' — '+n; } };
       set('totalFiltroTodas', base.length);
+      setBtn('all', base.length);
       ['100','200','300','400','600','700'].forEach(c=>set('totalFiltro'+c, base.filter(e=>String(e.systemCode||'')===c).length));
+      ['100','200','300','400','600','700'].forEach(c=>setBtn(c, base.filter(e=>String(e.systemCode||'')===c).length));
       set('totalFiltroBrutas', base.filter(isEquipamentoBrutaGMAN).length);
+      setBtn('brutas', base.filter(isEquipamentoBrutaGMAN).length);
+      set('totalFiltroReservatorios', reservatorios.length);
+      setBtn('reservatorios', reservatorios.length);
       window.gmanTotalizadoresMapa856104 = {
         todas:base.length,
         brutas:base.filter(isEquipamentoBrutaGMAN).length,
+        reservatorios:reservatorios.length,
         sistemas:['100','200','300','400','600','700'].reduce((acc,c)=>{ acc[c]=base.filter(e=>String(e.systemCode||'')===c).length; return acc; },{})
       };
       return window.gmanTotalizadoresMapa856104;
@@ -1269,7 +1327,7 @@ function iniciarOS(idOS) { abrirModalIniciarOS(idOS); }
     function usuarioEstaPreenchendoGMAN() { const ativo=document.activeElement; return !!document.querySelector('.modal-overlay') || (ativo && ['INPUT','TEXTAREA','SELECT'].includes(ativo.tagName)); }
 
     function changeStatus() { gmanDialogSistemaGMAN101('Alteração direta bloqueada','O status do equipamento só pode mudar por uma OS vinculada. Abra, atualize ou conclua uma OS do grupo para registrar a justificativa real.','alerta'); }
-    async function iniciarSistema() { loadData(); renderEquipment(); const logado=recuperarLoginSalvo(); aplicarBotoesPermissao(); if(logado) setTimeout(()=>carregarStatusOnline(),50); setInterval(()=>{ if(usuarioLogado && !usuarioEstaPreenchendoGMAN()) carregarStatusOnline(); },120000); }
+    async function iniciarSistema() { loadData(); renderEquipment(); atualizarTotalizadoresFiltrosGMAN104(equipment); const logado=recuperarLoginSalvo(); aplicarBotoesPermissao(); if(logado) setTimeout(()=>carregarStatusOnline(),50); setInterval(()=>{ if(usuarioLogado && !usuarioEstaPreenchendoGMAN()) carregarStatusOnline(); },120000); }
 
 
     /************************************************************
@@ -1466,8 +1524,8 @@ function gmanRecursoImplantacaoGMAN(nome) {
         <div style="display:flex;justify-content:flex-end;margin-top:12px;"><button class="gman-btn" onclick="atualizarAgora()">Atualizar agora</button></div>`, '780px');
     }
 function abrirFiltroAvancadoGMAN() {
-      const sistemas=['all','moinhos de vento','são joao','menino deus','belem novo','ilha da pintada','tristeza','brutas'];
-      const sistemaOptions=sistemas.map(s=>`<option value="${s}">${s==='all'?'TODAS':s==='brutas'?'BRUTAS':s.toLocaleUpperCase('pt-BR')}</option>`).join('');
+      const sistemas=[['all','TODAS'],['100','100 — MOINHOS DE VENTO'],['200','200 — SÃO JOÃO'],['300','300 — MENINO DEUS'],['400','400 — BELÉM NOVO'],['600','600 — ILHAS'],['700','700 — TRISTEZA'],['brutas','BRUTAS'],['reservatorios','RESERVATÓRIOS']];
+      const sistemaOptions=sistemas.map(s=>`<option value="${s[0]}">${s[1]}</option>`).join('');
       modalPremiumGMAN('filtroAvancadoModal', 'Filtro avançado', 'Filtros combináveis para localizar grupos e condições.',
         `<div class="gman-form-grid">
           <div><label class="gman-field-label">Sistema</label><select id="filtroSistemaGMAN" class="gman-select">${sistemaOptions}</select></div>
@@ -1525,10 +1583,35 @@ function abrirFiltroAvancadoGMAN() {
         const icone=eq.status==='ok'?'✓':eq.status==='alert'?'!':'✕';
         const statusPill=eq.status==='ok'?'gman-pill-ok':eq.status==='down'?'gman-pill-red':'gman-pill-warn';
         const gestaoInfo=isAdministradorTotal()&&listaGrupo.length?`<span>▣ ${listaGrupo.length} OS aberta(s) no grupo</span><span>👷 ${escaparHTMLGMAN([...new Set(listaGrupo.map(o=>getCampo(o,['responsavel','RESPONSAVEL'])).filter(Boolean))].join(', '))}</span>`:'';
-        return `<div class="equipment-item gman-stagger-card-100 status-card-${eq.status}" style="--gman-stagger-delay:${Math.min(idx*0.05,1.2).toFixed(2)}s" onclick="openEquipment('${eq.id}')"><div class="status-icon status-${eq.status}" onclick="event.stopPropagation(); abrirStatusViaOSGMAN('${eq.id}')">${icone}</div><div class="equipment-main"><div class="equipment-name">${escaparHTMLGMAN(nomeGrupoVisualGMAN(eq.name))}</div><div class="equipment-system"><span class="system-tag ${getSystemTagClass(eq.systemCode)}" onclick="event.stopPropagation(); filterSystem('${eq.system}', event)">${eq.systemCode}</span>${escaparHTMLGMAN(eq.system.toLocaleUpperCase('pt-BR'))} | ID: ${escaparHTMLGMAN(eq.id)}</div><div class="equipment-responsavel"><span>◉ ${escaparHTMLGMAN(String(responsavel).toLocaleUpperCase('pt-BR'))}</span><span>◷ ${escaparHTMLGMAN(atualizacao)}</span>${gestaoInfo}</div>${justificativa?`<div class="gman-justificativa-real"><strong>Registro do usuário:</strong> ${escaparHTMLGMAN(justificativa)}</div>`:''}</div><div class="equipment-actions"><button class="status-badge badge-${eq.status}" onclick="event.stopPropagation(); abrirStatusViaOSGMAN('${eq.id}')">${labelStatusEquipamentoMaiusculo(eq.status,statusTextoEquipamentoGMAN(eq))}</button><button class="card-mini-btn" onclick="event.stopPropagation(); abrirAcoesCardGMAN('${eq.id}')">⋯</button><button class="card-mini-btn" onclick="event.stopPropagation(); openEquipment('${eq.id}')">›</button></div><div class="equipment-meta"><div class="meta-chip"><span class="meta-label">Última OS</span><span class="meta-value">${escaparHTMLGMAN(numeroOS)}</span></div><div class="meta-chip"><span class="meta-label">Patrimônio</span><span class="meta-value">${escaparHTMLGMAN(patrimonio)}</span></div><div class="meta-chip"><span class="meta-label">Prioridade</span><span class="meta-value ${prioridadeClasseGMAN(prioridade)}">${escaparHTMLGMAN(String(prioridade).toLocaleUpperCase('pt-BR'))}</span></div></div></div>`;
+        return `<div class="equipment-item gman-stagger-card-100 status-card-${eq.status}" style="--gman-stagger-delay:${Math.min(idx*0.05,1.2).toFixed(2)}s" onclick="openEquipment('${eq.id}')"><div class="status-icon status-${eq.status}" onclick="event.stopPropagation(); abrirStatusViaOSGMAN('${eq.id}')">${icone}</div><div class="equipment-main"><div class="equipment-name">${escaparHTMLGMAN(nomeGrupoVisualGMAN(eq.name))}</div><div class="equipment-system"><span class="system-tag ${getSystemTagClass(eq.systemCode)}" onclick="event.stopPropagation(); filterSystem('${eq.systemCode}', event)">${eq.systemCode}</span>${escaparHTMLGMAN(eq.system.toLocaleUpperCase('pt-BR'))} | ID: ${escaparHTMLGMAN(eq.id)}</div><div class="equipment-responsavel"><span>◉ ${escaparHTMLGMAN(String(responsavel).toLocaleUpperCase('pt-BR'))}</span><span>◷ ${escaparHTMLGMAN(atualizacao)}</span>${gestaoInfo}</div>${justificativa?`<div class="gman-justificativa-real"><strong>Registro do usuário:</strong> ${escaparHTMLGMAN(justificativa)}</div>`:''}</div><div class="equipment-actions"><button class="status-badge badge-${eq.status}" onclick="event.stopPropagation(); abrirStatusViaOSGMAN('${eq.id}')">${labelStatusEquipamentoMaiusculo(eq.status,statusTextoEquipamentoGMAN(eq))}</button><button class="card-mini-btn" onclick="event.stopPropagation(); abrirAcoesCardGMAN('${eq.id}')">⋯</button><button class="card-mini-btn" onclick="event.stopPropagation(); openEquipment('${eq.id}')">›</button></div><div class="equipment-meta"><div class="meta-chip"><span class="meta-label">Última OS</span><span class="meta-value">${escaparHTMLGMAN(numeroOS)}</span></div><div class="meta-chip"><span class="meta-label">Patrimônio</span><span class="meta-value">${escaparHTMLGMAN(patrimonio)}</span></div><div class="meta-chip"><span class="meta-label">Prioridade</span><span class="meta-value ${prioridadeClasseGMAN(prioridade)}">${escaparHTMLGMAN(String(prioridade).toLocaleUpperCase('pt-BR'))}</span></div></div></div>`;
       }).join('');
-      let active=currentSystemFilter==='brutas'?equipment.filter(isEquipamentoBrutaGMAN):(currentSystemFilter!=='all'?equipment.filter(e=>e.system===currentSystemFilter):equipment);
+      let active=currentSystemFilter==='brutas'?equipment.filter(isEquipamentoBrutaGMAN):(currentSystemFilter!=='all'?equipment.filter(e=>String(e.systemCode||'')===String(currentSystemFilter)):equipment);
       document.getElementById('operationalCount').textContent=active.filter(e=>e.status==='ok').length; document.getElementById('maintenanceCount').textContent=active.filter(e=>e.status==='alert'||e.status==='down').length; document.getElementById('downCount').textContent=active.filter(e=>e.status==='down').length;
+    }
+
+    function renderReservatoriosGMAN104(list=listaReservatoriosGMAN104()) {
+      const container=document.getElementById('equipmentList'); if(!container) return;
+      container.innerHTML=(Array.isArray(list)?list:[]).map((eq,idx)=>`
+        <div class="equipment-item gman-stagger-card-100 status-card-ok" style="--gman-stagger-delay:${Math.min(idx*0.05,1.2).toFixed(2)}s" onclick="abrirReservatorioGMAN104('${eq.id}')">
+          <div class="status-icon status-ok" onclick="event.stopPropagation(); abrirReservatorioGMAN104('${eq.id}')">R</div>
+          <div class="equipment-main">
+            <div class="equipment-name">${escaparHTMLGMAN(nomeGrupoVisualGMAN(eq.name))}</div>
+            <div class="equipment-system"><span class="system-tag ${getSystemTagClass(eq.systemCode)}" onclick="event.stopPropagation(); filterSystem('reservatorios', event)">${escaparHTMLGMAN(eq.systemCode)}</span>${escaparHTMLGMAN(eq.system.toLocaleUpperCase('pt-BR'))} | ID: ${escaparHTMLGMAN(eq.id)}</div>
+            <div class="equipment-responsavel"><span>RESERVATÓRIO</span><span>${escaparHTMLGMAN(eq.origemDesenho||'RES')}</span><span>${escaparHTMLGMAN(eq.confianca||'')}</span></div>
+            <div class="gman-justificativa-real"><strong>Cadastro técnico:</strong> ${escaparHTMLGMAN(eq.observacaoTecnica||'Base hidráulica validada para implantação controlada.')}</div>
+          </div>
+          <div class="equipment-actions"><button class="status-badge badge-ok" onclick="event.stopPropagation(); abrirReservatorioGMAN104('${eq.id}')">Ficha técnica</button><button class="card-mini-btn" onclick="event.stopPropagation(); abrirReservatorioGMAN104('${eq.id}')">›</button></div>
+          <div class="equipment-meta"><div class="meta-chip"><span class="meta-label">Capacidade</span><span class="meta-value">${escaparHTMLGMAN(eq.capacidade||'Pendente')}</span></div><div class="meta-chip"><span class="meta-label">Cota</span><span class="meta-value">${escaparHTMLGMAN(eq.cota||'Pendente')}</span></div><div class="meta-chip"><span class="meta-label">Conjunto</span><span class="meta-value">${escaparHTMLGMAN(eq.conjunto||'—')}</span></div></div>
+        </div>`).join('');
+      document.getElementById('operationalCount').textContent=String((Array.isArray(list)?list:[]).length);
+      document.getElementById('maintenanceCount').textContent='0';
+      document.getElementById('downCount').textContent='0';
+    }
+
+    function abrirReservatorioGMAN104(id) {
+      const eq=listaReservatoriosGMAN104().find(r=>String(r.id)===String(id)); if(!eq) return;
+      modalPremiumGMAN('reservatorioGMAN104', escaparHTMLGMAN(nomeGrupoVisualGMAN(eq.name)), `Reservatório | Sistema ${escaparHTMLGMAN(eq.systemCode)} | ${escaparHTMLGMAN(eq.system.toLocaleUpperCase('pt-BR'))}`,
+        `<div class="gman-grid"><div class="gman-card-dark"><div class="gman-kpi-label">Capacidade</div><div class="gman-kpi-value" style="font-size:1.05rem;">${escaparHTMLGMAN(eq.capacidade||'Não identificada')}</div></div><div class="gman-card-dark"><div class="gman-kpi-label">Cota</div><div class="gman-kpi-value" style="font-size:1.05rem;">${escaparHTMLGMAN(eq.cota||'Não identificada')}</div></div><div class="gman-card-dark"><div class="gman-kpi-label">Código desenho</div><div class="gman-kpi-value" style="font-size:1.05rem;">${escaparHTMLGMAN(eq.codigoDesenho||'Não identificado')}</div></div><div class="gman-card-dark"><div class="gman-kpi-label">Conjunto hidráulico</div><div class="gman-kpi-value" style="font-size:.86rem;">${escaparHTMLGMAN(eq.conjunto||'Não identificado')}</div></div></div><div class="gman-card-dark" style="margin-top:12px;"><div class="gman-kpi-label">Observação técnica</div><div class="gman-kpi-meta">${escaparHTMLGMAN(eq.observacaoTecnica||'Sem observação técnica adicional.')}</div></div><div class="gman-card-dark" style="margin-top:12px;"><span class="gman-status-pill gman-pill-warn">OS real preservada</span><p class="small-help" style="margin-top:8px;">Nesta Ordem 2, reservatórios ficam em consulta técnica. Abertura de OS real para reservatórios só deve ser liberada após aprovação e publicação controlada.</p></div>`, '780px');
     }
 
     function openEquipment(id) {
@@ -2325,7 +2408,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
       gmanTimerSyncImediata856106=setTimeout(()=>sincronizarSegundoPlanoGMAN85696({imediata:true}), 250);
     }
     iniciarSistema = window.iniciarSistema = function(){
-      loadData(); renderEquipment(); const logado=recuperarLoginSalvo(); aplicarBotoesPermissao(); aplicarLogo3DGMAN85696();
+      loadData(); renderEquipment(); atualizarTotalizadoresFiltrosGMAN104(equipment); const logado=recuperarLoginSalvo(); aplicarBotoesPermissao(); aplicarLogo3DGMAN85696();
       if(logado) setTimeout(()=>carregarStatusOnline(),50);
       setInterval(()=>sincronizarSegundoPlanoGMAN85696(),120000);
     };

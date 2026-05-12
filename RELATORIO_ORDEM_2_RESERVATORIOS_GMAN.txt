@@ -1,0 +1,77 @@
+RELATORIO FINAL - ORDEM 2 DE 3 - IMPLANTACAO CONTROLADA E HOMOLOGACAO VIRTUAL PESADA
+
+Responsavel tecnico/validador: Paulo Jurandir
+
+Base obrigatoria usada:
+- _PREPARACAO_UNIDADES_HIDRAULICAS_GMAN_2026_05_12/UNIDADES_HIDRAULICAS_GMAN_DESMEMBRADAS.xlsx
+- _PREPARACAO_UNIDADES_HIDRAULICAS_GMAN_2026_05_12/RELATORIO_UNIDADES_HIDRAULICAS_DESMEMBRADAS_GMAN.docx
+- _PREPARACAO_UNIDADES_HIDRAULICAS_GMAN_2026_05_12/VALIDACAO_AUTOMATICA_UNIDADES_HIDRAULICAS.txt
+- Aba RESUMO_POR_SISTEMA dentro do XLSX
+
+Validacao da base antes da implantacao:
+- UNIDADES_HIDRAULICAS: 185 registros.
+- CONJUNTOS_HIDRAULICOS: 142 registros.
+- RESERVATORIOS: 96 registros.
+- ESTACOES_BOMBEAMENTO: 83 registros.
+- RESUMO_POR_SISTEMA: 7 linhas.
+- Sem VRP na base principal.
+- Sem EBAT/RES ou ETA/RES como TIPO_UNIDADE final.
+- RESERVATORIOS contem apenas RES.
+- ESTACOES_BOMBEAMENTO contem apenas EBAB, EBAT e IN LINE.
+- Falhas criticas de importacao: 0.
+
+Implantacao controlada:
+- Criado arquivo dados_unidades_hidraulicas_gman.js a partir do XLSX validado.
+- index.html carrega a base estatica validada sem chamar rota nova da API.
+- Botao RESERVATORIOS criado ao lado de BRUTAS.
+- Filtro RESERVATORIOS lista somente unidades TIPO_UNIDADE = RES.
+- Reservatorios aparecem como consulta tecnica, sem abertura de OS real nesta etapa.
+- Totalizadores dos botoes principais atualizados no proprio botao.
+
+Homologacao virtual:
+- SIMULADOR_CICLO_OS_500.js executado.
+- 500 ciclos completos simulados.
+- 560 OS geradas no motor logico, incluindo OS vinculadas.
+- Sistemas cobertos: 100, 200, 300, 400, 600, 700.
+- Tipos cobertos: EBAB, EBAT, ETA, RES, IN LINE.
+- Origens cobertas: EBAT/RES e ETA/RES.
+- Criticidades cobertas: baixa, media, alta, critica.
+- Sequencias cobertas: .01, .02, .03 e superiores.
+- Falhas do simulador: 0.
+- Risco: BAIXO.
+
+Sandbox pesado:
+- SANDBOX_TESTE_PESADO_GMAN.js executado.
+- 500 OS simuladas no motor logico.
+- 100 OS operacionais em sandbox.
+- Falhas criticas finais: 0.
+- Falhas de permissao finais: 0.
+- Falhas de status operacional finais: 0.
+- Falhas de concordancia finais: 0.
+- Falhas de retorno indevido para Operando finais: 0.
+- Falhas de totalizador finais: 0.
+- Falhas do botao RESERVATORIOS finais: 0.
+- Falhas de VOLTAR/FECHAR finais: 0.
+
+Totalizadores sandbox:
+- TODAS: 214.
+- 100: 36.
+- 200: 36.
+- 300: 36.
+- 400: 36.
+- 600: 35.
+- 700: 35.
+- BRUTAS: 6.
+- RESERVATORIOS: 96.
+
+Conferencias finais:
+- index.html alterado apenas para carregar a base, criar filtro RESERVATORIOS e corrigir totalizadores.
+- Apps Script nao foi alterado.
+- Dados oficiais nao foram alterados.
+- Nenhuma OS real foi criada.
+- Nenhum deploy foi feito.
+- Nenhuma publicacao foi feita.
+- Nenhuma VRP entrou na base principal.
+
+Resultado:
+ORDEM 2 APROVADA PARA ORDEM 3 DE 3 - PUBLICACAO CONTROLADA E TESTE LEVE NO APP OFICIAL.
