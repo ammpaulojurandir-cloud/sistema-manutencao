@@ -1,0 +1,25 @@
+{
+  "totalOSSimuladas": 500,
+  "totalOSSandbox": 100,
+  "totalizadores": {
+    "100": 36,
+    "200": 36,
+    "300": 36,
+    "400": 36,
+    "600": 35,
+    "700": 35,
+    "all": 214,
+    "brutas": 6,
+    "reservatorios": 96
+  },
+  "botaoReservatorios": true,
+  "falhasCriticasFinais": 0,
+  "falhasPermissaoFinais": 0,
+  "falhasStatusFinais": 0,
+  "falhasConcordanciaFinais": 0,
+  "falhasRetornoOperandoFinais": 0,
+  "falhasTotalizadorFinais": 0,
+  "falhasBotaoReservatoriosFinais": 0,
+  "falhasVoltarFecharFinais": 0,
+  "falhas": []
+}
