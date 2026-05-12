@@ -808,8 +808,29 @@ function listarStatus_() {
   const lista = oficiais.lista.map(eq => {
     const ativas = osAtivasPorEquip[eq.idEquipamento] || [];
     if (ativas.length) {
-      const pior = escolherPiorStatusAtivo_(ativas.slice());
-      const osRef = ativas.find(o => o.idOS === pior.idOS) || ativas[0];
+      const operacionais = ativas.filter(o => txt_(o.condicaoOperacionalAtual) || txt_(o.dataInicio) || ['ABERTA','RECEBIDA','NAO INICIADA','AGUARDANDO RESPONSAVEL','AGUARDANDO EQUIPE','AGUARDANDO NOVO RESPONSAVEL'].indexOf(statusCanon_(o.statusOS)) < 0);
+      if (!operacionais.length) {
+        const r = st[eq.idEquipamento];
+        const statusAtual = r ? (txt_(get_(r,'statusOperacional')) || 'Operando') : 'Operando';
+        const osRef = ativas[0];
+        return {
+          idEquipamento:eq.idEquipamento,
+          equipamento:eq.equipamento,
+          sistema:eq.sistema,
+          statusAtual:statusAtual,
+          statusVisual:'Aberta',
+          dataUltimaAlteracao:osRef.dataAbertura || '',
+          horaUltimaAlteracao:osRef.horaAbertura || '',
+          usuario:osRef.responsavel || '',
+          justificativa:justificativaRealOS_(osRef),
+          idOsVinculada:osRef.idOS || '',
+          numeroOS:osRef.numeroOS || '',
+          quantidadeOSAtivas:ativas.length,
+          responsaveisAtivos:ativas.map(o=>o.responsavel).filter(Boolean).join(', ')
+        };
+      }
+      const pior = escolherPiorStatusAtivo_(operacionais.slice());
+      const osRef = operacionais.find(o => o.idOS === pior.idOS) || operacionais[0];
       return {
         idEquipamento:eq.idEquipamento,
         equipamento:eq.equipamento,
