@@ -2,9 +2,10 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 const { runSimulation } = require('./SIMULADOR_CICLO_OS_500');
+const repoRoot = path.join(__dirname, '..');
 
 function carregarBase() {
-  const codigo = fs.readFileSync(path.join(__dirname, 'dados_unidades_hidraulicas_gman.js'), 'utf8');
+  const codigo = fs.readFileSync(path.join(repoRoot, 'dados_unidades_hidraulicas_gman.js'), 'utf8');
   const sandbox = { window: {} };
   vm.runInNewContext(codigo, sandbox, { filename: 'dados_unidades_hidraulicas_gman.js' });
   return sandbox.window.GMAN_UNIDADES_HIDRAULICAS_BASE;
@@ -36,7 +37,8 @@ function contarTotalizadores(equipamentos, reservatorios) {
 }
 
 function validarIndex(base) {
-  const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+  const html = fs.readFileSync(path.join(repoRoot, 'index.html'), 'utf8');
+  const htmlCompacto = html.replace(/\s+/g, '');
   const falhas = [];
   const ordem = ['all', '100', '200', '300', '400', '600', '700', 'brutas', 'reservatorios'];
   const inicioFiltro = html.indexOf('<div class="systems-filter">');
@@ -50,6 +52,9 @@ function validarIndex(base) {
   if (!html.includes('dados_unidades_hidraulicas_gman.js')) falhas.push('Base hidráulica validada não foi carregada no index.');
   if (!/function renderReservatoriosGMAN104/.test(html)) falhas.push('Renderização de reservatórios ausente.');
   if (!/function abrirReservatorioGMAN104/.test(html)) falhas.push('Ficha técnica de reservatório ausente.');
+  if (!html.includes("setBtn('all'")) falhas.push('Totalizador do botão TODAS ausente.');
+  if (!htmlCompacto.includes("['100','200','300','400','600','700'].forEach(c=>setBtn(c,")) falhas.push('Totalizadores dos sistemas 100-700 ausentes.');
+  if (!html.includes("setBtn('brutas'")) falhas.push('Totalizador do botão BRUTAS ausente.');
   if (!html.includes("setBtn('reservatorios'")) falhas.push('Totalizador do botão RESERVATÓRIOS ausente.');
   if (!/Fechar/.test(html) || !/Voltar|Cancelar/.test(html)) falhas.push('Padrão VOLTAR/FECHAR não encontrado.');
   const botoesVazios = [...html.matchAll(/<button\b[^>]*>\s*<\/button>/g)];
@@ -94,7 +99,7 @@ function runSandbox() {
     falhasVoltarFecharFinais: falhas.filter(f => String(f).includes('VOLTAR') || String(f).includes('FECHAR')).length,
     falhas
   };
-  fs.writeFileSync(path.join(__dirname, 'RELATORIO_HOMOLOGACAO_RESERVATORIOS_GMAN.txt'), JSON.stringify(resultado, null, 2), 'utf8');
+  fs.writeFileSync(path.join(repoRoot, 'docs', 'homologacao', 'RELATORIO_HOMOLOGACAO_RESERVATORIOS_GMAN.txt'), JSON.stringify(resultado, null, 2), 'utf8');
   return resultado;
 }
 

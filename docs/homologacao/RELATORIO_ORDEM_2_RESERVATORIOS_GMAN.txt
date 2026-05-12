@@ -29,7 +29,7 @@ Implantacao controlada:
 - Totalizadores dos botoes principais atualizados no proprio botao.
 
 Homologacao virtual:
-- SIMULADOR_CICLO_OS_500.js executado.
+- homologacao/SIMULADOR_CICLO_OS_500.js executado.
 - 500 ciclos completos simulados.
 - 560 OS geradas no motor logico, incluindo OS vinculadas.
 - Sistemas cobertos: 100, 200, 300, 400, 600, 700.
@@ -41,7 +41,7 @@ Homologacao virtual:
 - Risco: BAIXO.
 
 Sandbox pesado:
-- SANDBOX_TESTE_PESADO_GMAN.js executado.
+- homologacao/SANDBOX_TESTE_PESADO_GMAN.js executado.
 - 500 OS simuladas no motor logico.
 - 100 OS operacionais em sandbox.
 - Falhas criticas finais: 0.
@@ -66,6 +66,8 @@ Totalizadores sandbox:
 
 Conferencias finais:
 - index.html alterado apenas para carregar a base, criar filtro RESERVATORIOS e corrigir totalizadores.
+- Simuladores organizados em homologacao/.
+- Relatorios organizados em docs/homologacao/.
 - Apps Script nao foi alterado.
 - Dados oficiais nao foram alterados.
 - Nenhuma OS real foi criada.

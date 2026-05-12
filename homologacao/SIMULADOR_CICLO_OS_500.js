@@ -3,7 +3,7 @@ const path = require('path');
 const vm = require('vm');
 
 function carregarBase() {
-  const codigo = fs.readFileSync(path.join(__dirname, 'dados_unidades_hidraulicas_gman.js'), 'utf8');
+  const codigo = fs.readFileSync(path.join(__dirname, '..', 'dados_unidades_hidraulicas_gman.js'), 'utf8');
   const sandbox = { window: {} };
   vm.runInNewContext(codigo, sandbox, { filename: 'dados_unidades_hidraulicas_gman.js' });
   return sandbox.window.GMAN_UNIDADES_HIDRAULICAS_BASE;
