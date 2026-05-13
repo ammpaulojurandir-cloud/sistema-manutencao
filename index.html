@@ -774,6 +774,24 @@
     .gman-mini-tabs button { white-space:nowrap; }
     .gman-implementation-badge { display:inline-block; padding:5px 9px; border-radius:999px; background:rgba(255,209,102,.13); color:#ffe4a0; border:1px solid rgba(255,209,102,.28); font-weight:850; font-size:.66rem; margin-left:6px; }
     .gman-card-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+    .gman-reservatorios-header { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap; margin-bottom:12px; }
+    .gman-reservatorios-total { min-width:150px; border:1px solid rgba(53,208,127,.26); background:rgba(15,74,49,.22); border-radius:8px; padding:10px 12px; text-align:right; }
+    .gman-reservatorios-total strong { display:block; color:#e7fff2; font-size:1.55rem; line-height:1; }
+    .gman-reservatorios-total span { display:block; color:var(--gman-muted); font-size:.7rem; font-weight:850; text-transform:uppercase; margin-top:5px; }
+    .gman-reservatorios-filtros { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 12px; }
+    .gman-reservatorios-filtro { border:1px solid rgba(110,193,255,.22); background:rgba(9,26,44,.72); color:#dbefff; border-radius:8px; padding:9px 11px; font-size:.72rem; font-weight:850; cursor:pointer; transition:all .18s ease; }
+    .gman-reservatorios-filtro:hover, .gman-reservatorios-filtro.active { border-color:rgba(53,208,127,.62); color:#f2fff7; background:rgba(20,91,61,.62); }
+    .gman-reservatorios-lista { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:10px; margin-top:12px; }
+    .gman-reservatorio-card { border:1px solid rgba(110,193,255,.17); background:linear-gradient(145deg, rgba(10,31,52,.92), rgba(7,20,34,.96)); border-radius:8px; padding:12px; cursor:pointer; transition:border-color .18s ease, transform .18s ease, box-shadow .18s ease; min-height:176px; display:flex; flex-direction:column; gap:10px; }
+    .gman-reservatorio-card:hover { border-color:rgba(53,208,127,.54); transform:translateY(-1px); box-shadow:0 0 20px rgba(53,208,127,.12); }
+    .gman-reservatorio-topo { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+    .gman-reservatorio-nome { font-weight:950; color:#f5fbff; font-size:.95rem; line-height:1.25; }
+    .gman-reservatorio-meta { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:auto; }
+    .gman-reservatorio-meta div { border:1px solid rgba(110,193,255,.12); background:rgba(255,255,255,.03); border-radius:7px; padding:8px; min-width:0; }
+    .gman-reservatorio-meta span { display:block; color:var(--gman-muted); font-size:.58rem; text-transform:uppercase; font-weight:850; }
+    .gman-reservatorio-meta strong { display:block; color:#e8f7ff; font-size:.78rem; margin-top:4px; word-break:break-word; }
+    .gman-hidraulico-futuro { margin-top:12px; border:1px dashed rgba(255,209,102,.34); background:rgba(255,209,102,.06); border-radius:8px; padding:12px; color:var(--gman-muted); line-height:1.45; }
+    .gman-reservatorios-vazio { border:1px solid rgba(255,209,102,.24); background:rgba(255,209,102,.06); border-radius:8px; padding:14px; color:#ffe4a0; font-weight:850; }
 
   
 
@@ -961,7 +979,7 @@
     <button class="system-btn" data-system-filter="600" onclick="filterSystem('600', event)">600 — ILHAS</button>
     <button class="system-btn" data-system-filter="700" onclick="filterSystem('700', event)">700 — TRISTEZA</button>
     <button class="system-btn" data-system-filter="brutas" onclick="filterSystem('brutas', event)">BRUTAS</button>
-    <button class="system-btn" data-system-filter="reservatorios" onclick="filterSystem('reservatorios', event)">RESERVATÓRIOS</button>
+    <button class="system-btn" data-system-filter="reservatorios" onclick="abrirPainelReservatoriosGMAN104(event)">RESERVATÓRIOS</button>
     <button class="quick-view-btn" onclick="abrirVisualizacaoGMAN()" title="Alterar visualização">▦</button>
   </div>
   <div id="apiStatus" class="loading-note" onclick="abrirSincronizacaoDetalhesGMAN()" role="button" tabindex="0">Aguardando login.</div>
@@ -1194,6 +1212,10 @@ let gmanBuscaTimer = null;
       document.querySelectorAll('.system-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.systemFilter === String(filtro)));
     }
     function filterSystem(system, ev) {
+      if (String(system) === 'reservatorios') {
+        abrirPainelReservatoriosGMAN104(ev);
+        return;
+      }
       currentSystemFilter = system;
       marcarFiltroSistemaAtivoGMAN(system);
       applyFilters();
@@ -1208,13 +1230,31 @@ let gmanBuscaTimer = null;
 function alternarVisualizacaoGMAN() { document.body.classList.toggle('gman-view-grade'); }
 function listaEquipamentosVisiveisGMAN104(lista=equipment) { return (Array.isArray(lista)?lista:[]).filter(e=>e && e.id && !isEquipamentoBloqueadoGMAN104(e) && ['100','200','300','400','600','700'].includes(String(e.systemCode||''))); }
 function baseUnidadesHidraulicasGMAN(){ return window.GMAN_UNIDADES_HIDRAULICAS_BASE || {reservatorios:[], resumoPorSistema:[]}; }
+const SISTEMAS_RESERVATORIOS_GMAN104=[['todos','TODOS OS RESERVATÓRIOS'],['100','SISTEMA 100'],['200','SISTEMA 200'],['300','SISTEMA 300'],['400','SISTEMA 400'],['600','SISTEMA 600'],['700','SISTEMA 700']];
+let gmanReservatorioSistemaAtivo104='todos';
+function valorPendenteHidraulicoGMAN104(valor) {
+  const s=String(valor||'').trim();
+  if(!s || /^(-|—|null|undefined)$/i.test(s)) return 'Pendente de confirmação';
+  if(/pendente|nao identificado|não identificado/i.test(s)) return 'Pendente de confirmação';
+  return s;
+}
+function valorMedidaHidraulicaGMAN104(valor, unidade) {
+  const s=valorPendenteHidraulicoGMAN104(valor);
+  return s==='Pendente de confirmação' ? s : `${s} ${unidade}`;
+}
+function nomeReservatorioPadraoGMAN104(r) {
+  const sistema=String(r.SISTEMA||'').trim();
+  const base=String(r.NOME_BASE || r.NOME_UNIDADE || r.ID_UNIDADE || '').replace(/^RES\.?\s*/i,'').replace(/^\d+\s*[-—]?\s*/,'').trim();
+  return (`RES.${sistema} ${base || r.ID_UNIDADE || 'RESERVATÓRIO'}`).trim();
+}
 function listaReservatoriosGMAN104(){
   const base=baseUnidadesHidraulicasGMAN();
   return (Array.isArray(base.reservatorios)?base.reservatorios:[])
-    .filter(r=>r && String(r.TIPO_UNIDADE||'')==='RES' && !/\bVRP\b/i.test([r.NOME_UNIDADE,r.NOME_BASE,r.ORIGEM_DESENHO].join(' ')))
+    .filter(r=>r && String(r.TIPO_UNIDADE||'')==='RES' && ['100','200','300','400','600','700'].includes(String(r.SISTEMA||'')) && !/\bVRP\b/i.test([r.NOME_UNIDADE,r.NOME_BASE,r.ORIGEM_DESENHO].join(' ')))
     .map(r=>({
       id:r.ID_UNIDADE,
-      name:r.NOME_UNIDADE || r.NOME_BASE || r.ID_UNIDADE,
+      name:nomeReservatorioPadraoGMAN104(r),
+      nomeOriginal:r.NOME_UNIDADE || r.NOME_BASE || r.ID_UNIDADE,
       system:nomeSistemaCodigoGMAN_(r.SISTEMA),
       systemCode:String(r.SISTEMA||''),
       status:'ok',
@@ -1222,8 +1262,8 @@ function listaReservatoriosGMAN104(){
       patrimonio:'Ficha técnica hidráulica',
       tipoUnidade:'RES',
       origemDesenho:r.ORIGEM_DESENHO || '',
-      capacidade:r.CAPACIDADE_M3 || '',
-      cota:r.COTA || '',
+      capacidade:valorMedidaHidraulicaGMAN104(r.CAPACIDADE_M3,'m³'),
+      cota:valorMedidaHidraulicaGMAN104(r.COTA,'m'),
       codigoDesenho:r.CODIGO_DESENHO || '',
       conjunto:r.ID_CONJUNTO_HIDRAULICO || '',
       confianca:r.CONFIANCA_LEITURA || '',
@@ -1231,14 +1271,62 @@ function listaReservatoriosGMAN104(){
       isReservatorioGMAN:true
     }));
 }
+function reservatoriosFiltradosGMAN104(sistema=gmanReservatorioSistemaAtivo104) {
+  const filtro=String(sistema||'todos');
+  const lista=listaReservatoriosGMAN104();
+  return filtro==='todos' ? lista : lista.filter(r=>String(r.systemCode)===filtro);
+}
+function totalReservatoriosPorSistemaGMAN104() {
+  const lista=listaReservatoriosGMAN104();
+  return SISTEMAS_RESERVATORIOS_GMAN104.reduce((acc,[codigo])=>{
+    acc[codigo]=codigo==='todos'?lista.length:lista.filter(r=>String(r.systemCode)===codigo).length;
+    return acc;
+  },{});
+}
+function htmlCardReservatorioGMAN104(eq) {
+  return `<article class="gman-reservatorio-card" onclick="abrirReservatorioGMAN104('${escaparHTMLGMAN(eq.id)}')" role="button" tabindex="0">
+    <div class="gman-reservatorio-topo"><div><div class="gman-reservatorio-nome">${escaparHTMLGMAN(eq.name)}</div><div class="gman-kpi-meta">${escaparHTMLGMAN(eq.system.toLocaleUpperCase('pt-BR'))} | ID: ${escaparHTMLGMAN(eq.id)}</div></div><span class="system-tag ${getSystemTagClass(eq.systemCode)}">${escaparHTMLGMAN(eq.systemCode)}</span></div>
+    <div class="gman-reservatorio-meta"><div><span>Capacidade</span><strong>${escaparHTMLGMAN(eq.capacidade)}</strong></div><div><span>Cota</span><strong>${escaparHTMLGMAN(eq.cota)}</strong></div><div><span>Conjunto</span><strong>${escaparHTMLGMAN(eq.conjunto||'Não identificado')}</strong></div><div><span>Confiança</span><strong>${escaparHTMLGMAN(eq.confianca||'Pendente')}</strong></div></div>
+    <div class="gman-kpi-meta">${escaparHTMLGMAN(eq.observacaoTecnica||'Consulta técnica hidráulica, sem alteração de OS.')}</div>
+  </article>`;
+}
+function htmlListaReservatoriosGMAN104(lista) {
+  const dados=Array.isArray(lista)?lista:[];
+  if(!dados.length) return '<div class="gman-reservatorios-vazio">Nenhum reservatório encontrado para este sistema.</div>';
+  return `<div class="gman-reservatorios-lista">${dados.map(htmlCardReservatorioGMAN104).join('')}</div>`;
+}
+function htmlFiltrosReservatoriosGMAN104(ativo) {
+  const totais=totalReservatoriosPorSistemaGMAN104();
+  return `<div class="gman-reservatorios-filtros">${SISTEMAS_RESERVATORIOS_GMAN104.map(([codigo,label])=>`<button type="button" class="gman-reservatorios-filtro ${String(ativo)===String(codigo)?'active':''}" onclick="selecionarSistemaReservatoriosGMAN104('${codigo}')">${label} — ${totais[codigo]||0}</button>`).join('')}</div>`;
+}
+function htmlResumoReservatoriosGMAN104() {
+  const totais=totalReservatoriosPorSistemaGMAN104();
+  const sistemas=SISTEMAS_RESERVATORIOS_GMAN104.filter(s=>s[0]!=='todos').map(([codigo,label])=>`<div class="gman-card-dark"><div class="gman-kpi-label">${label}</div><div class="gman-kpi-value" style="font-size:1.25rem;">${totais[codigo]||0}</div></div>`).join('');
+  return `<div class="gman-reservatorios-header"><div><span class="gman-implementation-badge">Consulta técnica</span><p class="gman-kpi-meta" style="margin-top:8px;">Reservatórios com identidade própria, separados de EBAB, EBAT, ETA, IN LINE e VRP.</p></div><div class="gman-reservatorios-total"><strong>${totais.todos||0}</strong><span>Total geral</span></div></div><div class="gman-grid">${sistemas}</div>`;
+}
+function htmlDiagramaFuturoGMAN104(ativo) {
+  const nome=ativo==='todos'?'por sistema':`Sistema ${ativo}`;
+  return `<div class="gman-hidraulico-futuro"><strong>DIAGRAMA HIDRÁULICO</strong><br>Área preparada para futura visão ${nome}: origem, destino, bombeamento entre unidades e simbologia do desenho técnico. Nenhuma lógica hidráulica automática foi criada nesta ordem.</div>`;
+}
+function abrirPainelReservatoriosGMAN104(ev, sistema=gmanReservatorioSistemaAtivo104) {
+  if(ev && ev.preventDefault) ev.preventDefault();
+  gmanReservatorioSistemaAtivo104=String(sistema||'todos');
+  modalPremiumGMAN('painelReservatoriosGMAN104','RESERVATÓRIOS','Consulta hidráulica por sistema, sem abrir OS e sem alterar dados oficiais.',
+    `<div id="painelReservatoriosConteudoGMAN104">${htmlResumoReservatoriosGMAN104()}${htmlFiltrosReservatoriosGMAN104(gmanReservatorioSistemaAtivo104)}<div id="listaReservatoriosModalGMAN104">${htmlListaReservatoriosGMAN104(reservatoriosFiltradosGMAN104())}</div>${htmlDiagramaFuturoGMAN104(gmanReservatorioSistemaAtivo104)}<div class="gman-card-actions"><button class="gman-btn gman-btn-muted" onclick="fecharModalGMAN('painelReservatoriosGMAN104')">Voltar</button><button class="gman-btn" onclick="fecharModalGMAN('painelReservatoriosGMAN104')">Fechar</button></div></div>`, '1040px');
+}
+function selecionarSistemaReservatoriosGMAN104(sistema) {
+  gmanReservatorioSistemaAtivo104=String(sistema||'todos');
+  const c=document.getElementById('painelReservatoriosConteudoGMAN104');
+  if(!c) return;
+  c.innerHTML=`${htmlResumoReservatoriosGMAN104()}${htmlFiltrosReservatoriosGMAN104(gmanReservatorioSistemaAtivo104)}<div id="listaReservatoriosModalGMAN104">${htmlListaReservatoriosGMAN104(reservatoriosFiltradosGMAN104())}</div>${htmlDiagramaFuturoGMAN104(gmanReservatorioSistemaAtivo104)}<div class="gman-card-actions"><button class="gman-btn gman-btn-muted" onclick="fecharModalGMAN('painelReservatoriosGMAN104')">Voltar</button><button class="gman-btn" onclick="fecharModalGMAN('painelReservatoriosGMAN104')">Fechar</button></div>`;
+}
 function applyFilters() {
   const term=normalizarTextoGMAN(document.getElementById('searchInput').value);
   marcarFiltroSistemaAtivoGMAN(currentSystemFilter);
   if(currentSystemFilter==='reservatorios') {
-    let reservatorios=listaReservatoriosGMAN104();
-    if(currentStatusFilter!=='all') reservatorios=reservatorios.filter(eq=>eq.status===currentStatusFilter);
-    if(term) reservatorios=reservatorios.filter(eq=>normalizarTextoGMAN([eq.name,eq.system,eq.id,eq.systemCode,eq.capacidade,eq.cota,eq.codigoDesenho].join(' ')).includes(term));
-    renderReservatoriosGMAN104(reservatorios);
+    currentSystemFilter='all';
+    marcarFiltroSistemaAtivoGMAN('all');
+    abrirPainelReservatoriosGMAN104(null, gmanReservatorioSistemaAtivo104);
     atualizarTotalizadoresFiltrosGMAN104(equipment);
     return;
   }
@@ -1569,9 +1657,25 @@ function abrirFiltroAvancadoGMAN() {
     }
 
     function buscarEquipamentoVisualGMAN(id) { return equipment.find(e=>String(e.id)===String(id)); }
+    function setHTMLSemPiscarGMAN104(el, html) {
+      if(!el) return;
+      if(el.innerHTML !== html) el.innerHTML = html;
+    }
+    function atualizarTelaSemPiscarGMAN104() {
+      const scrollY=window.scrollY || 0;
+      const busca=document.getElementById('searchInput');
+      const termo=busca ? busca.value : '';
+      if(usuarioEstaPreenchendoGMAN()) {
+        atualizarTotalizadoresFiltrosGMAN104(equipment);
+        return;
+      }
+      applyFilters();
+      if(busca && busca.value !== termo) busca.value = termo;
+      requestAnimationFrame(()=>window.scrollTo({top:scrollY, left:0, behavior:'auto'}));
+    }
     function renderEquipment(list=equipment) {
       const container=document.getElementById('equipmentList'); if(!container) return;
-      container.innerHTML=list.map((eq,idx)=>{
+      const html=list.map((eq,idx)=>{
         const listaGrupo=(ordensServicoCache||[]).filter(o=>String(getCampo(o,['idEquipamento','ID_EQUIPAMENTO']))===String(eq.id) && statusAtivo(getCampo(o,['statusOS','STATUS_OS'])));
         const ult=buscarUltimaOSVisualGMAN(eq.id);
         const numeroOS=numeroOSVisualGMAN(getCampo(ult||{},['numeroOS','NUMERO_OS','idOS','ID_OS']));
@@ -1585,24 +1689,26 @@ function abrirFiltroAvancadoGMAN() {
         const gestaoInfo=isAdministradorTotal()&&listaGrupo.length?`<span>▣ ${listaGrupo.length} OS aberta(s) no grupo</span><span>👷 ${escaparHTMLGMAN([...new Set(listaGrupo.map(o=>getCampo(o,['responsavel','RESPONSAVEL'])).filter(Boolean))].join(', '))}</span>`:'';
         return `<div class="equipment-item gman-stagger-card-100 status-card-${eq.status}" style="--gman-stagger-delay:${Math.min(idx*0.05,1.2).toFixed(2)}s" onclick="openEquipment('${eq.id}')"><div class="status-icon status-${eq.status}" onclick="event.stopPropagation(); abrirStatusViaOSGMAN('${eq.id}')">${icone}</div><div class="equipment-main"><div class="equipment-name">${escaparHTMLGMAN(nomeGrupoVisualGMAN(eq.name))}</div><div class="equipment-system"><span class="system-tag ${getSystemTagClass(eq.systemCode)}" onclick="event.stopPropagation(); filterSystem('${eq.systemCode}', event)">${eq.systemCode}</span>${escaparHTMLGMAN(eq.system.toLocaleUpperCase('pt-BR'))} | ID: ${escaparHTMLGMAN(eq.id)}</div><div class="equipment-responsavel"><span>◉ ${escaparHTMLGMAN(String(responsavel).toLocaleUpperCase('pt-BR'))}</span><span>◷ ${escaparHTMLGMAN(atualizacao)}</span>${gestaoInfo}</div>${justificativa?`<div class="gman-justificativa-real"><strong>Registro do usuário:</strong> ${escaparHTMLGMAN(justificativa)}</div>`:''}</div><div class="equipment-actions"><button class="status-badge badge-${eq.status}" onclick="event.stopPropagation(); abrirStatusViaOSGMAN('${eq.id}')">${labelStatusEquipamentoMaiusculo(eq.status,statusTextoEquipamentoGMAN(eq))}</button><button class="card-mini-btn" onclick="event.stopPropagation(); abrirAcoesCardGMAN('${eq.id}')">⋯</button><button class="card-mini-btn" onclick="event.stopPropagation(); openEquipment('${eq.id}')">›</button></div><div class="equipment-meta"><div class="meta-chip"><span class="meta-label">Última OS</span><span class="meta-value">${escaparHTMLGMAN(numeroOS)}</span></div><div class="meta-chip"><span class="meta-label">Patrimônio</span><span class="meta-value">${escaparHTMLGMAN(patrimonio)}</span></div><div class="meta-chip"><span class="meta-label">Prioridade</span><span class="meta-value ${prioridadeClasseGMAN(prioridade)}">${escaparHTMLGMAN(String(prioridade).toLocaleUpperCase('pt-BR'))}</span></div></div></div>`;
       }).join('');
+      setHTMLSemPiscarGMAN104(container, html);
       let active=currentSystemFilter==='brutas'?equipment.filter(isEquipamentoBrutaGMAN):(currentSystemFilter!=='all'?equipment.filter(e=>String(e.systemCode||'')===String(currentSystemFilter)):equipment);
       document.getElementById('operationalCount').textContent=active.filter(e=>e.status==='ok').length; document.getElementById('maintenanceCount').textContent=active.filter(e=>e.status==='alert'||e.status==='down').length; document.getElementById('downCount').textContent=active.filter(e=>e.status==='down').length;
     }
 
     function renderReservatoriosGMAN104(list=listaReservatoriosGMAN104()) {
       const container=document.getElementById('equipmentList'); if(!container) return;
-      container.innerHTML=(Array.isArray(list)?list:[]).map((eq,idx)=>`
+      const html=(Array.isArray(list)?list:[]).map((eq,idx)=>`
         <div class="equipment-item gman-stagger-card-100 status-card-ok" style="--gman-stagger-delay:${Math.min(idx*0.05,1.2).toFixed(2)}s" onclick="abrirReservatorioGMAN104('${eq.id}')">
           <div class="status-icon status-ok" onclick="event.stopPropagation(); abrirReservatorioGMAN104('${eq.id}')">R</div>
           <div class="equipment-main">
             <div class="equipment-name">${escaparHTMLGMAN(nomeGrupoVisualGMAN(eq.name))}</div>
-            <div class="equipment-system"><span class="system-tag ${getSystemTagClass(eq.systemCode)}" onclick="event.stopPropagation(); filterSystem('reservatorios', event)">${escaparHTMLGMAN(eq.systemCode)}</span>${escaparHTMLGMAN(eq.system.toLocaleUpperCase('pt-BR'))} | ID: ${escaparHTMLGMAN(eq.id)}</div>
+            <div class="equipment-system"><span class="system-tag ${getSystemTagClass(eq.systemCode)}" onclick="event.stopPropagation(); abrirPainelReservatoriosGMAN104(event, '${eq.systemCode}')">${escaparHTMLGMAN(eq.systemCode)}</span>${escaparHTMLGMAN(eq.system.toLocaleUpperCase('pt-BR'))} | ID: ${escaparHTMLGMAN(eq.id)}</div>
             <div class="equipment-responsavel"><span>RESERVATÓRIO</span><span>${escaparHTMLGMAN(eq.origemDesenho||'RES')}</span><span>${escaparHTMLGMAN(eq.confianca||'')}</span></div>
             <div class="gman-justificativa-real"><strong>Cadastro técnico:</strong> ${escaparHTMLGMAN(eq.observacaoTecnica||'Base hidráulica validada para implantação controlada.')}</div>
           </div>
           <div class="equipment-actions"><button class="status-badge badge-ok" onclick="event.stopPropagation(); abrirReservatorioGMAN104('${eq.id}')">Ficha técnica</button><button class="card-mini-btn" onclick="event.stopPropagation(); abrirReservatorioGMAN104('${eq.id}')">›</button></div>
           <div class="equipment-meta"><div class="meta-chip"><span class="meta-label">Capacidade</span><span class="meta-value">${escaparHTMLGMAN(eq.capacidade||'Pendente')}</span></div><div class="meta-chip"><span class="meta-label">Cota</span><span class="meta-value">${escaparHTMLGMAN(eq.cota||'Pendente')}</span></div><div class="meta-chip"><span class="meta-label">Conjunto</span><span class="meta-value">${escaparHTMLGMAN(eq.conjunto||'—')}</span></div></div>
         </div>`).join('');
+      setHTMLSemPiscarGMAN104(container, html);
       document.getElementById('operationalCount').textContent=String((Array.isArray(list)?list:[]).length);
       document.getElementById('maintenanceCount').textContent='0';
       document.getElementById('downCount').textContent='0';
@@ -1610,8 +1716,10 @@ function abrirFiltroAvancadoGMAN() {
 
     function abrirReservatorioGMAN104(id) {
       const eq=listaReservatoriosGMAN104().find(r=>String(r.id)===String(id)); if(!eq) return;
+      const painelReservatorios=document.getElementById('painelReservatoriosGMAN104');
+      if(painelReservatorios) painelReservatorios.classList.add('gman-preservar-overlay');
       modalPremiumGMAN('reservatorioGMAN104', escaparHTMLGMAN(nomeGrupoVisualGMAN(eq.name)), `Reservatório | Sistema ${escaparHTMLGMAN(eq.systemCode)} | ${escaparHTMLGMAN(eq.system.toLocaleUpperCase('pt-BR'))}`,
-        `<div class="gman-grid"><div class="gman-card-dark"><div class="gman-kpi-label">Capacidade</div><div class="gman-kpi-value" style="font-size:1.05rem;">${escaparHTMLGMAN(eq.capacidade||'Não identificada')}</div></div><div class="gman-card-dark"><div class="gman-kpi-label">Cota</div><div class="gman-kpi-value" style="font-size:1.05rem;">${escaparHTMLGMAN(eq.cota||'Não identificada')}</div></div><div class="gman-card-dark"><div class="gman-kpi-label">Código desenho</div><div class="gman-kpi-value" style="font-size:1.05rem;">${escaparHTMLGMAN(eq.codigoDesenho||'Não identificado')}</div></div><div class="gman-card-dark"><div class="gman-kpi-label">Conjunto hidráulico</div><div class="gman-kpi-value" style="font-size:.86rem;">${escaparHTMLGMAN(eq.conjunto||'Não identificado')}</div></div></div><div class="gman-card-dark" style="margin-top:12px;"><div class="gman-kpi-label">Observação técnica</div><div class="gman-kpi-meta">${escaparHTMLGMAN(eq.observacaoTecnica||'Sem observação técnica adicional.')}</div></div><div class="gman-card-dark" style="margin-top:12px;"><span class="gman-status-pill gman-pill-warn">OS real preservada</span><p class="small-help" style="margin-top:8px;">Nesta Ordem 2, reservatórios ficam em consulta técnica. Abertura de OS real para reservatórios só deve ser liberada após aprovação e publicação controlada.</p></div>`, '780px');
+        `<div class="gman-grid"><div class="gman-card-dark"><div class="gman-kpi-label">Capacidade</div><div class="gman-kpi-value" style="font-size:1.05rem;">${escaparHTMLGMAN(eq.capacidade||'Pendente de confirmação')}</div></div><div class="gman-card-dark"><div class="gman-kpi-label">Cota</div><div class="gman-kpi-value" style="font-size:1.05rem;">${escaparHTMLGMAN(eq.cota||'Pendente de confirmação')}</div></div><div class="gman-card-dark"><div class="gman-kpi-label">Código desenho</div><div class="gman-kpi-value" style="font-size:1.05rem;">${escaparHTMLGMAN(eq.codigoDesenho||'Não identificado')}</div></div><div class="gman-card-dark"><div class="gman-kpi-label">Conjunto hidráulico</div><div class="gman-kpi-value" style="font-size:.86rem;">${escaparHTMLGMAN(eq.conjunto||'Não identificado')}</div></div></div><div class="gman-card-dark" style="margin-top:12px;"><div class="gman-kpi-label">Observação técnica</div><div class="gman-kpi-meta">${escaparHTMLGMAN(eq.observacaoTecnica||'Sem observação técnica adicional.')}</div></div><div class="gman-card-dark" style="margin-top:12px;"><span class="gman-status-pill gman-pill-warn">OS real preservada</span><p class="small-help" style="margin-top:8px;">Reservatórios ficam em consulta técnica nesta ordem. Nenhuma OS real é aberta automaticamente por esta ficha.</p></div><div class="gman-card-actions"><button class="gman-btn gman-btn-muted" onclick="fecharModalGMAN('reservatorioGMAN104')">Voltar</button><button class="gman-btn" onclick="fecharModalGMAN('reservatorioGMAN104'); fecharModalGMAN('painelReservatoriosGMAN104')">Fechar</button></div>`, '780px');
     }
 
     function openEquipment(id) {
@@ -1755,22 +1863,20 @@ function abrirPainelCompletoGrupoGMAN(id) {
         });
         apiOnline=true;
         saveData();
-        applyFilters();
+        atualizarTelaSemPiscarGMAN104();
         atualizarIndicadorConexao('✓ Online: status conectado à base oficial do GMAN', 'online');
         setTimeout(async()=>{
           try {
             const osOnline = await listarOSOnline();
             ordensServicoCache=osOnline;
             atualizarTotalizadoresOS(osOnline);
-            applyFilters();
+            atualizarTelaSemPiscarGMAN104();
           } catch(e) { console.warn('OS carregará sob demanda:', e); }
         }, 50);
         return true;
       } catch(erro) {
         apiOnline=false;
-        loadData();
-        equipment=[];
-        renderEquipment([]);
+        atualizarTotalizadoresFiltrosGMAN104(equipment);
         atualizarIndicadorConexao('⚠ Falha ao listar status. Cadastro local antigo bloqueado; use somente a base oficial do GMAN — '+erro.message, 'offline');
         console.error(erro);
         return false;
@@ -2386,7 +2492,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
       ordensServicoCache=extrairLista(osRet,['ordens','os','listaOS','ordensServico']);
       atualizarTotalizadoresOS(ordensServicoCache);
       atualizarAlertasUsuario85696();
-      if(renderizarTela && !usuarioEstaPreenchendoGMAN()) applyFilters();
+      if(renderizarTela && !usuarioEstaPreenchendoGMAN()) atualizarTelaSemPiscarGMAN104();
     }
     async function sincronizarSegundoPlanoGMAN85696(opcoes={}){
       if(!usuarioLogado) return;

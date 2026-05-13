@@ -48,10 +48,15 @@ function validarIndex(base) {
   if (pos.some(p => p < 0)) falhas.push('Nem todos os botões principais existem.');
   for (let i = 1; i < pos.length; i++) if (pos[i] < pos[i - 1]) falhas.push('Ordem dos botões principais divergente.');
   if (!html.includes('RESERVATÓRIOS')) falhas.push('Botão RESERVATÓRIOS ausente.');
+  if (!/data-system-filter="reservatorios"[^>]*abrirPainelReservatoriosGMAN104/.test(blocoFiltro)) falhas.push('Botão RESERVATÓRIOS não abre painel/modal próprio.');
   if (/class="systems-totalizadores"/.test(html)) falhas.push('Bloco systems-totalizadores recriado.');
   if (!html.includes('dados_unidades_hidraulicas_gman.js')) falhas.push('Base hidráulica validada não foi carregada no index.');
   if (!/function renderReservatoriosGMAN104/.test(html)) falhas.push('Renderização de reservatórios ausente.');
+  if (!/function abrirPainelReservatoriosGMAN104/.test(html)) falhas.push('Painel/modal de reservatórios ausente.');
+  if (!/function selecionarSistemaReservatoriosGMAN104/.test(html)) falhas.push('Seleção de reservatórios por sistema ausente.');
   if (!/function abrirReservatorioGMAN104/.test(html)) falhas.push('Ficha técnica de reservatório ausente.');
+  if (!/DIAGRAMA HIDRÁULICO/.test(html)) falhas.push('Previsão visual do diagrama hidráulico ausente.');
+  if (!/function setHTMLSemPiscarGMAN104/.test(html) || !/function atualizarTelaSemPiscarGMAN104/.test(html)) falhas.push('Camada anti-piscada da atualização automática ausente.');
   if (!html.includes("setBtn('all'")) falhas.push('Totalizador do botão TODAS ausente.');
   if (!htmlCompacto.includes("['100','200','300','400','600','700'].forEach(c=>setBtn(c,")) falhas.push('Totalizadores dos sistemas 100-700 ausentes.');
   if (!html.includes("setBtn('brutas'")) falhas.push('Totalizador do botão BRUTAS ausente.');
@@ -63,7 +68,12 @@ function validarIndex(base) {
   if (resInvalidos.length) falhas.push('Aba RESERVATORIOS possui tipo diferente de RES.');
   const bombeamentoInvalidos = base.estacoesBombeamento.filter(r => !['EBAB', 'EBAT', 'IN LINE'].includes(r.TIPO_UNIDADE));
   if (bombeamentoInvalidos.length) falhas.push('Aba ESTACOES_BOMBEAMENTO possui tipo inválido.');
-  if (base.unidades.some(u => /\\bVRP\\b/i.test([u.TIPO_UNIDADE, u.NOME_UNIDADE, u.ORIGEM_DESENHO].join(' ')))) falhas.push('VRP apareceu na base principal.');
+  if (base.unidades.some(u => /\bVRP\b/i.test([u.TIPO_UNIDADE, u.NOME_UNIDADE, u.ORIGEM_DESENHO].join(' ')))) falhas.push('VRP apareceu na base principal.');
+  if (base.unidades.some(u => String(u.SISTEMA) === '500')) falhas.push('Sistema 500 apareceu na base hidráulica.');
+  const reservatorios = base.reservatorios.filter(r => r.TIPO_UNIDADE === 'RES');
+  if (reservatorios.some(r => !['100', '200', '300', '400', '600', '700'].includes(String(r.SISTEMA)))) falhas.push('Reservatório com sistema inválido.');
+  if (reservatorios.some(r => /\b(VRP|EBAB|EBAT|ETA|IN LINE)\b/i.test(String(r.TIPO_UNIDADE)))) falhas.push('Filtro RESERVATÓRIOS contém tipo indevido.');
+  if (reservatorios.some(r => !String(r.CAPACIDADE_M3 || '').trim())) falhas.push('Reservatório sem capacidade padronizada ou pendência explícita.');
   return falhas;
 }
 
