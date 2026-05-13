@@ -1,0 +1,48 @@
+RELATORIO ORDEM 01 - AJUSTES VISUAIS HIDRAULICOS GMAN
+
+Responsavel tecnico/validador: Paulo Jurandir
+Branch: ajuste/visual-hidraulico-reservatorios-gman
+Base: 426a4a3 Merge pull request #3 from ammpaulojurandir-cloud/implantacao/modulo-reservatorios-unidades-hidraulicas
+
+Escopo executado:
+- Botao RESERVATORIOS abre painel/modal proprio.
+- Painel permite filtrar TODOS OS RESERVATORIOS e sistemas 100, 200, 300, 400, 600 e 700.
+- Lista de reservatorios usa somente unidades RES da base hidraulica local.
+- Ficha do reservatorio possui VOLTAR e FECHAR.
+- VOLTAR da ficha retorna ao painel de reservatorios.
+- Sincronizacao visual evita reescrever HTML identico e preserva tela/modal durante atualizacao automatica.
+- Base hidraulica local foi normalizada para capacidade em m3 e cota em m.
+- Valores desconhecidos ou ambiguos foram marcados como Pendente de confirmacao.
+- Area futura DIAGRAMA HIDRAULICO foi apenas prevista visualmente, sem logica hidraulica automatica.
+
+Validacoes executadas:
+- node --check dados_unidades_hidraulicas_gman.js: OK
+- node --check homologacao/SIMULADOR_CICLO_OS_500.js: OK
+- node --check homologacao/SANDBOX_TESTE_PESADO_GMAN.js: OK
+- JavaScript inline do index.html extraido e validado: OK
+- node homologacao/SIMULADOR_CICLO_OS_500.js: 500 ciclos, 500 aprovados, 0 falhas, risco BAIXO
+- node homologacao/SANDBOX_TESTE_PESADO_GMAN.js: 500 OS simuladas, 100 OS sandbox, 0 falhas criticas
+
+Validacao visual local:
+- App local abriu em http://127.0.0.1:8765/index.html?ordem01=1.
+- Login de leitura funcionou.
+- Botao RESERVATORIOS abriu o painel.
+- Sistema 300 filtrou 55 cards, sem exibir RES.100 ou RES.200 na lista filtrada.
+- Ficha tecnica abriu por card.
+- VOLTAR da ficha manteve o painel aberto.
+- FECHAR do painel fechou corretamente.
+- Console sem erros durante o teste visual.
+
+Conferencias de escopo:
+- Apps Script/API oficial nao foi alterado.
+- Nenhuma OS real foi criada, iniciada ou concluida.
+- Nenhum dado oficial foi alterado.
+- VRP continua fora da base principal.
+- Sistema 500 continua ausente da base hidraulica.
+- Nao foi criado Firebase, telemetria, temperatura, pressao em bar, m3/h ou capacidade percentual como dado principal.
+- AI Studio e Figma foram considerados apenas como referencia visual/conceitual.
+- REV3/REV3A nao foi aplicado.
+
+Resultado:
+FALHAS CRITICAS FINAIS = 0
+ORDEM 01 pronta para revisao via PR.
