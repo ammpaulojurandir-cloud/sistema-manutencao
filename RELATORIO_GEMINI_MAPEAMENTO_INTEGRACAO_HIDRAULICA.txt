@@ -1,0 +1,40 @@
+RELATORIO GEMINI MAPEAMENTO INTEGRAÇÃO HIDRÁULICA — GMAN DMAE
+Projeto: sistema-manutencao
+Responsável: Paulo Jurandir
+Data: 2026-05-14
+Branch: preparacao/gemini-mapeamento-integracao-hidraulica
+
+1. VISÃO GERAL DO SISTEMA GMAN
+O GMAN é um sistema de manutenção para DMAE, implementado com frontend HTML/CSS/JS (index.html) e backend Google Apps Script (apps_script/Código.js).
+- Frontend: Interface responsiva com filtros por sistema, incluindo "reservatorios".
+- Backend: Gerencia Ordens de Serviço (OS), usuários, equipamentos, com validações e auditoria.
+- Dados: Unidades hidráulicas em dados_unidades_hidraulicas_gman.js, com ETAs, RES, EBATs, etc.
+
+2. MODELAGEM HIDRÁULICA ATUAL
+Preparação em _PREPARACAO_MODELAGEM_HIDRAULICA_GMAN_2026_05_13:
+- Sistemas: 100 (Moinhos), 200 (São João), 300 (Menino Deus), 400 (Belém Novo), 600 (Ilha da Pintada), 700 (Tristeza).
+- Unidades: 89 operacionais, 97 reservatórios físicos.
+- Validação: 23 testes críticos aprovados, 0 falhas críticas.
+- Pendências abertas: 150, maioria alta prioridade (dados como DN, material, etc.).
+
+3. MAPEAMENTO DE INTEGRAÇÃO
+- Compatibilidade: A modelagem hidráulica pode permanecer inicialmente como base técnica separada. Qualquer integração futura com API, tela, filtro, modal ou card exige ordem própria, sandbox e auditoria antes de alterar o app.
+- Filtros existentes: "reservatorios" já presente; adicionar "hidraulica" ou subdividir.
+- Equipamentos: Vincular unidades hidráulicas aos equipamentos existentes via ID_CONJUNTO_HIDRAULICO.
+- Status operacional: Usar STATUS_OPERACIONAL das unidades para atualizar status dos equipamentos.
+- Capacidades: Integrar CAPACIDADE_M3, COTA, etc., para dashboards e relatórios.
+- Fluxos: Considerar RELACOES_HIDRAULICAS para alertas de interdependências.
+
+4. PONTOS DE INTEGRAÇÃO SUGERIDOS
+- API nova: Endpoint para consultar dados hidráulicos por sistema/unidade.
+- Frontend: Expandir filtros para incluir tipos hidráulicos (ETA, RES, EBAT).
+- Backend: Atualizar validações para incluir regras hidráulicas (ex.: OS em ETA afeta RES downstream).
+- Relatórios: KPIs hidráulicos (capacidade total, status por sistema).
+
+5. DEPENDÊNCIAS E PRÉ-REQUISITOS
+- Base validada: Usar MODELO_DADOS_HIDRAULICO_PROPOSTO.json como fonte oficial.
+- Compatibilidade: Manter GMAN_UNIDADES_HIDRAULICAS_BASE atualizado.
+- Testes: Validar integração sem impactar ciclo operacional ativo.
+
+Próxima recomendação: executar somente mapeamento técnico e sandbox de leitura. Não integrar ao app, não criar API e não alterar produção sem nova ordem aprovada.</content>
+<parameter name="filePath">c:\Users\Jurandir dmae\Desktop\sistema de manutenção gman\04_INDEX_GITHUB\GMAN_GITHUB_OFICIAL\RELATORIO_GEMINI_MAPEAMENTO_INTEGRACAO_HIDRAULICA.txt

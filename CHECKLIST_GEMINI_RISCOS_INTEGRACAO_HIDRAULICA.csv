@@ -1,0 +1,10 @@
+ID_RISCO,DESCRICAO,SEVERIDADE,IMPACTO,MITIGACAO,STATUS
+R001,Compatibilidade de dados entre GMAN_UNIDADES_HIDRAULICAS_BASE e MODELO_DADOS_HIDRAULICO_PROPOSTO,ALTA,Inconsistências em IDs e capacidades podem causar falhas em filtros/relatórios,Validar mapeamento ID_CONJUNTO_HIDRAULICO vs equipamentos existentes,PENDENTE
+R002,Impacto no frontend ao adicionar filtros hidráulicos sem alterar index.html,MEDIA,Interface pode não suportar novos tipos sem ajustes visuais,Testar expansão de system-btn para "hidraulica",PENDENTE
+R003,Integração de status operacional hidráulico com status de equipamentos,ALTA,Atualizações automáticas podem sobrescrever status manuais,Implementar flag de origem (hidráulico vs manual) em backend,PENDENTE
+R004,Performance da API Apps Script com dados hidráulicos expandidos,MEDIA,Consultas podem ficar lentas com 97 reservatórios físicos + 89 unidades operacionais,Implementar cache ou paginação em endpoints,PENDENTE
+R005,Dependências entre unidades (RELACOES_HIDRAULICAS) não refletidas em OS,CRITICA,Manutenção em ETA pode afetar RES downstream sem alerta,Adicionar validações de interdependências em criação de OS,PENDENTE
+R006,Dados pendentes (DN, material, etc.) podem causar erros em cálculos,BAIXA,Campos vazios levam a NaN em dashboards,Ignorar campos pendentes ou usar defaults seguros,PENDENTE
+R007,Concorrência entre usuários em atualizações hidráulicas,ALTA,LockService pode falhar em operações complexas,Testar LockService com cenários de múltiplos usuários,PENDENTE
+R008,Auditoria de ações hidráulicas integrada ao histórico existente,MEDIA,Logs podem misturar manutenção e hidráulica sem distinção,Adicionar categoria "HIDRAULICA" em auditoria,PENDENTE</content>
+<parameter name="filePath">c:\Users\Jurandir dmae\Desktop\sistema de manutenção gman\04_INDEX_GITHUB\GMAN_GITHUB_OFICIAL\CHECKLIST_GEMINI_RISCOS_INTEGRACAO_HIDRAULICA.csv
