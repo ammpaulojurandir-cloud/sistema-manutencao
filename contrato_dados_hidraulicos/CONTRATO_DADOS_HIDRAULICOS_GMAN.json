@@ -1,0 +1,54 @@
+{
+  "titulo": "Contrato Técnico de Leitura da Modelagem Hidráulica GMAN",
+  "versao": "1.0",
+  "fonte_oficial_tecnica": "_PREPARACAO_MODELAGEM_HIDRAULICA_GMAN_2026_05_13/03_MODELAGEM/MODELO_DADOS_HIDRAULICO_PROPOSTO.json",
+  "sistemas_oficiais_permitidos": ["100", "200", "300", "400", "600", "700"],
+  "sistema_500": "PROIBIDO / AUSENTE / NÃO OFICIAL",
+  "vrp": "FORA DA BASE PRINCIPAL",
+  "in_line": "FORA DE RESERVATORIOS_FISICOS",
+  "totais_oficiais": {
+    "reservatorios_fisicos": 97,
+    "unidades_operacionais": 89,
+    "relacoes_normais": 142,
+    "interligacoes_emergencia": 2,
+    "bloqueantes": 0
+  },
+  "regras_leitura": [
+    "leitura técnica somente",
+    "sem escrita na base oficial",
+    "sem alteração de status operacional",
+    "sem criação de OS",
+    "sem alteração de equipamento"
+  ],
+  "regras_nao_escrita": [
+    "proibido gravar no app",
+    "proibido gravar na API",
+    "proibido alterar planilha oficial",
+    "proibido alterar dados_unidades_hidraulicas_gman.js",
+    "proibido alterar index.html"
+  ],
+  "regras_futura_api": [
+    "somente após sandbox",
+    "somente após auditoria",
+    "somente após autorização formal",
+    "deve iniciar como rota de leitura, não escrita"
+  ],
+  "regras_futura_tela_modal": [
+    "somente após ordem própria",
+    "sem misturar com OS",
+    "sem alterar filtros existentes sem sandbox",
+    "sem publicar antes de validação"
+  ],
+  "criterios_validacao": [
+    "node --check quando houver script",
+    "validação anti-termos inválidos em resultados finais",
+    "comparação com validador geral",
+    "0 falhas críticas"
+  ],
+  "metadados": {
+    "data_criacao": "2026-05-14",
+    "autor": "Equipe GMAN"
+  },
+  "notas": "Este contrato é específico para leitura técnica e integração futura. Não altera produção nem bases oficiais."
+}
+

@@ -1,0 +1,58 @@
+CONTRATO TÉCNICO DE LEITURA DA MODELAGEM HIDRÁULICA GMAN
+
+1. FONTE OFICIAL TÉCNICA
+- Arquivo oficial: _PREPARACAO_MODELAGEM_HIDRAULICA_GMAN_2026_05_13/03_MODELAGEM/MODELO_DADOS_HIDRAULICO_PROPOSTO.json
+
+2. SISTEMAS OFICIAIS PERMITIDOS
+- Sistemas autorizados: 100, 200, 300, 400, 600, 700
+- Sistema 500: PROIBIDO / AUSENTE / NÃO OFICIAL
+
+3. VRP
+- VRP: FORA DA BASE PRINCIPAL
+
+4. IN LINE
+- IN LINE: FORA DE RESERVATORIOS_FISICOS
+
+5. TOTAIS OFICIAIS
+- 97 reservatórios físicos
+- 89 unidades operacionais
+- 142 relações normais
+- 2 interligações de emergência
+- 0 bloqueantes
+
+6. REGRAS DE LEITURA
+- leitura técnica somente
+- sem escrita na base oficial
+- sem alteração de status operacional
+- sem criação de OS
+- sem alteração de equipamento
+
+7. REGRAS DE NÃO ESCRITA
+- proibido gravar no app
+- proibido gravar na API
+- proibido alterar planilha oficial
+- proibido alterar dados_unidades_hidraulicas_gman.js
+- proibido alterar index.html
+
+8. REGRAS PARA FUTURA API
+- somente após sandbox
+- somente após auditoria
+- somente após autorização formal
+- deve iniciar como rota de leitura, não escrita
+
+9. REGRAS PARA FUTURA TELA/MODAL
+- somente após ordem própria
+- sem misturar com OS
+- sem alterar filtros existentes sem sandbox
+- sem publicar antes de validação
+
+10. CRITÉRIOS DE VALIDAÇÃO ANTES DE INTEGRAÇÃO
+- node --check quando houver script
+- validação anti-termos inválidos em resultados finais
+- comparação com validador geral
+- 0 falhas críticas
+
+11. CONTEXTO GERAL
+- Este contrato formaliza a leitura técnica da modelagem hidráulica para integração futura no GMAN.
+- Os pontos acima são obrigatórios e devem ser registrados de modo explícito no TXT e no JSON.
+

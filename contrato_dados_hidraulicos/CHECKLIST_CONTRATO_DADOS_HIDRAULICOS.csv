@@ -1,0 +1,77 @@
+Entidade;Campo;Tipo;Obrigatório;Descrição
+sistemasHidraulicos;ID_SISTEMA;string;SIM;Chave única do sistema hidráulico
+sistemasHidraulicos;SISTEMA;string;SIM;Código numérico do sistema
+sistemasHidraulicos;NOME_SISTEMA;string;SIM;Nome operacional do sistema
+sistemasHidraulicos;COR_DESENHO;string;SIM;Cor de desenho aguardando confirmação visual
+sistemasHidraulicos;OBSERVACAO;string;SIM;Observações de extração e validação
+sistemasHidraulicos;ATIVO;string;SIM;Indicador de registro ativo
+conjuntos;ID_CONJUNTO;string;SIM;Chave única do conjunto
+conjuntos;SISTEMA;string;SIM;Sistema pai referenciado
+conjuntos;NOME_CONJUNTO;string;SIM;Nome do conjunto hidráulico
+conjuntos;TIPO_CONJUNTO;string;SIM;Tipo de conjunto (EBAT, RES, ETA, EBAB, etc.)
+conjuntos;UNIDADE_PRINCIPAL;string;SIM;Nome da unidade principal associada
+conjuntos;TEM_ETA;string;SIM;Flag de presença de ETA
+conjuntos;TEM_EBAB;string;SIM;Flag de presença de EBAB
+conjuntos;TEM_EBAT;string;SIM;Flag de presença de EBAT
+conjuntos;TEM_RES;string;SIM;Flag de presença de reservatório
+conjuntos;TEM_INLINE;string;SIM;Flag de presença de elemento inline
+conjuntos;ORIGEM_DESENHO;string;SIM;Origem da leitura no desenho
+conjuntos;CONFIANCA_LEITURA;string;SIM;Nível de confiança da leitura
+conjuntos;OBSERVACAO;string;SIM;Observações de contexto
+conjuntos;ATIVO;string;SIM;Indicador de registro ativo
+unidades;ID_UNIDADE;string;SIM;Chave única da unidade
+unidades;ID_CONJUNTO;string;SIM;Conjunto pai referenciado
+unidades;SISTEMA;string;SIM;Sistema pai referenciado
+unidades;TIPO_UNIDADE;string;SIM;Tipo da unidade hidráulica
+unidades;NOME_UNIDADE;string;SIM;Nome operacional da unidade
+unidades;CODIGO_DESENHO;string;SIM;Código identificador no desenho
+unidades;FUNCAO_HIDRAULICA;string;SIM;Função hidráulica esperada
+unidades;SIMBOLO_LEGENDA;string;SIM;Símbolo de legenda usado no desenho
+unidades;COR_SISTEMA;string;SIM;Cor de sistema pendente de confirmação
+unidades;ORIGEM_DESENHO;string;SIM;Origem da extração no desenho
+unidades;CONFIANCA_LEITURA;string;SIM;Nível de confiança da leitura
+unidades;OBSERVACAO;string;SIM;Observações de extração
+unidades;ATIVO;string;SIM;Indicador de registro ativo
+reservatorios;ID_RESERVATORIO;string;SIM;Chave única do reservatório
+reservatorios;ID_CONJUNTO;string;SIM;Conjunto pai referenciado
+reservatorios;SISTEMA;string;SIM;Sistema pai referenciado
+reservatorios;CODIGO_DESENHO;string;SIM;Código identificador no desenho
+reservatorios;TIPO_RESERVATORIO;string;SIM;Tipologia do reservatório
+reservatorios;COTA_M;string;SIM;Cota de referência pendente de confirmação
+reservatorios;ALTURA_MAXIMA_OPERACIONAL_M;string;SIM;Altura operacional pendente de confirmação
+reservatorios;DN_ENTRADA;string;SIM;Diâmetro de entrada pendente de confirmação
+reservatorios;DN_SAIDA;string;SIM;Diâmetro de saída pendente de confirmação
+reservatorios;FORMATO;string;SIM;Formato do reservatório
+reservatorios;MATERIAL;string;SIM;Material do reservatório
+reservatorios;TIPOLOGIA;string;SIM;Tipologia de reservatório
+reservatorios;FUNCAO_HIDRAULICA;string;SIM;Função hidráulica do reservatório
+reservatorios;SIMBOLO_LEGENDA;string;SIM;Símbolo de legenda
+reservatorios;ORIGEM_DESENHO;string;SIM;Origem da leitura no desenho
+reservatorios;CONFIANCA_LEITURA;string;SIM;Nível de confiança da leitura
+reservatorios;ATIVO;string;SIM;Indicador de registro ativo
+reservatorios;NOME_RESERVATORIO;string;SIM;Nome operacional do reservatório
+reservatorios;CAPACIDADE_M3;number;SIM;Capacidade em metros cúbicos
+reservatorios;QUANTIDADE_FISICA;number;SIM;Número de reservatórios físicos
+reservatorios;OBSERVACAO;string;SIM;Observações de contexto
+reservatorios;CAPACIDADE_UNITARIA_M3;number;SIM;Capacidade unitária em metros cúbicos
+reservatorios;CAPACIDADE_TOTAL_M3;number;SIM;Capacidade total em metros cúbicos
+reservatorios;NOME_OPERACIONAL;string;SIM;Nome operacional do reservatório
+reservatorios;STATUS_ORDEM_04;string;SIM;Campo de acompanhamento de status
+relacoes;ID_RELACAO;string;SIM;Chave única da relação
+relacoes;SISTEMA;string;SIM;Sistema pai referenciado
+relacoes;TIPO_RELACAO;string;SIM;Tipo funcional da relação
+relacoes;ORIGEM_ID;string;SIM;ID de origem da relação
+relacoes;ORIGEM_NOME;string;SIM;Nome de origem da relação
+relacoes;ORIGEM_TIPO;string;SIM;Tipo de origem da relação
+relacoes;DESTINO_ID;string;SIM;ID de destino da relação
+relacoes;DESTINO_NOME;string;SIM;Nome de destino da relação
+relacoes;DESTINO_TIPO;string;SIM;Tipo de destino da relação
+relacoes;SENTIDO;string;SIM;Direção esperada da relação
+relacoes;FUNCAO_RELACAO;string;SIM;Função hidráulica da relação
+relacoes;COR_LINHA;string;SIM;Cor da linha pendente de confirmação
+relacoes;SEQUENCIA_BOMBEAMENTO;string;SIM;Sequência de bombeamento
+relacoes;FLUXO;string;SIM;Fluxo esperado da relação
+relacoes;CONFIANCA_LEITURA;string;SIM;Nível de confiança da leitura
+relacoes;ORIGEM_DESENHO;string;SIM;Origem no desenho do modelo
+relacoes;OBSERVACAO;string;SIM;Observações de contexto
+relacoes;ATIVO;string;SIM;Indicador de registro ativo
