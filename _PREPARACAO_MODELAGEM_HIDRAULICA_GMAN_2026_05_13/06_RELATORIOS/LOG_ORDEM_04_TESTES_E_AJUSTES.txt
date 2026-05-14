@@ -36,3 +36,14 @@ TESTES DE PRESERVAÇÃO DO APP:
 - Simulador: 500 ciclos, 500 aprovados, 0 falhas, risco BAIXO.
 - Sandbox: 500 OS simuladas, 100 OS sandbox, 0 falhas críticas, 0 falhas de totalizador, 0 falhas RESERVATÓRIOS, 0 falhas VOLTAR/FECHAR.
 - index.html/dados_unidades/apps_script sem diff rastreado.
+
+ESCLARECIMENTO DOS TOTAIS FINAIS:
+- ORDEM 02/03: 99 reservatórios físicos, 144 relações de fluxo normal, 3 interligações de emergência.
+- ORDEM 04 final: 97 reservatórios físicos, 142 relações de fluxo normal, 2 interligações de emergência.
+- Motivo: resolução técnica dos 3 bloqueantes, sem perda de reservatório válido e sem exclusão indevida de relação normal válida.
+- RES SÃO JOSÉ V: permaneceu como 1 cadastro, agora com QUANTIDADE_FISICA=2, CAPACIDADE_UNITARIA_M3=530 e CAPACIDADE_TOTAL_M3=1060. Não altera a contagem de reservatórios físicos; elimina a ambiguidade 230 ou 530.
+- BELÉM NOVO: permaneceu com 2 registros físicos, agora R1=2.500 m³ e R2=1.500 m³, ambos QUANTIDADE_FISICA=1. Não altera a contagem de reservatórios físicos.
+- DOLORES DURAN II: antes havia 3 registros provisórios no sistema 400 (769 m³, 1.900 m³ e 5.000 m³). A decisão técnica validou 1 único RES DOLORES DURAN II no sistema 300, com 5.000 m³. Cálculo: 99 - 3 + 1 = 97.
+- Relações normais de Dolores Duran II: 6 relações provisórias antigas do sistema 400 foram substituídas por 4 relações normais validadas no sistema 300. Cálculo: 144 - 6 + 4 = 142.
+- Interligações de emergência: a relação 300/400 associada a Dolores Duran II deixou de ser emergência e passou ao fluxo normal do sistema 300. Cálculo: 3 - 1 = 2.
+- Totais finais considerados corretos para a base revisada: 97 reservatórios físicos, 142 relações de fluxo normal e 2 interligações de emergência.
