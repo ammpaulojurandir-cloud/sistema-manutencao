@@ -1,0 +1,13 @@
+TEST_ID,DESCRICAO,RESULTADO,EVIDENCIA
+"S001","sistemas = 100,200,300,400,600,700","APROVADO","Encontrados: 100,200,300,400,600,700"
+"S002","sistema 500 ausente","APROVADO","Presença de 500: false"
+"S003","reservatórios físicos = 97","APROVADO","Encontrados: 97"
+"S004","unidades operacionais = 89","APROVADO","Encontrados: 89"
+"S005","relações normais = 142","APROVADO","Encontrados: 142"
+"S006","emergências = 2","APROVADO","Encontrados: 2"
+"S007","São José V correto","APROVADO","Encontrado: true"
+"S008","Belém Novo R1/R2 correto","APROVADO","Encontrado: true"
+"S009","Dolores Duran II correto","APROVADO","Encontrado: true"
+"S010","busca por sistema 300 retorna Dolores Duran II","APROVADO","Encontrado: true"
+"S011","busca por sistema 400 retorna Belém Novo","APROVADO","Encontrado: true"
+"S012","consulta de emergência não entra em fluxo normal","APROVADO","Emergências fora do normal: true"

@@ -1,0 +1,93 @@
+{
+  "data": "2026-05-14T14:19:07.128Z",
+  "source": "sandbox_consulta_hidraulica/SIMULADOR_CONSULTA_HIDRAULICA.js",
+  "modelo": "C:\\Users\\Jurandir dmae\\Desktop\\sistema de manutenção gman\\04_INDEX_GITHUB\\GMAN_GITHUB_OFICIAL\\_PREPARACAO_MODELAGEM_HIDRAULICA_GMAN_2026_05_13\\03_MODELAGEM\\MODELO_DADOS_HIDRAULICO_PROPOSTO.json",
+  "sandbox": "C:\\Users\\Jurandir dmae\\Desktop\\sistema de manutenção gman\\04_INDEX_GITHUB\\GMAN_GITHUB_OFICIAL\\sandbox_hidraulica\\RESULTADO_SANDBOX_LEITURA_HIDRAULICA.json",
+  "summary": {
+    "sistemas": 6,
+    "reservatoriosFisicos": 97,
+    "unidadesOperacionais": 89,
+    "relacoesNormais": 142,
+    "emergencias": 2
+  },
+  "tests": [
+    {
+      "ID_TESTE": "S001",
+      "DESCRICAO": "sistemas = 100,200,300,400,600,700",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Encontrados: 100,200,300,400,600,700"
+    },
+    {
+      "ID_TESTE": "S002",
+      "DESCRICAO": "sistema 500 ausente",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Presença de 500: false"
+    },
+    {
+      "ID_TESTE": "S003",
+      "DESCRICAO": "reservatórios físicos = 97",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Encontrados: 97"
+    },
+    {
+      "ID_TESTE": "S004",
+      "DESCRICAO": "unidades operacionais = 89",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Encontrados: 89"
+    },
+    {
+      "ID_TESTE": "S005",
+      "DESCRICAO": "relações normais = 142",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Encontrados: 142"
+    },
+    {
+      "ID_TESTE": "S006",
+      "DESCRICAO": "emergências = 2",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Encontrados: 2"
+    },
+    {
+      "ID_TESTE": "S007",
+      "DESCRICAO": "São José V correto",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Encontrado: true"
+    },
+    {
+      "ID_TESTE": "S008",
+      "DESCRICAO": "Belém Novo R1/R2 correto",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Encontrado: true"
+    },
+    {
+      "ID_TESTE": "S009",
+      "DESCRICAO": "Dolores Duran II correto",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Encontrado: true"
+    },
+    {
+      "ID_TESTE": "S010",
+      "DESCRICAO": "busca por sistema 300 retorna Dolores Duran II",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Encontrado: true"
+    },
+    {
+      "ID_TESTE": "S011",
+      "DESCRICAO": "busca por sistema 400 retorna Belém Novo",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Encontrado: true"
+    },
+    {
+      "ID_TESTE": "S012",
+      "DESCRICAO": "consulta de emergência não entra em fluxo normal",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Emergências fora do normal: true"
+    }
+  ],
+  "totals": {
+    "total": 12,
+    "aprovados": 12,
+    "reprovados": 0,
+    "falhasCriticas": 0
+  }
+}

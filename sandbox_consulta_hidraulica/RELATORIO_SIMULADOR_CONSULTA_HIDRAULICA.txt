@@ -1,0 +1,25 @@
+RELATÓRIO SIMULADOR CONSULTA HIDRÁULICA — GMAN DMAE
+Fonte técnica: MODELO_DADOS_HIDRAULICO_PROPOSTO.json
+
+Total de testes executados: 12
+Testes aprovados: 12
+Testes reprovados: 0
+
+Status do simulador: FUNCIONANDO
+
+Funções simuladas testadas:
+- listarSistemasHidraulicos()
+- listarReservatoriosPorSistema(sistema)
+- listarUnidadesPorSistema(sistema)
+- listarRelacoesPorUnidade(nomeOuId)
+- consultarConjuntoHidraulico(nomeOuId)
+- validarBloqueantesOrdem04()
+- validarAusenciaSistema500()
+- validarVRPForaBasePrincipal()
+- validarInlineForaReservatorios()
+
+Incompatibilidades encontradas:
+Nenhuma
+
+Confirmação de preservação do app/index/API: nenhum arquivo oficial foi alterado durante esta execução.
+Próxima recomendação: simulador pronto para consultas locais; validar integração com dados oficiais quando necessário.
