@@ -1,0 +1,12 @@
+ORDEM FUTURA PARA CODEX — NÃO EXECUTAR
+
+1. Esta ordem é um plano de integração hidráulica futura.
+2. Não executar em ambiente de produção.
+3. Não modificar app, dados_unidades_hidraulicas_gman.js, apps_script/Código.js, index.html, app ou API sem autorização formal.
+4. A sequência futura deve ser:
+   - consolidar modelo JSON técnico
+   - validar em sandboxes locais
+   - definir contrato de integração
+   - homologar em ambiente isolado
+   - liberar com rollback documentado
+5. Esta ordem serve apenas como referência e não deve ser executada.

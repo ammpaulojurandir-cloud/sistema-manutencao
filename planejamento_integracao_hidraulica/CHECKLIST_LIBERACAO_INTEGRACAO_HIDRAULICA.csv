@@ -1,0 +1,11 @@
+ITEM,DESCRIÇÃO,STATUS,EVIDÊNCIA,RESPONSÁVEL
+1,Consolidar MODELO_DADOS_HIDRAULICO_PROPOSTO.json,Pendente,,
+2,Validar sandbox_hidraulica com 97 reservatórios e 89 unidades,Pendente,,
+3,Validar sandbox_compatibilidade com tipos e RES,Pendente,,
+4,Validar sandbox_consulta_hidraulica com consultas específicas,Pendente,,
+5,Confirmar ausência de sistema 500,Pendente,,
+6,Confirmar VRP fora da base principal,Pendente,,
+7,Confirmar IN LINE fora de reservatórios físicos,Pendente,,
+8,Validar bloqueantes Ordem 04,Pendente,,
+9,Registrar rollback e versão isolada,Pendente,,
+10,Obter autorização formal antes de modificar app/API,Pendente,,

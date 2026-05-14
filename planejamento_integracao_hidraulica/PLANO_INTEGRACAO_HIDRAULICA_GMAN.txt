@@ -1,0 +1,82 @@
+PLANO TÉCNICO DE INTEGRAÇÃO HIDRÁULICA GMAN
+
+1. Objetivo
+- Planejar a integração futura da modelagem hidráulica técnica no GMAN.
+- Manter a modelagem isolada em JSON técnico e sandboxes até aprovação.
+
+2. Arquivos que podem ser afetados no futuro
+- _PREPARACAO_MODELAGEM_HIDRAULICA_GMAN_2026_05_13/03_MODELAGEM/MODELO_DADOS_HIDRAULICO_PROPOSTO.json
+- dados_unidades_hidraulicas_gman.js (apenas leitura para comparação e validação)
+- apps_script/Código.js (se a integração exigir adaptação de processos Google Apps Script)
+- index.html (se for necessário exibir consulta ou painel no frontend local)
+- sandbox_hidraulica/*, sandbox_compatibilidade/*, sandbox_consulta_hidraulica/* (ambientes de validação locais)
+- planejamento_integracao_hidraulica/* (documentação e checklist de liberação)
+
+3. Arquivos proibidos sem autorização
+- app/**
+- API/**
+- qualquer ambiente de produção ou deploy oficial
+- index.html, dados_unidades_hidraulicas_gman.js, apps_script/Código.js: não alterar sem autorização formal
+- bases e rotas oficiais do GMAN
+
+4. API ou JSON técnico?
+- Iniciar com JSON técnico como fonte de verdade local.
+- Não é necessário construir API oficial imediatamente.
+- A API deve ser considerada apenas após homologação do modelo JSON e dos flows de validação.
+- Se necessário, a integração futura pode ser projetada como uma camada de tradução entre JSON técnico e GMAN.
+
+5. Sequência correta de implantação futura
+- 5.1 Consolidação do modelo JSON
+  - revisar e versionar MODELO_DADOS_HIDRAULICO_PROPOSTO.json
+  - garantir consistência estrutural e nomenclatura
+- 5.2 Validação por sandbox
+  - executar sandbox_hidraulica
+  - executar sandbox_compatibilidade
+  - executar sandbox_consulta_hidraulica
+- 5.3 Definição do contrato de integração
+  - mapear campos necessários para operações de consulta e leitura
+  - identificar quais dados são apenas leitura e quais podem ser consumidos por GMAN
+- 5.4 Homologação isolada
+  - testar em ambiente de validação sem tocar produção
+  - alinhar com equipe hidráulica e operação GMAN
+- 5.5 Liberação controlada
+  - liberar apenas após todos os testes e aprovações
+  - manter rollback pronto antes da liberação
+
+6. Riscos críticos
+- discrepâncias entre cadastro de reservatórios físicos e unidades operacionais
+- classificação errada de tipos RES, EBAB, EBAT, ETA e IN LINE
+- sistema 500 sendo considerado legítimo sem verificação
+- VRP aparecer na base principal sem controle
+- alteração de dados oficiais sem validação local
+- integração direta no app/API sem camada de tradução
+
+7. Testes mínimos
+- validar sistemas oficiais: 100,200,300,400,600,700
+- validar ausência de sistema 500
+- validar 97 reservatórios físicos
+- validar 89 unidades operacionais
+- validar 142 relações de fluxo normal
+- validar 2 interligações de emergência
+- validar consultas específicas: São José V, Belém Novo R1/R2, Dolores Duran II
+- validar que emergências não entram em fluxo normal
+- validar VRP fora da base principal
+- validar IN LINE fora de reservatórios físicos
+- validar bloqueantes da Ordem 04 zerados
+
+8. Rollback
+- manter branch/fork isolado para a modelagem hidráulica
+- backup completo do JSON técnico e scripts antes de qualquer mudança
+- reverter para versão anterior caso haja divergência crítica
+- registrar versões no repositório local ou em snapshot de arquivos
+
+9. Critérios de liberação
+- todos os testes locais aprovados
+- validação técnica documentada pela equipe hidráulica
+- sem divergências críticas de sistemas ou tipos
+- homologação em ambiente isolado
+- autorização formal para modificar app/API
+
+10. Ordem futura
+- considerar este documento como plano de ação e não como execução.
+- implementar a integração apenas após homologação completa.
