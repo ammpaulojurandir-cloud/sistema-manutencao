@@ -1,0 +1,9 @@
+TEST_ID,DESCRICAO,RESULTADO,EVIDENCIA
+"C001","Sistemas oficiais compatíveis","APROVADO","Modelagem: 100,200,300,400,600,700; Dados: 100,200,300,400,600,700"
+"C002","Sistema 500 ausente em ambas","APROVADO","Modelagem tem 500: false; Dados tem 500: false"
+"C003","VRP fora da base principal em ambas","APROVADO","VRP encontrado em dados: false"
+"C004","IN LINE não como reservatório físico em ambas","APROVADO","IN LINE como RES na modelagem: false; na dados: false"
+"C005","Tipos de unidades compatíveis","APROVADO","Modelagem: EBAB,EBAT,ETA,IN LINE,RES; Dados: EBAB,EBAT,ETA,IN LINE,RES"
+"C006","Unidades em ambas as bases > 0","APROVADO","Encontradas: 89"
+"C007","Unidades só na modelagem >= 0","APROVADO","Encontradas: 0"
+"C008","Unidades só na base atual >= 0","APROVADO","Encontradas: 96"

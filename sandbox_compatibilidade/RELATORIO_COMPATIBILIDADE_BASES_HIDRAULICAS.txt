@@ -1,0 +1,18 @@
+RELATÓRIO COMPATIBILIDADE BASES HIDRÁULICAS — GMAN DMAE
+Fonte técnica: MODELO_DADOS_HIDRAULICO_PROPOSTO.json vs dados_unidades_hidraulicas_gman.js
+
+Total de testes executados: 8
+Testes aprovados: 8
+Testes reprovados: 0
+
+Compatibilidade geral: COMPATÍVEL
+
+Unidades em ambas as bases: 89
+Unidades só na modelagem: 0
+Unidades só na base atual: 96
+
+Incompatibilidades encontradas:
+Nenhuma
+
+Confirmação de preservação do app/index/API: nenhum arquivo oficial foi alterado durante esta execução.
+Próxima recomendação: manter a modelagem como base técnica separada; compatibilidade validada para leitura sem integração.
