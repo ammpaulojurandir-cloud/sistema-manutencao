@@ -1,0 +1,49 @@
+LOG ORDEM 04 — TESTES E AJUSTES
+Data: 2026-05-14
+Base: f9ec020
+Branch: preparacao/modelagem-hidraulica-oficial-gman
+Escopo: resolver tecnicamente 3 bloqueantes da modelagem hidráulica, sem alterar app/index/API.
+
+B1 São José V: atualizado para 2 x 530 m³, total 1.060 m³, função RESERVA_E_DISTRIBUI_POR_GRAVIDADE.
+B2 Belém Novo: atualizado para R1 2.500 m³ e R2 1.500 m³, ambos físicos separados, quantidade 1.
+B3 Dolores Duran II: atualizado para sistema 300, EBAT/RES normal; RES único 5.000 m³; fluxo EBAT I -> RES -> EBAT II/setores. Emergência 300/400 removida/superada.
+
+TESTES INTERNOS DA BASE:
+- T001: APROVADO — Sistemas oficiais = 100,200,300,400,600,700 — 100,200,300,400,600,700
+- T002: APROVADO — Sistema 500 ausente — Sem SISTEMA=500 em base principal
+- T003: APROVADO — VRP fora da base principal — VRP só permanece em pendências de exclusão/histórico
+- T004: APROVADO — IN LINE fora de RESERVATORIOS_FISICOS — Reservatórios não contêm IN LINE
+- T005: APROVADO — Interligação de emergência fora de FLUXO_NORMAL — Nenhum FLUXO_NORMAL intersistemas
+- T006: APROVADO — ETA/RES tem ETA + RES vinculados — 3 conjuntos ETA/RES
+- T007: APROVADO — EBAT/RES tem EBAT + RES vinculados — 33 conjuntos EBAT/RES
+- T008: REPROVADO — São José V corrigido — {"cap":530,"qtd":2,"total":1060}
+- T009: APROVADO — Belém Novo R1/R2 corrigidos — R1=2500; R2=1500; ambos quantidade 1
+- T010: APROVADO — Dolores Duran II corrigido — Sistema 300; fluxo normal EBAT I -> RES; sem emergência Dolores
+- T011: APROVADO — Bloqueantes restantes = 0 — Bloqueantes restantes: 0
+- T012: APROVADO — Nenhum dado hidráulico novo sem classificação — Campos STATUS_ORDEM_04 preenchidos
+- T013: APROVADO — Nenhuma alteração indevida no app/index/API — Validado por git diff fora da pasta técnica na etapa final
+Falhas críticas internas: 1
+Bloqueantes restantes: 0
+ORDEM 2: não executada.
+REVALIDAÇÃO T008: APROVADO — teste ajustado para verificar campos hidráulicos reais, não texto histórico de descarte do valor 230.
+Falhas críticas internas finais: 0
+Bloqueantes restantes finais: 0
+
+TESTES DE PRESERVAÇÃO DO APP:
+- node --check dados_unidades_hidraulicas_gman.js: OK.
+- node --check SIMULADOR_CICLO_OS_500.js: OK.
+- node --check SANDBOX_TESTE_PESADO_GMAN.js: OK.
+- Simulador: 500 ciclos, 500 aprovados, 0 falhas, risco BAIXO.
+- Sandbox: 500 OS simuladas, 100 OS sandbox, 0 falhas críticas, 0 falhas de totalizador, 0 falhas RESERVATÓRIOS, 0 falhas VOLTAR/FECHAR.
+- index.html/dados_unidades/apps_script sem diff rastreado.
+
+ESCLARECIMENTO DOS TOTAIS FINAIS:
+- ORDEM 02/03: 99 reservatórios físicos, 144 relações de fluxo normal, 3 interligações de emergência.
+- ORDEM 04 final: 97 reservatórios físicos, 142 relações de fluxo normal, 2 interligações de emergência.
+- Motivo: resolução técnica dos 3 bloqueantes, sem perda de reservatório válido e sem exclusão indevida de relação normal válida.
+- RES SÃO JOSÉ V: permaneceu como 1 cadastro, agora com QUANTIDADE_FISICA=2, CAPACIDADE_UNITARIA_M3=530 e CAPACIDADE_TOTAL_M3=1060. Não altera a contagem de reservatórios físicos; elimina a ambiguidade 230 ou 530.
+- BELÉM NOVO: permaneceu com 2 registros físicos, agora R1=2.500 m³ e R2=1.500 m³, ambos QUANTIDADE_FISICA=1. Não altera a contagem de reservatórios físicos.
+- DOLORES DURAN II: antes havia 3 registros provisórios no sistema 400 (769 m³, 1.900 m³ e 5.000 m³). A decisão técnica validou 1 único RES DOLORES DURAN II no sistema 300, com 5.000 m³. Cálculo: 99 - 3 + 1 = 97.
+- Relações normais de Dolores Duran II: 6 relações provisórias antigas do sistema 400 foram substituídas por 4 relações normais validadas no sistema 300. Cálculo: 144 - 6 + 4 = 142.
+- Interligações de emergência: a relação 300/400 associada a Dolores Duran II deixou de ser emergência e passou ao fluxo normal do sistema 300. Cálculo: 3 - 1 = 2.
+- Totais finais considerados corretos para a base revisada: 97 reservatórios físicos, 142 relações de fluxo normal e 2 interligações de emergência.
