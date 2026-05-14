@@ -1,0 +1,9 @@
+CRITÉRIO,RESULTADO,EVIDÊNCIA
+"sistema 500 ausente","APROVADO","Presença de 500: false"
+"VRP fora da base principal","APROVADO","Nenhum VRP encontrado em unidades, conjuntos, reservatórios ou relações."
+"IN LINE fora de reservatórios físicos","APROVADO","IN LINE em reservatórios: NÃO"
+"97 reservatórios físicos","APROVADO","Encontrados: 97"
+"89 unidades operacionais","APROVADO","Encontrados: 89"
+"142 relações normais","APROVADO","Encontrados: 142"
+"2 interligações de emergência","APROVADO","Encontrados: 2"
+"bloqueantes restantes = 0","APROVADO","Encontrados: 0"

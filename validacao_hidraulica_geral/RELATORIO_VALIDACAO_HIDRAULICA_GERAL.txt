@@ -1,0 +1,22 @@
+RELATÓRIO VALIDAÇÃO HIDRÁULICA GERAL — GMAN DMAE
+Data da validação: 2026-05-14T14:47:30.814Z
+
+Total de testes consolidados: 36
+Aprovados: 36
+Reprovados: 0
+Falhas críticas: 0
+
+Conclusão final: APROVADO
+
+Validações obrigatórias:
+- sistema 500 ausente: APROVADO (Presença de 500: false)
+- VRP fora da base principal: APROVADO (Nenhum VRP encontrado em unidades, conjuntos, reservatórios ou relações.)
+- IN LINE fora de reservatórios físicos: APROVADO (IN LINE em reservatórios: NÃO)
+- 97 reservatórios físicos: APROVADO (Encontrados: 97)
+- 89 unidades operacionais: APROVADO (Encontrados: 89)
+- 142 relações normais: APROVADO (Encontrados: 142)
+- 2 interligações de emergência: APROVADO (Encontrados: 2)
+- bloqueantes restantes = 0: APROVADO (Encontrados: 0)
+
+Fontes consideradas: sandbox_hidraulica, sandbox_compatibilidade, sandbox_consulta_hidraulica.
+Nenhuma alteração foi feita em index.html, dados_unidades_hidraulicas_gman.js, apps_script/Código.js, app, API ou produção.

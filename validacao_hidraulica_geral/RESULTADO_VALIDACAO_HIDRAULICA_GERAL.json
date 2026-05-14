@@ -1,0 +1,61 @@
+{
+  "data": "2026-05-14T14:47:30.814Z",
+  "source": "validacao_hidraulica_geral/RODAR_VALIDACAO_HIDRAULICA_GERAL.js",
+  "totals": {
+    "total": 36,
+    "aprovados": 36,
+    "reprovados": 0,
+    "falhasCriticas": 0
+  },
+  "conclusion": "APROVADO",
+  "mandatoryValidations": [
+    {
+      "criterio": "sistema 500 ausente",
+      "found": true,
+      "result": "APROVADO",
+      "evidence": "Presença de 500: false"
+    },
+    {
+      "criterio": "VRP fora da base principal",
+      "found": true,
+      "result": "APROVADO",
+      "evidence": "Nenhum VRP encontrado em unidades, conjuntos, reservatórios ou relações."
+    },
+    {
+      "criterio": "IN LINE fora de reservatórios físicos",
+      "found": true,
+      "result": "APROVADO",
+      "evidence": "IN LINE em reservatórios: NÃO"
+    },
+    {
+      "criterio": "97 reservatórios físicos",
+      "result": "APROVADO",
+      "evidence": "Encontrados: 97"
+    },
+    {
+      "criterio": "89 unidades operacionais",
+      "result": "APROVADO",
+      "evidence": "Encontrados: 89"
+    },
+    {
+      "criterio": "142 relações normais",
+      "result": "APROVADO",
+      "evidence": "Encontrados: 142"
+    },
+    {
+      "criterio": "2 interligações de emergência",
+      "result": "APROVADO",
+      "evidence": "Encontrados: 2"
+    },
+    {
+      "criterio": "bloqueantes restantes = 0",
+      "result": "APROVADO",
+      "evidence": "Encontrados: 0"
+    }
+  ],
+  "sources": {
+    "sandboxHidraulica": "C:\\Users\\Jurandir dmae\\Desktop\\sistema de manutenção gman\\04_INDEX_GITHUB\\GMAN_GITHUB_OFICIAL\\sandbox_hidraulica\\RESULTADO_SANDBOX_LEITURA_HIDRAULICA.json",
+    "sandboxCompatibilidade": "C:\\Users\\Jurandir dmae\\Desktop\\sistema de manutenção gman\\04_INDEX_GITHUB\\GMAN_GITHUB_OFICIAL\\sandbox_compatibilidade\\RESULTADO_COMPATIBILIDADE_BASES_HIDRAULICAS.json",
+    "sandboxConsulta": "C:\\Users\\Jurandir dmae\\Desktop\\sistema de manutenção gman\\04_INDEX_GITHUB\\GMAN_GITHUB_OFICIAL\\sandbox_consulta_hidraulica\\RESULTADO_SIMULADOR_CONSULTA_HIDRAULICA.json"
+  }
+}
