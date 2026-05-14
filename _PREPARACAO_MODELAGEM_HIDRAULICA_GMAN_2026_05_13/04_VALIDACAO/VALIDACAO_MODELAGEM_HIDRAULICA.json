@@ -1,0 +1,182 @@
+{
+  "data": "2026-05-14",
+  "base": "f9ec020",
+  "branch": "preparacao/modelagem-hidraulica-oficial-gman",
+  "bloqueantesIniciais": 3,
+  "bloqueantesResolvidos": 3,
+  "bloqueantesRestantes": 0,
+  "testes": [
+    {
+      "ID_TESTE": "T001",
+      "DESCRICAO": "Sistemas oficiais = 100,200,300,400,600,700",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "100,200,300,400,600,700"
+    },
+    {
+      "ID_TESTE": "T002",
+      "DESCRICAO": "Sistema 500 ausente",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "Sem SISTEMA=500 em base principal"
+    },
+    {
+      "ID_TESTE": "T003",
+      "DESCRICAO": "VRP fora da base principal",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "VRP só em pendências de exclusão/histórico"
+    },
+    {
+      "ID_TESTE": "T004",
+      "DESCRICAO": "IN LINE fora de RESERVATORIOS_FISICOS",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "Reservatórios não contêm IN LINE"
+    },
+    {
+      "ID_TESTE": "T005",
+      "DESCRICAO": "Interligação de emergência fora de FLUXO_NORMAL",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "Nenhum FLUXO_NORMAL intersistemas"
+    },
+    {
+      "ID_TESTE": "T006",
+      "DESCRICAO": "ETA/RES tem ETA + RES vinculados",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "3 conjuntos ETA/RES"
+    },
+    {
+      "ID_TESTE": "T007",
+      "DESCRICAO": "EBAT/RES tem EBAT + RES vinculados",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "33 conjuntos EBAT/RES"
+    },
+    {
+      "ID_TESTE": "T008",
+      "DESCRICAO": "São José V corrigido",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "{\"cap\":530,\"qtd\":2,\"total\":1060,\"func\":\"RESERVA_E_DISTRIBUI_POR_GRAVIDADE\"}"
+    },
+    {
+      "ID_TESTE": "T009",
+      "DESCRICAO": "Belém Novo R1/R2 corrigidos",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "R1=2500; R2=1500; ambos quantidade 1"
+    },
+    {
+      "ID_TESTE": "T010",
+      "DESCRICAO": "Dolores Duran II corrigido",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "Sistema 300; fluxo normal EBAT I -> RES; sem emergência Dolores"
+    },
+    {
+      "ID_TESTE": "T011",
+      "DESCRICAO": "Bloqueantes restantes = 0",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "Bloqueantes restantes: 0"
+    },
+    {
+      "ID_TESTE": "T012",
+      "DESCRICAO": "Nenhum dado hidráulico novo sem classificação",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "Campos STATUS_ORDEM_04 preenchidos"
+    },
+    {
+      "ID_TESTE": "T013",
+      "DESCRICAO": "Nenhuma alteração indevida no app/index/API",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "Validado por git diff fora da pasta técnica na etapa final"
+    },
+    {
+      "ID_TESTE": "T014",
+      "DESCRICAO": "node --check dados_unidades_hidraulicas_gman.js",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "Sintaxe OK; arquivo do app não foi alterado."
+    },
+    {
+      "ID_TESTE": "T015",
+      "DESCRICAO": "node --check homologacao/SIMULADOR_CICLO_OS_500.js",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "Sintaxe OK."
+    },
+    {
+      "ID_TESTE": "T016",
+      "DESCRICAO": "node --check homologacao/SANDBOX_TESTE_PESADO_GMAN.js",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "Sintaxe OK."
+    },
+    {
+      "ID_TESTE": "T017",
+      "DESCRICAO": "Simulador ciclo OS 500",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "500 ciclos; 500 aprovados; 0 falhas; risco BAIXO."
+    },
+    {
+      "ID_TESTE": "T018",
+      "DESCRICAO": "Sandbox pesado GMAN",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "500 OS simuladas; 100 OS sandbox; 0 falhas críticas; 0 falhas de totalizador; 0 falhas de botão RESERVATÓRIOS; 0 falhas VOLTAR/FECHAR."
+    },
+    {
+      "ID_TESTE": "T019",
+      "DESCRICAO": "Módulo RESERVATÓRIOS continua funcionando",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "Validado por sandbox: botaoReservatorios=true e falhasBotaoReservatoriosFinais=0."
+    },
+    {
+      "ID_TESTE": "T020",
+      "DESCRICAO": "VOLTAR/FECHAR continuam funcionando",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "Validado por sandbox: falhasVoltarFecharFinais=0 e inspeção estática no index.html."
+    },
+    {
+      "ID_TESTE": "T021",
+      "DESCRICAO": "Filtros e totalizadores preservados",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "Validado por sandbox: falhasTotalizadorFinais=0; index.html sem diff."
+    },
+    {
+      "ID_TESTE": "T022",
+      "DESCRICAO": "Piscada/layout aprovado não piorados",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "Nenhuma alteração em index.html; comportamento visual aprovado preservado por ausência de diff."
+    },
+    {
+      "ID_TESTE": "T023",
+      "DESCRICAO": "Sem deploy/publicação/merge/OS real",
+      "RESULTADO": "APROVADO",
+      "SEVERIDADE": "CRITICA",
+      "EVIDENCIA": "Nenhuma ação de deploy, publicação, merge ou OS real executada."
+    }
+  ],
+  "falhasCriticas": 0,
+  "resumo": {
+    "sistemas": 6,
+    "conjuntos": 142,
+    "unidadesOperacionais": 89,
+    "reservatoriosFisicos": 97,
+    "relacoesFluxoNormal": 142,
+    "interligacoesEmergencia": 2,
+    "pendenciasAbertas": 150,
+    "pendenciasResolvidasOrdem04": 6
+  }
+}

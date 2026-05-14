@@ -1,0 +1,74 @@
+RELATORIO_ORDEM_04_BLOQUEANTES_RESOLVIDOS
+Projeto GMAN DMAE — sistema-manutencao
+Responsável técnico/validador: Paulo Jurandir
+Data: 2026-05-14
+
+1. PADRÃO GMAN APLICADO
+- ORDEM 1 executada: preparar, aplicar em branch, testar, ajustar e relatar.
+- ORDEM 2 não executada: sem merge, sem publicação, sem deploy.
+- Base estável preservada: f9ec020.
+
+2. ARQUIVOS TÉCNICOS ATUALIZADOS
+- C:\Users\Jurandir dmae\Desktop\sistema de manutenção gman\04_INDEX_GITHUB\GMAN_GITHUB_OFICIAL\_PREPARACAO_MODELAGEM_HIDRAULICA_GMAN_2026_05_13\05_SAIDA_FINAL\GMAN_MODELAGEM_HIDRAULICA_OFICIAL.xlsx
+- C:\Users\Jurandir dmae\Desktop\sistema de manutenção gman\04_INDEX_GITHUB\GMAN_GITHUB_OFICIAL\_PREPARACAO_MODELAGEM_HIDRAULICA_GMAN_2026_05_13\03_MODELAGEM\MODELO_DADOS_HIDRAULICO_PROPOSTO.json
+- C:\Users\Jurandir dmae\Desktop\sistema de manutenção gman\04_INDEX_GITHUB\GMAN_GITHUB_OFICIAL\_PREPARACAO_MODELAGEM_HIDRAULICA_GMAN_2026_05_13\04_VALIDACAO\VALIDACAO_MODELAGEM_HIDRAULICA.json
+- C:\Users\Jurandir dmae\Desktop\sistema de manutenção gman\04_INDEX_GITHUB\GMAN_GITHUB_OFICIAL\_PREPARACAO_MODELAGEM_HIDRAULICA_GMAN_2026_05_13\06_RELATORIOS\RELATORIO_ORDEM_04_BLOQUEANTES_RESOLVIDOS.txt
+- C:\Users\Jurandir dmae\Desktop\sistema de manutenção gman\04_INDEX_GITHUB\GMAN_GITHUB_OFICIAL\_PREPARACAO_MODELAGEM_HIDRAULICA_GMAN_2026_05_13\04_VALIDACAO\CHECKLIST_ORDEM_04_VALIDACAO_FINAL.csv
+- C:\Users\Jurandir dmae\Desktop\sistema de manutenção gman\04_INDEX_GITHUB\GMAN_GITHUB_OFICIAL\_PREPARACAO_MODELAGEM_HIDRAULICA_GMAN_2026_05_13\06_RELATORIOS\PENDENCIAS_ORDEM_04_ATUALIZADAS.csv
+- C:\Users\Jurandir dmae\Desktop\sistema de manutenção gman\04_INDEX_GITHUB\GMAN_GITHUB_OFICIAL\_PREPARACAO_MODELAGEM_HIDRAULICA_GMAN_2026_05_13\06_RELATORIOS\LOG_ORDEM_04_TESTES_E_AJUSTES.txt
+
+3. BLOQUEANTES RESOLVIDOS
+- B1 RES SÃO JOSÉ V: sistema 300; 1 cadastro; QUANTIDADE_FISICA=2; CAPACIDADE_UNITARIA_M3=530; CAPACIDADE_TOTAL_M3=1060; sem EBAT associada; função RESERVA_E_DISTRIBUI_POR_GRAVIDADE; valor 230 m³ não usado.
+- B2 BELÉM NOVO: ETA/RES BELÉM NOVO; R1=2.500 m³; R2=1.500 m³; registros físicos separados; QUANTIDADE_FISICA=1 em ambos; ambos distribuem por gravidade.
+- B3 DOLORES DURAN II: sistema 300; EBAT/RES DOLORES DURAN II em fluxo normal; EBAT DOLORES DURAN I -> RES DOLORES DURAN II; RES=5.000 m³; EBAT DOLORES DURAN II bombeia para rede/setor mais alto; não é interligação de emergência; 1.900 m³ e 769 m³ não usados neste bloqueante.
+
+4. RESULTADO DOS TESTES
+- T001 | APROVADO | Sistemas oficiais = 100,200,300,400,600,700 | 100,200,300,400,600,700
+- T002 | APROVADO | Sistema 500 ausente | Sem SISTEMA=500 em base principal
+- T003 | APROVADO | VRP fora da base principal | VRP só permanece em pendências de exclusão/histórico
+- T004 | APROVADO | IN LINE fora de RESERVATORIOS_FISICOS | Reservatórios não contêm IN LINE
+- T005 | APROVADO | Interligação de emergência fora de FLUXO_NORMAL | Nenhum FLUXO_NORMAL intersistemas
+- T006 | APROVADO | ETA/RES tem ETA + RES vinculados | 3 conjuntos ETA/RES
+- T007 | APROVADO | EBAT/RES tem EBAT + RES vinculados | 33 conjuntos EBAT/RES
+- T008 | APROVADO | São José V corrigido | {"cap":530,"qtd":2,"total":1060,"func":"RESERVA_E_DISTRIBUI_POR_GRAVIDADE"}
+- T009 | APROVADO | Belém Novo R1/R2 corrigidos | R1=2500; R2=1500; ambos quantidade 1
+- T010 | APROVADO | Dolores Duran II corrigido | Sistema 300; fluxo normal EBAT I -> RES; sem emergência Dolores
+- T011 | APROVADO | Bloqueantes restantes = 0 | Bloqueantes restantes: 0
+- T012 | APROVADO | Nenhum dado hidráulico novo sem classificação | Campos STATUS_ORDEM_04 preenchidos
+- T013 | APROVADO | Nenhuma alteração indevida no app/index/API | Validado por git diff fora da pasta técnica na etapa final
+
+5. PENDÊNCIAS
+- Bloqueantes iniciais: 3.
+- Bloqueantes resolvidos: 3.
+- Bloqueantes restantes: 0.
+- Pendências altas restantes: 89.
+- Pendências baixas restantes: 61.
+- Pendências resolvidas na Ordem 04: PEND-034, PEND-059, PEND-067, PEND-071, PEND-072, PEND-095
+
+6. PRESERVAÇÃO DA BASE ESTÁVEL
+- App/index/API não foram alterados por esta ordem.
+- O módulo RESERVATÓRIOS, filtros, VOLTAR/FECHAR, totalizadores e layout aprovado permanecem preservados por ausência de alteração em index.html e por validação posterior dos simuladores/sandbox.
+
+7. RECOMENDAÇÃO
+ORDEM 2 LIBERADA, condicionada à validação humana explícita da usuária/Paulo Jurandir antes de qualquer merge, publicação ou deploy.
+
+8. CONFIRMAÇÕES
+- Não publiquei.
+- Não fiz deploy.
+- Não fiz merge.
+- Não criei OS real.
+- Não alterei produção.
+- Não alterei index.html.
+- Não alterei Apps Script/API oficial.
+- Não reintroduzi sistema 500.
+- Não coloquei VRP na base principal.
+- Não tratei IN LINE como reservatório físico.
+- Não usei interligações de emergência como fluxo normal.
+9. TESTES DE PRESERVAÇÃO DO APP
+- node --check dados_unidades_hidraulicas_gman.js: OK.
+- node --check homologacao/SIMULADOR_CICLO_OS_500.js: OK.
+- node --check homologacao/SANDBOX_TESTE_PESADO_GMAN.js: OK.
+- Simulador ciclo OS 500: 500 ciclos, 500 aprovados, 0 falhas, risco BAIXO.
+- Sandbox pesado: 500 OS simuladas, 100 OS sandbox, 0 falhas críticas, 0 falhas de totalizador, 0 falhas do botão RESERVATÓRIOS, 0 falhas VOLTAR/FECHAR.
+- index.html sem diff: layout, filtros, painel/modal, VOLTAR/FECHAR e totalizadores preservados.
+
