@@ -1,0 +1,97 @@
+ÍNDICE FINAL DA FRENTE HIDRÁULICA GMAN
+
+Status geral:
+Frente hidráulica consolidada em base técnica, sandboxes e validação geral.
+Não houve alteração de app, index.html, Apps Script/API, produção ou OS real.
+
+ORDEM 04 — MODELAGEM HIDRÁULICA OFICIAL
+Arquivos principais:
+- _PREPARACAO_MODELAGEM_HIDRAULICA_GMAN_2026_05_13/05_SAIDA_FINAL/GMAN_MODELAGEM_HIDRAULICA_OFICIAL.xlsx
+- _PREPARACAO_MODELAGEM_HIDRAULICA_GMAN_2026_05_13/03_MODELAGEM/MODELO_DADOS_HIDRAULICO_PROPOSTO.json
+- _PREPARACAO_MODELAGEM_HIDRAULICA_GMAN_2026_05_13/04_VALIDACAO/VALIDACAO_MODELAGEM_HIDRAULICA.json
+Objetivo:
+Consolidar modelagem hidráulica oficial.
+Status:
+Concluída.
+Testes:
+3 bloqueantes resolvidos, 0 bloqueantes restantes.
+Conclusão:
+APROVADO.
+App/API/produção:
+Não alterou.
+
+ORDEM 06 — SANDBOX DE LEITURA HIDRÁULICA
+Arquivos principais:
+- sandbox_hidraulica/
+Objetivo:
+Validar leitura técnica da modelagem.
+Status:
+Concluída.
+Testes:
+16 executados, 16 aprovados, 0 reprovados.
+Conclusão:
+APROVADO.
+App/API/produção:
+Não alterou.
+
+ORDEM 07 — COMPATIBILIDADE DAS BASES
+Arquivos principais:
+- sandbox_compatibilidade/
+Objetivo:
+Comparar modelagem hidráulica com dados_unidades_hidraulicas_gman.js.
+Status:
+Concluída.
+Testes:
+8 executados, 8 aprovados, 0 reprovados.
+Conclusão:
+COMPATÍVEL PARA LEITURA TÉCNICA.
+App/API/produção:
+Não alterou.
+
+ORDEM 08 — SIMULADOR LOCAL DE CONSULTA HIDRÁULICA
+Arquivos principais:
+- sandbox_consulta_hidraulica/
+Objetivo:
+Criar funções locais simuladas de consulta hidráulica.
+Status:
+Concluída.
+Testes:
+12 executados, 12 aprovados, 0 reprovados.
+Conclusão:
+APROVADO.
+App/API/produção:
+Não alterou.
+
+ORDEM 09 — PLANO DE INTEGRAÇÃO FUTURA
+Arquivos principais:
+- planejamento_integracao_hidraulica/
+Objetivo:
+Planejar integração futura sem executar.
+Status:
+Concluída.
+Testes:
+Documentação e checklist de liberação futura.
+Conclusão:
+PLANO APROVADO COMO REFERÊNCIA.
+App/API/produção:
+Não alterou.
+
+ORDEM 10 — VALIDADOR GERAL HIDRÁULICO
+Arquivos principais:
+- validacao_hidraulica_geral/
+Objetivo:
+Consolidar validações dos sandboxes hidráulicos.
+Status:
+Concluída.
+Testes:
+36 consolidados, 36 aprovados, 0 reprovados, 0 falhas críticas.
+Conclusão:
+APROVADO.
+App/API/produção:
+Não alterou.
+
+Conclusão final:
+A frente hidráulica está tecnicamente consolidada como base separada, validada e pronta para futura homologação controlada.
+
+Próxima recomendação:
+Somente iniciar integração no app oficial com nova ordem específica, sandbox, auditoria e autorização formal.

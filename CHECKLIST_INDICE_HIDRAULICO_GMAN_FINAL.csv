@@ -1,0 +1,7 @@
+ORDEM,OBJETIVO,STATUS,TESTES,CONCLUSAO,ALTEROU_APP_API_PRODUCAO
+ORDEM 04,Modelagem hidráulica oficial,CONCLUIDA,3 bloqueantes resolvidos e 0 restantes,APROVADO,NAO
+ORDEM 06,Sandbox de leitura hidráulica,CONCLUIDA,16 executados e 16 aprovados,APROVADO,NAO
+ORDEM 07,Compatibilidade das bases,CONCLUIDA,8 executados e 8 aprovados,COMPATIVEL PARA LEITURA,NAO
+ORDEM 08,Simulador local de consulta hidráulica,CONCLUIDA,12 executados e 12 aprovados,APROVADO,NAO
+ORDEM 09,Plano de integração futura,CONCLUIDA,Checklist documental,REFERENCIA APROVADA,NAO
+ORDEM 10,Validador geral hidráulico,CONCLUIDA,36 executados e 36 aprovados,APROVADO,NAO
