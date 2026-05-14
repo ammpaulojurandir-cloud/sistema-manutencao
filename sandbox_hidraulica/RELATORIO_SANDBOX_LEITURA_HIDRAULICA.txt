@@ -1,0 +1,18 @@
+RELATÓRIO SANDBOX DE LEITURA HIDRÁULICA — GMAN DMAE
+Fonte técnica: MODELO_DADOS_HIDRAULICO_PROPOSTO.json
+
+Total de testes executados: 16
+Testes aprovados: 16
+Testes reprovados: 0
+
+Sistemas oficiais validados: 100, 200, 300, 400, 600, 700
+Reservatórios físicos: 97
+Unidades operacionais: 89
+Relações FLUXO_NORMAL: 142
+Interligações de emergência: 2
+
+Conclusão objetiva:
+Sandbox de leitura aprovado; a modelagem hidráulica técnica está consistente com os totais finais da ORDEM 04 e sem integração ao app oficial.
+
+Confirmação de preservação do app/index/API: nenhum arquivo oficial foi alterado durante esta execução.
+Próxima recomendação: manter a modelagem como base técnica separada e usar este sandbox apenas para leitura e validação de consistência.

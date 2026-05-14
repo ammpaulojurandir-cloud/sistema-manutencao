@@ -1,0 +1,125 @@
+{
+  "data": "2026-05-14T13:19:39.459Z",
+  "source": "sandbox_hidraulica/LEITOR_MODELAGEM_HIDRAULICA_SANDBOX.js",
+  "modelo": "C:\\Users\\Jurandir dmae\\Desktop\\sistema de manutenção gman\\04_INDEX_GITHUB\\GMAN_GITHUB_OFICIAL\\_PREPARACAO_MODELAGEM_HIDRAULICA_GMAN_2026_05_13\\03_MODELAGEM\\MODELO_DADOS_HIDRAULICO_PROPOSTO.json",
+  "summary": {
+    "sistemas": 6,
+    "sistemasOficiais": [
+      "100",
+      "200",
+      "300",
+      "400",
+      "600",
+      "700"
+    ],
+    "reservatoriosFisicos": 97,
+    "unidadesOperacionais": 89,
+    "relacoesFluxoNormal": 142,
+    "interligacoesEmergencia": 2,
+    "bloqueantesRestantes": 0
+  },
+  "tests": [
+    {
+      "ID_TESTE": "T001",
+      "DESCRICAO": "Sistemas oficiais = 100,200,300,400,600,700",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Encontrados: 100,200,300,400,600,700"
+    },
+    {
+      "ID_TESTE": "T002",
+      "DESCRICAO": "Sistema 500 ausente",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Presença de 500: NÃO"
+    },
+    {
+      "ID_TESTE": "T003",
+      "DESCRICAO": "Reservatórios físicos = 97",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Encontrados: 97"
+    },
+    {
+      "ID_TESTE": "T004",
+      "DESCRICAO": "Unidades operacionais = 89",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Encontrados: 89"
+    },
+    {
+      "ID_TESTE": "T005",
+      "DESCRICAO": "Relações de fluxo normal = 142",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Encontrados: 142"
+    },
+    {
+      "ID_TESTE": "T006",
+      "DESCRICAO": "Interligações de emergência = 2",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Encontrados: 2"
+    },
+    {
+      "ID_TESTE": "T007",
+      "DESCRICAO": "VRP fora da base principal",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Nenhum VRP encontrado em unidades, conjuntos, reservatórios ou relações."
+    },
+    {
+      "ID_TESTE": "T008",
+      "DESCRICAO": "IN LINE fora de reservatórios físicos",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "IN LINE em reservatórios: NÃO"
+    },
+    {
+      "ID_TESTE": "T009",
+      "DESCRICAO": "Interligações de emergência fora de FLUXO_NORMAL",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Emergências encontradas: 2; emergências em FLUXO_NORMAL: 0"
+    },
+    {
+      "ID_TESTE": "T010",
+      "DESCRICAO": "ETA/RES como conjunto",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Conjuntos ETA/RES encontrados: 3"
+    },
+    {
+      "ID_TESTE": "T011",
+      "DESCRICAO": "EBAT/RES como conjunto",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Conjuntos EBAT/RES encontrados: 33"
+    },
+    {
+      "ID_TESTE": "T012",
+      "DESCRICAO": "RES SÃO JOSÉ V = 2 x 530 m³, total 1060 m³",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Encontrado: capacidade 530, quantidade física 2, total 1060"
+    },
+    {
+      "ID_TESTE": "T013",
+      "DESCRICAO": "BELÉM NOVO R1 = 2500 m³",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Encontrado: 2500 m³"
+    },
+    {
+      "ID_TESTE": "T014",
+      "DESCRICAO": "BELÉM NOVO R2 = 1500 m³",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Encontrado: 1500 m³"
+    },
+    {
+      "ID_TESTE": "T015",
+      "DESCRICAO": "RES DOLORES DURAN II = sistema 300, 5000 m³, fluxo normal",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "Sistema 300, capacidade 5000, fluxo normal SIM"
+    },
+    {
+      "ID_TESTE": "T016",
+      "DESCRICAO": "Bloqueantes restantes = 0",
+      "RESULTADO": "APROVADO",
+      "EVIDENCIA": "bloqueantesRestantes = 0"
+    }
+  ],
+  "totals": {
+    "total": 16,
+    "aprovados": 16,
+    "reprovados": 0,
+    "falhasCriticas": 0
+  }
+}
