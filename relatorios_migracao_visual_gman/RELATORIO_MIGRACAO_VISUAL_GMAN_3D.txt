@@ -1,0 +1,93 @@
+RELATORIO MIGRACAO VISUAL GMAN 3D
+
+Projeto: Sistema GMAN
+Branch: visual/gman-premium-industrial-3d
+Commit base: 1d57d5c - Implanta consulta hidraulica somente leitura
+Data: 15/05/2026
+
+ESCOPO EXECUTADO
+- Extraidos os icones aprovados dos pacotes GMAN_ICONES_3D_INDIVIDUAIS.zip e GMAN_ICONES_3D_COMPLEMENTARES.zip.
+- Criada a pasta assets/gman-icons-3d/ com 68 arquivos extraidos.
+- Aplicado tema Premium Industrial 3D somente no app interno.
+- Login preservado sem alteracao de layout, campos, textos, botoes ou funcionamento.
+- Logo GMAN atual preservado, com ajuste visual discreto por CSS no app interno.
+- Identidade interna ajustada para Sistema GMAN / GMAN.
+- Nao foram buscados icones externos.
+- Nao foi usado Flaticon.
+- Nao foram gerados novos icones.
+
+ARQUIVOS ALTERADOS
+- index.html
+
+ARQUIVOS CRIADOS
+- assets/gman-icons-3d/
+- relatorios_migracao_visual_gman/RELATORIO_MIGRACAO_VISUAL_GMAN_3D.txt
+- relatorios_migracao_visual_gman/CHECKLIST_MIGRACAO_VISUAL_GMAN_3D.csv
+- relatorios_migracao_visual_gman/RESULTADO_TESTES_MIGRACAO_VISUAL_GMAN_3D.json
+
+COMPONENTES VISUAIS MIGRADOS
+- Tema global escuro industrial.
+- Header interno.
+- Busca.
+- Atalhos rapidos.
+- Cards de KPI.
+- Filtros.
+- Cards de equipamentos e reservatorios.
+- Botao e painel Hidraulica.
+- Modais e paineis premium.
+- Navegacao inferior com Início, OS, Equipamentos, Hidráulica e Perfil.
+- Icones 3D para status, OS, hidraulica, reservatorios e navegacao.
+
+PRESERVACAO FUNCIONAL
+- Login preservado.
+- Logo GMAN preservado.
+- Filtros preservados.
+- Totalizadores preservados.
+- Cards preservados.
+- Regras de OS preservadas.
+- Status operacional preservado.
+- Consulta hidraulica somente leitura preservada.
+- Apps Script/API nao alterados.
+- Nenhuma OS real criada.
+
+TESTES EXECUTADOS
+- git diff --check.
+- node --check dados_hidraulicos_gman.js.
+- node --check dados_unidades_hidraulicas_gman.js.
+- node --check homologacao/SIMULADOR_CICLO_OS_500.js.
+- node --check homologacao/SANDBOX_TESTE_PESADO_GMAN.js.
+- Extracao e validacao do JavaScript inline do index.html.
+- node homologacao/SIMULADOR_CICLO_OS_500.js.
+- node homologacao/SANDBOX_TESTE_PESADO_GMAN.js.
+- Teste local em navegador do login/logout.
+- Teste local em navegador da tela principal.
+- Teste local em navegador dos filtros principais.
+- Teste local em navegador da consulta hidraulica.
+- Teste local em navegador do painel OS.
+- Teste local em navegador da ficha do equipamento.
+- Teste local em navegador de historico, patrimonio e evidencias.
+- Teste de API somente leitura: health, listarEquipamentos, listarStatus e listarOS.
+
+RESULTADOS
+- Simulador: 500 ciclos, 500 aprovados, 0 falhas, risco BAIXO.
+- Sandbox: 500 OS simuladas, 100 OS sandbox, 0 falhas criticas.
+- API leitura: health OK, listarEquipamentos OK, listarStatus OK, listarOS OK.
+- Navegador local: login OK, tela principal OK, filtros OK, consulta hidraulica OK.
+- Icones 3D no app interno: 36 imagens renderizadas no teste local.
+- Icones 3D na navegacao inferior: 5 imagens renderizadas no teste local.
+- Console: 0 erros criticos.
+
+FALHAS CRITICAS
+- 0
+
+CONFIRMACOES
+- Nao houve deploy.
+- Nao houve publicacao.
+- Nao houve merge.
+- Nao houve alteracao em Apps Script/API oficial.
+- Nao houve criacao de OS real.
+- Nao houve alteracao de dados oficiais.
+- Nao houve migracao visual 3D na pagina de login.
+
+DECISAO FINAL
+LIBERAR PARA PUBLICACAO

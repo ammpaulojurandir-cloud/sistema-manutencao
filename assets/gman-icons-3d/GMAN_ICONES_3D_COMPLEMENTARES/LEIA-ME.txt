@@ -1,0 +1,23 @@
+GMAN — ÍCONES 3D COMPLEMENTARES
+
+Pacote complementar com 14 ícones necessários para cobrir estados, ações, áreas técnicas e componentes específicos do Sistema GMAN.
+
+Pastas:
+01_cards_com_legenda = recortes com cartão escuro e legenda, exatamente no estilo visual aprovado.
+02_icones_recortados = recortes focados apenas no ícone, em PNG 512x512 com fundo escuro.
+
+Lista:
+- 01_PENDENTE.png — Pendente
+- 02_CONCLUIDA.png — Concluída
+- 03_CANCELADA.png — Cancelada
+- 04_REDISTRIBUIR_OS.png — Redistribuir OS
+- 05_SOLICITAR_CANCELAMENTO.png — Solicitar cancelamento
+- 06_USINAGEM.png — Usinagem
+- 07_CALDEIRARIA.png — Caldeiraria
+- 08_INSTALACOES_MECANICAS.png — Instalações Mecânicas
+- 09_VALVULA_SUCCAO.png — Válvula de Sucção
+- 10_VALVULA_RECALQUE.png — Válvula de Recalque
+- 11_VALVULA_RETENCAO.png — Válvula de Retenção
+- 12_SEM_USO_VEICULO.png — Sem uso de veículo
+- 13_PATRIMONIO_CONFIRMADO.png — Patrimônio confirmado
+- 14_FICHA_TECNICA.png — Ficha técnica

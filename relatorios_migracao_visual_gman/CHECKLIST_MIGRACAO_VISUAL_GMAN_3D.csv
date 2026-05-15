@@ -1,0 +1,33 @@
+item,resultado,evidencia
+Branch visual/gman-premium-industrial-3d usada,APROVADO,Branch ativa durante a implementacao
+Base 1d57d5c conferida,APROVADO,Commit base Implanta consulta hidraulica somente leitura
+Login preservado,APROVADO,Logout e login com PAULO JURANDIR testados localmente
+Logo GMAN preservado,APROVADO,Logo atual mantido no header interno e login sem alteracao
+Icones externos nao usados,APROVADO,Somente assets extraidos dos zips aprovados
+Flaticon nao usado,APROVADO,Nenhuma referencia Flaticon encontrada
+Novos icones nao gerados,APROVADO,Assets vieram dos pacotes aprovados
+Tema global premium aplicado,APROVADO,CSS premium industrial 3D aplicado ao app interno
+Header interno migrado,APROVADO,Header recebeu profundidade e halo tecnico
+Busca migrada,APROVADO,Campo de busca preservado e estilizado
+KPIs migrados,APROVADO,Cards com profundidade e icones 3D
+Filtros preservados,APROVADO,TODAS 100 200 300 400 600 700 BRUTAS RESERVATORIOS testados
+Cards migrados,APROVADO,Cards de equipamentos renderizaram com icones 3D
+Modais preservados,APROVADO,Ficha historico patrimonio evidencias e hidraulica abriram
+Navegacao inferior migrada,APROVADO,Inicio OS Equipamentos Hidraulica Perfil com icones 3D
+Consulta hidraulica preservada,APROVADO,Modal de Consulta Hidraulica abriu e listou totais
+Regras de OS preservadas,APROVADO,Simulador 500 ciclos aprovado
+Status operacional preservado,APROVADO,Sandbox sem falhas de status
+Permissoes preservadas,APROVADO,Sandbox sem falhas de permissao
+Totalizadores preservados,APROVADO,Sandbox sem falhas de totalizador
+Sem sistema 500,APROVADO,Bases e sandbox mantiveram sistemas oficiais
+Sem VRP na base principal,APROVADO,Sem reintroducao por esta ordem
+Sem travamento,APROVADO,Navegador local sem giro infinito
+Console sem erro critico,APROVADO,0 erros criticos coletados no teste local
+API leitura health,APROVADO,Retorno OK
+API leitura listarEquipamentos,APROVADO,Retorno OK
+API leitura listarStatus,APROVADO,Retorno OK
+API leitura listarOS,APROVADO,Retorno OK
+Deploy,NAO EXECUTADO,Proibido nesta ordem
+Publicacao,NAO EXECUTADO,Proibido nesta ordem
+Merge,NAO EXECUTADO,Proibido nesta ordem
+OS real,NAO EXECUTADO,Proibido nesta ordem

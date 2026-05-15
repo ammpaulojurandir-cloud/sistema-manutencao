@@ -1,0 +1,77 @@
+{
+  "projeto": "Sistema GMAN",
+  "branch": "visual/gman-premium-industrial-3d",
+  "commitBase": "1d57d5c",
+  "data": "2026-05-15",
+  "arquivosAlterados": [
+    "index.html"
+  ],
+  "pastasCriadas": [
+    "assets/gman-icons-3d",
+    "relatorios_migracao_visual_gman"
+  ],
+  "iconesExtraidos": 68,
+  "testes": {
+    "gitDiffCheck": "aprovado",
+    "nodeCheckDadosHidraulicos": "aprovado",
+    "nodeCheckDadosUnidades": "aprovado",
+    "nodeCheckSimulador": "aprovado",
+    "nodeCheckSandbox": "aprovado",
+    "javascriptInlineIndex": "aprovado",
+    "simulador500": {
+      "totalCycles": 500,
+      "fullOk": 500,
+      "failures": 0,
+      "risk": "BAIXO"
+    },
+    "sandboxPesado": {
+      "totalOSSimuladas": 500,
+      "totalOSSandbox": 100,
+      "falhasCriticasFinais": 0,
+      "falhasPermissaoFinais": 0,
+      "falhasStatusFinais": 0,
+      "falhasConcordanciaFinais": 0,
+      "falhasRetornoOperandoFinais": 0,
+      "falhasTotalizadorFinais": 0,
+      "falhasBotaoReservatoriosFinais": 0,
+      "falhasVoltarFecharFinais": 0
+    },
+    "navegadorLocal": {
+      "login": "aprovado",
+      "logout": "aprovado",
+      "telaPrincipal": "aprovado",
+      "cards": "aprovado",
+      "filtros": "aprovado",
+      "painelOS": "aprovado",
+      "historico": "aprovado",
+      "patrimonio": "aprovado",
+      "evidencias": "aprovado",
+      "consultaHidraulica": "aprovado",
+      "icones3DRenderizados": 36,
+      "icones3DNavegacaoInferior": 5,
+      "errosCriticosConsole": 0
+    },
+    "apiLeitura": {
+      "health": "aprovado",
+      "listarEquipamentos": "aprovado",
+      "listarStatus": "aprovado",
+      "listarOS": "aprovado"
+    }
+  },
+  "preservacoes": {
+    "login": "preservado",
+    "logoGMAN": "preservado",
+    "osStatus": "preservado",
+    "appsScriptApi": "preservado",
+    "consultaHidraulicaSomenteLeitura": "preservada",
+    "dadosOficiais": "preservados"
+  },
+  "execucoesProibidas": {
+    "deploy": "nao_executado",
+    "publicacao": "nao_executada",
+    "merge": "nao_executado",
+    "osReal": "nao_criada"
+  },
+  "falhasCriticas": 0,
+  "decisaoFinal": "LIBERAR PARA PUBLICACAO"
+}
