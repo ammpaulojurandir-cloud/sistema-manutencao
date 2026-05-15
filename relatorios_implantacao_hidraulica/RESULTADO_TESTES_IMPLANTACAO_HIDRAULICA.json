@@ -1,0 +1,90 @@
+{
+  "branch": "implantacao/hidraulica-somente-leitura-gman",
+  "commitBase": "8b8913c",
+  "modo": "SOMENTE_LEITURA",
+  "totaisOficiais": {
+    "sistemas": 6,
+    "reservatoriosFisicos": 97,
+    "unidadesOperacionais": 89,
+    "relacoesNormais": 142,
+    "interligacoesEmergencia": 2,
+    "bloqueantes": 0
+  },
+  "restricoesValidadas": {
+    "sistema500Ausente": true,
+    "vrpForaDaBasePrincipal": true,
+    "inlineForaDeReservatoriosFisicos": true,
+    "osRealCriada": false,
+    "deployRealizado": false,
+    "publicacaoRealizada": false,
+    "appsScriptAlterado": false,
+    "dadosOficiaisAlterados": false
+  },
+  "testes": {
+    "nodeCheckDadosHidraulicos": "APROVADO",
+    "nodeCheckDadosUnidades": "APROVADO",
+    "nodeCheckSimuladorOS500": "APROVADO",
+    "nodeCheckSandboxPesado": "APROVADO",
+    "javascriptInlineIndex": "APROVADO",
+    "simuladorOS500": {
+      "resultado": "APROVADO",
+      "ciclos": 500,
+      "aprovados": 500,
+      "falhas": 0,
+      "risco": "BAIXO"
+    },
+    "sandboxPesado": {
+      "resultado": "APROVADO",
+      "osSimuladas": 500,
+      "osSandbox": 100,
+      "falhasCriticas": 0,
+      "falhasPermissao": 0,
+      "falhasStatus": 0,
+      "falhasConcordancia": 0,
+      "falhasTotalizador": 0
+    },
+    "sandboxHidraulica": {
+      "resultado": "APROVADO",
+      "testes": 16,
+      "aprovados": 16,
+      "falhas": 0
+    },
+    "sandboxConsultaHidraulica": {
+      "resultado": "APROVADO",
+      "testes": 12,
+      "aprovados": 12,
+      "falhas": 0
+    },
+    "validacaoHidraulicaGeral": {
+      "resultado": "APROVADO",
+      "testes": 36,
+      "aprovados": 36,
+      "falhasCriticas": 0
+    },
+    "browserLocal": {
+      "login": "APROVADO",
+      "telaPrincipal": "APROVADO",
+      "filtrosPrincipais": "APROVADO",
+      "osAbertasLeitura": "APROVADO",
+      "patrimonioLeitura": "APROVADO",
+      "historicoLeitura": "APROVADO",
+      "consultaHidraulica": "APROVADO",
+      "fichaHidraulica": "APROVADO",
+      "voltarFechar": "APROVADO",
+      "consoleErroCritico": false
+    },
+    "apiLeitura": {
+      "health": "APROVADO",
+      "listarEquipamentos": "APROVADO",
+      "listarStatus": "APROVADO",
+      "listarOS": "APROVADO"
+    }
+  },
+  "resumo": {
+    "testesExecutados": 42,
+    "testesAprovados": 42,
+    "testesReprovados": 0,
+    "falhasCriticas": 0
+  },
+  "decisaoFinal": "LIBERAR PARA PUBLICACAO"
+}

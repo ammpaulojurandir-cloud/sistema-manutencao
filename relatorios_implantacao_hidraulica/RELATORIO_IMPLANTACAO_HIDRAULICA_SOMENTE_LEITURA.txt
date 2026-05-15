@@ -1,0 +1,119 @@
+RELATORIO IMPLANTACAO HIDRAULICA SOMENTE LEITURA
+
+Branch usada:
+implantacao/hidraulica-somente-leitura-gman
+
+Commit base:
+8b8913c - Cria contrato de dados hidraulicos
+
+Objetivo:
+Implantar consulta hidraulica em modo somente leitura no Sistema GMAN, separada do ciclo de OS e sem alteracao de status operacional.
+
+Arquivos alterados:
+- index.html
+
+Arquivos criados:
+- dados_hidraulicos_gman.js
+- relatorios_implantacao_hidraulica/RELATORIO_IMPLANTACAO_HIDRAULICA_SOMENTE_LEITURA.txt
+- relatorios_implantacao_hidraulica/CHECKLIST_IMPLANTACAO_HIDRAULICA_SOMENTE_LEITURA.csv
+- relatorios_implantacao_hidraulica/RESULTADO_TESTES_IMPLANTACAO_HIDRAULICA.json
+
+Funcoes criadas:
+- listarSistemasHidraulicos()
+- listarUnidadesHidraulicasPorSistema(sistema)
+- listarReservatoriosPorSistema(sistema)
+- listarRelacoesHidraulicasPorUnidade(nomeOuId)
+- consultarConjuntoHidraulico(nomeOuId)
+- validarTotaisHidraulicosOficiais()
+- abrirConsultaHidraulicaGMAN(sistema)
+- selecionarSistemaHidraulicaGMAN13(sistema)
+- renderConsultaHidraulicaGMAN13(sistema)
+- abrirFichaHidraulicaGMAN13(id, tipo)
+
+Resumo funcional:
+- Foi adicionada a area Hidraulica como consulta tecnica isolada.
+- A consulta usa base local tecnica validada.
+- A consulta nao grava dados.
+- A consulta nao altera OS.
+- A consulta nao altera status operacional.
+- A consulta nao chama Apps Script para escrita.
+- A consulta nao usa sistema 500.
+
+Totais oficiais validados:
+- Sistemas oficiais: 6
+- Reservatorios fisicos: 97
+- Unidades operacionais: 89
+- Relacoes normais: 142
+- Interligacoes de emergencia: 2
+- Bloqueantes: 0
+- VRP fora da base principal: sim
+- IN LINE fora de reservatorios fisicos: sim
+
+Testes executados:
+- node --check dados_hidraulicos_gman.js
+- node --check dados_unidades_hidraulicas_gman.js
+- node --check homologacao/SIMULADOR_CICLO_OS_500.js
+- node --check homologacao/SANDBOX_TESTE_PESADO_GMAN.js
+- validacao de JavaScript inline do index.html
+- node homologacao/SIMULADOR_CICLO_OS_500.js
+- node homologacao/SANDBOX_TESTE_PESADO_GMAN.js
+- node sandbox_hidraulica/LEITOR_MODELAGEM_HIDRAULICA_SANDBOX.js
+- node sandbox_consulta_hidraulica/SIMULADOR_CONSULTA_HIDRAULICA.js
+- node validacao_hidraulica_geral/RODAR_VALIDACAO_HIDRAULICA_GERAL.js
+- teste local do app em navegador
+- teste de login local
+- teste de filtros principais
+- teste de OS abertas em leitura
+- teste de patrimonio e historico em leitura
+- teste da consulta Hidraulica
+- teste de ficha hidraulica com Voltar e Fechar
+- teste de API somente leitura: health, listarEquipamentos, listarStatus, listarOS
+
+Resultados:
+- Testes executados: 42
+- Testes aprovados: 42
+- Testes reprovados: 0
+- Falhas criticas: 0
+
+Evidencias principais:
+- Login funcionou.
+- Tela principal carregou.
+- Cards carregaram.
+- Filtros TODAS, 100, 200, 300, 400, 600, 700 e BRUTAS funcionaram.
+- OS abertas permaneceu acessivel em leitura.
+- Patrimonio permaneceu acessivel em leitura.
+- Historico permaneceu acessivel em leitura.
+- Consulta Hidraulica abriu.
+- Consulta Hidraulica listou sistemas oficiais.
+- Sistema 500 nao apareceu.
+- Totais oficiais bateram com a base validada.
+- Ficha hidraulica abriu em modo somente leitura.
+- Voltar retornou ao painel hidraulico do sistema selecionado.
+- Fechar fechou a consulta.
+- Console sem erro critico no teste local.
+- API de leitura respondeu health, listarEquipamentos, listarStatus e listarOS.
+
+Preservacoes confirmadas:
+- Login preservado.
+- Logo preservado.
+- Tela principal preservada.
+- Cards atuais preservados.
+- Filtros atuais preservados.
+- Totalizadores atuais preservados.
+- Regras de OS preservadas.
+- Status operacional preservado.
+- Historico real preservado.
+- Patrimonio preservado.
+- Permissoes preservadas.
+- Apps Script/API oficial nao alterado.
+- dados_unidades_hidraulicas_gman.js nao alterado.
+- dados oficiais de producao nao alterados.
+- OS real nao criada.
+- Deploy nao realizado.
+- Publicacao nao realizada.
+- Merge nao realizado.
+- Migracao visual 3D nao executada.
+
+Decisao final:
+LIBERAR PARA PUBLICACAO
+

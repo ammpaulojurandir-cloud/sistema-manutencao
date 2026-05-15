@@ -792,6 +792,18 @@
     .gman-reservatorio-meta strong { display:block; color:#e8f7ff; font-size:.78rem; margin-top:4px; word-break:break-word; }
     .gman-hidraulico-futuro { margin-top:12px; border:1px dashed rgba(255,209,102,.34); background:rgba(255,209,102,.06); border-radius:8px; padding:12px; color:var(--gman-muted); line-height:1.45; }
     .gman-reservatorios-vazio { border:1px solid rgba(255,209,102,.24); background:rgba(255,209,102,.06); border-radius:8px; padding:14px; color:#ffe4a0; font-weight:850; }
+    .gman-hidraulica-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
+    .gman-hidraulica-tabs button { border:1px solid rgba(110,193,255,.22); background:rgba(9,26,44,.72); color:#dbefff; border-radius:8px; padding:9px 11px; font-size:.72rem; font-weight:850; cursor:pointer; }
+    .gman-hidraulica-tabs button.active, .gman-hidraulica-tabs button:hover { border-color:rgba(53,208,127,.62); color:#f2fff7; background:rgba(20,91,61,.62); }
+    .gman-hidraulica-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:10px; margin-top:12px; }
+    .gman-hidraulica-card { border:1px solid rgba(110,193,255,.17); background:linear-gradient(145deg, rgba(10,31,52,.92), rgba(7,20,34,.96)); border-radius:8px; padding:12px; min-height:132px; cursor:pointer; }
+    .gman-hidraulica-card:hover { border-color:rgba(53,208,127,.54); box-shadow:0 0 20px rgba(53,208,127,.12); }
+    .gman-hidraulica-card h4 { margin:0 0 7px; color:#f5fbff; font-size:.9rem; line-height:1.25; }
+    .gman-hidraulica-card p { margin:5px 0 0; color:var(--gman-muted); font-size:.74rem; line-height:1.35; }
+    .gman-hidraulica-secao { margin-top:14px; }
+    .gman-hidraulica-relacao { border:1px solid rgba(110,193,255,.14); border-radius:8px; padding:10px; background:rgba(255,255,255,.035); margin-top:8px; color:#dbefff; font-size:.76rem; }
+    .gman-hidraulica-relacao strong { color:#f5fbff; }
+    .gman-hidraulica-emergencia { border-color:rgba(255,209,102,.32); background:rgba(255,209,102,.055); }
 
   
 
@@ -1002,11 +1014,13 @@
     <button class="action-btn" id="btnOrdensEncerradasHome" onclick="abrirPainelOS('encerradas')" style="display:none;">✅ Ordens Encerradas <span id="totalOrdensEncerradasHome">(0)</span></button>
     <button class="action-btn" id="btnPainelKPI" onclick="fecharPerfilDrawerGMAN(); abrirPainelGerencial()" style="display:none;">📊 Painel Gerencial</button>
     <button class="action-btn" onclick="atualizarAgora()">🔄 Atualizar agora</button>
+    <button class="action-btn" onclick="abrirConsultaHidraulicaGMAN()">Hidráulica</button>
   </div>
 
   <div class="equipment-list" id="equipmentList"></div>
 
   <script src="dados_unidades_hidraulicas_gman.js"></script>
+  <script src="dados_hidraulicos_gman.js"></script>
   <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbwyF6kMzoDhLiM1B4-1qW40wNrbH9tmXAIqUzJj7a2Rz7Jocjju29LnwKbmubbxpSZh/exec';
     const SENHA_GMAN_OFICIAL = 'gman2026';
@@ -1720,6 +1734,89 @@ function abrirFiltroAvancadoGMAN() {
       if(painelReservatorios) painelReservatorios.classList.add('gman-preservar-overlay');
       modalPremiumGMAN('reservatorioGMAN104', escaparHTMLGMAN(nomeGrupoVisualGMAN(eq.name)), `Reservatório | Sistema ${escaparHTMLGMAN(eq.systemCode)} | ${escaparHTMLGMAN(eq.system.toLocaleUpperCase('pt-BR'))}`,
         `<div class="gman-grid"><div class="gman-card-dark"><div class="gman-kpi-label">Capacidade</div><div class="gman-kpi-value" style="font-size:1.05rem;">${escaparHTMLGMAN(eq.capacidade||'Pendente de confirmação')}</div></div><div class="gman-card-dark"><div class="gman-kpi-label">Cota</div><div class="gman-kpi-value" style="font-size:1.05rem;">${escaparHTMLGMAN(eq.cota||'Pendente de confirmação')}</div></div><div class="gman-card-dark"><div class="gman-kpi-label">Código desenho</div><div class="gman-kpi-value" style="font-size:1.05rem;">${escaparHTMLGMAN(eq.codigoDesenho||'Não identificado')}</div></div><div class="gman-card-dark"><div class="gman-kpi-label">Conjunto hidráulico</div><div class="gman-kpi-value" style="font-size:.86rem;">${escaparHTMLGMAN(eq.conjunto||'Não identificado')}</div></div></div><div class="gman-card-dark" style="margin-top:12px;"><div class="gman-kpi-label">Observação técnica</div><div class="gman-kpi-meta">${escaparHTMLGMAN(eq.observacaoTecnica||'Sem observação técnica adicional.')}</div></div><div class="gman-card-dark" style="margin-top:12px;"><span class="gman-status-pill gman-pill-warn">OS real preservada</span><p class="small-help" style="margin-top:8px;">Reservatórios ficam em consulta técnica nesta ordem. Nenhuma OS real é aberta automaticamente por esta ficha.</p></div><div class="gman-card-actions"><button class="gman-btn gman-btn-muted" onclick="fecharModalGMAN('reservatorioGMAN104')">Voltar</button><button class="gman-btn" onclick="fecharModalGMAN('reservatorioGMAN104'); fecharModalGMAN('painelReservatoriosGMAN104')">Fechar</button></div>`, '780px');
+    }
+
+    const SISTEMAS_HIDRAULICA_GMAN13 = [['100','Sistema 100'],['200','Sistema 200'],['300','Sistema 300'],['400','Sistema 400'],['600','Sistema 600'],['700','Sistema 700']];
+    let gmanSistemaHidraulicaAtivo13 = '100';
+    function valorTecnicoHidraulicoGMAN13(valor, unidade='') {
+      const s=String(valor == null ? '' : valor).trim();
+      if(!s || /^(-|—)$/i.test(s) || /pendente|nao identificado|não identificado/i.test(s)) return 'Pendente de confirmação';
+      return unidade ? `${s} ${unidade}` : s;
+    }
+    function validarBaseHidraulicaDisponivelGMAN13() {
+      return typeof listarSistemasHidraulicos === 'function' &&
+        typeof listarUnidadesHidraulicasPorSistema === 'function' &&
+        typeof listarReservatoriosPorSistema === 'function' &&
+        typeof listarRelacoesHidraulicasPorUnidade === 'function' &&
+        typeof consultarConjuntoHidraulico === 'function' &&
+        typeof validarTotaisHidraulicosOficiais === 'function';
+    }
+    function htmlTabsHidraulicaGMAN13(ativo) {
+      return `<div class="gman-hidraulica-tabs">${SISTEMAS_HIDRAULICA_GMAN13.map(([codigo,label])=>`<button type="button" class="${String(ativo)===codigo?'active':''}" onclick="selecionarSistemaHidraulicaGMAN13('${codigo}')">${label}</button>`).join('')}</div>`;
+    }
+    function htmlResumoHidraulicaGMAN13(validacao) {
+      const t=validacao.totais || {};
+      return `<div class="gman-grid">
+        <div class="gman-card-dark"><div class="gman-kpi-label">Sistemas oficiais</div><div class="gman-kpi-value">${escaparHTMLGMAN(t.sistemas)}</div></div>
+        <div class="gman-card-dark"><div class="gman-kpi-label">Reservatórios físicos</div><div class="gman-kpi-value">${escaparHTMLGMAN(t.reservatoriosFisicos)}</div></div>
+        <div class="gman-card-dark"><div class="gman-kpi-label">Unidades operacionais</div><div class="gman-kpi-value">${escaparHTMLGMAN(t.unidadesOperacionais)}</div></div>
+        <div class="gman-card-dark"><div class="gman-kpi-label">Relações normais</div><div class="gman-kpi-value">${escaparHTMLGMAN(t.relacoesNormais)}</div></div>
+        <div class="gman-card-dark"><div class="gman-kpi-label">Interligações de emergência</div><div class="gman-kpi-value">${escaparHTMLGMAN(t.interligacoesEmergencia)}</div></div>
+        <div class="gman-card-dark"><div class="gman-kpi-label">Bloqueantes</div><div class="gman-kpi-value">${escaparHTMLGMAN(t.bloqueantes)}</div></div>
+      </div>`;
+    }
+    function htmlUnidadesHidraulicasGMAN13(lista) {
+      const dados=Array.isArray(lista)?lista:[];
+      if(!dados.length) return '<div class="gman-reservatorios-vazio">Sem unidade operacional cadastrada para este sistema.</div>';
+      return `<div class="gman-hidraulica-grid">${dados.map(u=>`<article class="gman-hidraulica-card" onclick="abrirFichaHidraulicaGMAN13('${escaparHTMLGMAN(u.ID_UNIDADE)}','unidade')" role="button" tabindex="0"><h4>${escaparHTMLGMAN(u.NOME_UNIDADE)}</h4><span class="gman-status-pill gman-pill-ok">${escaparHTMLGMAN(u.TIPO_UNIDADE)}</span><p><strong>Função:</strong> ${escaparHTMLGMAN(valorTecnicoHidraulicoGMAN13(u.FUNCAO_HIDRAULICA))}</p><p><strong>Conjunto:</strong> ${escaparHTMLGMAN(valorTecnicoHidraulicoGMAN13(u.ID_CONJUNTO))}</p></article>`).join('')}</div>`;
+    }
+    function htmlReservatoriosHidraulicosGMAN13(lista) {
+      const dados=Array.isArray(lista)?lista:[];
+      if(!dados.length) return '<div class="gman-reservatorios-vazio">Sem reservatório físico cadastrado para este sistema.</div>';
+      return `<div class="gman-hidraulica-grid">${dados.map(r=>`<article class="gman-hidraulica-card" onclick="abrirFichaHidraulicaGMAN13('${escaparHTMLGMAN(r.ID_RESERVATORIO)}','reservatorio')" role="button" tabindex="0"><h4>${escaparHTMLGMAN(r.NOME_RESERVATORIO)}</h4><span class="gman-status-pill gman-pill-ok">RES</span><p><strong>Capacidade:</strong> ${escaparHTMLGMAN(valorTecnicoHidraulicoGMAN13(r.CAPACIDADE_M3,'m³'))}</p><p><strong>Qtd. física:</strong> ${escaparHTMLGMAN(valorTecnicoHidraulicoGMAN13(r.QUANTIDADE_FISICA))}</p><p><strong>Cota:</strong> ${escaparHTMLGMAN(valorTecnicoHidraulicoGMAN13(r.COTA_M,'m'))}</p></article>`).join('')}</div>`;
+    }
+    function htmlRelacoesHidraulicasGMAN13(sistema) {
+      const relacoes=(window.GMAN_HIDRAULICA_OFICIAL?.relacoes || []).filter(r=>String(r.SISTEMA||'')===String(sistema));
+      const normais=relacoes.filter(r=>r.FLUXO==='FLUXO_NORMAL');
+      const emergencias=relacoes.filter(r=>r.FLUXO==='INTERLIGACAO_EMERGENCIA');
+      const item=(r,extra='')=>`<div class="gman-hidraulica-relacao ${extra}"><strong>${escaparHTMLGMAN(r.ORIGEM_NOME)}</strong> → <strong>${escaparHTMLGMAN(r.DESTINO_NOME)}</strong><br><span>${escaparHTMLGMAN(r.TIPO_RELACAO)} | ${escaparHTMLGMAN(r.FUNCAO_RELACAO || 'Pendente de confirmação')}</span></div>`;
+      return `<div class="gman-hidraulica-secao"><h3 class="gman-section-title">Relações hidráulicas</h3>${normais.length?normais.slice(0,18).map(r=>item(r)).join(''):'<div class="gman-reservatorios-vazio">Sem relação normal cadastrada para este sistema.</div>'}${normais.length>18?`<p class="small-help">Mostrando 18 de ${normais.length} relações normais.</p>`:''}</div><div class="gman-hidraulica-secao"><h3 class="gman-section-title">Interligações de emergência</h3>${emergencias.length?emergencias.map(r=>item(r,'gman-hidraulica-emergencia')).join(''):'<div class="gman-reservatorios-vazio">Sem interligação de emergência cadastrada para este sistema.</div>'}</div>`;
+    }
+    function renderConsultaHidraulicaGMAN13() {
+      const c=document.getElementById('consultaHidraulicaConteudoGMAN13');
+      if(!c || !validarBaseHidraulicaDisponivelGMAN13()) return;
+      const sistema=gmanSistemaHidraulicaAtivo13;
+      const validacao=validarTotaisHidraulicosOficiais();
+      const unidades=listarUnidadesHidraulicasPorSistema(sistema);
+      const reservatorios=listarReservatoriosPorSistema(sistema);
+      c.innerHTML=`<div class="gman-card-dark"><span class="gman-status-pill ${validacao.ok?'gman-pill-ok':'gman-pill-red'}">${validacao.ok?'Base validada':'Verificar base'}</span><p class="small-help" style="margin-top:8px;">Consulta técnica em modo somente leitura. Não abre OS, não grava dados e não altera status operacional.</p></div>${htmlResumoHidraulicaGMAN13(validacao)}${htmlTabsHidraulicaGMAN13(sistema)}<div class="gman-hidraulica-secao"><h3 class="gman-section-title">Unidades operacionais — Sistema ${escaparHTMLGMAN(sistema)}</h3>${htmlUnidadesHidraulicasGMAN13(unidades)}</div><div class="gman-hidraulica-secao"><h3 class="gman-section-title">Reservatórios físicos — Sistema ${escaparHTMLGMAN(sistema)}</h3>${htmlReservatoriosHidraulicosGMAN13(reservatorios)}</div>${htmlRelacoesHidraulicasGMAN13(sistema)}<div class="gman-card-actions"><button class="gman-btn gman-btn-muted" onclick="fecharModalGMAN('consultaHidraulicaGMAN13')">Voltar</button><button class="gman-btn" onclick="fecharModalGMAN('consultaHidraulicaGMAN13')">Fechar</button></div>`;
+    }
+    function selecionarSistemaHidraulicaGMAN13(sistema) {
+      if(!SISTEMAS_HIDRAULICA_GMAN13.some(s=>s[0]===String(sistema))) return;
+      gmanSistemaHidraulicaAtivo13=String(sistema);
+      renderConsultaHidraulicaGMAN13();
+    }
+    function abrirConsultaHidraulicaGMAN(sistema) {
+      if(sistema) gmanSistemaHidraulicaAtivo13=SISTEMAS_HIDRAULICA_GMAN13.some(s=>s[0]===String(sistema)) ? String(sistema) : '100';
+      const conteudo=validarBaseHidraulicaDisponivelGMAN13()?'<div id="consultaHidraulicaConteudoGMAN13"></div>':'<div class="gman-card-dark"><span class="gman-status-pill gman-pill-red">Base indisponível</span><p class="small-help" style="margin-top:8px;">A base hidráulica técnica não foi carregada. Nenhuma ação operacional foi executada.</p></div>';
+      modalPremiumGMAN('consultaHidraulicaGMAN13','Consulta Hidráulica — Sistema GMAN','Leitura técnica isolada, sem OS e sem alteração de status.',conteudo,'1080px');
+      renderConsultaHidraulicaGMAN13();
+    }
+    function abrirFichaHidraulicaGMAN13(id, tipo) {
+      if(!window.GMAN_HIDRAULICA_OFICIAL) return;
+      const item = tipo==='reservatorio'
+        ? (window.GMAN_HIDRAULICA_OFICIAL.reservatorios || []).find(r=>String(r.ID_RESERVATORIO)===String(id))
+        : (window.GMAN_HIDRAULICA_OFICIAL.unidades || []).find(u=>String(u.ID_UNIDADE)===String(id));
+      if(!item) return;
+      const conjuntoId=item.ID_CONJUNTO || '';
+      const conjunto=consultarConjuntoHidraulico(conjuntoId);
+      const relacoes=listarRelacoesHidraulicasPorUnidade(item.ID_RESERVATORIO || item.ID_UNIDADE || item.NOME_RESERVATORIO || item.NOME_UNIDADE);
+      const titulo=item.NOME_RESERVATORIO || item.NOME_UNIDADE || item.ID_RESERVATORIO || item.ID_UNIDADE;
+      const medidas=tipo==='reservatorio'
+        ? `<div class="gman-grid"><div class="gman-card-dark"><div class="gman-kpi-label">Capacidade</div><div class="gman-kpi-value" style="font-size:1rem;">${escaparHTMLGMAN(valorTecnicoHidraulicoGMAN13(item.CAPACIDADE_M3,'m³'))}</div></div><div class="gman-card-dark"><div class="gman-kpi-label">Quantidade física</div><div class="gman-kpi-value" style="font-size:1rem;">${escaparHTMLGMAN(valorTecnicoHidraulicoGMAN13(item.QUANTIDADE_FISICA))}</div></div><div class="gman-card-dark"><div class="gman-kpi-label">Cota</div><div class="gman-kpi-value" style="font-size:1rem;">${escaparHTMLGMAN(valorTecnicoHidraulicoGMAN13(item.COTA_M,'m'))}</div></div><div class="gman-card-dark"><div class="gman-kpi-label">Função</div><div class="gman-kpi-value" style="font-size:.84rem;">${escaparHTMLGMAN(valorTecnicoHidraulicoGMAN13(item.FUNCAO_HIDRAULICA))}</div></div></div>`
+        : `<div class="gman-grid"><div class="gman-card-dark"><div class="gman-kpi-label">Tipo</div><div class="gman-kpi-value" style="font-size:1rem;">${escaparHTMLGMAN(item.TIPO_UNIDADE)}</div></div><div class="gman-card-dark"><div class="gman-kpi-label">Função</div><div class="gman-kpi-value" style="font-size:.84rem;">${escaparHTMLGMAN(valorTecnicoHidraulicoGMAN13(item.FUNCAO_HIDRAULICA))}</div></div><div class="gman-card-dark"><div class="gman-kpi-label">Código desenho</div><div class="gman-kpi-value" style="font-size:1rem;">${escaparHTMLGMAN(valorTecnicoHidraulicoGMAN13(item.CODIGO_DESENHO))}</div></div><div class="gman-card-dark"><div class="gman-kpi-label">Confiança</div><div class="gman-kpi-value" style="font-size:1rem;">${escaparHTMLGMAN(valorTecnicoHidraulicoGMAN13(item.CONFIANCA_LEITURA))}</div></div></div>`;
+      const relHtml=relacoes.length?relacoes.slice(0,10).map(r=>`<div class="gman-hidraulica-relacao ${r.FLUXO==='INTERLIGACAO_EMERGENCIA'?'gman-hidraulica-emergencia':''}"><strong>${escaparHTMLGMAN(r.ORIGEM_NOME)}</strong> → <strong>${escaparHTMLGMAN(r.DESTINO_NOME)}</strong><br>${escaparHTMLGMAN(r.FLUXO)} | ${escaparHTMLGMAN(r.TIPO_RELACAO)}</div>`).join(''):'<div class="gman-reservatorios-vazio">Sem relação direta cadastrada para esta unidade.</div>';
+      modalPremiumGMAN('fichaHidraulicaGMAN13', escaparHTMLGMAN(titulo), `Sistema ${escaparHTMLGMAN(item.SISTEMA)} | Conjunto ${escaparHTMLGMAN(conjuntoId)}`, `${medidas}<div class="gman-card-dark" style="margin-top:12px;"><div class="gman-kpi-label">Conjunto</div><div class="gman-kpi-meta">${escaparHTMLGMAN(conjunto?.conjunto?.NOME_CONJUNTO || conjuntoId || 'Pendente de confirmação')}</div></div><div class="gman-card-dark" style="margin-top:12px;"><div class="gman-kpi-label">Observação técnica</div><div class="gman-kpi-meta">${escaparHTMLGMAN(valorTecnicoHidraulicoGMAN13(item.OBSERVACAO || item.OBSERVACAO_TECNICA))}</div></div><div class="gman-hidraulica-secao"><h3 class="gman-section-title">Relações da unidade</h3>${relHtml}</div><div class="gman-card-dark" style="margin-top:12px;"><span class="gman-status-pill gman-pill-warn">Somente leitura</span><p class="small-help" style="margin-top:8px;">Esta ficha não abre OS, não grava dados e não altera status operacional.</p></div><div class="gman-card-actions"><button class="gman-btn gman-btn-muted" onclick="fecharModalGMAN('fichaHidraulicaGMAN13'); abrirConsultaHidraulicaGMAN('${escaparHTMLGMAN(item.SISTEMA)}');">Voltar</button><button class="gman-btn" onclick="fecharModalGMAN('fichaHidraulicaGMAN13')">Fechar</button></div>`, '860px');
     }
 
     function openEquipment(id) {

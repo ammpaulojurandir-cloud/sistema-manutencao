@@ -1,0 +1,43 @@
+item,criterio,resultado,evidencia
+1,Branch correta,APROVADO,implantacao/hidraulica-somente-leitura-gman
+2,Commit base correto,APROVADO,8b8913c
+3,Login preservado,APROVADO,teste local com usuario PAULO JURANDIR
+4,Tela principal carrega,APROVADO,cards e filtros visiveis
+5,Cards de equipamentos carregam,APROVADO,214 cards no teste local
+6,Filtro TODAS funciona,APROVADO,TODAS 214
+7,Filtro 100 funciona,APROVADO,100 MOINHOS DE VENTO 11
+8,Filtro 200 funciona,APROVADO,200 SAO JOAO 39
+9,Filtro 300 funciona,APROVADO,300 MENINO DEUS 114
+10,Filtro 400 funciona,APROVADO,400 BELEM NOVO 33
+11,Filtro 600 funciona,APROVADO,600 ILHAS 5
+12,Filtro 700 funciona,APROVADO,700 TRISTEZA 12
+13,Filtro BRUTAS funciona,APROVADO,BRUTAS 21
+14,Totalizadores existentes preservados,APROVADO,totalizadores visiveis fora dos botoes da consulta hidraulica
+15,OS abertas acessivel,APROVADO,painel abriu sem erro critico
+16,Patrimonio acessivel,APROVADO,aba aberta em leitura
+17,Historico acessivel,APROVADO,aba aberta em leitura
+18,Consulta Hidraulica abre,APROVADO,modal Consulta Hidraulica Sistema GMAN visivel
+19,Sistemas oficiais listados,APROVADO,100 200 300 400 600 700
+20,Sistema 500 ausente,APROVADO,nao aparece na consulta
+21,Reservatorios fisicos 97,APROVADO,validarTotaisHidraulicosOficiais
+22,Unidades operacionais 89,APROVADO,validarTotaisHidraulicosOficiais
+23,Relacoes normais 142,APROVADO,validarTotaisHidraulicosOficiais
+24,Interligacoes de emergencia 2,APROVADO,validarTotaisHidraulicosOficiais
+25,Bloqueantes 0,APROVADO,validarTotaisHidraulicosOficiais
+26,VRP fora da base principal,APROVADO,validarTotaisHidraulicosOficiais
+27,IN LINE fora de reservatorios fisicos,APROVADO,validarTotaisHidraulicosOficiais
+28,Ficha hidraulica somente leitura,APROVADO,RES BELEM NOVO R1 aberto sem acao de OS
+29,Voltar da ficha hidraulica,APROVADO,retorna ao painel do sistema selecionado
+30,Fechar da consulta hidraulica,APROVADO,fecha modal e retorna a tela principal
+31,Console sem erro critico,APROVADO,teste local no navegador
+32,node check dados_hidraulicos_gman,APROVADO,sintaxe OK
+33,node check index inline,APROVADO,sintaxe OK
+34,Simulador OS 500,APROVADO,500 ciclos aprovados
+35,Sandbox pesado,APROVADO,0 falhas criticas
+36,API health leitura,APROVADO,GMAN 8.5.6.105
+37,API listarEquipamentos leitura,APROVADO,214 registros
+38,API listarStatus leitura,APROVADO,214 registros
+39,API listarOS leitura,APROVADO,0 registros
+40,Deploy nao realizado,APROVADO,sem acao de deploy
+41,Publicacao nao realizada,APROVADO,sem publicacao
+42,OS real nao criada,APROVADO,somente leitura
