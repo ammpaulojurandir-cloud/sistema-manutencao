@@ -5,8 +5,8 @@
  *
  * ESCOPO DESTA VERSÃO
  * - Somente funcionalidade. Não altera layout, cores ou identidade visual.
- * - Administrador, supervisor e gerente têm os mesmos poderes operacionais.
- * - Coordenador atua por área; líder/equipe atua somente em OS sob sua responsabilidade.
+ * - Permissões de abertura e execução são por pessoa oficialmente autorizada.
+ * - Área é informação operacional e não bloqueia abertura ou execução.
  * - Status do equipamento só muda por OS vinculada.
  * - Conclusão da OS exige condição operacional final real, sem assumir Operando escondido, e reavalia concordância das OS vinculadas.
  * - Bloqueia OS duplicada para mesmo equipamento + mesmo responsável.
@@ -56,6 +56,8 @@ const GMAN = Object.freeze({
     'SIDNEI ROCHA': { nome:'SIDNEI ROCHA', perfil:'LIDER', area:'CALDEIRARIA' },
     'GABRIEL STUMM': { nome:'GABRIEL STUMM', perfil:'LIDER', area:'USINAGEM' }
   }),
+  ABRIDORES_OS_OFICIAIS: Object.freeze(['PAULO JURANDIR', 'RAFAEL SPIES', 'ROGERIO ALVES', 'JEFERSON MACHADO', 'VALTEMIR OLMOS', 'MAURICIO DO CARMO']),
+  EXECUTORES_OS_OFICIAIS: Object.freeze(['PAULO JURANDIR', 'JEFERSON MACHADO', 'VALTEMIR OLMOS', 'MAURICIO DO CARMO', 'RODRIGO FORTES', 'LUCIANO CRUZ', 'RONALDO LEMOS', 'VALNEIR OLIVEIRA', 'ANTONIO CARLOS LEAL', 'RICARDO MATHIOLA', 'CARLOS ALBERTO', 'ANDRE MARQUES', 'ROQUE BECKER', 'SAULO LOCKMAN', 'SIDNEI ROCHA', 'GABRIEL STUMM']),
   AREAS_PATRIMONIO_OPCIONAL: ['USINAGEM', 'CALDEIRARIA', 'INSTALACOES MECANICAS'],
   STATUS_OS_ENCERRADOS: ['CONCLUIDA', 'CANCELADA', 'ENCERRADA', 'FECHADA', 'FINALIZADA'],
   STATUS_OS_ATIVOS: ['ABERTA', 'RECEBIDA', 'NAO INICIADA', 'AGUARDANDO EQUIPE', 'AGUARDANDO RESPONSAVEL', 'AGUARDANDO NOVO RESPONSAVEL', 'EM EXECUCAO', 'EM ANDAMENTO', 'AGUARDANDO MATERIAL', 'AGUARDANDO LIBERACAO', 'EM TESTE'],
@@ -610,6 +612,16 @@ function acessoTotal_(u) { return GMAN.PERFIS_ACESSO_TOTAL.indexOf(canon_(u && u
 function coordenador_(u) { return GMAN.PERFIS_COORDENACAO.indexOf(canon_(u && u.perfil)) >= 0; }
 function mesmoResponsavel_(u, os) { return canon_(get_(os, 'responsavel')) === canon_(u && u.nome); }
 function mesmoCriador_(u, os) { return canon_(get_(os, 'abertoPor')) === canon_(u && u.nome); }
+function usuarioPodeAbrirOSGMAN_(u) {
+  const nome = canon_(typeof u === 'string' ? u : (u && u.nome));
+  return GMAN.ABRIDORES_OS_OFICIAIS.indexOf(nome) >= 0;
+}
+function usuarioPodeExecutarOSGMAN_(u, os) {
+  const nome = canon_(typeof u === 'string' ? u : (u && u.nome));
+  if (GMAN.EXECUTORES_OS_OFICIAIS.indexOf(nome) < 0) return false;
+  const responsavel = get_(os || {}, 'responsavel') || (os && (os.responsavel || os.RESPONSAVEL));
+  return canon_(responsavel) === nome;
+}
 function podeCoordenadorArea_(u, os) {
   if (!coordenador_(u)) return false;
   const au = areaCanon_(u.area);
@@ -972,15 +984,7 @@ function criarOS_(p) {
   const desc = txt_(p.descricaoProblema || p.descricaoSolicitacao || p.descricao);
   if (!id) throw new Error('ID do equipamento é obrigatório.');
   if (!resp) throw new Error('Responsável é obrigatório.');
-  if (!acessoTotal_(u)) {
-    if (coordenador_(u)) {
-      const areaUsuario = areaCanon_(u.area);
-      const areaOS = areaCanon_(area);
-      if (areaUsuario && areaUsuario !== 'TODOS' && areaOS.indexOf(areaUsuario) < 0) throw new Error('Permissão bloqueada: coordenador só pode abrir OS na própria área.');
-    } else if (canon_(resp) !== canon_(u.nome)) {
-      throw new Error('Permissão bloqueada: usuário operacional só pode abrir OS em seu próprio nome.');
-    }
-  }
+  if (!usuarioPodeAbrirOSGMAN_(u)) throw new Error('Permissão bloqueada: somente pessoas oficialmente autorizadas podem abrir OS. Área é informação operacional e não libera abertura.');
   if (!area) throw new Error('Área/equipe é obrigatória.');
   if (!tipo) throw new Error('Tipo de manutenção é obrigatório.');
   if (!prioridade) throw new Error('Prioridade é obrigatória.');
@@ -1010,7 +1014,7 @@ function iniciarOS_(p) {
   const u = usuario_(p);
   validarUsuarioAcaoCritica_(u, 'iniciarOS');
   const loc = localizarOS_(p.idOS || p.numeroOS);
-  if (!podeAlterarOS_(u, loc.row)) throw new Error('Permissão bloqueada: usuário não pode iniciar esta OS.');
+  if (!usuarioPodeExecutarOSGMAN_(u, loc.row)) throw new Error('Permissão bloqueada: somente o responsável executor oficial desta OS pode iniciar.');
   if (statusEncerrado_(get_(loc.row,'statusOS'))) throw new Error('OS encerrada não pode ser iniciada.');
   validarTransicaoOS_(get_(loc.row,'statusOS') || 'Aberta', 'Em execução', 'iniciarOS');
   const cond = txt_(p.condicaoOperacional || p.condicao || '');
@@ -1027,7 +1031,7 @@ function atualizarAndamentoOS_(p) {
   const u = usuario_(p);
   validarUsuarioAcaoCritica_(u, 'atualizarAndamentoOS');
   const loc = localizarOS_(p.idOS || p.numeroOS);
-  if (!podeAlterarOS_(u, loc.row)) throw new Error('Permissão bloqueada: usuário não pode atualizar esta OS.');
+  if (!usuarioPodeExecutarOSGMAN_(u, loc.row)) throw new Error('Permissão bloqueada: somente o responsável executor oficial desta OS pode atualizar andamento.');
   if (statusEncerrado_(get_(loc.row,'statusOS'))) throw new Error('OS encerrada não pode receber andamento.');
   const statusOS = txt_(p.statusOS || p.status || '');
   const cond = txt_(p.condicaoOperacional || p.condicao || p.condicaoAtual);
@@ -1045,7 +1049,7 @@ function concluirOS_(p) {
   const u = usuario_(p);
   validarUsuarioAcaoCritica_(u, 'concluirOS');
   const loc = localizarOS_(p.idOS || p.numeroOS);
-  if (!podeAlterarOS_(u, loc.row)) throw new Error('Permissão bloqueada: usuário não pode concluir esta OS.');
+  if (!usuarioPodeExecutarOSGMAN_(u, loc.row)) throw new Error('Permissão bloqueada: somente o responsável executor oficial desta OS pode concluir.');
   if (statusEncerrado_(get_(loc.row,'statusOS'))) throw new Error('OS já encerrada.');
   validarTransicaoOS_(get_(loc.row,'statusOS') || 'Aberta', 'Concluída', 'concluirOS');
   const servico = txt_(p.servicoRealizado || p.servico);
@@ -1109,6 +1113,7 @@ function solicitarCancelamentoOS_(p) {
   validarUsuarioAcaoCritica_(u, 'solicitarCancelamentoOS');
   const loc = localizarOS_(p.idOS || p.numeroOS);
   if (!podeAlterarOS_(u, loc.row)) throw new Error('Permissão bloqueada para solicitar cancelamento desta OS.');
+  if (statusEncerrado_(get_(loc.row,'statusOS'))) throw new Error('OS encerrada não pode receber solicitação de cancelamento.');
   const motivo = txt_(p.motivo || p.justificativa);
   if (!motivo) throw new Error('Motivo é obrigatório.');
   setCampos_(loc.dados.sheet, loc.dados.headers, loc.row._row, { obsCancelamento:'SOLICITAÇÃO DE CANCELAMENTO por ' + u.nome + ': ' + motivo, versaoRegra:GMAN.VERSAO });
@@ -1120,6 +1125,7 @@ function solicitarRedistribuicaoOS_(p) {
   validarUsuarioAcaoCritica_(u, 'solicitarRedistribuicaoOS');
   const loc = localizarOS_(p.idOS || p.numeroOS);
   if (!podeAlterarOS_(u, loc.row)) throw new Error('Permissão bloqueada para solicitar redistribuição desta OS.');
+  if (statusEncerrado_(get_(loc.row,'statusOS'))) throw new Error('OS encerrada não pode receber solicitação de redistribuição.');
   const motivo = txt_(p.motivo || p.justificativa);
   if (!motivo) throw new Error('Motivo é obrigatório.');
   setCampos_(loc.dados.sheet, loc.dados.headers, loc.row._row, { solicitacaoRedistribuicao:'SOLICITAÇÃO por ' + u.nome + ': ' + motivo, versaoRegra:GMAN.VERSAO });
@@ -1762,7 +1768,7 @@ function TESTE_GMAN_00_LISTAR_TESTES_VISIVEIS() { return ['TESTE_GMAN_01_HEALTH'
 function TESTE_GMAN_01_HEALTH() { return health_(); }
 function TESTE_GMAN_02_DIAGNOSTICO_PROFUNDO() { return diagnosticoProfundo_(); }
 function TESTE_GMAN_03_SIMULAR_CICLO_REGRAS_FUNCIONAIS() { return { sucesso:true, simulacao:'OK', itens:['perfis administrador/supervisor/gerente equivalentes e validados no servidor','bloqueio duplicidade mesmo equipamento+responsável','conclusão exige condição final explícita e consolida concordância sem forçar Operando','histórico por perfil','patrimônio obrigatório/opcional','Sistema 500 legado normalizado para 300'], observacao:'Teste de leitura/simulação. Não altera a planilha.' }; }
-function TESTE_GMAN_04_AUDITAR_PERMISSOES() { return { sucesso:true, acessoTotal:GMAN.PERFIS_ACESSO_TOTAL, coordenacao:GMAN.PERFIS_COORDENACAO, usuariosOficiais:GMAN.USUARIOS_OFICIAIS, operacional:'somente OS sob responsabilidade e sem acesso a encerradas', coordenador:'atua por área', validacao:'perfil privilegiado não é aceito apenas por payload do navegador' }; }
+function TESTE_GMAN_04_AUDITAR_PERMISSOES() { return { sucesso:true, acessoTotal:GMAN.PERFIS_ACESSO_TOTAL, coordenacao:GMAN.PERFIS_COORDENACAO, usuariosOficiais:GMAN.USUARIOS_OFICIAIS, abridoresOS:GMAN.ABRIDORES_OS_OFICIAIS, executoresOS:GMAN.EXECUTORES_OS_OFICIAIS, regraOperacional:'Permissões de abertura e execução são por pessoa oficialmente autorizada. Área é informação operacional e não bloqueia abertura ou execução.', operacional:'somente OS sob responsabilidade e sem acesso a encerradas', validacao:'perfil privilegiado não é aceito apenas por payload do navegador' }; }
 
 function TESTE_GMAN_05_DIAGNOSTICO_CICLO_ATUAL() { return diagnosticoCicloAtual_(); }
 function TESTE_GMAN_06_LISTAR_ENDERECOS_ESTACOES() { return listarEnderecosEstacoes_(); }
