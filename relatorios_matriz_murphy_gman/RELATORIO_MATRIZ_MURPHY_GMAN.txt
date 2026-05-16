@@ -1,0 +1,67 @@
+RELATORIO - MATRIZ MURPHY GMAN
+
+Projeto: Sistema GMAN
+Ordem: 15.2
+Branch: visual/gman-referencia-fiel-15-1
+Commit base: 2b2466e - Replica referencia visual aprovada do GMAN
+
+1. Objetivo
+Auditar permissoes reais do GMAN em modo sandbox, sem criar OS real, cruzando usuarios cadastrados, perfis, OS, status e acoes sensiveis.
+
+2. Usuarios testados
+- PAULO JURANDIR | administrador | todos
+- RAFAEL SPIES | supervisor | todos
+- ROGÉRIO ALVES | gerente | todos
+- JEFERSON MACHADO | coordenador | eletrica
+- VALTEMIR OLMOS | coordenador | mecanica
+- MAURICIO DO CARMO | coordenador | eletrica
+- RODRIGO FORTES | lider | mecanica
+- LUCIANO CRUZ | lider | mecanica
+- RONALDO LEMOS | lider | mecanica
+- VALNEIR OLIVEIRA | lider | mecanica
+- ANTONIO CARLOS LEAL | lider | mecanica
+- RICARDO MATHIOLA | lider | mecanica
+- CARLOS ALBERTO | lider | eletrica
+- ANDRE MARQUES | lider | eletrica
+- ROQUE BECKER | lider | eletrica
+- SAULO LOCKMAN | lider | eletrica
+- SIDNEI ROCHA | lider | caldeiraria
+- GABRIEL STUMM | lider | usinagem
+
+3. Resumo por perfil
+- administrador: 1
+- supervisor: 1
+- gerente: 1
+- coordenador: 3
+- lider: 12
+
+4. Resultado geral
+- Total de cenarios: 324
+- Aprovados: 324
+- Reprovados: 0
+- Falhas criticas: 0
+
+5. Caso critico Ronaldo Lemos
+- Perfil cadastrado: lider / mecanica.
+- Abrir OS - botao visivel: não.
+- Abrir OS - funcao interna bloqueia: sim.
+- Resultado: bloqueado corretamente antes de gravar.
+- Apps Script tambem bloqueia usuario operacional na funcao criarOS_.
+
+6. Correcoes aplicadas
+- Criada regra central usuarioPodeAbrirOSGMAN: abertura permitida somente para administrador, supervisor, gerente e coordenador.
+- Botao Nova OS ocultado para perfis sem permissao de abertura.
+- abrirModalCriarOS e criarOSPeloModal bloqueiam antes de chamar a API.
+- iniciar, andamento, conclusao, cancelamento, solicitacoes, evidencias e patrimonio receberam trava funcional antes de gravar.
+- Apps Script criarOS_ passou a bloquear usuario operacional antes da gravacao.
+
+7. Preservacoes
+- Login nao alterado.
+- Visual alterado somente no necessario para ocultar botoes indevidos.
+- Nenhuma OS real criada.
+- Nenhum deploy executado.
+- Nenhuma publicacao executada.
+- Nenhum merge executado.
+
+8. Decisao final
+LIBERAR PARA MERGE

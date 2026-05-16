@@ -1772,7 +1772,7 @@
 
     <div class="main-actions">
       <button class="action-btn" onclick="abrirBuscaInteligenteGMAN()"><img class="gman-icon3d-sm" src="assets/gman-icons-3d/GMAN_ICONES_3D_INDIVIDUAIS/01_navegacao_acoes/qr_code.png" alt="">QR Code</button>
-      <button class="action-btn primary" onclick="abrirModalCriarOS()"><img class="gman-icon3d-sm" src="assets/gman-icons-3d/GMAN_ICONES_3D_INDIVIDUAIS/01_navegacao_acoes/nova_os.png" alt="">Nova OS</button>
+      <button class="action-btn primary" id="btnNovaOSRapidaGMAN" onclick="abrirModalCriarOS()"><img class="gman-icon3d-sm" src="assets/gman-icons-3d/GMAN_ICONES_3D_INDIVIDUAIS/01_navegacao_acoes/nova_os.png" alt="">Nova OS</button>
       <button class="action-btn" onclick="abrirNotificacoesGMAN()"><img class="gman-icon3d-sm" src="assets/gman-icons-3d/GMAN_ICONES_3D_INDIVIDUAIS/01_navegacao_acoes/alertas.png" alt="">Alertas</button>
       <button class="action-btn" onclick="abrirMenuMaisGMAN()"><img class="gman-icon3d-sm" src="assets/gman-icons-3d/GMAN_ICONES_3D_INDIVIDUAIS/01_navegacao_acoes/equipe.png" alt="">Equipe</button>
       <button class="action-btn" onclick="atualizarAgora()"><img class="gman-icon3d-sm" src="assets/gman-icons-3d/GMAN_ICONES_3D_INDIVIDUAIS/03_status_utilidades/ultima_atualizacao.png" alt="">Atualizar</button>
@@ -2216,11 +2216,11 @@ function applyFilters() {
 function mudarModoPainelOS(modo) { modoPainelOSAtual=modo; const t=document.getElementById('tituloPainelOS'); if(t) t.textContent=tituloPainelOS(modo); renderizarOS(ordensServicoCache); }
     async function recarregarPainelOS() { const c=document.getElementById('osConteudo'); if(c) c.innerHTML='<p style="color:#4a5568;">🔄 Carregando...</p>'; try{ ordensServicoCache=await listarOSOnline(); atualizarTotalizadoresOS(ordensServicoCache); renderizarOS(ordensServicoCache); }catch(e){ if(c) c.innerHTML='<p style="color:#e53e3e;font-weight:bold;">Erro ao carregar OS: '+escaparHTMLGMAN(e.message)+'</p>'; } }
 function iniciarOS(idOS) { abrirModalIniciarOS(idOS); }
-    function abrirModalIniciarOS(idOS) { const os=ordensServicoCache.find(o=>String(getCampo(o,['idOS','ID_OS','numeroOS','NUMERO_OS']))===String(idOS)); if(!os) return gmanDialogSistemaGMAN101('OS não localizada','Não localizei a OS '+idOS+' na lista carregada. Atualize a base e tente novamente.','alerta'); if(!usuarioPodeAlterarOS(os)) return gmanDialogSistemaGMAN101('Permissão bloqueada','O usuário '+(usuarioLogado?.nome||'')+' não tem permissão para alterar a OS '+idOS+'.','alerta'); const old=document.getElementById('iniciarOSModal'); if(old) old.remove(); const modal=document.createElement('div'); modal.id='iniciarOSModal'; modal.className='modal-overlay'; modal.innerHTML=`<div class="modal-panel" style="max-width:520px;"><h2 style="color:#1e3a5f;margin:0 0 12px;">Iniciar OS</h2><p class="small-help">Iniciar OS exige informar a condição operacional real. Status da OS e status operacional são separados.</p><label class="form-label">Condição operacional real</label><select id="iniciarCondicao" class="form-field"><option value="">Selecione</option><option>Operando</option><option>Em manutenção (operando)</option><option>Em manutenção (parado)</option><option>Parado</option><option>Aguardando material</option><option>Aguardando liberação</option><option>Em teste</option></select><label class="form-label">Justificativa obrigatória</label><textarea id="iniciarJustificativa" class="form-field" rows="4" placeholder="Informe o motivo/condição real no início da OS"></textarea><div style="display:flex;gap:10px;justify-content:flex-end;"><button onclick="fecharModalGMAN('iniciarOSModal')" style="padding:11px 14px;border:none;border-radius:10px;background:#718096;color:white;">Voltar</button><button onclick="confirmarInicioOS('${idOS}')" style="padding:11px 14px;border:none;border-radius:10px;background:#d69e2e;color:white;font-weight:bold;">Iniciar OS</button></div></div>`; document.body.appendChild(modal); }
-    async function confirmarInicioOS(idOS) { const condicao=document.getElementById('iniciarCondicao').value; const justificativa=document.getElementById('iniciarJustificativa').value.trim(); if(!condicao) return gmanDialogSistemaGMAN101('Condição obrigatória','Informe a condição operacional real da OS '+idOS+'.','alerta'); if(!justificativa) return gmanDialogSistemaGMAN101('Justificativa obrigatória','Escreva a justificativa real do início da OS '+idOS+'.','alerta'); try{ await apiPost({acao:'iniciarOS', idOS, usuario:usuarioLogado.nome, perfil:usuarioLogado.funcao, funcao:usuarioLogado.funcao, condicaoOperacional:condicao, justificativa, observacao:justificativa}); fecharModalSemAvisoGMAN856106('iniciarOSModal'); gmanDialogSistemaGMAN101('OS iniciada','OS '+idOS+' iniciada por '+usuarioLogado.nome+'. Condição: '+condicao+'. Registro do usuário: '+justificativa,'aviso'); }catch(e){gmanDialogSistemaGMAN101('Erro ao iniciar OS '+idOS,e.message,'erro');} }
+    function abrirModalIniciarOS(idOS) { const os=ordensServicoCache.find(o=>String(getCampo(o,['idOS','ID_OS','numeroOS','NUMERO_OS']))===String(idOS)); if(!os) return gmanDialogSistemaGMAN101('OS não localizada','Não localizei a OS '+idOS+' na lista carregada. Atualize a base e tente novamente.','alerta'); if(gmanBloquearAcaoSensivelGMAN152('iniciarOS', os)) return; const old=document.getElementById('iniciarOSModal'); if(old) old.remove(); const modal=document.createElement('div'); modal.id='iniciarOSModal'; modal.className='modal-overlay'; modal.innerHTML=`<div class="modal-panel" style="max-width:520px;"><h2 style="color:#1e3a5f;margin:0 0 12px;">Iniciar OS</h2><p class="small-help">Iniciar OS exige informar a condição operacional real. Status da OS e status operacional são separados.</p><label class="form-label">Condição operacional real</label><select id="iniciarCondicao" class="form-field"><option value="">Selecione</option><option>Operando</option><option>Em manutenção (operando)</option><option>Em manutenção (parado)</option><option>Parado</option><option>Aguardando material</option><option>Aguardando liberação</option><option>Em teste</option></select><label class="form-label">Justificativa obrigatória</label><textarea id="iniciarJustificativa" class="form-field" rows="4" placeholder="Informe o motivo/condição real no início da OS"></textarea><div style="display:flex;gap:10px;justify-content:flex-end;"><button onclick="fecharModalGMAN('iniciarOSModal')" style="padding:11px 14px;border:none;border-radius:10px;background:#718096;color:white;">Voltar</button><button onclick="confirmarInicioOS('${idOS}')" style="padding:11px 14px;border:none;border-radius:10px;background:#d69e2e;color:white;font-weight:bold;">Iniciar OS</button></div></div>`; document.body.appendChild(modal); }
+    async function confirmarInicioOS(idOS) { const os=gmanOSPorId856152(idOS); if(gmanBloquearAcaoSensivelGMAN152('iniciarOS', os)) return; const condicao=document.getElementById('iniciarCondicao').value; const justificativa=document.getElementById('iniciarJustificativa').value.trim(); if(!condicao) return gmanDialogSistemaGMAN101('Condição obrigatória','Informe a condição operacional real da OS '+idOS+'.','alerta'); if(!justificativa) return gmanDialogSistemaGMAN101('Justificativa obrigatória','Escreva a justificativa real do início da OS '+idOS+'.','alerta'); try{ await apiPost({acao:'iniciarOS', idOS, usuario:usuarioLogado.nome, perfil:usuarioLogado.funcao, funcao:usuarioLogado.funcao, condicaoOperacional:condicao, justificativa, observacao:justificativa}); fecharModalSemAvisoGMAN856106('iniciarOSModal'); gmanDialogSistemaGMAN101('OS iniciada','OS '+idOS+' iniciada por '+usuarioLogado.nome+'. Condição: '+condicao+'. Registro do usuário: '+justificativa,'aviso'); }catch(e){gmanDialogSistemaGMAN101('Erro ao iniciar OS '+idOS,e.message,'erro');} }
 
-    function abrirModalAndamentoOS(idOS) { const os=ordensServicoCache.find(o=>String(getCampo(o,['idOS','ID_OS','numeroOS','NUMERO_OS']))===String(idOS)); if(!os) return gmanDialogSistemaGMAN101('OS não localizada','Não localizei a OS '+idOS+' na lista carregada. Atualize a base e tente novamente.','alerta'); if(!usuarioPodeAlterarOS(os)) return gmanDialogSistemaGMAN101('Permissão bloqueada','O usuário '+(usuarioLogado?.nome||'')+' não tem permissão para alterar a OS '+idOS+'.','alerta'); const old=document.getElementById('andamentoOSModal'); if(old) old.remove(); const modal=document.createElement('div'); modal.id='andamentoOSModal'; modal.className='modal-overlay'; modal.innerHTML=`<div class="modal-panel" style="max-width:520px;"><h2 style="color:#1e3a5f;margin:0 0 12px;">Atualizar andamento da OS</h2><label class="form-label">Status da OS</label><select id="andamentoStatusOS" class="form-field"><option>Em andamento</option><option>Em execução</option><option>Aguardando material</option><option>Aguardando liberação</option><option>Em teste</option></select><label class="form-label">Condição operacional</label><select id="andamentoCondicao" class="form-field"><option>Em manutenção (operando)</option><option>Em manutenção (parado)</option><option>Parado</option><option>Aguardando material</option><option>Aguardando liberação</option><option>Em teste</option></select><label class="form-label">Justificativa obrigatória</label><textarea id="andamentoObs" class="form-field" rows="4"></textarea><div style="display:flex;gap:10px;justify-content:flex-end;"><button onclick="fecharModalGMAN('andamentoOSModal')" style="padding:11px 14px;border:none;border-radius:10px;background:#718096;color:white;">Voltar</button><button onclick="atualizarAndamentoOS('${idOS}')" style="padding:11px 14px;border:none;border-radius:10px;background:#3182ce;color:white;font-weight:bold;">Salvar andamento</button></div></div>`; document.body.appendChild(modal); }
-    async function atualizarAndamentoOS(idOS) { const statusOS=document.getElementById('andamentoStatusOS').value; const condicaoOperacional=document.getElementById('andamentoCondicao').value; const justificativa=document.getElementById('andamentoObs').value.trim(); if(!justificativa) return gmanDialogSistemaGMAN101('Justificativa obrigatória','Escreva a justificativa real do andamento da OS '+idOS+'.','alerta'); try{ await apiPost({acao:'atualizarAndamentoOS', idOS, usuario:usuarioLogado.nome, perfil:usuarioLogado.funcao, funcao:usuarioLogado.funcao, statusOS, condicaoOperacional, justificativa, observacao:justificativa}); fecharModalSemAvisoGMAN856106('andamentoOSModal'); gmanDialogSistemaGMAN101('Andamento registrado','OS '+idOS+' atualizada por '+usuarioLogado.nome+'. Status: '+statusOS+'. Condição: '+condicaoOperacional+'. Registro do usuário: '+justificativa,'aviso'); }catch(e){gmanDialogSistemaGMAN101('Erro ao atualizar OS '+idOS,e.message,'erro');} }
+    function abrirModalAndamentoOS(idOS) { const os=ordensServicoCache.find(o=>String(getCampo(o,['idOS','ID_OS','numeroOS','NUMERO_OS']))===String(idOS)); if(!os) return gmanDialogSistemaGMAN101('OS não localizada','Não localizei a OS '+idOS+' na lista carregada. Atualize a base e tente novamente.','alerta'); if(gmanBloquearAcaoSensivelGMAN152('atualizarAndamentoOS', os)) return; const old=document.getElementById('andamentoOSModal'); if(old) old.remove(); const modal=document.createElement('div'); modal.id='andamentoOSModal'; modal.className='modal-overlay'; modal.innerHTML=`<div class="modal-panel" style="max-width:520px;"><h2 style="color:#1e3a5f;margin:0 0 12px;">Atualizar andamento da OS</h2><label class="form-label">Status da OS</label><select id="andamentoStatusOS" class="form-field"><option>Em andamento</option><option>Em execução</option><option>Aguardando material</option><option>Aguardando liberação</option><option>Em teste</option></select><label class="form-label">Condição operacional</label><select id="andamentoCondicao" class="form-field"><option>Em manutenção (operando)</option><option>Em manutenção (parado)</option><option>Parado</option><option>Aguardando material</option><option>Aguardando liberação</option><option>Em teste</option></select><label class="form-label">Justificativa obrigatória</label><textarea id="andamentoObs" class="form-field" rows="4"></textarea><div style="display:flex;gap:10px;justify-content:flex-end;"><button onclick="fecharModalGMAN('andamentoOSModal')" style="padding:11px 14px;border:none;border-radius:10px;background:#718096;color:white;">Voltar</button><button onclick="atualizarAndamentoOS('${idOS}')" style="padding:11px 14px;border:none;border-radius:10px;background:#3182ce;color:white;font-weight:bold;">Salvar andamento</button></div></div>`; document.body.appendChild(modal); }
+    async function atualizarAndamentoOS(idOS) { const os=gmanOSPorId856152(idOS); if(gmanBloquearAcaoSensivelGMAN152('atualizarAndamentoOS', os)) return; const statusOS=document.getElementById('andamentoStatusOS').value; const condicaoOperacional=document.getElementById('andamentoCondicao').value; const justificativa=document.getElementById('andamentoObs').value.trim(); if(!justificativa) return gmanDialogSistemaGMAN101('Justificativa obrigatória','Escreva a justificativa real do andamento da OS '+idOS+'.','alerta'); try{ await apiPost({acao:'atualizarAndamentoOS', idOS, usuario:usuarioLogado.nome, perfil:usuarioLogado.funcao, funcao:usuarioLogado.funcao, statusOS, condicaoOperacional, justificativa, observacao:justificativa}); fecharModalSemAvisoGMAN856106('andamentoOSModal'); gmanDialogSistemaGMAN101('Andamento registrado','OS '+idOS+' atualizada por '+usuarioLogado.nome+'. Status: '+statusOS+'. Condição: '+condicaoOperacional+'. Registro do usuário: '+justificativa,'aviso'); }catch(e){gmanDialogSistemaGMAN101('Erro ao atualizar OS '+idOS,e.message,'erro');} }
 
     function toggleVeiculo() { const sem=document.getElementById('concluirSemUsoVeiculo')?.checked; const box=document.getElementById('camposVeiculo'); if(box) box.style.display=sem?'none':'block'; }
     function coletarPatrimonios(os) {
@@ -2240,9 +2240,9 @@ function iniciarOS(idOS) { abrirModalIniciarOS(idOS); }
     }
 
 
-    async function solicitarCancelamentoOS(idOS) { const motivo=await gmanSolicitarTextoGMAN101('Solicitar cancelamento','Motivo da solicitação de cancelamento','Descreva por que a OS deve ser cancelada.'); if(!motivo) return gmanDialogSistemaGMAN101('Motivo obrigatório','Escreva o motivo real da solicitação da OS '+idOS+'.','alerta'); try{ await apiPost({acao:'solicitarCancelamentoOS', idOS, usuario:usuarioLogado.nome, perfil:usuarioLogado.funcao, funcao:usuarioLogado.funcao, area:usuarioLogado.area, motivo}); gmanDialogSistemaGMAN101('Solicitação enviada','Solicitação de cancelamento da OS '+idOS+' enviada por '+usuarioLogado.nome+'. Motivo registrado: '+motivo,'aviso'); await recarregarPainelOS(); }catch(e){gmanDialogSistemaGMAN101('Erro ao solicitar cancelamento',e.message,'erro');} }
+    async function solicitarCancelamentoOS(idOS) { const os=gmanOSPorId856152(idOS); if(gmanBloquearAcaoSensivelGMAN152('solicitarCancelamentoOS', os)) return; const motivo=await gmanSolicitarTextoGMAN101('Solicitar cancelamento','Motivo da solicitação de cancelamento','Descreva por que a OS deve ser cancelada.'); if(!motivo) return gmanDialogSistemaGMAN101('Motivo obrigatório','Escreva o motivo real da solicitação da OS '+idOS+'.','alerta'); try{ await apiPost({acao:'solicitarCancelamentoOS', idOS, usuario:usuarioLogado.nome, perfil:usuarioLogado.funcao, funcao:usuarioLogado.funcao, area:usuarioLogado.area, motivo}); gmanDialogSistemaGMAN101('Solicitação enviada','Solicitação de cancelamento da OS '+idOS+' enviada por '+usuarioLogado.nome+'. Motivo registrado: '+motivo,'aviso'); await recarregarPainelOS(); }catch(e){gmanDialogSistemaGMAN101('Erro ao solicitar cancelamento',e.message,'erro');} }
     window.solicitarCancelamentoOS = solicitarCancelamentoOS;
-    async function solicitarRedistribuicaoOS(idOS) { const motivo=await gmanSolicitarTextoGMAN101('Solicitar redistribuição','Motivo da solicitação de redistribuição','Descreva por que a OS deve ser redistribuída.'); if(!motivo) return gmanDialogSistemaGMAN101('Motivo obrigatório','Escreva o motivo real da solicitação da OS '+idOS+'.','alerta'); try{ await apiPost({acao:'solicitarRedistribuicaoOS', idOS, usuario:usuarioLogado.nome, perfil:usuarioLogado.funcao, funcao:usuarioLogado.funcao, motivo}); gmanDialogSistemaGMAN101('Solicitação enviada','Solicitação de redistribuição da OS '+idOS+' enviada por '+usuarioLogado.nome+'. Motivo registrado: '+motivo,'aviso'); }catch(e){gmanDialogSistemaGMAN101('Erro ao solicitar redistribuição',e.message,'erro');} }
+    async function solicitarRedistribuicaoOS(idOS) { const os=gmanOSPorId856152(idOS); if(gmanBloquearAcaoSensivelGMAN152('solicitarRedistribuicaoOS', os)) return; const motivo=await gmanSolicitarTextoGMAN101('Solicitar redistribuição','Motivo da solicitação de redistribuição','Descreva por que a OS deve ser redistribuída.'); if(!motivo) return gmanDialogSistemaGMAN101('Motivo obrigatório','Escreva o motivo real da solicitação da OS '+idOS+'.','alerta'); try{ await apiPost({acao:'solicitarRedistribuicaoOS', idOS, usuario:usuarioLogado.nome, perfil:usuarioLogado.funcao, funcao:usuarioLogado.funcao, motivo}); gmanDialogSistemaGMAN101('Solicitação enviada','Solicitação de redistribuição da OS '+idOS+' enviada por '+usuarioLogado.nome+'. Motivo registrado: '+motivo,'aviso'); }catch(e){gmanDialogSistemaGMAN101('Erro ao solicitar redistribuição',e.message,'erro');} }
     async function anexarArquivoOS() { gmanDialogSistemaGMAN101('Evidência selecionada','A evidência foi selecionada para a OS aberta nesta tela. Ela será enviada somente junto da ação que você confirmar.','aviso'); }
 
     function usuarioEstaPreenchendoGMAN() { const ativo=document.activeElement; return !!document.querySelector('.modal-overlay') || (ativo && ['INPUT','TEXTAREA','SELECT'].includes(ativo.tagName)); }
@@ -2470,10 +2470,11 @@ function abrirFiltroAvancadoGMAN() {
 
     function abrirAcoesCardGMAN(id) {
       const eq=equipment.find(e=>e.id===id); if(!eq) return;
+      const podeAbrir=usuarioPodeAbrirOSGMAN();
       modalPremiumGMAN('acoesCardGMANModal', 'Ações do card', nomeGrupoVisualGMAN(eq.name),
         `<div class="gman-action-list">
           <button class="gman-action-row" onclick="fecharModalGMAN('acoesCardGMANModal'); openEquipment('${id}')"><span><strong>Abrir detalhes</strong><small>Abas Geral, OS, Patrimônio, Evidências e Histórico.</small></span><span class="gman-icon-circle">›</span></button>
-          <button class="gman-action-row" onclick="fecharModalGMAN('acoesCardGMANModal'); abrirModalCriarOS('${id}')"><span><strong>Iniciar / abrir OS</strong><small>Cria OS vinculada ao grupo, respeitando duplicidades.</small></span><span class="gman-icon-circle">＋</span></button>
+          ${podeAbrir?`<button class="gman-action-row" onclick="fecharModalGMAN('acoesCardGMANModal'); abrirModalCriarOS('${id}')"><span><strong>Iniciar / abrir OS</strong><small>Cria OS vinculada ao grupo, respeitando duplicidades.</small></span><span class="gman-icon-circle">＋</span></button>`:''}
           <button class="gman-action-row" onclick="fecharModalGMAN('acoesCardGMANModal'); abrirStatusViaOSGMAN('${id}')"><span><strong>Status via OS</strong><small>Alteração somente por OS vinculada e justificativa.</small></span><span class="gman-icon-circle">↻</span></button>
           <button class="gman-action-row" onclick="fecharModalGMAN('acoesCardGMANModal'); openEquipment('${id}'); setTimeout(()=>trocarTabGrupoGMAN('${id}','patrimonio'),80)"><span><strong>Ver patrimônio</strong><small>Componentes e ficha técnica do grupo.</small></span><span class="gman-icon-circle">▤</span></button>
           <button class="gman-action-row" onclick="fecharModalGMAN('acoesCardGMANModal'); openEquipment('${id}'); setTimeout(()=>trocarTabGrupoGMAN('${id}','historico'),80)"><span><strong>Histórico</strong><small>Timeline operacional e intervenções recentes.</small></span><span class="gman-icon-circle">⌁</span></button>
@@ -2483,11 +2484,12 @@ function abrirFiltroAvancadoGMAN() {
 
     function abrirStatusViaOSGMAN(id) {
       const eq=equipment.find(e=>e.id===id); if(!eq) return;
+      const podeAbrir=usuarioPodeAbrirOSGMAN();
       modalPremiumGMAN('alterarStatusGMANModal','Alterar status', `${nomeGrupoVisualGMAN(eq.name)} — status só com OS vinculada`,
         `<div class="gman-card-dark" style="margin-bottom:12px;"><span class="gman-status-pill ${eq.status==='ok'?'gman-pill-ok':eq.status==='down'?'gman-pill-red':'gman-pill-warn'}">Atual: ${labelStatusEquipamentoMaiusculo(eq.status,statusTextoEquipamentoGMAN(eq))}</span><p style="color:var(--gman-muted);margin-top:10px;line-height:1.45;">Regra obrigatória preservada: ninguém altera status definitivo do equipamento sem OS aberta/vinculada. Use este painel para abrir OS ou atualizar andamento da OS do grupo.</p></div>
         <div class="gman-form-grid"><div><label class="gman-field-label">Novo status pretendido</label><select class="gman-select"><option>Operando</option><option>Em manutenção (operando)</option><option>Em manutenção (parado)</option><option>Parado</option><option>Aguardando material</option><option>Em teste</option></select></div><div><label class="gman-field-label">Vínculo obrigatório</label><select class="gman-select"><option>OS aberta do grupo</option><option>Abrir nova OS</option><option>Atualizar andamento</option></select></div></div>
         <label class="gman-field-label" style="margin-top:12px;">Justificativa</label><textarea class="gman-textarea-dark" placeholder="Descreva a justificativa operacional. A gravação real ocorre dentro do fluxo de OS."></textarea>
-        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;"><button class="gman-btn gman-btn-muted" onclick="fecharModalGMAN('alterarStatusGMANModal')">Cancelar</button><button class="gman-btn" onclick="fecharModalGMAN('alterarStatusGMANModal'); abrirPainelOS('grupo:${id}')">Ver OS do grupo</button><button class="gman-btn" onclick="fecharModalGMAN('alterarStatusGMANModal'); abrirModalCriarOS('${id}')">Abrir OS</button></div>`, '720px');
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;"><button class="gman-btn gman-btn-muted" onclick="fecharModalGMAN('alterarStatusGMANModal')">Cancelar</button><button class="gman-btn" onclick="fecharModalGMAN('alterarStatusGMANModal'); abrirPainelOS('grupo:${id}')">Ver OS do grupo</button>${podeAbrir?`<button class="gman-btn" onclick="fecharModalGMAN('alterarStatusGMANModal'); abrirModalCriarOS('${id}')">Abrir OS</button>`:''}</div>`, '720px');
     }
 
     function buscarEquipamentoVisualGMAN(id) { return equipment.find(e=>String(e.id)===String(id)); }
@@ -2676,10 +2678,11 @@ function abrirFiltroAvancadoGMAN() {
 
     function openEquipment(id) {
       const eq=equipment.find(e=>e.id===id); if(!eq) return;
+      const podeAbrir=usuarioPodeAbrirOSGMAN();
       const statusClass = eq.status==='ok'?'gman-pill-ok':eq.status==='alert'?'gman-pill-warn':'gman-pill-red';
       const ult=buscarUltimaOSVisualGMAN(eq.id); const numeroOS=numeroOSVisualGMAN(getCampo(ult||{},['numeroOS','NUMERO_OS','idOS','ID_OS']));
       const tabHTML=`<div class="gman-tabs"><button class="gman-tab active" onclick="trocarTabGrupoGMAN('${eq.id}','geral',this)">Geral</button><button class="gman-tab" onclick="trocarTabGrupoGMAN('${eq.id}','os',this)">OS</button><button class="gman-tab" onclick="trocarTabGrupoGMAN('${eq.id}','patrimonio',this)">Patrimônio</button><button class="gman-tab" onclick="trocarTabGrupoGMAN('${eq.id}','evidencias',this)">Evidências</button><button class="gman-tab" onclick="trocarTabGrupoGMAN('${eq.id}','historico',this)">Histórico</button></div><div id="grupoTabConteudoGMAN"></div>`;
-      modalPremiumGMAN('qrModal', escaparHTMLGMAN(nomeGrupoVisualGMAN(eq.name)), `ID: ${escaparHTMLGMAN(eq.id)} | Sistema: ${escaparHTMLGMAN(eq.system.toLocaleUpperCase('pt-BR'))}`, `<div class="gman-card-dark" style="margin-bottom:10px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;"><button class="gman-status-pill ${statusClass}" onclick="abrirStatusViaOSGMAN('${eq.id}')">${labelStatusEquipamentoMaiusculo(eq.status,statusTextoEquipamentoGMAN(eq))}</button><span class="gman-kpi-meta">Última OS: ${escaparHTMLGMAN(numeroOS)}</span></div>${tabHTML}<div class="gman-card-actions"><button class="gman-btn" onclick="abrirPainelOS('grupo:${eq.id}')">Ver OS do grupo</button><button class="gman-btn" onclick="abrirModalCriarOS('${eq.id}')">Abrir OS deste equipamento</button><button class="gman-btn" onclick="abrirStatusViaOSGMAN('${eq.id}')">Status via OS</button><button class="gman-btn gman-btn-muted" onclick="abrirPainelCompletoGrupoGMAN('${eq.id}')">Painel completo</button></div>`, '760px');
+      modalPremiumGMAN('qrModal', escaparHTMLGMAN(nomeGrupoVisualGMAN(eq.name)), `ID: ${escaparHTMLGMAN(eq.id)} | Sistema: ${escaparHTMLGMAN(eq.system.toLocaleUpperCase('pt-BR'))}`, `<div class="gman-card-dark" style="margin-bottom:10px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;"><button class="gman-status-pill ${statusClass}" onclick="abrirStatusViaOSGMAN('${eq.id}')">${labelStatusEquipamentoMaiusculo(eq.status,statusTextoEquipamentoGMAN(eq))}</button><span class="gman-kpi-meta">Última OS: ${escaparHTMLGMAN(numeroOS)}</span></div>${tabHTML}<div class="gman-card-actions"><button class="gman-btn" onclick="abrirPainelOS('grupo:${eq.id}')">Ver OS do grupo</button>${podeAbrir?`<button class="gman-btn" onclick="abrirModalCriarOS('${eq.id}')">Abrir OS deste equipamento</button>`:''}<button class="gman-btn" onclick="abrirStatusViaOSGMAN('${eq.id}')">Status via OS</button><button class="gman-btn gman-btn-muted" onclick="abrirPainelCompletoGrupoGMAN('${eq.id}')">Painel completo</button></div>`, '760px');
       trocarTabGrupoGMAN(eq.id,'geral');
     }
 
@@ -2864,6 +2867,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
 
     function abrirModalCriarOS(idEquipamentoPreSelecionado='') {
       if(!usuarioLogado) return gmanDialogSistemaGMAN101('Login necessário','Entre com seu usuário para abrir uma OS vinculada ao grupo selecionado.','alerta');
+      if(gmanBloquearAcaoSensivelGMAN152('abrirOS')) return;
       const eq = equipment.find(e=>e.id===idEquipamentoPreSelecionado);
       if(!idEquipamentoPreSelecionado || !eq) {
         const opcoes = equipment.slice(0,80).map(e=>`<option value="${escaparHTMLGMAN(e.id)}">${escaparHTMLGMAN(e.id)} — ${escaparHTMLGMAN(nomeGrupoVisualGMAN(e.name))}</option>`).join('');
@@ -2886,6 +2890,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
     }
 
     async function criarOSPeloModal() {
+      if(gmanBloquearAcaoSensivelGMAN152('abrirOS')) return;
       const idEquipamento=document.getElementById('osEquipamento').value;
       const eq=equipment.find(e=>e.id===idEquipamento);
       const componentes=Array.from(document.querySelectorAll('.osComponenteSolicitado:checked')).map(x=>x.value);
@@ -2919,11 +2924,12 @@ function abrirPainelCompletoGrupoGMAN(id) {
 
     function abrirMenuFABGMAN() {
       const old=document.getElementById('fabGMANMenu'); if(old) old.remove();
+      const podeAbrir=usuarioPodeAbrirOSGMAN();
       const overlay=document.createElement('div'); overlay.id='fabGMANMenu'; overlay.className='gman-fab-overlay'; overlay.onclick=()=>overlay.remove();
       const sheet=document.createElement('div'); sheet.className='gman-fab-sheet'; sheet.onclick=e=>e.stopPropagation();
       sheet.innerHTML=`<div class="gman-fab-header"><div><div class="gman-fab-title">Ações rápidas</div><div style="color:var(--gman-muted);font-size:.72rem;margin-top:3px;">Atalhos operacionais do GMAN</div></div><button class="gman-btn gman-btn-muted" onclick="fecharModalGMAN('fabGMANMenu')">Fechar</button></div>
       <div class="gman-action-list">
-        <button class="gman-action-row" onclick="fecharModalGMAN('fabGMANMenu'); abrirModalCriarOS();"><span><strong>Nova OS</strong><small>Seleciona um grupo e abre o formulário completo de OS.</small></span><span class="gman-icon-circle">＋</span></button>
+        ${podeAbrir?`<button class="gman-action-row" onclick="fecharModalGMAN('fabGMANMenu'); abrirModalCriarOS();"><span><strong>Nova OS</strong><small>Seleciona um grupo e abre o formulário completo de OS.</small></span><span class="gman-icon-circle">＋</span></button>`:''}
         <button class="gman-action-row" onclick="fecharModalGMAN('fabGMANMenu'); abrirPainelOS('abertas');"><span><strong>OS abertas</strong><small>Consulta rápida das ordens ativas conforme perfil.</small></span><span class="gman-icon-circle">▣</span></button>
         <button class="gman-action-row" onclick="fecharModalGMAN('fabGMANMenu'); abrirFiltroAvancadoGMAN();"><span><strong>Status via OS</strong><small>Escolha o grupo e use OS vinculada/andamento para status.</small></span><span class="gman-icon-circle">↻</span></button>
         <button class="gman-action-row" onclick="fecharModalGMAN('fabGMANMenu'); gmanRecursoImplantacaoGMAN('Abrir câmera');"><span><strong>Abrir câmera</strong><small>Área preparada para foto tirada na hora.</small></span><span class="gman-icon-circle">▧</span></button>
@@ -3022,14 +3028,34 @@ function abrirPainelCompletoGrupoGMAN(id) {
       if(statusEncerrado(getCampo(os,['statusOS','STATUS_OS']))) return usuarioPodeVerEncerradasGMAN(os);
       return isAdministradorTotal() || coordenadorPodeAtuarOS85694(os) || osResponsavelUsuario(os) || normalizarTextoGMAN(getCampo(os,['criadoPor','ABERTO_POR','abertoPor']))===normalizarTextoGMAN(usuarioLogado?.nome||'');
     };
+    window.usuarioPodeAbrirOSGMAN = function() { return isAdministradorTotal() || isCoordenadorGMAN(); };
     window.usuarioPodeAlterarOS = function(os) { return isAdministradorTotal() || coordenadorPodeAtuarOS85694(os) || osResponsavelUsuario(os); };
     window.usuarioPodeEditarOS = window.usuarioPodeAlterarOS;
     window.usuarioPodeCancelarOS = function(os) { return isAdministradorTotal(); };
     window.areaPatrimonioOpcional = function(os) { const a=gmanAreaOS85694(os); return a.includes('instalacoes mecanicas') || a.includes('instalações mecanicas') || a.includes('instalacoes mecânicas') || a.includes('instalações mecânicas') || a.includes('usinagem') || a.includes('caldeiraria'); };
+    window.gmanOSPorId856152 = function(idOS) { return (ordensServicoCache||[]).find(o=>String(gmanIdOS85694(o))===String(idOS)); };
+    window.gmanBloquearAcaoSensivelGMAN152 = function(acao, os=null) {
+      const nome=usuarioLogado?.nome||'usuário logado';
+      let permitido=false;
+      if(acao==='abrirOS') permitido=usuarioPodeAbrirOSGMAN();
+      else if(['iniciarOS','atualizarAndamentoOS','concluirOS','anexarFoto','anexarAudio','editarPatrimonio','confirmarPatrimonio'].includes(acao)) permitido=!!os && usuarioPodeAlterarOS(os) && !statusEncerrado(getCampo(os,['statusOS','STATUS_OS']));
+      else if(acao==='cancelarOS') permitido=!!os && usuarioPodeCancelarOS(os) && !statusEncerrado(getCampo(os,['statusOS','STATUS_OS']));
+      else if(['solicitarCancelamentoOS','solicitarRedistribuicaoOS'].includes(acao)) permitido=!!os && usuarioPodeAlterarOS(os) && !usuarioPodeCancelarOS(os) && !statusEncerrado(getCampo(os,['statusOS','STATUS_OS']));
+      else if(acao==='alterarStatusOperacional') permitido=false;
+      else if(['redistribuirOS','responderSolicitacaoOS'].includes(acao)) permitido=isGestao() || isCoordenadorGMAN();
+      else if(acao==='verEncerradas') permitido=usuarioPodeVerEncerradasGMAN(os);
+      else if(acao==='hidraulica') permitido=!!usuarioLogado;
+      else if(acao==='administrativo') permitido=isGestao();
+      else if(acao==='telemetria') permitido=false;
+      if(permitido) return false;
+      gmanDialogSistemaGMAN101('Permissão bloqueada','A ação '+acao+' foi bloqueada para '+nome+' antes de qualquer gravação.','alerta');
+      return true;
+    };
 
     window.aplicarBotoesPermissao = function() {
       const superior = isAdministradorTotal();
       const gestao = isGestao();
+      ['btnNovaOSRapidaGMAN'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display=usuarioPodeAbrirOSGMAN()?'':'none'; });
       ['btnPainelKPI'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display=gestao?'':'none'; });
       ['btnOrdensNaoIniciadasHome','btnOrdensIniciadasHome'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display=gestao?'':'none'; });
       ['btnOrdensEncerradasHome'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display=gestao?'':'none'; });
@@ -3094,9 +3120,10 @@ function abrirPainelCompletoGrupoGMAN(id) {
     window.abrirModalConcluirOS = function(idOS) {
       const os=(ordensServicoCache||[]).find(o=>String(gmanIdOS85694(o))===String(idOS));
       if(!os) return gmanDialogSistemaGMAN101('OS não localizada','A OS solicitada não foi localizada no cache atual. Atualize a base oficial e tente novamente.','alerta');
-      if(!usuarioPodeAlterarOS(os)) return gmanDialogSistemaGMAN101('Permissão bloqueada','O usuário '+(usuarioLogado?.nome||'logado')+' não tem permissão para alterar esta OS.','alerta');
+      if(gmanBloquearAcaoSensivelGMAN152('concluirOS', os)) return;
       const old=document.getElementById('concluirOSModal'); if(old) old.remove();
       gmanEvidenciasCapturadas85694 = [];
+      gmanOSConclusaoAtual85694 = os;
       const numero=escaparHTMLGMAN(getCampo(os,['numeroOS','NUMERO_OS','idOS','ID_OS'])||idOS);
       const equipamento=escaparHTMLGMAN(getCampo(os,['equipamento','EQUIPAMENTO','idEquipamento','ID_EQUIPAMENTO'])||'—');
       const statusAtual=escaparHTMLGMAN(getCampo(os,['statusOS','STATUS_OS'])||'—');
@@ -3156,6 +3183,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
 
     window.concluirOS = async function(idOS) {
       const osAtual=(ordensServicoCache||[]).find(o=>String(gmanIdOS85694(o))===String(idOS));
+      if(gmanBloquearAcaoSensivelGMAN152('concluirOS', osAtual)) return;
       const stAtual=getCampo(osAtual||{},['statusOS','STATUS_OS']);
       if(osAtual && !statusIniciado(stAtual)) return gmanDialogSistemaGMAN101('Conclusão bloqueada','A OS '+idOS+' está com status '+(stAtual||'não informado')+'. Ela precisa estar em execução, andamento, teste ou aguardando antes de concluir.','alerta');
       const chave='concluirOS:'+idOS;
@@ -3187,6 +3215,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
       try {
       const os=(ordensServicoCache||[]).find(o=>String(gmanIdOS85694(o))===String(idOS));
       const direto=usuarioPodeCancelarOS(os||{});
+      if(gmanBloquearAcaoSensivelGMAN152(direto?'cancelarOS':'solicitarCancelamentoOS', os)) return;
       const motivo=await gmanSolicitarTextoGMAN101(direto?'Cancelar OS':'Solicitar cancelamento', direto?'Motivo do cancelamento':'Motivo da solicitação de cancelamento', direto?'Descreva o motivo do cancelamento.':'Descreva o motivo para a gestão avaliar.');
       if(!motivo) return gmanDialogSistemaGMAN101('Motivo obrigatório','Escreva o motivo real da ação na OS '+idOS+' antes de continuar.','alerta');
       try{
@@ -3279,6 +3308,12 @@ function abrirPainelCompletoGrupoGMAN(id) {
 
 
     let gmanEvidenciasCapturadas85694 = [];
+    let gmanOSConclusaoAtual85694 = null;
+    function gmanPodeRegistrarEvidenciaConclusao856152(acao){
+      const os=gmanOSConclusaoAtual85694;
+      if(!document.getElementById('concluirOSModal') || !os) return !gmanBloquearAcaoSensivelGMAN152(acao, null);
+      return !gmanBloquearAcaoSensivelGMAN152(acao, os);
+    }
     window.limparEvidenciasGMAN85694 = function(){
       gmanEvidenciasCapturadas85694=[];
       const st=document.getElementById('evidenciaStatusGMAN');
@@ -3299,6 +3334,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
       st.style.color=tipo==='erro'?'var(--gman-red)':tipo==='ok'?'var(--gman-green)':'var(--gman-muted)';
     }
     async function tirarFotoEvidenciaGMAN(indice){
+      if(!gmanPodeRegistrarEvidenciaConclusao856152('anexarFoto')) return;
       try{
         atualizarStatusEvidenciaGMAN856106('Abrindo câmera...');
         const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:false});
@@ -3314,6 +3350,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
       } catch(e){ atualizarStatusEvidenciaGMAN856106('Erro na câmera: '+e.message,'erro'); }
     }
     async function gravarAudioEvidenciaGMAN(){
+      if(!gmanPodeRegistrarEvidenciaConclusao856152('anexarAudio')) return;
       try{
         atualizarStatusEvidenciaGMAN856106('Abrindo gravador...');
         const stream=await navigator.mediaDevices.getUserMedia({audio:true, video:false});
@@ -3516,6 +3553,7 @@ function abrirPainelCompletoGrupoGMAN(id) {
       }catch(e){ gmanDialogSistemaGMAN101('Erro ao carregar solicitações',e.message,'erro'); }
     };
     window.responderSolicitacaoGMAN85696=async function(idOS,tipo,decisao){
+      if(gmanBloquearAcaoSensivelGMAN152('responderSolicitacaoOS')) return;
       const justificativa=await gmanSolicitarTextoGMAN101(decisao==='ACEITAR'?'Aceitar solicitação':'Negar solicitação', decisao==='ACEITAR'?'Justificativa do aceite':'Justificativa da negativa', 'Descreva a resposta da gestão.');
       if(!justificativa) return gmanDialogSistemaGMAN101('Justificativa obrigatória','A gestão precisa informar a justificativa da resposta.','alerta');
       let novoResponsavel='';

@@ -1,0 +1,26 @@
+{
+  "projeto": "Sistema GMAN",
+  "ordem": "15.2",
+  "branch": "visual/gman-referencia-fiel-15-1",
+  "commitBase": "2b2466e",
+  "usuariosTestados": 18,
+  "acoesTestadas": 18,
+  "totalCenarios": 324,
+  "aprovados": 324,
+  "reprovados": 0,
+  "falhasCriticas": 0,
+  "casoRonaldoLemos": {
+    "abrirOS": {
+      "botaoVisivel": "não",
+      "funcaoInternaBloqueia": "sim",
+      "resultado": "sim"
+    }
+  },
+  "evidenciasCodigo": {
+    "travaVisualNovaOS": true,
+    "travaFuncionalFront": true,
+    "travaServidorAbrirOS": true,
+    "ronaldoCadastrado": true
+  },
+  "decisaoFinal": "LIBERAR PARA MERGE"
+}
