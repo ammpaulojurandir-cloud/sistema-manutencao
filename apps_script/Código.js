@@ -977,8 +977,8 @@ function criarOS_(p) {
       const areaUsuario = areaCanon_(u.area);
       const areaOS = areaCanon_(area);
       if (areaUsuario && areaUsuario !== 'TODOS' && areaOS.indexOf(areaUsuario) < 0) throw new Error('Permissão bloqueada: coordenador só pode abrir OS na própria área.');
-    } else if (canon_(resp) !== canon_(u.nome)) {
-      throw new Error('Permissão bloqueada: usuário operacional só pode abrir OS em seu próprio nome.');
+    } else {
+      throw new Error('Permissão bloqueada: usuário operacional não pode abrir OS. Solicite abertura à gestão ou coordenação.');
     }
   }
   if (!area) throw new Error('Área/equipe é obrigatória.');
