@@ -1522,6 +1522,39 @@
       color:#dff8ff;
       border-color:rgba(53,208,127,.38);
     }
+    .systems-totals {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      margin:-2px 0 14px;
+      padding:8px 10px;
+      border-radius:16px;
+      background:rgba(5,18,32,.42);
+      border:1px solid rgba(110,193,255,.12);
+    }
+    .systems-total-chip {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      min-height:30px;
+      padding:6px 10px;
+      border-radius:999px;
+      color:#cfe8ff;
+      background:linear-gradient(145deg, rgba(14,39,63,.76), rgba(5,16,29,.88));
+      border:1px solid rgba(140,196,237,.18);
+      font-size:.72rem;
+      font-weight:900;
+      white-space:nowrap;
+    }
+    .systems-total-chip strong {
+      color:#fff;
+      font-size:.84rem;
+    }
+    .systems-total-chip[data-total-filter="reservatorios"] {
+      border-color:rgba(53,208,127,.30);
+      color:#ddfff0;
+    }
     .loading-note {
       margin:0 0 14px;
       text-align:left;
@@ -2183,6 +2216,7 @@
     <button class="system-btn" data-system-filter="reservatorios" onclick="abrirPainelReservatoriosGMAN104(event)">RESERVATÓRIOS</button>
     <button class="quick-view-btn" onclick="abrirVisualizacaoGMAN()" title="Alterar visualização">▦</button>
   </div>
+  <div class="systems-totals" id="systemsTotalsGMAN" aria-label="Totalizadores por filtro"></div>
   <div id="apiStatus" class="loading-note" onclick="abrirSincronizacaoDetalhesGMAN()" role="button" tabindex="0">Aguardando login.</div>
 
   <div class="equipment-list" id="equipmentList"></div>
@@ -2569,7 +2603,8 @@ function applyFilters() {
       const reservatorios=listaReservatoriosGMAN104();
       const labels={'all':'TODAS','100':'100 — MOINHOS DE VENTO','200':'200 — SÃO JOÃO','300':'300 — MENINO DEUS','400':'400 — BELÉM NOVO','600':'600 — ILHAS','700':'700 — TRISTEZA','brutas':'BRUTAS','reservatorios':'RESERVATÓRIOS'};
       const set=(id,n)=>{ const el=document.getElementById(id); if(el) el.textContent='('+n+')'; };
-      const setBtn=(filtro,n)=>{ const btn=document.querySelector(`.system-btn[data-system-filter="${filtro}"]`); if(btn) { btn.textContent=(labels[filtro]||filtro)+' — '+n; btn.title=(labels[filtro]||filtro)+' — '+n; } };
+      const totais={};
+      const setBtn=(filtro,n)=>{ const btn=document.querySelector(`.system-btn[data-system-filter="${filtro}"]`); totais[filtro]=n; if(btn) { btn.textContent=(labels[filtro]||filtro); btn.title=(labels[filtro]||filtro)+' — '+n; } };
       set('totalFiltroTodas', base.length);
       setBtn('all', base.length);
       ['100','200','300','400','600','700'].forEach(c=>set('totalFiltro'+c, base.filter(e=>String(e.systemCode||'')===c).length));
@@ -2578,6 +2613,11 @@ function applyFilters() {
       setBtn('brutas', base.filter(isEquipamentoBrutaGMAN).length);
       set('totalFiltroReservatorios', reservatorios.length);
       setBtn('reservatorios', reservatorios.length);
+      const barraTotais=document.getElementById('systemsTotalsGMAN');
+      if(barraTotais) {
+        const ordem=['all','brutas','100','200','300','400','600','700','reservatorios'];
+        barraTotais.innerHTML=ordem.map(f=>`<span class="systems-total-chip" data-total-filter="${f}">${escaparHTMLGMAN(labels[f]||f)} <strong>${Number(totais[f]||0)}</strong></span>`).join('');
+      }
       window.gmanTotalizadoresMapa856104 = {
         todas:base.length,
         brutas:base.filter(isEquipamentoBrutaGMAN).length,
