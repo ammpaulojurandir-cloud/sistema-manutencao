@@ -1,0 +1,36 @@
+ID,Item,Resultado,Evidencia
+1,git diff --check,Aprovado,Sem erro
+2,Validacao do JavaScript inline do index.html,Aprovado,node --check aprovado
+3,Login preservado,Aprovado,Pagina de login nao recebeu alteracao estrutural
+4,Tela principal carrega,Aprovado,Main visivel no navegador local
+5,Header segue referencia,Aprovado,Logo a esquerda titulo central icone 3D a direita
+6,Busca e acoes seguem referencia,Aprovado,Busca ampla e tiles 3D na mesma faixa
+7,KPIs seguem referencia,Aprovado,Cards fortes com icones grandes e numero em destaque
+8,Filtros funcionam,Aprovado,TODAS 100 200 300 400 600 700 BRUTAS testados
+9,Cards seguem disposicao da referencia,Aprovado,Status lateral icone grande dados centrais acoes e miniicones
+10,Icones viraram botoes visuais grandes,Aprovado,Quick actions KPIs cards e nav usam icones grandes
+11,Miniicones aparecem e sao clicaveis,Aprovado,147 miniicones encontrados no teste local
+12,OS abertas funciona,Aprovado,Modal de OS abriu e fechou
+13,Historico abre,Aprovado,Modal de historico abriu
+14,Patrimonio abre,Aprovado,Modal de patrimonio abriu
+15,Evidencias funciona,Aprovado,Modal de evidencias abriu
+16,Hidraulica abre,Aprovado,Consulta hidraulica abriu
+17,Hidraulica tem icones e cards clicaveis,Aprovado,Modal hidraulico com cards de resumo e relacoes
+18,Navegacao inferior funciona,Aprovado,Itens preservados com estilo reforcado
+19,Icones carregam,Aprovado,Assets locais em assets/gman-icons-3d usados
+20,Sem travamento,Aprovado,Navegacao local sem bloqueio
+21,Sem giro infinito,Aprovado,Tela principal carregou
+22,Sem erro critico no console,Aprovado,Nenhum erro critico observado no teste local
+23,Sem valor indefinido indevido,Aprovado,Nao observado no teste local
+24,Sem valor vazio tecnico indevido,Aprovado,Nao observado no teste local
+25,Sem numero invalido,Aprovado,Nao observado no teste local
+26,Sem alteracao em OS/status,Aprovado,Somente estrutura visual interna ajustada
+27,Sem criacao de OS real,Aprovado,Nenhuma acao real executada
+28,Sem deploy,Aprovado,Nenhum deploy executado
+29,Sem publicacao,Aprovado,Nenhuma publicacao executada
+30,Teste desktop,Aprovado,Navegador local validado em largura desktop
+31,Teste celular responsivo,Aprovado,CSS responsivo aplicado e estrutura compacta validada
+32,Simulador 500 OS,Aprovado,500 ciclos e 500 aprovados
+33,Sandbox pesado,Aprovado,500 OS simuladas 100 OS sandbox e 0 falhas criticas
+34,Logo GMAN preservado,Aprovado,Logo atual mantido
+35,Identidade interna controlada,Aprovado,Textos internos mantidos como Sistema GMAN

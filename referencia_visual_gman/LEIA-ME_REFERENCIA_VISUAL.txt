@@ -1,0 +1,25 @@
+REFERÊNCIA VISUAL OFICIAL — SISTEMA GMAN
+
+Esta imagem deve ser usada pelo Codex como gabarito estrutural visual.
+
+Regra principal:
+A referência não é inspiração livre.
+A referência é modelo obrigatório de disposição.
+
+O Codex deve replicar a estrutura visual:
+- topo com logo à esquerda, título central e ícone 3D grande à direita;
+- busca + ações rápidas na mesma faixa;
+- KPIs em cards fortes;
+- filtros compactos;
+- cards de equipamentos com ícone grande à esquerda, dados no centro, status/ações à direita;
+- miniícones clicáveis na base dos cards;
+- navegação inferior robusta;
+- modais como painéis premium.
+
+Adaptações obrigatórias:
+- manter o logo GMAN atual;
+- não mudar a página de login;
+- não usar DMAE dentro do app interno;
+- não usar Porto Alegre dentro do app interno;
+- usar apenas Sistema GMAN / GMAN / Sistema Gerenciador de Manutenção de Bombeamento e Reservação;
+- preservar toda a lógica funcional do sistema.

@@ -1,0 +1,86 @@
+RELATORIO - REPLICACAO DA REFERENCIA VISUAL GMAN
+
+Projeto: Sistema GMAN
+Ordem: 15.1
+Branch: visual/gman-referencia-fiel-15-1
+Commit base: 93fc02d - Migra visual GMAN para premium industrial 3D
+Referencia usada: referencia_visual_gman/REFERENCIA_VISUAL_GMAN_APROVADA.png
+
+1. Objetivo
+Reorganizar o app interno do Sistema GMAN para aproximar a disposicao da tela ao gabarito visual aprovado, preservando funcionamento, login, logo GMAN atual, regras de OS, status operacional, permissoes e consulta hidraulica somente leitura.
+
+2. Arquivos alterados
+- index.html
+
+3. Arquivos criados
+- referencia_visual_gman/REFERENCIA_VISUAL_GMAN_APROVADA.png
+- referencia_visual_gman/LEIA-ME_REFERENCIA_VISUAL.txt
+- relatorios_refinamento_visual_referencia_gman/RELATORIO_REPLICACAO_REFERENCIA_VISUAL_GMAN.txt
+- relatorios_refinamento_visual_referencia_gman/CHECKLIST_REPLICACAO_REFERENCIA_VISUAL_GMAN.csv
+- relatorios_refinamento_visual_referencia_gman/RESULTADO_TESTES_REPLICACAO_REFERENCIA_VISUAL_GMAN.json
+
+4. Componentes reorganizados
+- Header interno com logo GMAN atual a esquerda, titulo forte ao centro e icone 3D grande a direita.
+- Faixa de busca e acoes rapidas com busca ampla e tiles 3D para QR Code, Nova OS, Alertas, Equipe, Atualizar e Hidraulica.
+- KPIs em cards premium com icones grandes, numero forte, titulo e subtexto.
+- Filtros principais preservados e tratados como chips compactos com destaque de ativo.
+- Cards principais com barra lateral de status, icone 3D grande, conteudo central, status a direita, acoes e miniicones inferiores.
+- Modais tratados como paineis premium com cabecalho forte, icone grande, cards internos e botao de fechar destacado.
+- Modal de OS com estrutura visual mais forte, cards e estado vazio premium.
+- Consulta Hidraulica somente leitura reorganizada com cards, chips e icones 3D.
+- Navegacao inferior com icones maiores, ativo destacado e area de toque confortavel.
+
+5. Aderencia ao gabarito visual
+- O topo segue a estrutura logo, titulo central e icone 3D a direita.
+- A busca e as acoes rapidas foram colocadas na mesma faixa, com icones grandes como area principal dos botoes.
+- Os KPIs foram reorganizados como cards visuais fortes.
+- Os cards de equipamentos passaram a seguir a estrutura exigida: status lateral, icone grande, dados centrais, status e acoes a direita, miniicones na base.
+- Os modais ficaram com aparencia de painel industrial premium, em vez de janela simples.
+- A consulta hidraulica foi reorganizada para reduzir texto solto e usar cards clicaveis.
+- A bottom nav foi reforcada com icones maiores e melhor presenca visual.
+
+6. Preservacoes obrigatorias
+- Pagina de login preservada: sim.
+- Logo GMAN atual preservado: sim.
+- Identidade interna restrita ao Sistema GMAN: sim.
+- Regras de OS preservadas: sim.
+- Status operacional preservado: sim.
+- Permissoes preservadas: sim.
+- Consulta hidraulica continua somente leitura: sim.
+- Apps Script/API nao alterado: sim.
+- Dados oficiais nao alterados: sim.
+- Nenhuma OS real criada: sim.
+- Nenhum deploy ou publicacao: sim.
+
+7. Testes executados
+- git diff --check.
+- Validacao sintatica dos arquivos JS aplicaveis.
+- Extracao e validacao do JavaScript inline do index.html.
+- Simulador de 500 ciclos de OS.
+- Sandbox pesado com 500 OS simuladas e 100 OS sandbox.
+- Teste local no navegador: login, tela principal, filtros, reservatorios, ficha, historico, patrimonio, evidencias, OS abertas, consulta hidraulica e fechamento de modais.
+- Teste responsivo por estrutura CSS e validacao visual em largura compacta.
+
+8. Resultado dos testes
+- git diff --check: aprovado.
+- JavaScript inline do index.html: aprovado.
+- Simulador: 500 ciclos, 500 aprovados, 0 falhas.
+- Sandbox: 500 OS simuladas, 100 OS sandbox, 0 falhas criticas.
+- Login: preservado e funcional.
+- Filtros principais: funcionais.
+- Painel Reservatorios: funcional.
+- OS abertas: modal abre e fecha.
+- Historico: abre.
+- Patrimonio: abre.
+- Evidencias: abre.
+- Hidraulica: abre com cards e icones.
+- Navegacao inferior: preservada visualmente e funcional.
+
+9. Falhas encontradas e tratadas
+- O sandbox acusou divergencia de ordem dos botoes principais quando BRUTAS foi movido no HTML. Correcao aplicada: ordem funcional do HTML preservada para compatibilidade e ordem visual ajustada por CSS.
+- Apos a correcao, o sandbox voltou a 0 falhas.
+
+10. Decisao final
+LIBERAR PARA PUBLICACAO.
+
+Observacao: esta decisao significa que a branch esta pronta para revisao e etapa futura autorizada. Nao houve publicacao, deploy ou merge nesta ordem.

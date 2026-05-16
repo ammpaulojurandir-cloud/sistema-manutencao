@@ -1,0 +1,70 @@
+{
+  "projeto": "Sistema GMAN",
+  "ordem": "15.1",
+  "branch": "visual/gman-referencia-fiel-15-1",
+  "commitBase": "93fc02d",
+  "referencia": "referencia_visual_gman/REFERENCIA_VISUAL_GMAN_APROVADA.png",
+  "arquivosAlterados": [
+    "index.html"
+  ],
+  "arquivosCriados": [
+    "referencia_visual_gman/REFERENCIA_VISUAL_GMAN_APROVADA.png",
+    "referencia_visual_gman/LEIA-ME_REFERENCIA_VISUAL.txt",
+    "relatorios_refinamento_visual_referencia_gman/RELATORIO_REPLICACAO_REFERENCIA_VISUAL_GMAN.txt",
+    "relatorios_refinamento_visual_referencia_gman/CHECKLIST_REPLICACAO_REFERENCIA_VISUAL_GMAN.csv",
+    "relatorios_refinamento_visual_referencia_gman/RESULTADO_TESTES_REPLICACAO_REFERENCIA_VISUAL_GMAN.json"
+  ],
+  "testes": {
+    "gitDiffCheck": "aprovado",
+    "jsInlineIndex": "aprovado",
+    "nodeChecks": "aprovado",
+    "simulador500": {
+      "ciclos": 500,
+      "aprovados": 500,
+      "falhas": 0,
+      "risco": "BAIXO"
+    },
+    "sandboxPesado": {
+      "osSimuladas": 500,
+      "osSandbox": 100,
+      "falhasCriticas": 0,
+      "falhasPermissao": 0,
+      "falhasStatus": 0,
+      "falhasConcordancia": 0,
+      "falhasTotalizador": 0,
+      "falhasBotaoReservatorios": 0,
+      "falhasVoltarFechar": 0
+    },
+    "navegadorLocal": {
+      "loginPreservado": true,
+      "telaPrincipalCarrega": true,
+      "filtrosFuncionam": true,
+      "reservatoriosAbre": true,
+      "fichaAbre": true,
+      "historicoAbre": true,
+      "patrimonioAbre": true,
+      "evidenciasAbre": true,
+      "osAbertasAbre": true,
+      "hidraulicaAbre": true,
+      "modaisFecham": true,
+      "travamento": false,
+      "giroInfinito": false,
+      "erroCriticoConsole": false
+    }
+  },
+  "preservacao": {
+    "login": true,
+    "logoGMAN": true,
+    "identidadeInternaSistemaGMAN": true,
+    "osStatus": true,
+    "permissoes": true,
+    "appsScriptApi": true,
+    "dadosOficiais": true,
+    "osRealCriada": false,
+    "deploy": false,
+    "publicacao": false,
+    "merge": false
+  },
+  "falhasCriticas": 0,
+  "decisaoFinal": "LIBERAR PARA PUBLICACAO"
+}
